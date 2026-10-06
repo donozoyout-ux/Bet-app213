@@ -3,20 +3,26 @@ LiveBetML FastAPI Application
 
 Provides REST API endpoints for:
 - NowGoal odds fetching
-- SofaScore statistics retrieval
+- SofaScore statistics retrieval  
 - FlashScore live event monitoring
 - Model predictions
 """
 
 from __future__ import annotations
 
+import sys
+import os
+
+# Add the project root to path so we can import etl modules
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 
 # Import our modules
-from src.etl.nowgoal_scrape import fetch_nowgoal_odds, implied_probability
-from src.etl.sofascore_stats import get_sofascore_stats
-from src.etl.flashscore_live import watch_flashscore_match
+from etl.nowgoal_scrape import fetch_nowgoal_odds, implied_probability
+from etl.sofascore_stats import get_sofascore_stats
+from etl.flashscore_live import watch_flashscore_match
 
 app = FastAPI(title="LiveBetML API", version="1.0.0")
 
@@ -45,6 +51,3 @@ async def health():
 async def root():
     """Root endpoint."""
     return {"message": "LiveBetML API is running"}
-
-
-# Include routers from submodules would go here
