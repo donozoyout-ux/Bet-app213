@@ -1,4 +1,4 @@
-# requirements: playwright>=1.30, playwright-stealth, httpx, aiosqlite, pandas, pytest, pytest-asyncio, respx
+# requirements: playwright>=1.30, playwright-stealth, httpx, aiosqlite, pandas, pytest, pytest-asyncio, respx, gunicorn
 
 httpx>=0.24
 pandas
@@ -12,3 +12,4 @@ prefect[docker]
 playwright
 playwright-stealth
 aiohttp
+gunicorn
