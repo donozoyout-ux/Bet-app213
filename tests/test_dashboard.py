@@ -45,6 +45,11 @@ def test_stitch_panels_and_safe_empty_states_are_retained():
     for unsupported in ['AI İvmesi', 'AI Taktik', 'Topla Oynama', 'Tehlikeli Ataklar', 'Son Olaylar', 'Hakem:', 'Veri Kazıyıcı Kontrol Merkezi', 'Favoriler']:
         assert unsupported not in text
     assert '/dashboard.js' in source
+    assert {'production-api', 'production-db', 'production-count', 'production-job', 'matches-scroll'} <= parsed.ids
+    for unsupported in ['GitHub Keepalive Cron', 'Düşüş / Değer Artışı', 'Yükseliş / Risk', 'PRO notifications']:
+        assert unsupported not in text
+    assert '#league-sidebar {display:none;}' in source
+    assert '#dashboard-shell {padding-left:0;}' in source
     assert '\ufffd' not in source
 
 
@@ -55,8 +60,10 @@ def test_dashboard_token_is_not_persisted():
     assert 'SCRAPER_API_TOKEN' not in Path('src/api/dashboard.html').read_text(encoding='utf-8')
 
 
-def test_dashboard_executes_with_empty_unavailable_and_removed_controls():
+@pytest.mark.parametrize('scenario', ['empty','unavailable','missing-controls','populated','upcoming',
+    'books-fail','leagues-fail','seasons-fail','odds-fail','detail-fail','count-fail','status-fail','jobs-fail'])
+def test_dashboard_runtime(scenario):
     node = shutil.which('node')
     if not node:
         pytest.skip('Node.js unavailable; supplied in CI')
-    subprocess.run([node, 'tests/dashboard_runtime.cjs'], check=True, capture_output=True, text=True)
+    subprocess.run([node, 'tests/dashboard_runtime.cjs', scenario], check=True, capture_output=True, text=True)

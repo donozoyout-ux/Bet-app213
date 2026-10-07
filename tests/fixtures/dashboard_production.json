@@ -1,0 +1,235 @@
+{
+  "items": [
+    {
+      "id": 1,
+      "external_match_id": 2590898,
+      "league_id": 1,
+      "external_league_id": 36,
+      "league": "English Premier League",
+      "season": "2024-2025",
+      "round": 1,
+      "kickoff_at": "2024-08-16T19:00:00Z",
+      "home_team": "Manchester United",
+      "away_team": "Fulham",
+      "status": "finished",
+      "ht_home": 0,
+      "ht_away": 0,
+      "ft_home": 1,
+      "ft_away": 0,
+      "odds_complete": true,
+      "updated_at": "2026-10-07T19:34:01.637499Z",
+      "odds": [
+        {
+          "bookmaker": "Bet365",
+          "bookmaker_id": 2,
+          "market": "1x2",
+          "opening": {
+            "home": 1.62,
+            "draw": 4.0,
+            "away": 5.0
+          },
+          "latest": {
+            "home": 1.66,
+            "draw": 4.1,
+            "away": 5.0
+          },
+          "closing": {
+            "home": 1.66,
+            "draw": 4.1,
+            "away": 5.0
+          },
+          "format": "decimal",
+          "line_perspective": null,
+          "updated_at": "2026-10-07T19:34:01.388043Z"
+        },
+        {
+          "bookmaker": "Sbobet",
+          "bookmaker_id": 3,
+          "market": "1x2",
+          "opening": {
+            "home": 1.61,
+            "draw": 4.01,
+            "away": 4.32
+          },
+          "latest": {
+            "home": 1.68,
+            "draw": 4.09,
+            "away": 4.74
+          },
+          "closing": {
+            "home": 1.68,
+            "draw": 4.09,
+            "away": 4.74
+          },
+          "format": "decimal",
+          "line_perspective": null,
+          "updated_at": "2026-10-07T19:34:01.477480Z"
+        },
+        {
+          "bookmaker": "Crown",
+          "bookmaker_id": 1,
+          "market": "1x2",
+          "opening": {
+            "home": 1.53,
+            "draw": 4.85,
+            "away": 5.6
+          },
+          "latest": {
+            "home": 1.66,
+            "draw": 4.2,
+            "away": 4.9
+          },
+          "closing": {
+            "home": 1.66,
+            "draw": 4.2,
+            "away": 4.9
+          },
+          "format": "decimal",
+          "line_perspective": null,
+          "updated_at": "2026-10-07T19:34:01.623371Z"
+        },
+        {
+          "bookmaker": "Bet365",
+          "bookmaker_id": 2,
+          "market": "ah",
+          "opening": {
+            "line": -1.0,
+            "home": 2.05,
+            "away": 1.85
+          },
+          "latest": {
+            "line": -0.75,
+            "home": 1.85,
+            "away": 2.05
+          },
+          "closing": {
+            "line": -0.75,
+            "home": 1.85,
+            "away": 2.05
+          },
+          "format": "decimal",
+          "line_perspective": "home",
+          "updated_at": "2026-10-07T19:34:01.402486Z"
+        },
+        {
+          "bookmaker": "Sbobet",
+          "bookmaker_id": 3,
+          "market": "ah",
+          "opening": {
+            "line": -1.0,
+            "home": 2.11,
+            "away": 1.8
+          },
+          "latest": {
+            "line": -0.75,
+            "home": 1.89,
+            "away": 2.05
+          },
+          "closing": {
+            "line": -0.75,
+            "home": 1.89,
+            "away": 2.05
+          },
+          "format": "decimal",
+          "line_perspective": "home",
+          "updated_at": "2026-10-07T19:34:01.482487Z"
+        },
+        {
+          "bookmaker": "Crown",
+          "bookmaker_id": 1,
+          "market": "ah",
+          "opening": {
+            "line": -1.0,
+            "home": 1.83,
+            "away": 2.05
+          },
+          "latest": {
+            "line": -0.75,
+            "home": 1.86,
+            "away": 2.03
+          },
+          "closing": {
+            "line": -0.75,
+            "home": 1.86,
+            "away": 2.03
+          },
+          "format": "decimal",
+          "line_perspective": "home",
+          "updated_at": "2026-10-07T19:34:01.628709Z"
+        },
+        {
+          "bookmaker": "Bet365",
+          "bookmaker_id": 2,
+          "market": "ou",
+          "opening": {
+            "line": 3.25,
+            "over": 2.02,
+            "under": 1.88
+          },
+          "latest": {
+            "line": 3.0,
+            "over": 2.05,
+            "under": 1.85
+          },
+          "closing": {
+            "line": 3.0,
+            "over": 2.05,
+            "under": 1.85
+          },
+          "format": "decimal",
+          "line_perspective": null,
+          "updated_at": "2026-10-07T19:34:01.469765Z"
+        },
+        {
+          "bookmaker": "Sbobet",
+          "bookmaker_id": 3,
+          "market": "ou",
+          "opening": {
+            "line": 3.25,
+            "over": 2.03,
+            "under": 1.85
+          },
+          "latest": {
+            "line": 3.0,
+            "over": 2.04,
+            "under": 1.88
+          },
+          "closing": {
+            "line": 3.0,
+            "over": 2.04,
+            "under": 1.88
+          },
+          "format": "decimal",
+          "line_perspective": null,
+          "updated_at": "2026-10-07T19:34:01.555501Z"
+        },
+        {
+          "bookmaker": "Crown",
+          "bookmaker_id": 1,
+          "market": "ou",
+          "opening": {
+            "line": 3.25,
+            "over": 1.9,
+            "under": 1.96
+          },
+          "latest": {
+            "line": 3.0,
+            "over": 2.06,
+            "under": 1.83
+          },
+          "closing": {
+            "line": 3.0,
+            "over": 2.06,
+            "under": 1.83
+          },
+          "format": "decimal",
+          "line_perspective": null,
+          "updated_at": "2026-10-07T19:34:01.633342Z"
+        }
+      ]
+    }
+  ],
+  "total": 1,
+  "limit": 5,
+  "offset": 0
+}

@@ -146,6 +146,20 @@ matches use Opening → Closing, showing unavailable closing as a dash; schedule
 matches use Opening → latest prematch. In-play raw odds never become closing.
 Collection progress is a compact status message from `/api/scraper/status`.
 
+The dashboard shows independent API, database, match-count and latest-job status.
+Missing odds remain a dash; finished matches use closing and upcoming matches
+use current prematch values. Each bookmaker's values remain separate. Metadata,
+summary counts and match details tolerate independent failed requests; a failed
+odds request can display existing prices from the match response with a warning.
+Changing filters clears stale match details. Rows support Enter/Space selection
+and Ctrl+K focuses team search. On mobile, league selection remains in the filter
+row and the wide odds matrix scrolls horizontally within the page.
+
+Frontend runtime tests use recorded production match/odds responses in
+`tests/fixtures/dashboard_production.json` and `dashboard_upcoming.json` (raw
+provider payloads omitted). They exercise populated/empty results, filters,
+pagination, bookmaker changes, detail selection and each API failing separately.
+
 ## Render and daily scheduling
 
 `render.yaml` defines a Python 3.12.8 web service and managed PostgreSQL. Review
