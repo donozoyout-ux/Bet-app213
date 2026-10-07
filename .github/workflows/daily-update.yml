@@ -1,0 +1,28 @@
+name: Goaloo daily update
+on:
+  schedule:
+    - cron: "15 4 * * *"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: goaloo-daily-update
+  cancel-in-progress: false
+jobs:
+  enqueue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      BETAPP_URL: ${{ vars.BETAPP_URL }}
+      SCRAPER_API_TOKEN: ${{ secrets.SCRAPER_API_TOKEN }}
+    steps:
+      - name: Queue durable daily update on Render
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$SCRAPER_API_TOKEN"
+          curl --fail-with-body --silent --show-error --max-time 90 \
+            -H "Authorization: Bearer $SCRAPER_API_TOKEN" \
+            -H 'Content-Type: application/json' \
+            -d '{"league_id":36,"start_year":2024}' \
+            "${BETAPP_URL:-https://bet-app213.onrender.com}/api/scraper/update"

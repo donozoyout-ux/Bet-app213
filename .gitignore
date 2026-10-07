@@ -35,3 +35,12 @@ Desktop.ini
 # Dotfiles
 .env
 *.env*
+!.env.example
+*.db
+*.sqlite
+*.sqlite3
+.pytest_cache/
+.venv/
+*_probe.*
+*_js.txt
+odds_ajax.json

@@ -1,15 +1,8 @@
-# requirements: playwright>=1.30, playwright-stealth, httpx, aiosqlite, pandas, pytest, pytest-asyncio, respx, gunicorn
-
-httpx>=0.24
-pandas
-pydantic
-fastapi
-uvicorn[standard]
-sqlalchemy[asyncio]
-psycopg2-binary
-redis
-prefect[docker]
-playwright
-playwright-stealth
-aiohttp
-gunicorn
+fastapi>=0.115,<1
+uvicorn>=0.30,<1
+gunicorn>=23,<24
+httpx>=0.27,<1
+SQLAlchemy[asyncio]>=2.0.36,<2.1
+asyncpg>=0.30,<1
+pydantic>=2.9,<3
+python-dotenv>=1,<2

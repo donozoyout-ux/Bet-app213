@@ -1,63 +1,58 @@
-"""
-LiveBetML FastAPI application for Render.
-
-ETL modules are intentionally imported lazily so a corrupted scraper source
-cannot prevent the web service from booting.
-"""
-
-from __future__ import annotations
-
+"""BetApp213 HTTP application. Scraping is performed by the durable job worker."""
+from contextlib import asynccontextmanager
+import asyncio
+import logging
 from pathlib import Path
+from fastapi import FastAPI
+from fastapi.responses import FileResponse, JSONResponse
+from sqlalchemy.exc import SQLAlchemyError
+from src.config import settings
+from src.db import database
 
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logging.basicConfig(level=settings.log_level, format='%(asctime)s %(levelname)s %(name)s %(message)s')
+    async def initialize_and_work():
+        while not database.ready:
+            try:
+                await database.initialize()
+            except (SQLAlchemyError, OSError):
+                logging.getLogger(__name__).exception('Database unavailable; retrying while health remains available')
+                await asyncio.sleep(10)
+        if settings.worker_enabled:
+            from src.jobs.worker import work
+            await work()
+    # Do not make liveness/dashboard startup wait on a database connection timeout.
+    worker = asyncio.create_task(initialize_and_work()) if database.configured else None
+    yield
+    if worker:
+        worker.cancel()
+        try:
+            await worker
+        except asyncio.CancelledError:
+            pass
+    await database.close()
 
-app = FastAPI(title="LiveBetML API", version="1.0.2")
+app = FastAPI(title='BetApp213', version='2.0.0', lifespan=lifespan)
+# Gunicorn's module-only target resolves `application`; Uvicorn continues using :app.
+application = app
 
+@app.exception_handler(SQLAlchemyError)
+async def database_error(request, exc):
+    logging.getLogger(__name__).error('Database request failed', exc_info=exc)
+    return JSONResponse(status_code=503, content={'detail': 'Database unavailable. Check server configuration.'})
 
-@app.get("/health")
+@app.get('/health')
 async def health():
-    return {"status": "ok", "service": "livebetml"}
+    return {'status': 'ok', 'service': 'BetApp213'}
 
+@app.get('/', include_in_schema=False)
+async def dashboard():
+    return FileResponse(Path(__file__).with_name('dashboard.html'))
 
-@app.get("/", response_class=HTMLResponse)
-async def root():
-    dashboard = Path(__file__).with_name("dashboard.html")
-    return HTMLResponse(dashboard.read_text(encoding="utf-8"))
+@app.get('/dashboard.js', include_in_schema=False)
+async def dashboard_script():
+    return FileResponse(Path(__file__).with_name('dashboard.js'), media_type='application/javascript')
 
-
-@app.get("/diagnostics/source")
-async def source_diagnostics():
-    path = Path(__file__).resolve().parents[1] / "etl" / "nowgoal_clean.py"
-    data = path.read_bytes()
-    return {
-        "path": str(path),
-        "size": len(data),
-        "null_bytes": data.count(b"\x00"),
-        "starts_with": data[:40].hex(),
-    }
-
-
-@app.get("/odds/{event_id}")
-async def odds(event_id: int):
-    try:
-        from src.etl.nowgoal_clean import fetch_nowgoal_odds
-    except Exception as exc:
-        raise HTTPException(
-            status_code=500,
-            detail=f"NowGoal module import failed: {type(exc).__name__}: {exc}",
-        ) from exc
-    return await fetch_nowgoal_odds(event_id)
-
-
-@app.get("/sofascore/{match_id}")
-async def sofascore(match_id: int):
-    try:
-        from src.etl.sofascore_scrape import fetch_sofascore_stats
-    except Exception as exc:
-        raise HTTPException(
-            status_code=500,
-            detail=f"SofaScore module import failed: {type(exc).__name__}: {exc}",
-        ) from exc
-    df = await fetch_sofascore_stats([match_id])
-    return df.to_dict(orient="records")
+from src.api.routes import router
+app.include_router(router, prefix='/api')
