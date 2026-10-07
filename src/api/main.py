@@ -10,6 +10,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import HTMLResponse
 
 app = FastAPI(title="LiveBetML API", version="1.0.2")
 
@@ -19,9 +20,10 @@ async def health():
     return {"status": "ok", "service": "livebetml"}
 
 
-@app.get("/")
+@app.get("/", response_class=HTMLResponse)
 async def root():
-    return {"message": "LiveBetML API is running"}
+    dashboard = Path(__file__).with_name("dashboard.html")
+    return HTMLResponse(dashboard.read_text(encoding="utf-8"))
 
 
 @app.get("/diagnostics/source")
