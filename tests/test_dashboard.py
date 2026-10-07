@@ -1,5 +1,8 @@
 from html.parser import HTMLParser
 from pathlib import Path
+import subprocess
+import shutil
+import pytest
 
 
 class DashboardMarkup(HTMLParser):
@@ -50,3 +53,10 @@ def test_dashboard_token_is_not_persisted():
     assert 'localStorage' not in script and 'sessionStorage' not in script
     assert 'Bearer' not in script
     assert 'SCRAPER_API_TOKEN' not in Path('src/api/dashboard.html').read_text(encoding='utf-8')
+
+
+def test_dashboard_executes_with_empty_unavailable_and_removed_controls():
+    node = shutil.which('node')
+    if not node:
+        pytest.skip('Node.js unavailable; supplied in CI')
+    subprocess.run([node, 'tests/dashboard_runtime.cjs'], check=True, capture_output=True, text=True)

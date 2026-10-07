@@ -7,7 +7,7 @@ from sqlalchemy import select, text
 from sqlalchemy.schema import CreateSchema, DropSchema
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from src.db import Database
-from src.models import League, ScraperJob
+from src.models import League, ScraperJob, Bookmaker
 from src.jobs.storage import store_match, store_odds
 from src.scrapers.goaloo.matches import parse_matches
 from src.scrapers.goaloo.odds import parse_odds
@@ -22,6 +22,8 @@ async def test_postgres_init_storage_and_exclusive_worker_lock(monkeypatch):
         await db.initialize()
         await db.initialize()
         async with db.session() as session:
+            assert list(await session.scalars(select(Bookmaker.name).order_by(Bookmaker.external_id))) == ['Crown', 'Bet365', 'Sbobet']
+            assert len(list(await session.scalars(select(League).where(League.external_id==36)))) == 1
             league = await session.scalar(select(League).where(League.external_id==36))
             match = await store_match(session,league.id,'2024-2025',next(parse_matches(fixture('goaloo_league.json'),1)))
             await store_odds(session,match,parse_odds(fixture('goaloo_odds.json'),True),True)
