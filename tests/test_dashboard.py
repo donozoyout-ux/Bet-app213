@@ -36,9 +36,11 @@ def test_stitch_panels_and_safe_empty_states_are_retained():
         assert sample not in text
     assert 'Veri bekleniyor' in text and 'Henüz veri yok' in text
     comments = ' '.join(parsed.comments)
-    for panel in ['Big Scoreboard', 'Bookmaker Switcher Tabs', 'Asian Handicap', 'Asian Totals', 'Odds Sparkline', 'Live Match Statistics', 'Timeline of Events', 'Momentum Index', 'AI Insight', 'Service Status List', 'Action Buttons']:
+    for panel in ['Big Scoreboard', 'Bookmaker Switcher Tabs', 'Asian Handicap', 'Asian Totals', 'Service Status List']:
         assert panel in comments
-    assert {'league-nav', 'matches-body', 'match-detail', 'bookmaker-tabs', 'league-select', 'scraper-token', 'match-update-button', 'job-progress'} <= parsed.ids
+    assert {'league-nav', 'matches-body', 'match-detail', 'bookmaker-tabs', 'league-select', 'season-select', 'round-select', 'collection-progress'} <= parsed.ids
+    for unsupported in ['AI İvmesi', 'AI Taktik', 'Topla Oynama', 'Tehlikeli Ataklar', 'Son Olaylar', 'Hakem:', 'Veri Kazıyıcı Kontrol Merkezi', 'Favoriler']:
+        assert unsupported not in text
     assert '/dashboard.js' in source
     assert '\ufffd' not in source
 
@@ -46,5 +48,5 @@ def test_stitch_panels_and_safe_empty_states_are_retained():
 def test_dashboard_token_is_not_persisted():
     script = Path('src/api/dashboard.js').read_text(encoding='utf-8')
     assert 'localStorage' not in script and 'sessionStorage' not in script
-    assert 'Bearer ${token}' in script
+    assert 'Bearer' not in script
     assert 'SCRAPER_API_TOKEN' not in Path('src/api/dashboard.html').read_text(encoding='utf-8')

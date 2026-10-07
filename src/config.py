@@ -12,6 +12,7 @@ class Settings:
     log_level: str = os.getenv('LOG_LEVEL', 'INFO')
     scraper_token: str = os.getenv('SCRAPER_API_TOKEN', '')
     worker_enabled: bool = os.getenv('SCRAPER_WORKER_ENABLED', 'true').lower() == 'true'
+    auto_backfill_on_empty: bool = os.getenv('AUTO_BACKFILL_ON_EMPTY', 'true').lower() == 'true'
     request_interval: float = max(0.2, float(os.getenv('GOALOO_REQUEST_INTERVAL', '1')))
     request_timeout: float = max(1, float(os.getenv('GOALOO_TIMEOUT', '25')))
     retries: int = max(1, int(os.getenv('GOALOO_RETRIES', '3')))

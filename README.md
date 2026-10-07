@@ -49,9 +49,16 @@ are shown. Empty/unavailable panels show “Veri bekleniyor” or “Henüz veri
 - `APP_ENV`: `development` or `production`; production rejects SQLite.
 - `LOG_LEVEL`: Python log level, default INFO.
 - `SCRAPER_API_TOKEN`: required Bearer token for all collection POST routes.
-  If absent the controls are disabled. Dashboard password field keeps it in
-  memory only; no token is embedded in HTML or persisted to browser storage.
+  The public dashboard has no scraper controls or token input. This token is
+  for the authenticated scheduled workflow or administrative API calls only.
 - `SCRAPER_WORKER_ENABLED`: default true. With false, use CLI to consume jobs.
+- `AUTO_BACKFILL_ON_EMPTY`: default true. After PostgreSQL connects, startup
+  checks Premier League match count under the enqueue advisory lock. An empty
+  database gets one durable backfill from 2024. Existing matches or an existing
+  backfill prevent another job. Running/interrupted work resumes through the
+  worker; failed/partial jobs can be explicitly resumed using the CLI. The web
+  server remains responsive while initialization and collection run in the
+  background. SQLite never triggers automatic provider collection.
 - `GOALOO_REQUEST_INTERVAL`: minimum spacing in seconds (default 1, minimum .2).
 - `GOALOO_TIMEOUT`, `GOALOO_RETRIES`, `GOALOO_CONCURRENCY`: 25 seconds, 3 attempts,
   2 maximum concurrent HTTP requests by default. Match processing is sequential
@@ -89,7 +96,7 @@ again because their closing odds do not exist yet.
 
 Daily update refreshes the latest two seasons, which stores newly scheduled
 fixtures and result corrections throughout those seasons. It refreshes odds
-for matches within the previous 7 days through the next 2 days. Run it more
+for matches within the previous 7 days through the next 7 days. Run it more
 frequently if near-live collection is desired; dashboard polling only reads
 the database and does not trigger provider collection.
 
@@ -99,7 +106,8 @@ the database and does not trigger provider collection.
 - `GET /api/leagues`, `GET /api/leagues/{league_id}/seasons`
 - `GET /api/bookmakers`
 - `GET /api/matches`: `league` (internal ID or name), `season`, `round`, `date`
-  (UTC calendar day), `status`, `team`, `bookmaker`, `limit`, `offset`;
+  (calendar day in `display_timezone`, default Europe/Istanbul), `status`,
+  `team`, `bookmaker`, `limit`, `offset`, `view`;
   `include_odds=true` includes markets using batched queries.
 - `GET /api/matches/{match_id}`, `GET /api/matches/{match_id}/odds`
 - `GET /api/scraper/status`, `GET /api/scraper/jobs/{job_id}`
@@ -121,9 +129,22 @@ always comes from the provider's prematch value, never in-play. See
 
 The dashboard reads health every 30 seconds, matches every 25 seconds, and job
 progress every 4 seconds while a job is queued/running (30 seconds when idle).
-League, season, round, status and team controls filter the match table. The
-season/round selectors filter display; backfill always discovers all seasons
-from 2024. Bookmaker tabs show each company's separate markets.
+Its Tümü/Canlı/Bugün/Yaklaşan/Geçmiş tabs use server-side `view=all|live|today|
+upcoming|history` filters. Canlı includes all in-progress states, including
+half-time, extra time and penalties. Bugün includes every status in the Istanbul
+calendar day and sorts ascending. Yaklaşan includes only scheduled matches
+strictly after now, within 7 days, ascending; `upcoming_days` can extend this
+window, or `date` selects a later calendar day without the default window.
+Geçmiş includes finished matches, newest first, with total-count pagination.
+
+League, season, round, team and date selectors browse recorded history. Season
+responses include their recorded rounds. Only database leagues are shown;
+unsupported AI/statistics/event panels and public scraper controls are removed.
+All dates display in Europe/Istanbul and remain UTC in storage. Crown is the
+default, and bookmaker tabs select each company's separate prices. Finished
+matches use Opening → Closing, showing unavailable closing as a dash; scheduled
+matches use Opening → latest prematch. In-play raw odds never become closing.
+Collection progress is a compact status message from `/api/scraper/status`.
 
 ## Render and daily scheduling
 
@@ -136,7 +157,8 @@ The module-only Gunicorn target `src.api.main` resolves the exported
 `application` alias; Uvicorn's local target remains `src.api.main:app`.
 
 For the existing Render service configure `DATABASE_URL`, `APP_ENV=production`,
-and `SCRAPER_API_TOKEN`, then use the build/start commands from `render.yaml`.
+`AUTO_BACKFILL_ON_EMPTY=true`, `SCRAPER_WORKER_ENABLED=true` and
+`SCRAPER_API_TOKEN`, then use the build/start commands from `render.yaml`.
 No database credentials or Render deployment access are included in this repo.
 
 The daily GitHub workflow queues `/api/scraper/update` at 04:15 UTC (07:15

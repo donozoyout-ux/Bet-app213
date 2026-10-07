@@ -19,8 +19,12 @@ async def lifespan(app: FastAPI):
             except (SQLAlchemyError, OSError):
                 logging.getLogger(__name__).exception('Database unavailable; retrying while health remains available')
                 await asyncio.sleep(10)
+        from src.jobs.worker import work, enqueue_initial_backfill
+        try:
+            await enqueue_initial_backfill(database)
+        except (SQLAlchemyError, OSError):
+            logging.getLogger(__name__).exception('Automatic backfill enqueue failed; worker will retry')
         if settings.worker_enabled:
-            from src.jobs.worker import work
             await work()
     # Do not make liveness/dashboard startup wait on a database connection timeout.
     worker = asyncio.create_task(initialize_and_work()) if database.configured else None
@@ -53,6 +57,10 @@ async def dashboard():
 @app.get('/dashboard.js', include_in_schema=False)
 async def dashboard_script():
     return FileResponse(Path(__file__).with_name('dashboard.js'), media_type='application/javascript')
+
+@app.get('/dashboard-odds.js', include_in_schema=False)
+async def dashboard_odds_script():
+    return FileResponse(Path(__file__).with_name('dashboard-odds.js'), media_type='application/javascript')
 
 from src.api.routes import router
 app.include_router(router, prefix='/api')

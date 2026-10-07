@@ -4,6 +4,7 @@ import logging
 from datetime import timedelta, timezone
 from sqlalchemy import select, text, func, delete
 from src.config import settings
+from src.match_views import LIVE_STATUSES
 from src.db import database
 from src.models import League, Season, Match, Bookmaker, ScraperJob, JobItem, ScraperIssue, utcnow
 from src.scrapers.goaloo.client import GoalooClient, SourceError
@@ -23,7 +24,7 @@ def aware(value):
 
 
 def is_final(match):
-    return match.status == 'finished' or (match.status in {'live', 'half_time', 'extra_time', 'penalties'} and match.kickoff_at is not None and aware(match.kickoff_at) <= utcnow())
+    return match.status == 'finished' or (match.status in LIVE_STATUSES and match.kickoff_at is not None and aware(match.kickoff_at) <= utcnow())
 
 
 async def enqueue(kind, league_external_id=36, start_year=2024, match_id=None, resume_id=None):
@@ -55,6 +56,35 @@ async def enqueue(kind, league_external_id=36, start_year=2024, match_id=None, r
         await session.commit()
         return job
 
+
+async def enqueue_initial_backfill(db=None, enabled=None):
+    """Enqueue once on empty PostgreSQL, atomically under the enqueue lock."""
+    db = db or database
+    enabled = settings.auto_backfill_on_empty if enabled is None else enabled
+    if not enabled or not db.ready or db.engine.dialect.name != 'postgresql':
+        return None
+    async with db.session() as session:
+        await session.execute(text('SELECT pg_advisory_xact_lock(213003)'))
+        return await initial_backfill_job(session)
+
+
+async def initial_backfill_job(session):
+    """Caller owns the enqueue transaction lock; storage rules are independently testable."""
+    league = await session.scalar(select(League).where(League.external_id == 36))
+    if league is None:
+        return None
+    matches = await session.scalar(select(func.count(Match.id)).where(Match.league_id == league.id))
+    if matches:
+        return None
+    previous = await session.scalar(select(ScraperJob).where(ScraperJob.league_id == league.id, ScraperJob.kind == 'backfill').order_by(ScraperJob.id.desc()))
+    active = await session.scalar(select(ScraperJob).where(ScraperJob.league_id == league.id, ScraperJob.status.in_(['queued','running'])))
+    if previous or active:
+        return previous or active
+    job = ScraperJob(kind='backfill', league_id=league.id, start_year=2024)
+    session.add(job)
+    await session.commit()
+    log.info('[JOB] automatic empty-database backfill queued job_id=%s league=36', job.id)
+    return job
 
 async def discover(job_id, client):
     async with database.session() as session:
@@ -94,7 +124,7 @@ async def discover(job_id, client):
                         raise SourceError('League ID does not match request')
                     match = await store_match(session, league_id, season_name, data)
                     kickoff = aware(match.kickoff_at)
-                    recent = kickoff is not None and now - timedelta(days=7) <= kickoff <= now + timedelta(days=2)
+                    recent = kickoff is not None and now - timedelta(days=7) <= kickoff <= now + timedelta(days=7)
                     needs_odds = kind == 'backfill' and not (match.status == 'finished' and match.odds_complete)
                     needs_odds = needs_odds or (kind == 'update' and recent)
                     if needs_odds and match.status not in {'cancelled', 'postponed', 'abandoned', 'pending'}:
@@ -195,10 +225,14 @@ async def update_counts(session, job):
 
 
 async def work(once=False):
+    initialization_checked = False
     while True:
         try:
             if not database.ready:
                 await database.initialize()
+            if not initialization_checked:
+                await enqueue_initial_backfill(database)
+                initialization_checked = True
             async with database.engine.connect() as lock:
                 postgres = lock.dialect.name == 'postgresql'
                 acquired = not postgres or await lock.scalar(text('SELECT pg_try_advisory_lock(:id)'), {'id': LOCK_ID})
