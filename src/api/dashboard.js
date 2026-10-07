@@ -2,7 +2,7 @@
 (() => {
   'use strict';
   const $ = id => document.getElementById(id);
-  const state = {leagues: [], selected: null, bookmaker: 'Crown', status: '', offset: 0, total: 0, job: null, busy: false, generation: 0};
+  const state = {leagues: [], league: '', season: '', round: '', selected: null, bookmaker: 'Crown', status: '', offset: 0, total: 0, job: null, busy: false, generation: 0};
   const empty = 'Henüz veri yok';
   const number = n => n == null ? '—' : String(n);
   const score = (h, a) => h == null || a == null ? '—' : `${h} - ${a}`;
@@ -22,37 +22,24 @@
     const item = document.createElement('option'); item.value = value; item.textContent = text; select.append(item);
   }
   async function loadSeasons() {
-    const select = $('season-select'); select.replaceChildren(); option(select, '', 'Tüm sezonlar');
-    const league = $('league-select').value;
-    if (!league) return;
-    const rows = await api(`/api/leagues/${league}/seasons`);
-    rows.forEach(row => option(select, row.season_name, row.season_name));
-    // Rounds are discovered from recorded matches; no fictitious season choices.
-    const rounds = $('round-select'); rounds.replaceChildren(); option(rounds, '', 'Tüm haftalar');
-    let offset = 0; const found = new Set();
-    while (true) {
-      const page = await api(`/api/matches?league=${league}&limit=200&offset=${offset}`);
-      page.items.forEach(m => found.add(m.round)); offset += page.items.length;
-      if (!page.items.length || offset >= page.total) break;
-    }
-    [...found].sort((a,b) => a-b).forEach(n => option(rounds, n, `${n}. Hafta`));
+    state.season = '';
+    state.round = '';
   }
   async function loadLeagues() {
     state.leagues = await api('/api/leagues');
-    const select = $('league-select'); select.replaceChildren();
     const nav = $('league-nav');
     const books = await api('/api/bookmakers');
     document.querySelectorAll('[data-bookmaker]').forEach(button => button.disabled = !books.some(book => book.name === button.dataset.bookmaker));
     state.leagues.forEach(league => {
-      option(select, league.id, league.name);
       let button = [...nav.querySelectorAll('a')].find(link => link.textContent.includes('Premier League') && league.external_id === 36);
       if (!button) {
         button = document.createElement('button'); button.type='button';
         button.className='px-space-sm py-2 rounded-lg text-left hover:bg-surface-container';button.textContent=league.name;nav.append(button);
       }
       button.removeAttribute('aria-disabled');
-      button.onclick = async event => {event.preventDefault();select.value = league.id; state.offset = 0; await loadSeasons(); await loadMatches();};
+      button.onclick = async event => {event.preventDefault();state.league = String(league.id); state.offset = 0; await loadSeasons(); await loadMatches();};
     });
+    if (!state.league && state.leagues.length) state.league = String(state.leagues[0].id);
     await loadSeasons();
   }
   function cell(row, text) {
@@ -70,7 +57,7 @@
   async function loadMatches() {
     const generation = ++state.generation;
     const query = new URLSearchParams({limit: '50', offset: String(state.offset), include_odds: 'true'});
-    [['league', $('league-select').value], ['season', $('season-select').value], ['round', $('round-select').value], ['status', state.status === 'today' ? '' : state.status], ['team', document.querySelector('[data-team-search]').value]].forEach(([k,v]) => {if (v) query.set(k,v);});
+    [['league', state.league], ['season', state.season], ['round', state.round], ['status', state.status === 'today' ? '' : state.status], ['team', document.querySelector('[data-team-search]').value]].forEach(([k,v]) => {if (v) query.set(k,v);});
     if (state.status === 'today') query.set('date', new Date().toISOString().slice(0,10));
     try {
       const page = await api(`/api/matches?${query}`);
@@ -101,7 +88,7 @@
   function clearDetail() {
     write('detail-title', empty); write('detail-home-score', '—');write('detail-away-score','—');write('detail-home',empty);write('detail-away',empty);write('detail-ht', 'İY: —');
     for (const market of ['1x2','ah','ou']) {write(`odds-${market}-opening`,'—');write(`odds-${market}-latest`,'—');}
-    write('odds-updated','Veri bekleniyor');$('match-update-button').disabled=true;
+    write('odds-updated','Veri bekleniyor');
     write('detail-league', 'Veri bekleniyor'); write('detail-time', ''); write('detail-status', '');
   }
   async function selectMatch(id) {
@@ -123,7 +110,6 @@
         write(`odds-${odds.market}-latest`,`${format('latest')} / Kapanış: ${format('closing')}`);
       });
       write('odds-updated', rows.length ? date(rows[0].updated_at) : empty);
-      $('match-update-button').disabled=Boolean(state.job && ['queued','running'].includes(state.job.status));
       document.querySelectorAll('[data-bookmaker]').forEach(button => button.classList.toggle('bg-surface-container-lowest', button.dataset.bookmaker === state.bookmaker));
     } catch (error) {clearDetail(); write('detail-status', error.message);}
   }
@@ -147,13 +133,7 @@
   }
   function displayJob(job) {
     state.job = job;
-    write('job-status', job ? `İş #${job.id}: ${job.status}` : 'Henüz iş yok');
-    write('job-counts', job ? `${job.processed_matches}/${job.total_matches} • Hata: ${job.failed_matches}` : '');
-    write('job-error', job ? [job.current_league, job.current_season, job.current_round ? `${job.current_round}. Hafta` : '', job.last_error].filter(Boolean).join(' • ') : empty);
-    const done = job ? job.processed_matches + job.failed_matches : 0;
-    $('job-progress').style.width = `${job && job.total_matches ? Math.min(100,100*done/job.total_matches) : 0}%`;
     write('system-scraper', job ? job.status : 'Henüz iş yok');
-    ['update-button','backfill-button','match-update-button'].forEach(id => $(id).disabled = Boolean(job && ['queued','running'].includes(job.status)) || (id==='match-update-button' && !state.selected));
   }
   let jobTimer;
   async function pollJobs() {
@@ -161,24 +141,10 @@
     try {
       if (state.job && ['running','queued'].includes(state.job.status)) displayJob(await api(`/api/scraper/jobs/${state.job.id}`));
       else {const status = await api('/api/scraper/status'); displayJob(status.jobs[0] || null);}
-    } catch (error) {write('system-scraper', 'Veri bekleniyor'); write('job-error', error.message);}
+    } catch (error) {write('system-scraper', 'Veri bekleniyor');}
     jobTimer=setTimeout(pollJobs, state.job && ['running','queued'].includes(state.job.status) ? 4000 : 30000);
   }
-  async function submit(kind) {
-    const league = state.leagues.find(l => String(l.id) === $('league-select').value);
-    if (!league) {write('job-error', 'Lig verisi bekleniyor'); return;}
-    const token = $('scraper-token').value;
-    if (!token) {write('job-error', 'Kazıyıcı erişim anahtarını girin'); return;}
-    if (kind==='match' && !state.selected) return;
-    const path=kind==='match' ? `match/${state.selected}` : kind;
-    try {displayJob(await api(`/api/scraper/${path}`, {method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},body:JSON.stringify({league_id:league.external_id,start_year:2024})}));clearTimeout(jobTimer);jobTimer=setTimeout(pollJobs,4000);}
-    catch (error) {write('job-error', error.message);}
-  }
-  $('update-button').onclick = () => submit('update'); $('backfill-button').onclick = () => submit('backfill');
-  $('match-update-button').onclick=()=>submit('match');
   $('refresh-button').onclick = async () => {await health(); await loadMatches();};
-  $('league-select').onchange = async () => {state.offset = 0; await loadSeasons(); await loadMatches();};
-  ['season-select','round-select'].forEach(id => $(id).onchange = () => {state.offset = 0; loadMatches();});
   document.querySelectorAll('[data-status-filter]').forEach(button => button.onclick = () => {state.status=button.dataset.statusFilter; state.offset=0; loadMatches();});
   document.querySelectorAll('[data-bookmaker]').forEach(button => button.onclick = () => {state.bookmaker=button.dataset.bookmaker; loadMatches();});
   let searchTimer;
