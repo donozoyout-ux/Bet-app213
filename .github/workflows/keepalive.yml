@@ -1,0 +1,22 @@
+name: Keep Render Awake
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Ping Bet App
+        run: |
+          set -e
+          echo "Pinging https://bet-app213.onrender.com/health"
+          curl --fail --silent --show-error             --max-time 30             --retry 2             --retry-delay 5             https://bet-app213.onrender.com/health
+          echo
+          echo "Keepalive OK"
