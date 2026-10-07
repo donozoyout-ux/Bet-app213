@@ -148,13 +148,13 @@ Collection progress is a compact status message from `/api/scraper/status`.
 
 ## Render and daily scheduling
 
-`render.yaml` defines a Python 3.12 web service and managed PostgreSQL. Review
+`render.yaml` defines a Python 3.12.8 web service and managed PostgreSQL. Review
 Render's resource plan/billing choices before applying the blueprint. The start
 command binds `$PORT` and uses one gunicorn worker; the scraper runs as an async
 background task and all progress is durable in PostgreSQL. No browser binaries,
 Prefect, Docker, Redis or pandas are installed in production.
-The module-only Gunicorn target `src.api.main` resolves the exported
-`application` alias; Uvicorn's local target remains `src.api.main:app`.
+Render uses the explicit ASGI application target `src.api.main:app`. The
+`application` alias remains available for existing module-only deployments.
 
 For the existing Render service configure `DATABASE_URL`, `APP_ENV=production`,
 `AUTO_BACKFILL_ON_EMPTY=true`, `SCRAPER_WORKER_ENABLED=true` and
@@ -172,7 +172,35 @@ completion. The existing keepalive workflow is separate from collection.
 ```sh
 python -m compileall src legacy
 python -m pytest -q
+python scripts/smoke_test.py https://bet-app213.onrender.com
+python -m src.jobs.verify --goaloo
 ```
+
+The Render start command is:
+
+```sh
+gunicorn -k uvicorn.workers.UvicornWorker --workers 1 --timeout 60 -b 0.0.0.0:$PORT src.api.main:app
+```
+
+`scripts/smoke_test.py` checks HTTP assets, liveness and either connected or
+expected degraded database responses. `python -m src.jobs.verify` reads the
+configured database without creating schema or jobs, reports table/record counts
+and the latest job, and exits nonzero for missing/unreachable/incomplete databases.
+`--goaloo` additionally validates season discovery, one schedule and one odds
+endpoint with three real requests; it does not start a backfill. Run the CLI in
+Render's environment (or with an external test PostgreSQL URL) to verify production.
+No connection strings, tokens or job error messages are included in its output.
+
+`GET /api/diagnostics` returns non-secret configuration flags, database readiness,
+latest job status and counts; unknown counts are null, and database failure keeps
+the diagnostics/liveness HTTP service available. Database initialization and
+worker supervision run in the background with retries and full exception logs.
+
+CI uses Python 3.12.8 and real PostgreSQL. It launches the exact Render command
+from a different working directory with no database, an unreachable database,
+and a connected database. Gunicorn tests require Linux; Windows runs the other
+tests and can smoke-test Uvicorn locally. Node executes the dashboard against
+empty data, HTTP 503 and removed optional controls without browser dependencies.
 
 The suite uses saved actual Goaloo responses and mocked network calls. It tests
 startup without a database, idempotent initialization, schedule/results parsing,

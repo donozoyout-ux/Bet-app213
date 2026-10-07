@@ -83,7 +83,7 @@ async def initial_backfill_job(session):
     job = ScraperJob(kind='backfill', league_id=league.id, start_year=2024)
     session.add(job)
     await session.commit()
-    log.info('[JOB] automatic empty-database backfill queued job_id=%s league=36', job.id)
+    log.info('[BACKFILL] initial backfill queued job_id=%s league=36 start_year=2024', job.id)
     return job
 
 async def discover(job_id, client):
@@ -112,7 +112,7 @@ async def discover(job_id, client):
     for season_name in seasons:
         payload = await season_data(client, external_id, season_name)
         for round_number in discover_rounds(payload):
-            log.info('[SCRAPER] league=%s season=%s round=%s', external_id, season_name, round_number)
+            log.info('[GOALOO] league=%s season=%s round=%s', external_id, season_name, round_number)
             async with database.session() as session:
                 job = await session.get(ScraperJob, job_id)
                 job.current_season, job.current_round = season_name, round_number
@@ -145,6 +145,7 @@ async def discover(job_id, client):
 
 
 async def run_job(job_id):
+    log.info('[WORKER] job started id=%s', job_id)
     async with database.session() as session:
         job = await session.get(ScraperJob, job_id)
         job.status, job.started_at, job.finished_at = 'running', job.started_at or utcnow(), None
@@ -162,6 +163,7 @@ async def run_job(job_id):
             job.status = 'partial' if job.failed_matches else 'completed'
             job.finished_at = utcnow()
             await session.commit()
+            log.info('[WORKER] job completed id=%s status=%s processed=%s failed=%s', job.id, job.status, job.processed_matches, job.failed_matches)
     except asyncio.CancelledError:
         # Job stays running; the next lock-owning worker resumes persisted items.
         raise
@@ -257,6 +259,7 @@ async def work(once=False):
         except asyncio.CancelledError:
             raise
         except Exception:
+            database.ready = False
             log.exception('[WORKER] database unavailable; retrying')
             if once:
                 raise

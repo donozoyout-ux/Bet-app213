@@ -9,25 +9,38 @@ from sqlalchemy.exc import SQLAlchemyError
 from src.config import settings
 from src.db import database
 
+log = logging.getLogger(__name__)
+BACKGROUND_RETRY_SECONDS = 10
+
+
+async def supervise_database():
+    """Recover background failures without tying HTTP availability to PostgreSQL."""
+    from src.jobs.worker import work, enqueue_initial_backfill
+    while True:
+        try:
+            if not database.ready:
+                await database.initialize()
+            await enqueue_initial_backfill(database)
+            if settings.worker_enabled:
+                await work()
+            else:
+                # Also detect/recover a database outage when scraping is disabled.
+                async with database.engine.connect() as conn:
+                    from sqlalchemy import text
+                    await conn.execute(text('SELECT 1'))
+        except asyncio.CancelledError:
+            raise
+        except Exception:
+            database.ready = False
+            log.exception('[BACKGROUND] task failed; retrying while HTTP remains available')
+        await asyncio.sleep(BACKGROUND_RETRY_SECONDS)
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logging.basicConfig(level=settings.log_level, format='%(asctime)s %(levelname)s %(name)s %(message)s')
-    async def initialize_and_work():
-        while not database.ready:
-            try:
-                await database.initialize()
-            except (SQLAlchemyError, OSError):
-                logging.getLogger(__name__).exception('Database unavailable; retrying while health remains available')
-                await asyncio.sleep(10)
-        from src.jobs.worker import work, enqueue_initial_backfill
-        try:
-            await enqueue_initial_backfill(database)
-        except (SQLAlchemyError, OSError):
-            logging.getLogger(__name__).exception('Automatic backfill enqueue failed; worker will retry')
-        if settings.worker_enabled:
-            await work()
     # Do not make liveness/dashboard startup wait on a database connection timeout.
-    worker = asyncio.create_task(initialize_and_work()) if database.configured else None
+    worker = asyncio.create_task(supervise_database(), name='database-worker') if database.configured else None
+    log.info('[BOOT] FastAPI started database_configured=%s worker_enabled=%s', database.configured, settings.worker_enabled)
     yield
     if worker:
         worker.cancel()
@@ -52,15 +65,15 @@ async def health():
 
 @app.get('/', include_in_schema=False)
 async def dashboard():
-    return FileResponse(Path(__file__).with_name('dashboard.html'))
+    return FileResponse(Path(__file__).resolve().with_name('dashboard.html'))
 
 @app.get('/dashboard.js', include_in_schema=False)
 async def dashboard_script():
-    return FileResponse(Path(__file__).with_name('dashboard.js'), media_type='application/javascript')
+    return FileResponse(Path(__file__).resolve().with_name('dashboard.js'), media_type='application/javascript')
 
 @app.get('/dashboard-odds.js', include_in_schema=False)
 async def dashboard_odds_script():
-    return FileResponse(Path(__file__).with_name('dashboard-odds.js'), media_type='application/javascript')
+    return FileResponse(Path(__file__).resolve().with_name('dashboard-odds.js'), media_type='application/javascript')
 
 from src.api.routes import router
 app.include_router(router, prefix='/api')

@@ -16,10 +16,10 @@
     return response.json();
   }
   function option(select, value, text) {
-    const node = document.createElement('option'); node.value = value; node.textContent = text; select.append(node);
+    const node = document.createElement('option'); node.value = value; node.textContent = text; select?.append(node);
   }
   function fillRounds() {
-    const select = $('round-select'); select.replaceChildren(); option(select,'','Tüm haftalar');
+    const select = $('round-select'); if (!select) return; select.replaceChildren(); option(select,'','Tüm haftalar');
     const seasons = state.season ? state.seasons.filter(s => s.season_name === state.season) : state.seasons;
     const rounds = [...new Set(seasons.flatMap(s => s.rounds))].sort((a,b) => a-b);
     rounds.forEach(round => option(select,round,`${round}. Hafta`));
@@ -32,7 +32,7 @@
     const rows = await api(`/api/leagues/${league}/seasons`);
     if (state.league !== league) return;
     state.seasons = rows;
-    const select = $('season-select'); select.replaceChildren(); option(select,'','Tüm sezonlar');
+    const select = $('season-select'); if (!select) return; select.replaceChildren(); option(select,'','Tüm sezonlar');
     rows.forEach(row => option(select,row.season_name,row.season_name));
     if (!rows.some(row => row.season_name === state.season)) state.season = '';
     select.value = state.season; fillRounds();
@@ -41,19 +41,19 @@
     const [leagues, bookmakers] = await Promise.all([api('/api/leagues'),api('/api/bookmakers')]);
     state.leagues = leagues;
     document.querySelectorAll('[data-bookmaker]').forEach(button => button.disabled = !bookmakers.some(book => book.name === button.dataset.bookmaker));
-    const select = $('league-select'); select.replaceChildren();
-    const nav = $('league-nav'); nav.replaceChildren();
+    const select = $('league-select'); select?.replaceChildren();
+    const nav = $('league-nav'); nav?.replaceChildren();
     for (const league of leagues) {
       option(select,league.id,league.name);
       const button = document.createElement('button'); button.type='button'; button.className='px-space-sm py-2 rounded-lg text-left hover:bg-surface-container';button.textContent=league.name;
-      button.onclick=()=>changeLeague(String(league.id));nav.append(button);
+      button.onclick=()=>changeLeague(String(league.id));nav?.append(button);
     }
     if (!leagues.some(league => String(league.id) === state.league)) state.league = leagues.length ? String(leagues[0].id) : '';
-    select.value = state.league;
+    if (select) select.value = state.league;
     await loadSeasons();
   }
   async function changeLeague(league) {
-    state.league=league;state.season='';state.round='';state.offset=0;$('league-select').value=league;
+    state.league=league;state.season='';state.round='';state.offset=0;if ($('league-select')) $('league-select').value=league;
     try {await loadSeasons();await loadMatches();} catch (_) {write('matches-count','Veri bekleniyor');}
   }
   function cell(row, text) {
@@ -63,10 +63,10 @@
     (td.firstElementChild || td).textContent=text;return td;
   }
   function findMarket(match, key) {
-    return match.odds.find(odds => odds.bookmaker === state.bookmaker && odds.market === key);
+    return (match.odds || []).find(odds => odds.bookmaker === state.bookmaker && odds.market === key);
   }
   function renderMatch(match) {
-    const row=$('match-row-template').content.firstElementChild.cloneNode(true);
+    const row=$('match-row-template')?.content?.firstElementChild?.cloneNode(true) || document.createElement('tr');
     row.classList.toggle('bg-surface-container-low/60',state.selected === match.id);
     const live=liveStates.includes(match.status);
     cell(row, `${statuses[match.status] || match.status}${live ? '' : ' • '+date(match.kickoff_at)}`);
@@ -78,22 +78,22 @@
     row.onclick=()=>selectMatch(match.id);return row;
   }
   function emptyRows(text) {
-    const body=$('matches-body');body.replaceChildren();const row=document.createElement('tr');const td=cell(row,text);td.colSpan=9;body.append(row);
+    const body=$('matches-body');if (!body) return;body.replaceChildren();const row=document.createElement('tr');const td=cell(row,text);td.colSpan=9;body.append(row);
   }
   async function loadMatches() {
     const generation=++state.generation;
     const query=new URLSearchParams({view:state.view,display_timezone:displayTimezone,limit:'50',offset:String(state.offset),include_odds:'true'});
-    [['league',state.league],['season',state.season],['round',state.round],['date',$('date-select').value],['team',document.querySelector('[data-team-search]').value]].forEach(([key,value])=>{if(value)query.set(key,value);});
+    [['league',state.league],['season',state.season],['round',state.round],['date',($('date-select')?.value || '')],['team',(document.querySelector('[data-team-search]')?.value || '')]].forEach(([key,value])=>{if(value)query.set(key,value);});
     try {
       const page=await api(`/api/matches?${query}`);if(generation !== state.generation)return;
-      state.total=page.total;const body=$('matches-body');body.replaceChildren();page.items.forEach(match=>body.append(renderMatch(match)));
+      state.total=page.total;const body=$('matches-body');if (!body) return;body.replaceChildren();page.items.forEach(match=>body.append(renderMatch(match)));
       if (!page.items.length) emptyRows(empty);
       write('matches-count',`${page.total} maç • ${state.bookmaker} • Europe/Istanbul`);write('table-count',`${page.total} maç`);
-      $('previous-page').disabled=state.offset === 0;$('next-page').disabled=state.offset+50 >= page.total;
+      if ($('previous-page')) $('previous-page').disabled=state.offset === 0;if ($('next-page')) $('next-page').disabled=state.offset+50 >= page.total;
       if (state.selected) await selectMatch(state.selected);
     } catch (_) {
       if(generation !== state.generation)return;emptyRows('Veri bekleniyor');write('matches-count','Bağlantı bekleniyor');write('table-count','Veri bekleniyor');clearDetail();
-      $('previous-page').disabled=true;$('next-page').disabled=true;
+      if ($('previous-page')) $('previous-page').disabled=true;if ($('next-page')) $('next-page').disabled=true;
     }
   }
   function clearDetail() {
@@ -152,27 +152,27 @@
   }
   function updateViewButtons() {
     document.querySelectorAll('[data-view]').forEach(button=>{const active=button.dataset.view === state.view;button.classList.toggle('bg-primary',active);button.classList.toggle('text-on-primary',active);button.classList.toggle('bg-surface-container',!active);button.classList.toggle('text-on-surface-variant',!active);button.setAttribute('aria-pressed',String(active));});
-    $('date-select').disabled=state.view === 'today';
+    if ($('date-select')) $('date-select').disabled=state.view === 'today';
   }
   document.querySelectorAll('[data-view]').forEach(button=>button.onclick=()=>{
     state.view=button.dataset.view;state.offset=0;
     if(['live','today','upcoming'].includes(state.view)) {
-      state.season='';state.round='';$('season-select').value='';fillRounds();$('date-select').value='';
+      state.season='';state.round='';if ($('season-select')) $('season-select').value='';fillRounds();if ($('date-select')) $('date-select').value='';
     }
     updateViewButtons();loadMatches();
   });
   document.querySelectorAll('[data-bookmaker]').forEach(button=>button.onclick=()=>{state.bookmaker=button.dataset.bookmaker;loadMatches();});
-  $('league-select').onchange=()=>changeLeague($('league-select').value);
-  $('season-select').onchange=()=>{state.season=$('season-select').value;state.offset=0;fillRounds();loadMatches();};
-  $('round-select').onchange=()=>{state.round=$('round-select').value;state.offset=0;loadMatches();};
-  $('date-select').onchange=()=>{state.offset=0;loadMatches();};
-  $('refresh-button').onclick=async()=>{await health();await refresh();};
+  if ($('league-select')) $('league-select').onchange=()=>changeLeague($('league-select').value);
+  if ($('season-select')) $('season-select').onchange=()=>{state.season=$('season-select')?.value || '';state.offset=0;fillRounds();loadMatches();};
+  if ($('round-select')) $('round-select').onchange=()=>{state.round=$('round-select')?.value || '';state.offset=0;loadMatches();};
+  if ($('date-select')) $('date-select').onchange=()=>{state.offset=0;loadMatches();};
+  if ($('refresh-button')) $('refresh-button').onclick=async()=>{await health();await refresh();};
   let searchTimer;
   document.querySelectorAll('[data-team-search]').forEach(input=>input.oninput=()=>{document.querySelectorAll('[data-team-search]').forEach(other=>{if(other !== input)other.value=input.value;});clearTimeout(searchTimer);searchTimer=setTimeout(()=>{state.offset=0;loadMatches();},350);});
-  $('previous-page').onclick=()=>{state.offset=Math.max(0,state.offset-50);loadMatches();};$('next-page').onclick=()=>{state.offset+=50;loadMatches();};
+  if ($('previous-page')) $('previous-page').onclick=()=>{state.offset=Math.max(0,state.offset-50);loadMatches();};if ($('next-page')) $('next-page').onclick=()=>{state.offset+=50;loadMatches();};
   async function refresh() {
     if(state.busy)return;state.busy=true;
-    try {if(!state.leagues.length)await loadLeagues();await loadMatches();}catch(_){write('matches-count','Bağlantı bekleniyor');}finally{state.busy=false;}
+    try {if(!state.leagues.length)await loadLeagues();await loadMatches();}catch(_){emptyRows('Veri bekleniyor');write('matches-count','Bağlantı bekleniyor');if ($('previous-page')) $('previous-page').disabled=true;if ($('next-page')) $('next-page').disabled=true;}finally{state.busy=false;}
   }
   updateViewButtons();health();refresh();pollJobs();setInterval(health,30000);setInterval(refresh,25000);
 })();

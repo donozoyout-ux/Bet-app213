@@ -2,6 +2,8 @@ from datetime import date as Date, datetime, timezone, timedelta
 from typing import Literal
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 import hmac
+import asyncio
+import logging
 from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from sqlalchemy import select, func, or_, text
 from sqlalchemy.orm import aliased
@@ -12,8 +14,25 @@ from src.jobs.worker import enqueue, aware
 from src.models import utcnow
 from src.match_views import LIVE_STATUSES, DISPLAY_TIMEZONE, day_bounds
 from .schemas import LeagueResponse, SeasonResponse, BookmakerResponse, MatchPage, MatchDetail, OddsResponse, JobResponse, JobRequest, StatusResponse, ScraperStatus
+from src.diagnostics import database_summary
 
 router = APIRouter()
+
+
+@router.get('/diagnostics')
+async def diagnostics():
+    result = {'app': 'ok', 'database_configured': database.configured,
+              'database_connected': False, 'worker_enabled': settings.worker_enabled,
+              'auto_backfill_enabled': settings.auto_backfill_on_empty,
+              'latest_job_status': None, 'total_matches': None, 'total_odds': None}
+    if database.configured and database.ready:
+        try:
+            summary = await asyncio.wait_for(database_summary(database), timeout=5)
+            result.update({key: summary[key] for key in ('latest_job_status', 'total_matches', 'total_odds')})
+            result['database_connected'] = True
+        except Exception:
+            logging.getLogger(__name__).exception('[DB] diagnostics unavailable')
+    return result
 
 
 async def session_dependency():

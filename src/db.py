@@ -1,8 +1,11 @@
 from contextlib import asynccontextmanager
+import logging
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from src.config import settings
 from src.models import Base, League, Bookmaker
+
+log = logging.getLogger(__name__)
 
 
 class Database:
@@ -25,6 +28,7 @@ class Database:
         if not self.engine:
             return
         async with self.engine.begin() as conn:
+            log.info('[DB] connection established')
             if conn.dialect.name == 'postgresql':
                 await conn.execute(text('SELECT pg_advisory_xact_lock(213001)'))
             await conn.run_sync(Base.metadata.create_all)
@@ -34,6 +38,7 @@ class Database:
                 if not (await conn.execute(select(Bookmaker.id).where(Bookmaker.name == name))).first():
                     await conn.execute(Bookmaker.__table__.insert().values(name=name, external_id=external_id))
         self.ready = True
+        log.info('[DB] schema initialized and seeds verified')
 
     @asynccontextmanager
     async def session(self):
