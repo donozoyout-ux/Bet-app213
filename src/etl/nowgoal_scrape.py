@@ -1,10 +1,9 @@
 """
-Scrapes odds from a NowGoal match page using Playwright (headless Chromium) and
-returns a flat dictionary with normalized odds, implied probabilities and
-bookmaker margin.
+Scrapes odds from a NowGoal match page using Playwright and returns normalized
+odds data with implied probabilities and bookmaker margin.
 
-The page renders its data via JavaScript, so Playwright + playwright‑stealth is
-required to avoid bot detection.
+This file is intentionally stored as plain UTF-8 text. Rewriting it removes
+any embedded NUL bytes that can make Python fail during module import.
 """
 
 from __future__ import annotations
@@ -17,10 +16,8 @@ import time
 from typing import Dict, Optional
 
 import aiosqlite
-import httpx
 from playwright.async_api import async_playwright
 from playwright_stealth import Stealth
-
 
 CACHE_DB = "nowgoal_cache.sqlite"
 
@@ -31,15 +28,9 @@ _USER_AGENTS = [
     "(KHTML, like Gecko) Version/16.6 Safari/605.1.15",
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 "
-    "(KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1",
-    "Mozilla/5.0 (iPad; CPU OS 16_6 like Mac OS X) AppleWebKit/605.1.15 "
-    "(KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1",
 ]
 
-
 async def _init_cache() -> None:
-    """Initialize the SQLite cache DB if it does not exist."""
     async with aiosqlite.connect(CACHE_DB) as db:
         await db.execute(
             """CREATE TABLE IF NOT EXISTS cache (
@@ -50,33 +41,27 @@ async def _init_cache() -> None:
         )
         await db.commit()
 
-
 def implied_probability(odds: Optional[float]) -> float:
-    """Convert odds to implied probability safely."""
     if odds is None or odds == 0:
         return 0.0
     return 1.0 / odds
 
-
 def _extract_json(html: str) -> Dict:
-    """Find the <script id="__NEXT_DATA__"> tag and parse JSON."""
     pattern = r'<script[^>]*id="__NEXT_DATA__"[^>]*>(.*?)</script>'
     match = re.search(pattern, html, re.S)
-    if match:
-        return json.loads(match.group(1))
-    raise ValueError("Unable to locate __NEXT_DATA__ script")
-
+    if not match:
+        raise ValueError("Unable to locate __NEXT_DATA__ script")
+    return json.loads(match.group(1))
 
 def _normalize(payload: Dict, event_id: int) -> Dict:
-    """Convert raw JSON from __NEXT_DATA__ into the final flat dict."""
     try:
         odds = payload["props"]["pageProps"]["match"]["odds"]
-    except (KeyError, TypeError):
-        raise ValueError(f"Odds block missing for event {event_id}")
+    except (KeyError, TypeError) as exc:
+        raise ValueError(f"Odds block missing for event {event_id}") from exc
 
-    def to_float(v):
+    def to_float(value):
         try:
-            return float(v) if v is not None else None
+            return float(value) if value is not None else None
         except (ValueError, TypeError):
             return None
 
@@ -91,66 +76,13 @@ def _normalize(payload: Dict, event_id: int) -> Dict:
         "odds_handicap_away": to_float(odds.get("handicap_away")),
     }
 
-    for k in ["odds_home", "odds_draw", "odds_away"]:
-        kp = k.replace("odds_", "imp_")
-        result[kp] = implied_probability(result[k])
+    for key in ("odds_home", "odds_draw", "odds_away"):
+        result[key.replace("odds_", "imp_")] = implied_probability(result[key])
 
     result["margin"] = 1.0 - sum(
-        result.get(p) for p in ["imp_home", "imp_draw", "imp_away"]
+        result.get(key, 0.0) for key in ("imp_home", "imp_draw", "imp_away")
     )
     return result
-
-
-class FakeAsyncPlaywright:
-    """Mock for async_playwright() that works as an async context manager."""
-
-    async def __aenter__(self):
-        return self
-
-    async def __aexit__(self, *args):
-        pass
-
-    @property
-    def chromium(self):
-        class _Browser:
-            async def launch(self, headless=True):
-                pass
-
-        return _Browser()
-
-
-class FakePage:
-    """Mock Playwright Page."""
-    async def __aenter__(self):
-        return self
-
-    async def __aexit__(self, *a):
-        pass
-
-    async def goto(self, *a, **kw):
-        pass
-
-    async def content(self):
-        return (
-            "<html><script id=\"__NEXT_DATA__\">"
-            '{"props":{"pageProps":{"match":{"odds":{"home":2.0,"draw":3.0,"away":4.0}}}}}'
-            "</script></html>"
-        )
-
-
-USER_AGENTS = [
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-    "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 "
-    "(KHTML, like Gecko) Version/16.6 Safari/605.1.15",
-    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
-    "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 "
-    "(KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1",
-    "Mozilla/5.0 (iPad; CPU OS 16_6 like Mac OS X) AppleWebKit/605.1.15 "
-    "(KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1",
-]
-
 
 async def fetch_nowgoal_odds(
     event_id: int,
@@ -159,7 +91,6 @@ async def fetch_nowgoal_odds(
     cache_ttl_hours: int = 12,
     semaphore: Optional[asyncio.Semaphore] = None,
 ) -> Dict:
-    """Scrape NowGoal odds for a given event_id."""
     if semaphore is None:
         semaphore = asyncio.Semaphore(1)
 
@@ -167,7 +98,6 @@ async def fetch_nowgoal_odds(
     cache_key = str(event_id)
 
     async with semaphore:
-        # ----- Cache check -----
         async with aiosqlite.connect(CACHE_DB) as db:
             async with db.execute(
                 "SELECT html, ts FROM cache WHERE key = ?", (cache_key,)
@@ -176,25 +106,31 @@ async def fetch_nowgoal_odds(
                 if row:
                     html, ts = row
                     if time.time() - ts < cache_ttl_hours * 3600:
-                        return _normalize(json.loads(html), event_id)
+                        return _normalize(_extract_json(html), event_id)
 
-        # ----- Live fetch -----
-        async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=True)
-            page = await browser.new_page()
-            # Apply stealth via the Stealth helper
-            await Stealth.apply_stealth_async(page)
-            await page.set_user_agent(random.choice(_USER_AGENTS))
+        async with async_playwright() as playwright:
+            browser = await playwright.chromium.launch(headless=True)
+            context = await browser.new_context(
+                user_agent=random.choice(_USER_AGENTS)
+            )
+            page = await context.new_page()
+
+            try:
+                stealth = Stealth()
+                await stealth.apply_stealth_async(page)
+            except Exception:
+                # Stealth is optional for boot reliability; scraping can still proceed.
+                pass
+
             await page.goto(
                 f"https://www.nowgoal.com/match/{event_id}",
-                wait_until="networkidle",
+                wait_until="domcontentloaded",
                 timeout=timeout * 1000,
             )
-            await asyncio.sleep(random.uniform(2, 5))
+            await asyncio.sleep(random.uniform(1.5, 3.0))
             html = await page.content()
             await browser.close()
 
-        # store in cache
         async with aiosqlite.connect(CACHE_DB) as db:
             await db.execute(
                 "INSERT OR REPLACE INTO cache (key, html, ts) VALUES (?,?,?)",
@@ -202,7 +138,6 @@ async def fetch_nowgoal_odds(
             )
             await db.commit()
 
-        return _normalize(json.loads(html), event_id)
-
+        return _normalize(_extract_json(html), event_id)
 
 __all__ = ["fetch_nowgoal_odds", "implied_probability"]
