@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: bet-app213
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn -k uvicorn.workers.UvicornWorker --workers 1 --timeout 60 -b 0.0.0.0:$PORT src.api.main
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.8
+      - key: APP_ENV
+        value: production
+      - key: LOG_LEVEL
+        value: INFO
+      - key: DATABASE_URL
+        fromDatabase:
+          name: betapp213-db
+          property: connectionString
+      - key: SCRAPER_API_TOKEN
+        generateValue: true
+      - key: SCRAPER_WORKER_ENABLED
+        value: "true"
+databases:
+  - name: betapp213-db
+    databaseName: betapp213
+    user: betapp213
