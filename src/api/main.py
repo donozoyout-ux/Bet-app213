@@ -13,10 +13,11 @@ from __future__ import annotations
 import sys
 import os
 
-# Add the project root directory to Python path
-# This ensures modules like 'etl.nowgoal_scrape' can be imported
+# Ensure the project root directory is in sys.path so that
+# 'etl.nowgoal_scrape' and 'etl.sofascore_stats' can be imported
 # regardless of the working directory (especially important for Render.com)
 _project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+print(f"DEBUG: __file__={__file__}, _project_root={_project_root}, sys.path={sys.path[:3]}...")
 if _project_root not in sys.path:
     sys.path.insert(0, _project_root)
 
