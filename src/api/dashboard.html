@@ -1,154 +1,981 @@
-<!doctype html>
-<html lang="tr">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>BetApp213 | Football Intelligence</title>
-  <style>
-    :root{
-      --blue:#1769e0;--blue2:#0b4fb3;--sky:#eaf4ff;--ink:#10233f;
-      --muted:#6b7f99;--line:#dbe8f5;--card:#fff;--ok:#19a974;
-      --warn:#f5a623;--danger:#df4b56;--shadow:0 18px 45px rgba(22,86,160,.10)
-    }
-    *{box-sizing:border-box} body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;
-      background:linear-gradient(180deg,#f8fbff 0%,#eef6ff 100%);color:var(--ink)}
-    .shell{max-width:1280px;margin:auto;padding:22px}
-    .topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}
-    .brand{display:flex;align-items:center;gap:12px}.logo{width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,var(--blue),#64b5ff);display:grid;place-items:center;color:white;font-weight:900;box-shadow:var(--shadow)}
-    .brand h1{font-size:20px;margin:0}.brand p{margin:3px 0 0;color:var(--muted);font-size:12px}
-    .live-pill{display:flex;align-items:center;gap:8px;background:white;border:1px solid var(--line);padding:10px 14px;border-radius:999px;font-weight:700;font-size:13px}
-    .dot{width:9px;height:9px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 6px rgba(25,169,116,.12);animation:pulse 1.8s infinite}
-    @keyframes pulse{50%{box-shadow:0 0 0 10px rgba(25,169,116,0)}}
-    .hero{display:grid;grid-template-columns:1.5fr .8fr;gap:18px;margin-bottom:18px}
-    .panel,.card{background:var(--card);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow)}
-    .hero-main{padding:26px;background:linear-gradient(135deg,#0d5fd3,#2788ff);color:#fff;position:relative;overflow:hidden}
-    .hero-main:after{content:"";position:absolute;width:280px;height:280px;border-radius:50%;background:rgba(255,255,255,.08);right:-90px;top:-90px}
-    .eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;opacity:.78}.hero h2{font-size:32px;line-height:1.08;margin:8px 0 10px;max-width:700px}.hero-main p{margin:0;opacity:.9;max-width:720px}
-    .hero-side{padding:22px;display:flex;flex-direction:column;justify-content:space-between}.time{font-size:34px;font-weight:900}.date{color:var(--muted);font-size:13px}.mini{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}.mini div{padding:13px;border-radius:16px;background:var(--sky)}.mini b{display:block;font-size:18px}.mini span{font-size:11px;color:var(--muted)}
-    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}.stat{padding:18px}.stat .label{font-size:12px;color:var(--muted)}.stat .value{font-size:28px;font-weight:900;margin:7px 0}.stat .hint{font-size:11px;color:var(--muted)}
-    .main{display:grid;grid-template-columns:1.7fr .9fr;gap:18px}.section{padding:20px}.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}.section-head h3{margin:0;font-size:16px}.section-head span{font-size:11px;color:var(--muted)}
-    .status-row{display:grid;grid-template-columns:1.4fr .7fr .7fr;gap:10px;align-items:center;padding:14px 0;border-top:1px solid #edf3f9}.status-row:first-of-type{border-top:0}.svc{display:flex;gap:10px;align-items:center}.svc-icon{width:36px;height:36px;border-radius:12px;background:var(--sky);display:grid;place-items:center;color:var(--blue);font-weight:900}.svc strong{display:block;font-size:13px}.svc small{color:var(--muted)}.badge{justify-self:start;padding:6px 9px;border-radius:999px;font-size:11px;font-weight:800;background:#eaf9f3;color:#11855d}
-    .latency{font-weight:800;font-size:12px;color:var(--muted)}
-    .toolbox{display:grid;gap:12px}.tool{background:#f8fbff;border:1px solid var(--line);padding:15px;border-radius:16px}.tool label{display:block;font-size:12px;font-weight:800;margin-bottom:8px}.row{display:flex;gap:8px}.tool input{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px;background:#fff;outline:none}.tool button{border:0;border-radius:12px;background:var(--blue);color:#fff;font-weight:800;padding:0 15px;cursor:pointer}.result{margin-top:10px;padding:11px;background:white;border:1px dashed var(--line);border-radius:12px;font:12px ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap;max-height:220px;overflow:auto;color:#31506f}
-    .footer{padding:18px 2px 4px;color:var(--muted);font-size:11px;display:flex;justify-content:space-between;gap:12px}
-    @media(max-width:900px){.hero,.main{grid-template-columns:1fr}.grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:560px){.grid{grid-template-columns:1fr}.topbar{align-items:flex-start}.hero h2{font-size:26px}.status-row{grid-template-columns:1fr auto}.latency{display:none}}
-  </style>
-</head>
-<body>
-<div class="shell">
-  <div class="topbar">
-    <div class="brand">
-      <div class="logo">B</div>
-      <div><h1>BetApp213</h1><p>Football Intelligence & Live Data</p></div>
-    </div>
-    <div class="live-pill"><span class="dot"></span><span id="liveText">Sistem kontrol ediliyor</span></div>
-  </div>
+<!DOCTYPE html>
 
-  <section class="hero">
-    <div class="panel hero-main">
-      <div class="eyebrow">CANLI VERİ MERKEZİ</div>
-      <h2>Maç verileri, oran servisleri ve sistem durumu tek ekranda.</h2>
-      <p>Render servisi, veri kaynakları ve API uç noktalarını canlı olarak takip et. Bu panel gerçek backend durumunu gösterir; hazır olmayan veri alanlarını uydurmaz.</p>
-    </div>
-    <div class="panel hero-side">
-      <div><div class="eyebrow" style="color:var(--muted)">İSTANBUL SAATİ</div><div class="time" id="clock">--:--:--</div><div class="date" id="date">--</div></div>
-      <div class="mini"><div><b id="apiCode">--</b><span>API HTTP</span></div><div><b id="nullCount">--</b><span>NULL BYTE</span></div></div>
-    </div>
-  </section>
-
-  <section class="grid">
-    <div class="card stat"><div class="label">API DURUMU</div><div class="value" id="apiStatus">Kontrol</div><div class="hint">/health endpoint</div></div>
-    <div class="card stat"><div class="label">UPTIME BOT</div><div class="value">10 dk</div><div class="hint">GitHub Actions keep-alive</div></div>
-    <div class="card stat"><div class="label">PYTHON</div><div class="value">3.12</div><div class="hint">Render runtime</div></div>
-    <div class="card stat"><div class="label">SON KONTROL</div><div class="value" id="lastCheck">--:--</div><div class="hint">30 sn otomatik yenileme</div></div>
-  </section>
-
-  <section class="main">
-    <div class="panel section">
-      <div class="section-head"><h3>Servis Sağlığı</h3><span>canlı kontrol</span></div>
-      <div class="status-row">
-        <div class="svc"><div class="svc-icon">API</div><div><strong>FastAPI / Render</strong><small>bet-app213.onrender.com</small></div></div>
-        <div class="badge" id="renderBadge">Kontrol</div><div class="latency" id="latency">-- ms</div>
-      </div>
-      <div class="status-row">
-        <div class="svc"><div class="svc-icon">NG</div><div><strong>NowGoal Modülü</strong><small>Kaynak dosya tanısı</small></div></div>
-        <div class="badge" id="sourceBadge">Kontrol</div><div class="latency" id="sourceMeta">--</div>
-      </div>
-      <div class="status-row">
-        <div class="svc"><div class="svc-icon">GH</div><div><strong>GitHub Keepalive</strong><small>10 dakikada bir /health ping</small></div></div>
-        <div class="badge">Aktif</div><div class="latency">*/10 * * * *</div>
-      </div>
-    </div>
-
-    <div class="panel section">
-      <div class="section-head"><h3>Canlı Test Araçları</h3><span>backend endpoint</span></div>
-      <div class="toolbox">
-        <div class="tool">
-          <label>NowGoal Event ID</label>
-          <div class="row"><input id="eventId" placeholder="Örn. 123456"><button onclick="runOdds()">Oran</button></div>
-          <div class="result" id="oddsResult">Event ID girerek endpoint'i test edebilirsin.</div>
-        </div>
-        <div class="tool">
-          <label>SofaScore Match ID</label>
-          <div class="row"><input id="matchId" placeholder="Örn. 987654"><button onclick="runSofa()">İstatistik</button></div>
-          <div class="result" id="sofaResult">Match ID girerek endpoint'i test edebilirsin.</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <div class="footer"><span>BetApp213 • Live Football Intelligence</span><span id="build">Backend v1.0.2</span></div>
+<html lang="tr"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Inter:wght@100..900&display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"error-container":"#ffdad6","on-primary-fixed":"#001453","on-tertiary":"#ffffff","outline":"#757684","on-background":"#0b1c30","on-tertiary-container":"#3fd298","error":"#ba1a1a","tertiary-fixed-dim":"#4edea3","primary":"#00288e","tertiary-container":"#00563a","inverse-primary":"#b8c4ff","primary-fixed-dim":"#b8c4ff","surface-container-low":"#eff4ff","tertiary":"#003d27","background":"#f8f9ff","primary-container":"#1e40af","on-secondary":"#ffffff","surface-container-lowest":"#ffffff","on-surface":"#0b1c30","secondary":"#0051d5","on-error-container":"#93000a","on-error":"#ffffff","secondary-container":"#316bf3","primary-fixed":"#dde1ff","surface-bright":"#f8f9ff","surface-tint":"#3755c3","on-tertiary-fixed":"#002113","inverse-on-surface":"#eaf1ff","on-primary":"#ffffff","secondary-fixed":"#dbe1ff","on-secondary-container":"#fefcff","surface-dim":"#cbdbf5","secondary-fixed-dim":"#b4c5ff","on-tertiary-fixed-variant":"#005236","surface-variant":"#d3e4fe","tertiary-fixed":"#6ffbbe","surface-container":"#e5eeff","outline-variant":"#c4c5d5","on-surface-variant":"#444653","on-primary-fixed-variant":"#173bab","surface":"#f8f9ff","on-secondary-fixed":"#00174b","on-primary-container":"#a8b8ff","surface-container-high":"#dce9ff","surface-container-highest":"#d3e4fe","inverse-surface":"#213145","on-secondary-fixed-variant":"#003ea8"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"space-xs":"0.25rem","space-sm":"0.5rem","margin-desktop":"2rem","margin-tablet":"1.5rem","space-xl":"2rem","gutter-desktop":"1.25rem","margin":"1rem","space-md":"0.75rem","space-lg":"1.25rem","gutter":"1rem"},"fontFamily":{"headline-lg":["Geist"],"body-md":["Inter"],"headline-xl":["Geist"],"label-md":["Geist"],"data-mono-md":["Geist"],"body-lg":["Inter"],"body-sm":["Inter"],"headline-lg-mobile":["Geist"],"data-mono-sm":["Geist"],"label-sm":["Geist"],"headline-xl-mobile":["Geist"],"headline-md":["Geist"],"data-mono-lg":["Geist"]},"fontSize":{"headline-lg":["24px",{"lineHeight":"32px","letterSpacing":"-0.015em","fontWeight":"600"}],"body-md":["14px",{"lineHeight":"20px","fontWeight":"400"}],"headline-xl":["32px",{"lineHeight":"40px","letterSpacing":"-0.02em","fontWeight":"700"}],"label-md":["12px",{"lineHeight":"16px","letterSpacing":"0.04em","fontWeight":"600"}],"data-mono-md":["13px",{"lineHeight":"18px","letterSpacing":"0em","fontWeight":"600"}],"body-lg":["16px",{"lineHeight":"24px","fontWeight":"400"}],"body-sm":["12px",{"lineHeight":"16px","fontWeight":"400"}],"headline-lg-mobile":["20px",{"lineHeight":"28px","letterSpacing":"-0.01em","fontWeight":"600"}],"data-mono-sm":["11px",{"lineHeight":"14px","letterSpacing":"0.02em","fontWeight":"500"}],"label-sm":["10px",{"lineHeight":"14px","letterSpacing":"0.06em","fontWeight":"700"}],"headline-xl-mobile":["24px",{"lineHeight":"32px","letterSpacing":"-0.015em","fontWeight":"700"}],"headline-md":["18px",{"lineHeight":"24px","letterSpacing":"-0.01em","fontWeight":"600"}],"data-mono-lg":["16px",{"lineHeight":"20px","letterSpacing":"-0.01em","fontWeight":"600"}]}}}}</script></head><body class="bg-background font-body-md text-on-surface antialiased"><header class="fixed top-0 left-0 right-0 h-16 z-50 bg-surface-container-lowest/90 backdrop-blur-md border-b border-surface-variant shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="w-full h-16 px-gutter-desktop flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-lg"><div class="flex items-center gap-space-sm"><img alt="BetApp213 Brand Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1X6WzZneSA-SOcRJ-E6byMg__o_HXWhXIdKhLfdlXLsnlE59qGqPiGaZCaYtr3qX7awCiP0XOZYE5PM2Lp-sCU9u-IMSduu2Zxa4f9F5phr-Vy2b7r4XYX1vReMW60oukidHihrwa11KkiPhkyRjhPmzMppgnSbjvca21OvDZCtwHnaD9WlXg3-V0R1U9e8OCIQTSJx6L_ms0_ibqDzVi8zqCE2vCyVafifkQlgCMibFw"/><span class="font-headline-md text-headline-md text-primary font-bold tracking-tight">BetApp213</span><span class="px-space-xs py-0.5 rounded bg-surface-container text-primary font-label-sm text-label-sm uppercase tracking-wider">PRO</span></div><nav class="hidden xl:flex items-center gap-space-xs" data-active-classes="bg-primary-container text-on-primary font-label-md rounded-lg shadow-sm"><a class="relative px-space-md py-space-xs rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all flex items-center gap-space-xs" data-path="canli-skor" href="#">Canlı Skor<span class="flex h-2 w-2 relative"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-tertiary-fixed-dim opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-tertiary-container"></span></span></a><a class="px-space-md py-space-xs rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" data-path="bulten" href="#">Bülten</a><a class="px-space-md py-space-xs rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" data-path="oranlar" href="#">Oranlar</a><a class="px-space-md py-space-xs rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all flex items-center gap-space-xs" data-path="ai-analiz" href="#">AI Analiz<span class="px-1.5 py-0.2 rounded bg-tertiary-fixed text-on-tertiary-fixed font-label-sm text-label-sm">xG 2.0</span></a><a class="px-space-md py-space-xs rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all flex items-center gap-space-xs" data-path="kuponum" href="#">Kuponum<span class="px-1.5 py-0.2 rounded-full bg-secondary text-on-secondary font-label-sm text-label-sm">3</span></a></nav></div><div class="flex-1 max-w-md hidden md:block mx-space-md"><div class="relative flex items-center"><span class="material-symbols-outlined absolute left-3 text-outline text-[18px]">search</span><input class="w-full h-10 pl-9 pr-16 bg-surface-container-low rounded-lg border border-outline-variant font-body-sm text-body-sm text-on-surface placeholder-outline focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 transition-all" placeholder="Lig, takım veya maç kodu ara..." type="text"/><div class="absolute right-2.5 flex items-center pointer-events-none"><kbd class="px-1.5 py-0.5 rounded bg-surface-container-high border border-outline-variant font-data-mono-sm text-data-mono-sm text-on-surface-variant">Ctrl+K</kbd></div></div></div><div class="flex items-center gap-space-md"><div class="hidden lg:flex items-center gap-space-xs px-space-sm py-1 rounded-full bg-surface-container border border-surface-variant"><span class="flex h-2 w-2 relative"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-tertiary-fixed-dim opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-tertiary-container"></span></span><span class="font-data-mono-sm text-data-mono-sm text-on-surface">Canlı Senkronize:</span><span class="font-data-mono-sm text-data-mono-sm text-tertiary-container font-bold">14ms</span></div><button class="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface border border-outline-variant transition-all flex items-center justify-center" title="Verileri Yenile" type="button"><span class="material-symbols-outlined text-[20px]">refresh</span></button><button class="relative p-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all flex items-center justify-center" type="button"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error ring-2 ring-surface-container-lowest"></span></button><div class="flex items-center gap-space-sm pl-space-sm border-l border-outline-variant"><div class="relative"><img alt="Profile" class="w-8 h-8 rounded-full object-cover ring-1 ring-outline-variant" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBrmzKV3Q2NjDXuZer9C5-q8NGWEjiCXn-bIvU_c4eaKj3x8el9EQ4OgBtJH39DBkmLuTiTtOqMtZaenTDuiLR8KRlFUpNSbd-KA1xdmICNyQP8bas4Q0cqJi8YwPqWTZR-IcA9B2AigL7F0ZEqJGXd3PuukdP_pBUfDkj6glVtm4sV0sPSAFeEBn-2R_-O7Pwu8lvbhL0e8obvQ4agOTOMPvNvADm1UgqTyAlQMUkX"/><span class="absolute -bottom-1 -right-1 px-1 py-0.2 rounded bg-primary text-on-primary font-label-sm text-[9px] uppercase font-bold tracking-tight">TRADER</span></div></div></div></div></header><aside class="fixed left-0 top-16 bottom-0 w-64 bg-surface-container-lowest border-r border-surface-variant z-40 flex flex-col justify-between py-space-md"><div class="px-space-md flex flex-col gap-space-lg"><div class="flex items-center justify-between px-space-xs"><span class="font-label-sm text-label-sm uppercase tracking-wider text-outline">Ligler & Turnuvalar</span><span class="material-symbols-outlined text-outline text-[16px]">tune</span></div><nav class="flex flex-col gap-1" data-active-classes="bg-surface-container text-primary font-bold rounded-lg"><a class="flex items-center justify-between px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-body-sm text-body-sm" data-path="canli-skor" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px] text-error">podium</span><span>Süper Lig</span></div><span class="font-data-mono-sm text-data-mono-sm px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface-variant">4 Canlı</span></a><a class="flex items-center justify-between px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-body-sm text-body-sm" data-path="premier-league" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px] text-secondary">sports_soccer</span><span>Premier League</span></div><span class="font-data-mono-sm text-data-mono-sm px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface-variant">6 Canlı</span></a><a class="flex items-center justify-between px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-body-sm text-body-sm" data-path="uefa-champions-league" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px] text-primary">stars</span><span>UEFA Şampiyonlar</span></div><span class="font-data-mono-sm text-data-mono-sm px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface-variant">2 Canlı</span></a><a class="flex items-center justify-between px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-body-sm text-body-sm" data-path="la-liga" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px] text-outline">emoji_events</span><span>La Liga</span></div><span class="font-data-mono-sm text-data-mono-sm px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface-variant">Bültende</span></a><a class="flex items-center justify-between px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-body-sm text-body-sm" data-path="serie-a" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px] text-outline">military_tech</span><span>Serie A</span></div><span class="font-data-mono-sm text-data-mono-sm px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface-variant">3 Canlı</span></a></nav><div class="flex flex-col gap-1 pt-space-sm border-t border-surface-variant"><div class="px-space-xs mb-1"><span class="font-label-sm text-label-sm uppercase tracking-wider text-outline">Terminal Modülleri</span></div><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-body-sm text-body-sm" data-path="arbitraj-masasi" href="#"><span class="material-symbols-outlined text-[18px]">stacked_line_chart</span><span>Arbitraj Masası</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-body-sm text-body-sm" data-path="xg-akislari" href="#"><span class="material-symbols-outlined text-[18px]">monitoring</span><span>xG Akışları</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-body-sm text-body-sm" data-path="momentum-radari" href="#"><span class="material-symbols-outlined text-[18px]">speed</span><span>Momentum Radarı</span></a></div></div><div class="px-space-md"><div class="p-space-sm rounded-lg bg-surface-container-low border border-surface-variant flex flex-col gap-1"><div class="flex items-center justify-between"><span class="font-label-sm text-label-sm text-on-surface-variant">Hızlı Bakiye</span><span class="material-symbols-outlined text-[16px] text-tertiary-container">account_balance_wallet</span></div><span class="font-data-mono-lg text-data-mono-lg text-primary font-bold">₺48,720.50</span><div class="flex items-center justify-between text-label-sm text-outline"><span class="font-label-sm text-label-sm">Açık Kupon</span><span class="font-data-mono-sm text-data-mono-sm font-semibold text-on-surface">3 Adet</span></div></div></div></aside><div class="pl-64"><main class="w-full min-h-screen pt-16 px-gutter-desktop py-space-lg bg-background"><div class="flex flex-col w-full gap-space-lg">
+<!-- 1. HERO SECTION -->
+<section class="w-full bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col lg:flex-row items-start lg:items-center justify-between gap-space-lg">
+<div class="flex flex-col gap-space-xs max-w-3xl">
+<div class="flex items-center gap-space-sm flex-wrap">
+<span class="px-space-sm py-0.5 rounded bg-primary-container text-on-primary font-label-sm text-label-sm uppercase tracking-wider font-bold">Terminal v4.2 PRO</span>
+<span class="flex items-center gap-1.5 px-space-sm py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed font-data-mono-sm text-data-mono-sm font-semibold">
+<span class="w-2 h-2 rounded-full bg-tertiary-container animate-pulse"></span>
+          Canlı Akış Aktif
+        </span>
 </div>
-<script>
-  const fmt = n => String(n).padStart(2,'0');
-  function tick(){
-    const d=new Date();
-    document.getElementById('clock').textContent=fmt(d.getHours())+':'+fmt(d.getMinutes())+':'+fmt(d.getSeconds());
-    document.getElementById('date').textContent=d.toLocaleDateString('tr-TR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
-  }
-  setInterval(tick,1000); tick();
-
-  async function refresh(){
-    const started=performance.now();
-    try{
-      const r=await fetch('/health',{cache:'no-store'}); const j=await r.json();
-      const ms=Math.round(performance.now()-started);
-      document.getElementById('apiCode').textContent=r.status;
-      document.getElementById('apiStatus').textContent=j.status==='ok'?'Çalışıyor':'Sorun';
-      document.getElementById('renderBadge').textContent=j.status==='ok'?'Online':'Hata';
-      document.getElementById('latency').textContent=ms+' ms';
-      document.getElementById('liveText').textContent='Sistem canlı';
-    }catch(e){
-      document.getElementById('apiStatus').textContent='Offline';
-      document.getElementById('renderBadge').textContent='Offline';
-      document.getElementById('liveText').textContent='Bağlantı sorunu';
-    }
-    try{
-      const r=await fetch('/diagnostics/source',{cache:'no-store'}); const j=await r.json();
-      document.getElementById('nullCount').textContent=j.null_bytes;
-      document.getElementById('sourceBadge').textContent=j.null_bytes===0?'Temiz':'Bozuk';
-      document.getElementById('sourceMeta').textContent=j.size+' byte';
-    }catch(e){
-      document.getElementById('sourceBadge').textContent='Okunamadı';
-    }
-    const d=new Date(); document.getElementById('lastCheck').textContent=fmt(d.getHours())+':'+fmt(d.getMinutes());
-  }
-  refresh(); setInterval(refresh,30000);
-
-  async function runOdds(){
-    const id=document.getElementById('eventId').value.trim(); const out=document.getElementById('oddsResult');
-    if(!id){out.textContent='Önce Event ID gir.';return}
-    out.textContent='Yükleniyor...';
-    try{const r=await fetch('/odds/'+encodeURIComponent(id)); const j=await r.json(); out.textContent=JSON.stringify(j,null,2)}
-    catch(e){out.textContent='Hata: '+e}
-  }
-  async function runSofa(){
-    const id=document.getElementById('matchId').value.trim(); const out=document.getElementById('sofaResult');
-    if(!id){out.textContent='Önce Match ID gir.';return}
-    out.textContent='Yükleniyor...';
-    try{const r=await fetch('/sofascore/'+encodeURIComponent(id)); const j=await r.json(); out.textContent=JSON.stringify(j,null,2)}
-    catch(e){out.textContent='Hata: '+e}
-  }
-</script>
-</body>
-</html>
+<h1 class="font-headline-xl text-headline-xl text-on-surface tracking-tight font-extrabold">
+        Football Intelligence & Canlı Veri Merkezi
+      </h1>
+<p class="font-body-md text-body-md text-on-surface-variant">
+        Canlı maç akışı, dinamik 1X2 oran hareketleri, Asya Handikap, Alt/Üst marjları ve yapay zeka momentum analizleri tek ekranda.
+      </p>
+</div>
+<!-- Live telemetry pill badges -->
+<div class="flex flex-wrap lg:flex-col items-start lg:items-end gap-space-sm shrink-0">
+<div class="flex items-center gap-space-xs px-space-md py-1.5 rounded-lg bg-surface-container-low shadow-sm">
+<span class="w-2 h-2 rounded-full bg-tertiary-fixed-dim animate-ping"></span>
+<span class="font-label-md text-label-md text-on-surface-variant">Sistem Durumu:</span>
+<span class="font-label-md text-label-md text-tertiary-container font-bold">Tüm Sistemler Aktif</span>
+</div>
+<div class="flex items-center gap-space-xs px-space-md py-1.5 rounded-lg bg-surface-container-low shadow-sm font-data-mono-sm text-data-mono-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px] text-secondary">sync</span>
+<span>Son Senkronizasyon:</span>
+<span class="font-bold text-on-surface">14:48:12 (3 sn önce)</span>
+</div>
+<div class="flex items-center gap-space-xs px-space-md py-1.5 rounded-lg bg-surface-container-high shadow-sm">
+<span class="relative flex h-2.5 w-2.5">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary-container opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-secondary"></span>
+</span>
+<span class="font-label-md text-label-md font-bold text-primary">48 Karşılaşma Yayında</span>
+</div>
+</div>
+</section>
+<!-- 2. QUICK STATISTIC CARDS (6-CARD GRID) -->
+<section class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-space-md w-full">
+<!-- Card 1 -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase text-outline font-semibold tracking-wider">Toplam Maç</span>
+<span class="material-symbols-outlined text-[18px] text-primary">event_note</span>
+</div>
+<div class="mt-space-sm">
+<span class="font-headline-xl text-headline-xl text-on-surface font-extrabold tracking-tight">342</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Bugün planlanan</p>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase text-tertiary-container font-semibold tracking-wider">Canlı Maçlar</span>
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-tertiary-fixed-dim opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-tertiary-container"></span>
+</span>
+</div>
+<div class="mt-space-sm">
+<div class="flex items-baseline gap-space-xs">
+<span class="font-headline-xl text-headline-xl text-tertiary-container font-extrabold tracking-tight">48</span>
+<span class="px-1.5 py-0.2 rounded bg-tertiary-fixed text-on-tertiary-fixed font-data-mono-sm text-data-mono-sm font-bold">CANLI</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Aktif oynanan</p>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase text-outline font-semibold tracking-wider">Bugünkü Maçlar</span>
+<span class="material-symbols-outlined text-[18px] text-secondary">schedule</span>
+</div>
+<div class="mt-space-sm">
+<span class="font-headline-xl text-headline-xl text-on-surface font-extrabold tracking-tight">184</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Başlayacak maçlar</p>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase text-outline font-semibold tracking-wider">Veri Kaynakları</span>
+<span class="material-symbols-outlined text-[18px] text-primary">hub</span>
+</div>
+<div class="mt-space-sm">
+<span class="font-headline-xl text-headline-xl text-primary font-extrabold tracking-tight">4/4</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5 truncate" title="Goaloo, NowGoal, Crown, Bet365">Goaloo, Crown, 365</p>
+</div>
+</div>
+<!-- Card 5 -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase text-outline font-semibold tracking-wider">Son Güncelleme</span>
+<span class="material-symbols-outlined text-[18px] text-tertiary-container">bolt</span>
+</div>
+<div class="mt-space-sm">
+<div class="flex items-baseline gap-space-xs">
+<span class="font-headline-xl text-headline-xl text-on-surface font-extrabold tracking-tight">0.4s</span>
+<span class="font-data-mono-sm text-data-mono-sm text-tertiary-container font-semibold">28ms</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Ortalama gecikme</p>
+</div>
+</div>
+<!-- Card 6 -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase text-outline font-semibold tracking-wider">API Durumu</span>
+<span class="material-symbols-outlined text-[18px] text-tertiary-container">check_circle</span>
+</div>
+<div class="mt-space-sm">
+<span class="font-headline-xl text-headline-xl text-tertiary-container font-extrabold tracking-tight">%99.98</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Render Prod Uptime</p>
+</div>
+</div>
+</section>
+<!-- 3. FILTER & LEAGUE CONTROLS BAR -->
+<section class="w-full bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-space-md">
+<!-- Pills Filter Track -->
+<div class="flex items-center gap-space-xs overflow-x-auto pb-1 lg:pb-0 scrollbar-none">
+<button class="px-space-md py-1.5 rounded-lg bg-surface-container text-on-surface-variant font-label-md text-label-md hover:bg-surface-container-high transition-colors whitespace-nowrap" type="button">
+        Tümü <span class="font-data-mono-sm text-data-mono-sm opacity-70 ml-1">342</span>
+</button>
+<button class="px-space-md py-1.5 rounded-lg bg-primary text-on-primary font-label-md text-label-md shadow-sm whitespace-nowrap flex items-center gap-1.5" type="button">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-fixed-dim animate-pulse"></span>
+        Canlı <span class="font-data-mono-sm text-data-mono-sm bg-primary-container px-1.5 py-0.2 rounded ml-1">48</span>
+</button>
+<button class="px-space-md py-1.5 rounded-lg bg-surface-container text-on-surface-variant font-label-md text-label-md hover:bg-surface-container-high transition-colors whitespace-nowrap" type="button">
+        Bugün <span class="font-data-mono-sm text-data-mono-sm opacity-70 ml-1">184</span>
+</button>
+<button class="px-space-md py-1.5 rounded-lg bg-surface-container text-on-surface-variant font-label-md text-label-md hover:bg-surface-container-high transition-colors whitespace-nowrap" type="button">
+        Yaklaşan <span class="font-data-mono-sm text-data-mono-sm opacity-70 ml-1">110</span>
+</button>
+<button class="px-space-md py-1.5 rounded-lg bg-surface-container-low text-on-surface font-label-md text-label-md hover:bg-surface-container transition-colors whitespace-nowrap flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-[15px] text-secondary">star</span>
+        Favoriler <span class="font-data-mono-sm text-data-mono-sm font-bold ml-0.5">12</span>
+</button>
+<div class="h-5 w-px bg-surface-variant mx-1 hidden sm:block"></div>
+<button class="px-space-md py-1.5 rounded-lg bg-surface-container-low text-on-surface-variant font-label-md text-label-md hover:bg-surface-container transition-colors whitespace-nowrap" type="button">
+        Premier League <span class="font-data-mono-sm text-data-mono-sm opacity-70 ml-0.5">6</span>
+</button>
+<button class="px-space-md py-1.5 rounded-lg bg-surface-container-low text-on-surface-variant font-label-md text-label-md hover:bg-surface-container transition-colors whitespace-nowrap" type="button">
+        Süper Lig <span class="font-data-mono-sm text-data-mono-sm opacity-70 ml-0.5">4</span>
+</button>
+<button class="px-space-md py-1.5 rounded-lg bg-surface-container-low text-on-surface-variant font-label-md text-label-md hover:bg-surface-container transition-colors whitespace-nowrap" type="button">
+        Champions League <span class="font-data-mono-sm text-data-mono-sm opacity-70 ml-0.5">8</span>
+</button>
+</div>
+<!-- Search, View Switch, and Odds Highlight Toggle -->
+<div class="flex items-center gap-space-md shrink-0 flex-wrap justify-between lg:justify-end">
+<!-- Quick search -->
+<div class="relative flex items-center min-w-[200px] flex-1 sm:flex-initial">
+<span class="material-symbols-outlined absolute left-2.5 text-outline text-[16px]">search</span>
+<input class="w-full h-8 pl-8 pr-3 bg-surface-container-low rounded-lg font-body-sm text-body-sm text-on-surface placeholder-outline focus:outline-none focus:bg-surface-container-lowest focus:ring-1 focus:ring-secondary" placeholder="Maç, takım veya kod süz..." type="text"/>
+</div>
+<!-- Toggle Highlight -->
+<label class="flex items-center gap-space-xs cursor-pointer select-none">
+<input checked="" class="sr-only peer" id="highlightToggle" type="checkbox"/>
+<div class="w-9 h-5 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-secondary"></div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Oran Değişimlerini Vurgula</span>
+</label>
+<!-- View toggles -->
+<div class="flex items-center p-0.5 rounded-lg bg-surface-container-low">
+<button class="p-1 rounded bg-surface-container-lowest shadow-sm text-primary" title="Genişletilmiş Görünüm" type="button">
+<span class="material-symbols-outlined text-[16px]">table_rows</span>
+</button>
+<button class="p-1 rounded text-outline hover:text-on-surface" title="Kompakt Görünüm" type="button">
+<span class="material-symbols-outlined text-[16px]">density_small</span>
+</button>
+</div>
+</div>
+</section>
+<!-- 4. MAIN 2-COLUMN WORKSPACE -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-space-lg w-full items-start">
+<!-- LEFT COLUMN (Approx 68% - 8 cols on XL) - LIVE MATCH TABLE -->
+<div class="xl:col-span-8 flex flex-col gap-space-md min-w-0">
+<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+<!-- Table Top Header Action Bar -->
+<div class="px-space-md py-space-sm bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<span class="font-label-md text-label-md font-bold text-on-surface uppercase tracking-wider">CANLI ORAN MATRİSİ</span>
+<span class="px-2 py-0.5 rounded bg-surface-container font-data-mono-sm text-data-mono-sm text-primary font-bold">48 Karşılaşma</span>
+</div>
+<div class="flex items-center gap-space-md text-label-sm font-label-sm text-outline">
+<span class="flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-tertiary-container"></span> Düşüş / Değer Artışı
+            </span>
+<span class="flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-error"></span> Yükseliş / Risk
+            </span>
+</div>
+</div>
+<!-- High Density Data Table -->
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-lowest text-outline font-label-sm text-label-sm uppercase tracking-wider border-b border-surface-container">
+<th class="py-2.5 px-3 font-semibold text-center w-14">Dk</th>
+<th class="py-2.5 px-3 font-semibold w-28">Lig</th>
+<th class="py-2.5 px-3 font-semibold">Ev Sahibi vs Deplasman</th>
+<th class="py-2.5 px-2 font-semibold text-center w-16">Skor</th>
+<th class="py-2.5 px-2 font-semibold text-center w-24">1 (Aç/Gün)</th>
+<th class="py-2.5 px-2 font-semibold text-center w-24">X (Aç/Gün)</th>
+<th class="py-2.5 px-2 font-semibold text-center w-24">2 (Aç/Gün)</th>
+<th class="py-2.5 px-2 font-semibold text-center w-24">Asya Hand.</th>
+<th class="py-2.5 px-2 font-semibold text-center w-24">Alt / Üst</th>
+<th class="py-2.5 px-3 font-semibold text-right w-20">AI İvmesi</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container font-body-sm text-body-sm">
+<!-- ROW 1 (SELECTED ROW with Blue Accent) -->
+<tr class="bg-surface-container-low/60 hover:bg-surface-container-high/40 transition-colors cursor-pointer group relative">
+<!-- Dakika -->
+<td class="py-3 px-3 text-center align-middle">
+<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed font-data-mono-sm text-data-mono-sm font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-container animate-pulse"></span>
+                    67'
+                  </span>
+</td>
+<!-- Lig -->
+<td class="py-3 px-3 align-middle">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-secondary">sports_soccer</span>
+<span class="font-semibold text-on-surface truncate">Premier L.</span>
+</div>
+</td>
+<!-- Ev & Deplasman -->
+<td class="py-3 px-3 align-middle">
+<div class="flex flex-col gap-1">
+<div class="flex items-center justify-between gap-2">
+<div class="flex items-center gap-2">
+<span class="font-bold text-on-surface">Arsenal</span>
+<span class="px-1 py-0.2 rounded bg-error-container text-on-error-container font-label-sm text-[10px] font-bold">🔥 Derbi</span>
+</div>
+<span class="material-symbols-outlined text-[16px] text-secondary">star</span>
+</div>
+<div class="flex items-center justify-between gap-2">
+<span class="font-semibold text-on-surface-variant">Manchester City</span>
+<span class="font-label-sm text-[10px] text-outline">Emirates</span>
+</div>
+</div>
+</td>
+<!-- Skor -->
+<td class="py-3 px-2 text-center align-middle">
+<span class="px-2 py-1 rounded bg-primary text-on-primary font-data-mono-lg text-data-mono-lg font-bold tracking-tight">
+                    2 - 1
+                  </span>
+</td>
+<!-- 1 Oranı (Düşüş) -->
+<td class="py-3 px-2 text-center align-middle">
+<div class="p-1.5 rounded bg-surface-container-lowest shadow-sm flex flex-col items-center justify-center">
+<span class="font-data-mono-sm text-data-mono-sm text-outline line-through">2.45</span>
+<div class="flex items-center gap-0.5 text-tertiary-container font-data-mono-md text-data-mono-md font-bold">
+<span class="material-symbols-outlined text-[14px]">arrow_downward</span>
+<span>1.82</span>
+</div>
+</div>
+</td>
+<!-- X Oranı (Yükseliş) -->
+<td class="py-3 px-2 text-center align-middle">
+<div class="p-1.5 rounded bg-surface-container-lowest shadow-sm flex flex-col items-center justify-center">
+<span class="font-data-mono-sm text-data-mono-sm text-outline">3.40</span>
+<div class="flex items-center gap-0.5 text-error font-data-mono-md text-data-mono-md font-bold">
+<span class="material-symbols-outlined text-[14px]">arrow_upward</span>
+<span>3.65</span>
+</div>
+</div>
+</td>
+<!-- 2 Oranı (Yükseliş) -->
+<td class="py-3 px-2 text-center align-middle">
+<div class="p-1.5 rounded bg-surface-container-lowest shadow-sm flex flex-col items-center justify-center">
+<span class="font-data-mono-sm text-data-mono-sm text-outline">2.90</span>
+<div class="flex items-center gap-0.5 text-error font-data-mono-md text-data-mono-md font-bold">
+<span class="material-symbols-outlined text-[14px]">arrow_upward</span>
+<span>4.20</span>
+</div>
+</div>
+</td>
+<!-- Asya Handikap -->
+<td class="py-3 px-2 text-center align-middle">
+<div class="p-1 rounded bg-surface-container-lowest flex flex-col items-center">
+<span class="font-label-sm text-[10px] text-outline font-semibold">-0.5 Ev</span>
+<span class="font-data-mono-sm text-data-mono-sm text-primary font-bold">1.95</span>
+</div>
+</td>
+<!-- Alt / Üst -->
+<td class="py-3 px-2 text-center align-middle">
+<div class="p-1 rounded bg-surface-container-lowest flex flex-col items-center">
+<span class="font-label-sm text-[10px] text-outline font-semibold">3.5 Üst</span>
+<span class="font-data-mono-sm text-data-mono-sm text-tertiary-container font-bold">1.88</span>
+</div>
+</td>
+<!-- AI İvmesi -->
+<td class="py-3 px-3 text-right align-middle">
+<div class="flex flex-col items-end gap-1">
+<span class="font-data-mono-sm text-data-mono-sm font-bold text-tertiary-container">+%74 Baskı</span>
+<div class="w-16 h-1.5 bg-surface-variant rounded-full overflow-hidden">
+<div class="h-full bg-secondary-container rounded-full" style="width: 74%;"></div>
+</div>
+</div>
+</td>
+</tr>
+<!-- ROW 2 -->
+<tr class="hover:bg-surface-container-low transition-colors cursor-pointer">
+<!-- Dakika -->
+<td class="py-3 px-3 text-center align-middle">
+<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed font-data-mono-sm text-data-mono-sm font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-container animate-pulse"></span>
+                    54'
+                  </span>
+</td>
+<!-- Lig -->
+<td class="py-3 px-3 align-middle">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-error">podium</span>
+<span class="font-semibold text-on-surface truncate">Süper Lig</span>
+</div>
+</td>
+<!-- Takımlar -->
+<td class="py-3 px-3 align-middle">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-2">
+<span class="font-bold text-on-surface">Galatasaray</span>
+<span class="px-1 py-0.2 rounded bg-error-container text-on-error-container font-label-sm text-[10px] font-bold">🔥 Derbi</span>
+</div>
+<span class="font-semibold text-on-surface-variant">Fenerbahçe</span>
+</div>
+</td>
+<!-- Skor -->
+<td class="py-3 px-2 text-center align-middle">
+<span class="px-2 py-1 rounded bg-surface-container-high font-data-mono-lg text-data-mono-lg font-bold text-on-surface">
+                    1 - 0
+                  </span>
+</td>
+<!-- 1 Oranı -->
+<td class="py-3 px-2 text-center align-middle">
+<div class="p-1.5 rounded bg-surface-container-low flex flex-col items-center justify-center">
+<span class="font-data-mono-sm text-data-mono-sm text-outline">1.90</span>
+<div class="flex items-center gap-0.5 text-tertiary-container font-data-mono-md text-data-mono-md font-bold">
+<span class="material-symbols-outlined text-[14px]">arrow_downward</span>
+<span>1.65</span>
+</div>
+</div>
+</td>
+<!-- X Oranı -->
+<td class="py-3 px-2 text-center align-middle">
+<div class="p-1.5 rounded bg-surface-container-low flex flex-col items-center justify-center">
+<span class="font-data-mono-sm text-data-mono-sm text-outline">3.30</span>
+<span class="font-data-mono-md text-data-mono-md font-semibold text-on-surface">3.50</span>
+</div>
+</td>
+<!-- 2 Oranı -->
+<td class="py-3 px-2 text-center align-middle">
+<div class="p-1.5 rounded bg-surface-container-low flex flex-col items-center justify-center">
+<span class="font-data-mono-sm text-data-mono-sm text-outline">3.80</span>
+<div class="flex items-center gap-0.5 text-error font-data-mono-md text-data-mono-md font-bold">
+<span class="material-symbols-outlined text-[14px]">arrow_upward</span>
+<span>4.50</span>
+</div>
+</div>
+</td>
+<!-- Asya Handikap -->
+<td class="py-3 px-2 text-center align-middle">
+<div class="p-1 rounded bg-surface-container-low flex flex-col items-center">
+<span class="font-label-sm text-[10px] text-outline font-semibold">-0.75 Ev</span>
+<span class="font-data-mono-sm text-data-mono-sm text-on-surface font-bold">1.98</span>
+</div>
+</td>
+<!-- Alt / Üst -->
+<td class="py-3 px-2 text-center align-middle">
+<div class="p-1 rounded bg-surface-container-low flex flex-col items-center">
+<span class="font-label-sm text-[10px] text-outline font-semibold">2.25 Üst</span>
+<span class="font-data-mono-sm text-data-mono-sm text-on-surface font-bold">1.92</span>
+</div>
+</td>
+<!-- AI İvmesi -->
+<td class="py-3 px-3 text-right align-middle">
+<div class="flex flex-col items-end gap-1">
+<span class="font-data-mono-sm text-data-mono-sm font-bold text-tertiary-container">+%62 Ev</span>
+<div class="w-16 h-1.5 bg-surface-variant rounded-full overflow-hidden">
+<div class="h-full bg-secondary-container rounded-full" style="width: 62%;"></div>
+</div>
+</div>
+</td>
+</tr>
+<!-- ROW 3 -->
+<tr class="hover:bg-surface-container-low transition-colors cursor-pointer">
+<!-- Dakika -->
+<td class="py-3 px-3 text-center align-middle">
+<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed font-data-mono-sm text-data-mono-sm font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-container animate-pulse"></span>
+                    82'
+                  </span>
+</td>
+<!-- Lig -->
+<td class="py-3 px-3 align-middle">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-outline">emoji_events</span>
+<span class="font-semibold text-on-surface truncate">La Liga</span>
+</div>
+</td>
+<!-- Takımlar -->
+<td class="py-3 px-3 align-middle">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-2">
+<span class="font-bold text-on-surface">Real Madrid</span>
+<span class="px-1 py-0.2 rounded bg-surface-container-high text-primary font-label-sm text-[10px] font-bold">El Clásico</span>
+</div>
+<span class="font-semibold text-on-surface-variant">Barcelona</span>
+</div>
+</td>
+<!-- Skor -->
+<td class="py-3 px-2 text-center align-middle">
+<span class="px-2 py-1 rounded bg-surface-container-high font-data-mono-lg text-data-mono-lg font-bold text-on-surface">
+                    3 - 2
+                  </span>
+</td>
+<!-- 1 Oranı -->
+<td class="py-3 px-2 text-center align-middle">
+<div class="p-1.5 rounded bg-surface-container-low flex flex-col items-center justify-center">
+<span class="font-data-mono-sm text-data-mono-sm text-outline">2.10</span>
+<span class="font-data-mono-md text-data-mono-md font-bold text-tertiary-container">1.35</span>
+</div>
+</td>
+<!-- X Oranı -->
+<td class="py-3 px-2 text-center align-middle">
+<div class="p-1.5 rounded bg-surface-container-low flex flex-col items-center justify-center">
+<span class="font-data-mono-sm text-data-mono-sm text-outline">3.75</span>
+<span class="font-data-mono-md text-data-mono-md font-semibold text-error">5.20</span>
+</div>
+</td>
+<!-- 2 Oranı -->
+<td class="py-3 px-2 text-center align-middle">
+<div class="p-1.5 rounded bg-surface-container-low flex flex-col items-center justify-center">
+<span class="font-data-mono-sm text-data-mono-sm text-outline">3.10</span>
+<span class="font-data-mono-md text-data-mono-md font-bold text-error">8.50</span>
+</div>
+</td>
+<!-- Asya Handikap -->
+<td class="py-3 px-2 text-center align-middle">
+<div class="p-1 rounded bg-surface-container-low flex flex-col items-center">
+<span class="font-label-sm text-[10px] text-outline font-semibold">-1.0 Ev</span>
+<span class="font-data-mono-sm text-data-mono-sm text-on-surface font-bold">2.05</span>
+</div>
+</td>
+<!-- Alt / Üst -->
+<td class="py-3 px-2 text-center align-middle">
+<div class="p-1 rounded bg-surface-container-low flex flex-col items-center">
+<span class="font-label-sm text-[10px] text-outline font-semibold">4.5 Üst</span>
+<span class="font-data-mono-sm text-data-mono-sm text-on-surface font-bold">2.10</span>
+</div>
+</td>
+<!-- AI İvmesi -->
+<td class="py-3 px-3 text-right align-middle">
+<div class="flex flex-col items-end gap-1">
+<span class="font-data-mono-sm text-data-mono-sm font-bold text-tertiary-container">+%81 Real</span>
+<div class="w-16 h-1.5 bg-surface-variant rounded-full overflow-hidden">
+<div class="h-full bg-secondary-container rounded-full" style="width: 81%;"></div>
+</div>
+</div>
+</td>
+</tr>
+<!-- ROW 4 -->
+<tr class="hover:bg-surface-container-low transition-colors cursor-pointer">
+<!-- Dakika -->
+<td class="py-3 px-3 text-center align-middle">
+<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed font-data-mono-sm text-data-mono-sm font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-container animate-pulse"></span>
+                    38'
+                  </span>
+</td>
+<!-- Lig -->
+<td class="py-3 px-3 align-middle">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-outline">military_tech</span>
+<span class="font-semibold text-on-surface truncate">Serie A</span>
+</div>
+</td>
+<!-- Takımlar -->
+<td class="py-3 px-3 align-middle">
+<div class="flex flex-col gap-1">
+<span class="font-bold text-on-surface">Inter</span>
+<span class="font-semibold text-on-surface-variant">Juventus</span>
+</div>
+</td>
+<!-- Skor -->
+<td class="py-3 px-2 text-center align-middle">
+<span class="px-2 py-1 rounded bg-surface-container-high font-data-mono-lg text-data-mono-lg font-bold text-on-surface">
+                    0 - 0
+                  </span>
+</td>
+<!-- 1 Oranı -->
+<td class="py-3 px-2 text-center align-middle">
+<div class="p-1.5 rounded bg-surface-container-low flex flex-col items-center justify-center">
+<span class="font-data-mono-sm text-data-mono-sm text-outline">2.10</span>
+<div class="flex items-center gap-0.5 text-tertiary-container font-data-mono-md text-data-mono-md font-bold">
+<span class="material-symbols-outlined text-[14px]">arrow_downward</span>
+<span>2.00</span>
+</div>
+</div>
+</td>
+<!-- X Oranı -->
+<td class="py-3 px-2 text-center align-middle">
+<div class="p-1.5 rounded bg-surface-container-low flex flex-col items-center justify-center">
+<span class="font-data-mono-sm text-data-mono-sm text-outline">3.10</span>
+<span class="font-data-mono-md text-data-mono-md font-semibold text-on-surface">3.20</span>
+</div>
+</td>
+<!-- 2 Oranı -->
+<td class="py-3 px-2 text-center align-middle">
+<div class="p-1.5 rounded bg-surface-container-low flex flex-col items-center justify-center">
+<span class="font-data-mono-sm text-data-mono-sm text-outline">3.40</span>
+<span class="font-data-mono-md text-data-mono-md font-semibold text-on-surface">3.60</span>
+</div>
+</td>
+<!-- Asya Handikap -->
+<td class="py-3 px-2 text-center align-middle">
+<div class="p-1 rounded bg-surface-container-low flex flex-col items-center">
+<span class="font-label-sm text-[10px] text-outline font-semibold">-0.25 Ev</span>
+<span class="font-data-mono-sm text-data-mono-sm text-on-surface font-bold">1.85</span>
+</div>
+</td>
+<!-- Alt / Üst -->
+<td class="py-3 px-2 text-center align-middle">
+<div class="p-1 rounded bg-surface-container-low flex flex-col items-center">
+<span class="font-label-sm text-[10px] text-outline font-semibold">1.5 Alt</span>
+<span class="font-data-mono-sm text-data-mono-sm text-on-surface font-bold">1.90</span>
+</div>
+</td>
+<!-- AI İvmesi -->
+<td class="py-3 px-3 text-right align-middle">
+<div class="flex flex-col items-end gap-1">
+<span class="font-data-mono-sm text-data-mono-sm font-semibold text-outline">Dengeli %51-%49</span>
+<div class="w-16 h-1.5 bg-surface-variant rounded-full overflow-hidden">
+<div class="h-full bg-outline rounded-full" style="width: 51%;"></div>
+</div>
+</div>
+</td>
+</tr>
+<!-- ROW 5 -->
+<tr class="hover:bg-surface-container-low transition-colors cursor-pointer">
+<!-- Dakika -->
+<td class="py-3 px-3 text-center align-middle">
+<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed font-data-mono-sm text-data-mono-sm font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-container animate-pulse"></span>
+                    19'
+                  </span>
+</td>
+<!-- Lig -->
+<td class="py-3 px-3 align-middle">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-secondary">sports_soccer</span>
+<span class="font-semibold text-on-surface truncate">Bundesliga</span>
+</div>
+</td>
+<!-- Takımlar -->
+<td class="py-3 px-3 align-middle">
+<div class="flex flex-col gap-1">
+<span class="font-bold text-on-surface">Bayern München</span>
+<span class="font-semibold text-on-surface-variant">Dortmund</span>
+</div>
+</td>
+<!-- Skor -->
+<td class="py-3 px-2 text-center align-middle">
+<span class="px-2 py-1 rounded bg-surface-container-high font-data-mono-lg text-data-mono-lg font-bold text-on-surface">
+                    2 - 0
+                  </span>
+</td>
+<!-- 1 Oranı -->
+<td class="py-3 px-2 text-center align-middle">
+<div class="p-1.5 rounded bg-surface-container-low flex flex-col items-center justify-center">
+<span class="font-data-mono-sm text-data-mono-sm text-outline">1.45</span>
+<span class="font-data-mono-md text-data-mono-md font-bold text-tertiary-container">1.18</span>
+</div>
+</td>
+<!-- X Oranı -->
+<td class="py-3 px-2 text-center align-middle">
+<div class="p-1.5 rounded bg-surface-container-low flex flex-col items-center justify-center">
+<span class="font-data-mono-sm text-data-mono-sm text-outline">4.50</span>
+<span class="font-data-mono-md text-data-mono-md font-bold text-error">7.50</span>
+</div>
+</td>
+<!-- 2 Oranı -->
+<td class="py-3 px-2 text-center align-middle">
+<div class="p-1.5 rounded bg-surface-container-low flex flex-col items-center justify-center">
+<span class="font-data-mono-sm text-data-mono-sm text-outline">6.00</span>
+<span class="font-data-mono-md text-data-mono-md font-bold text-error">12.00</span>
+</div>
+</td>
+<!-- Asya Handikap -->
+<td class="py-3 px-2 text-center align-middle">
+<div class="p-1 rounded bg-surface-container-low flex flex-col items-center">
+<span class="font-label-sm text-[10px] text-outline font-semibold">-1.75 Ev</span>
+<span class="font-data-mono-sm text-data-mono-sm text-on-surface font-bold">1.92</span>
+</div>
+</td>
+<!-- Alt / Üst -->
+<td class="py-3 px-2 text-center align-middle">
+<div class="p-1 rounded bg-surface-container-low flex flex-col items-center">
+<span class="font-label-sm text-[10px] text-outline font-semibold">3.75 Üst</span>
+<span class="font-data-mono-sm text-data-mono-sm text-on-surface font-bold">1.84</span>
+</div>
+</td>
+<!-- AI İvmesi -->
+<td class="py-3 px-3 text-right align-middle">
+<div class="flex flex-col items-end gap-1">
+<span class="font-data-mono-sm text-data-mono-sm font-bold text-tertiary-container">+%88 Yoğun</span>
+<div class="w-16 h-1.5 bg-surface-variant rounded-full overflow-hidden">
+<div class="h-full bg-secondary-container rounded-full" style="width: 88%;"></div>
+</div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Footer / Telemetry Bar -->
+<div class="p-space-sm bg-surface-container-low flex items-center justify-between text-label-sm font-label-sm text-outline">
+<div class="flex items-center gap-space-sm">
+<span>Seçili Satır: <strong>Arsenal vs Man City</strong> (ID: #EPL-88219)</span>
+<span>•</span>
+<span>Bookmaker: Crown, Bet365, Sbobet aktif</span>
+</div>
+<div class="flex items-center gap-space-xs font-data-mono-sm text-data-mono-sm">
+<span>Senkron Hızı: <strong>12ms</strong></span>
+</div>
+</div>
+</div>
+</div>
+<!-- RIGHT COLUMN (Approx 32% - 4 cols on XL) - MATCH DETAIL PANEL -->
+<div class="xl:col-span-4 flex flex-col gap-space-md">
+<div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-md flex flex-col gap-space-md">
+<!-- Match Header & Info -->
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="px-2 py-0.5 rounded bg-surface-container font-label-sm text-label-sm text-secondary font-bold uppercase">Premier League • 28. Hafta</span>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed font-data-mono-sm text-data-mono-sm font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-container animate-pulse"></span>
+              CANLI 67'
+            </span>
+</div>
+<h2 class="font-headline-md text-headline-md text-on-surface font-bold">Arsenal vs Manchester City</h2>
+<div class="flex items-center justify-between text-body-sm font-body-sm text-on-surface-variant">
+<span>Emirates Stadium, Londra</span>
+<span>Hakem: Michael Oliver</span>
+</div>
+</div>
+<!-- Big Scoreboard -->
+<div class="p-space-md rounded-xl bg-surface-container-low flex flex-col items-center justify-center gap-space-xs">
+<div class="flex items-center justify-center gap-space-lg w-full">
+<div class="flex flex-col items-center">
+<span class="font-headline-md text-headline-md font-bold text-on-surface">Arsenal</span>
+<span class="font-data-mono-sm text-data-mono-sm text-tertiary-container font-semibold">xG 1.94</span>
+</div>
+<div class="px-space-md py-1 rounded-lg bg-surface-container-lowest shadow-sm flex items-center gap-2">
+<span class="font-headline-xl text-headline-xl font-extrabold text-primary">2</span>
+<span class="font-headline-md text-headline-md text-outline">-</span>
+<span class="font-headline-xl text-headline-xl font-extrabold text-on-surface">1</span>
+</div>
+<div class="flex flex-col items-center">
+<span class="font-headline-md text-headline-md font-bold text-on-surface">Man City</span>
+<span class="font-data-mono-sm text-data-mono-sm text-outline font-semibold">xG 0.82</span>
+</div>
+</div>
+<div class="flex items-center gap-space-md text-label-sm font-label-sm text-outline mt-1">
+<span>İY Skoru: 1 - 0</span>
+<span>•</span>
+<span>Top Hakimiyeti: %56 - %44</span>
+</div>
+</div>
+<!-- Badges Track -->
+<div class="flex flex-wrap items-center gap-1.5">
+<span class="px-2 py-1 rounded bg-error-container text-on-error-container font-label-sm text-label-sm font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">local_fire_department</span> Derbi Alarmı
+          </span>
+<span class="px-2 py-1 rounded bg-surface-container-high text-primary font-label-sm text-label-sm font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">bolt</span> AI İvmesi Yüksek (Arsenal +%74)
+          </span>
+<span class="px-2 py-1 rounded bg-surface-container text-on-surface-variant font-label-sm text-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">cell_tower</span> Canlı Yayın Senkron
+          </span>
+</div>
+<!-- Bookmaker Switcher Tabs -->
+<div class="flex flex-col gap-1.5">
+<div class="flex items-center justify-between text-label-sm font-label-sm text-outline">
+<span class="uppercase font-bold tracking-wider">Bahis Şirketi</span>
+<span>Son yenileme: 14:48:11</span>
+</div>
+<div class="grid grid-cols-3 gap-1 p-1 rounded-lg bg-surface-container-low">
+<button class="py-1.5 rounded bg-surface-container-lowest text-primary font-label-md text-label-md font-bold shadow-sm" type="button">Crown (1.82)</button>
+<button class="py-1.5 rounded text-on-surface-variant font-label-md text-label-md hover:bg-surface-container transition-colors" type="button">Bet365 (1.85)</button>
+<button class="py-1.5 rounded text-on-surface-variant font-label-md text-label-md hover:bg-surface-container transition-colors" type="button">Sbobet (1.80)</button>
+</div>
+</div>
+<!-- Comparative Odds Table (Opening vs Live) -->
+<div class="p-space-sm rounded-lg bg-surface-container-low flex flex-col gap-2">
+<div class="flex items-center justify-between text-label-sm font-label-sm text-outline font-semibold uppercase">
+<span>Piyasa</span>
+<span>Açılış</span>
+<span>Canlı Güncel</span>
+</div>
+<!-- 1X2 Comparison -->
+<div class="flex items-center justify-between font-data-mono-sm text-data-mono-sm p-1.5 rounded bg-surface-container-lowest">
+<span class="font-bold text-on-surface">1X2 (1 / X / 2)</span>
+<span class="text-outline">2.45 / 3.40 / 2.90</span>
+<span class="text-primary font-bold">1.82 / 3.65 / 4.20</span>
+</div>
+<!-- Asian Handicap -->
+<div class="flex items-center justify-between font-data-mono-sm text-data-mono-sm p-1.5 rounded bg-surface-container-lowest">
+<span class="font-bold text-on-surface">Asya Handikap</span>
+<span class="text-outline">0.0 @ 1.90</span>
+<span class="text-tertiary-container font-bold">-0.5 @ 1.95</span>
+</div>
+<!-- Asian Totals -->
+<div class="flex items-center justify-between font-data-mono-sm text-data-mono-sm p-1.5 rounded bg-surface-container-lowest">
+<span class="font-bold text-on-surface">Toplam Gol</span>
+<span class="text-outline">2.5 @ 1.75</span>
+<span class="text-tertiary-container font-bold">3.5 Üst @ 1.88</span>
+</div>
+</div>
+<!-- Odds Sparkline / Drop Trend -->
+<div class="p-space-sm rounded-lg bg-surface-container-low flex flex-col gap-1.5">
+<div class="flex items-center justify-between text-label-sm font-label-sm">
+<span class="text-outline font-semibold">1 (Ev Sahibi) Oran Hareketi Trendi</span>
+<span class="text-tertiary-container font-bold font-data-mono-sm">-25.7% (2.45 → 1.82)</span>
+</div>
+<!-- Inline Sparkline SVG -->
+<svg class="w-full h-12 text-tertiary-container" fill="none" viewbox="0 0 300 50">
+<path d="M0,10 L50,12 L100,20 L150,18 L200,32 L250,38 L300,45" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path>
+<circle cx="300" cy="45" fill="currentColor" r="4"></circle>
+</svg>
+</div>
+<!-- Live Match Statistics Bar -->
+<div class="flex flex-col gap-space-xs">
+<span class="font-label-sm text-label-sm uppercase text-outline font-bold tracking-wider">Canlı Maç İstatistikleri</span>
+<!-- Topla Oynama -->
+<div class="flex flex-col gap-1">
+<div class="flex justify-between font-data-mono-sm text-data-mono-sm text-on-surface">
+<span class="font-bold">Arsenal %56</span>
+<span class="text-outline text-label-sm">Topla Oynama</span>
+<span class="font-bold">%44 Man City</span>
+</div>
+<div class="w-full h-1.5 bg-surface-variant rounded-full overflow-hidden flex">
+<div class="h-full bg-primary" style="width: 56%;"></div>
+<div class="h-full bg-outline" style="width: 44%;"></div>
+</div>
+</div>
+<!-- Toplam Şut -->
+<div class="flex flex-col gap-1">
+<div class="flex justify-between font-data-mono-sm text-data-mono-sm text-on-surface">
+<span class="font-bold">14</span>
+<span class="text-outline text-label-sm">Toplam Şut</span>
+<span class="font-bold">9</span>
+</div>
+<div class="w-full h-1.5 bg-surface-variant rounded-full overflow-hidden flex">
+<div class="h-full bg-primary" style="width: 61%;"></div>
+<div class="h-full bg-outline" style="width: 39%;"></div>
+</div>
+</div>
+<!-- İsabetli Şut -->
+<div class="flex justify-between font-data-mono-sm text-data-mono-sm text-on-surface py-0.5">
+<span class="font-bold">7</span>
+<span class="text-outline text-label-sm">İsabetli Şut</span>
+<span class="font-bold">3</span>
+</div>
+<!-- Kornerler -->
+<div class="flex justify-between font-data-mono-sm text-data-mono-sm text-on-surface py-0.5">
+<span class="font-bold">6</span>
+<span class="text-outline text-label-sm">Kornerler</span>
+<span class="font-bold">4</span>
+</div>
+<!-- Kartlar -->
+<div class="flex justify-between font-data-mono-sm text-data-mono-sm text-on-surface py-0.5">
+<span class="font-bold">2 / 0</span>
+<span class="text-outline text-label-sm">Sarı / Kırmızı</span>
+<span class="font-bold">3 / 0</span>
+</div>
+<!-- Tehlikeli Ataklar -->
+<div class="flex justify-between font-data-mono-sm text-data-mono-sm text-on-surface py-0.5">
+<span class="font-bold text-tertiary-container">58</span>
+<span class="text-outline text-label-sm">Tehlikeli Ataklar</span>
+<span class="font-bold">37</span>
+</div>
+</div>
+<!-- Timeline of Events -->
+<div class="flex flex-col gap-2">
+<span class="font-label-sm text-label-sm uppercase text-outline font-bold tracking-wider">Son Olaylar</span>
+<div class="flex flex-col gap-1.5 pl-2">
+<div class="flex items-center gap-2 font-body-sm text-body-sm">
+<span class="font-data-mono-sm text-data-mono-sm font-bold text-primary w-8">63'</span>
+<span>⚽ <strong>Saka</strong> Gol (Arsenal, Skor 2-1)</span>
+</div>
+<div class="flex items-center gap-2 font-body-sm text-body-sm">
+<span class="font-data-mono-sm text-data-mono-sm font-bold text-outline w-8">52'</span>
+<span>⚽ <strong>Haaland</strong> Gol (Man City, Skor 1-1)</span>
+</div>
+<div class="flex items-center gap-2 font-body-sm text-body-sm text-outline">
+<span class="font-data-mono-sm text-data-mono-sm font-bold w-8">45+2'</span>
+<span>İlk Yarı Bitti (1-0)</span>
+</div>
+<div class="flex items-center gap-2 font-body-sm text-body-sm">
+<span class="font-data-mono-sm text-data-mono-sm font-bold text-primary w-8">28'</span>
+<span>⚽ <strong>Odegaard</strong> Gol (Arsenal, Skor 1-0)</span>
+</div>
+</div>
+</div>
+<!-- Momentum Index Box -->
+<div class="p-space-sm rounded-lg bg-surface-container-high flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm font-bold text-primary">Arsenal Baskı İndeksi</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Son 15 dakika akışı</span>
+</div>
+<span class="font-headline-md text-headline-md font-extrabold text-primary">84/100</span>
+</div>
+<!-- AI Insight Box -->
+<div class="p-space-md rounded-lg bg-surface-container-low flex flex-col gap-1.5">
+<div class="flex items-center gap-1.5 text-primary">
+<span class="material-symbols-outlined text-[18px]">psychology</span>
+<span class="font-label-md text-label-md font-bold uppercase tracking-wider">AI Taktik İçgörüsü</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+            Arsenal orta saha üstünlüğünü koruyor. Man City yüksek hat savunmasında açık veriyor; 3.5 Üst ve Ev Sahibi galibiyeti yüksek korelasyon gösteriyor.
+          </p>
+</div>
+</div>
+</div>
+</div>
+<!-- 5. LOWER SECTION - SYSTEM HEALTH & SCRAPER CONTROLS (2 DISTINCT CARDS) -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-space-lg w-full items-start">
+<!-- LEFT SUB-PANEL - SİSTEM SAĞLIK MERKEZİ -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-md flex flex-col gap-space-md">
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[22px]">health_and_safety</span>
+<h3 class="font-headline-md text-headline-md font-bold text-on-surface">Sistem Sağlık Merkezi</h3>
+</div>
+<span class="px-2 py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed font-data-mono-sm text-data-mono-sm font-bold">TÜM SERVİSLER AKTİF</span>
+</div>
+<!-- Service Status List -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-space-sm">
+<!-- Render API -->
+<div class="p-space-sm rounded-lg bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-tertiary-container"></span>
+<span class="font-label-md text-label-md font-semibold text-on-surface">Render API</span>
+</div>
+<span class="font-data-mono-sm text-data-mono-sm text-tertiary-container font-bold">22ms • HTTP 200</span>
+</div>
+<!-- Scraper -->
+<div class="p-space-sm rounded-lg bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-tertiary-container"></span>
+<span class="font-label-md text-label-md font-semibold text-on-surface">Goaloo / NowGoal</span>
+</div>
+<span class="font-data-mono-sm text-data-mono-sm text-tertiary-container font-bold">140ms • 48 Maç</span>
+</div>
+<!-- SofaScore -->
+<div class="p-space-sm rounded-lg bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-tertiary-container"></span>
+<span class="font-label-md text-label-md font-semibold text-on-surface">SofaScore Feed</span>
+</div>
+<span class="font-data-mono-sm text-data-mono-sm text-tertiary-container font-bold">Senkron • 120ms</span>
+</div>
+<!-- Postgres -->
+<div class="p-space-sm rounded-lg bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-tertiary-container"></span>
+<span class="font-label-md text-label-md font-semibold text-on-surface">PostgreSQL DB</span>
+</div>
+<span class="font-data-mono-sm text-data-mono-sm text-tertiary-container font-bold">Havuz 18/50 • 4ms</span>
+</div>
+<!-- GitHub Cron -->
+<div class="p-space-sm rounded-lg bg-surface-container-low flex items-center justify-between sm:col-span-2">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-tertiary-container"></span>
+<span class="font-label-md text-label-md font-semibold text-on-surface">GitHub Keepalive Cron</span>
+</div>
+<span class="font-data-mono-sm text-data-mono-sm text-on-surface font-semibold">Son tetikleme: 4 dk önce (%100 Başarı)</span>
+</div>
+</div>
+<!-- Summary Metrics Bar -->
+<div class="p-space-sm rounded-lg bg-surface-container-high flex flex-wrap items-center justify-between gap-space-sm text-body-sm font-body-sm">
+<div>
+<span class="text-outline">Son Başarılı Tarama:</span>
+<span class="font-data-mono-sm text-data-mono-sm font-bold text-on-surface ml-1">14:48:08 (52 maç, 1,248 oran)</span>
+</div>
+<div>
+<span class="text-outline">Hata Oranı:</span>
+<span class="font-data-mono-sm text-data-mono-sm font-bold text-tertiary-container ml-1">0 hata / 24 saat</span>
+</div>
+</div>
+</div>
+<!-- RIGHT SUB-PANEL - VERİ KAZIYICI KONTROL MERKEZİ -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-md flex flex-col gap-space-md">
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-secondary text-[22px]">terminal</span>
+<h3 class="font-headline-md text-headline-md font-bold text-on-surface">Veri Kazıyıcı Kontrol Merkezi</h3>
+</div>
+<span class="font-data-mono-sm text-data-mono-sm text-primary font-bold">NowGoal v3.1 Engine</span>
+</div>
+<!-- Form Controls -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-space-sm">
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-outline font-semibold">Lig Seçici</label>
+<select class="h-9 px-2 bg-surface-container-low rounded-lg font-body-sm text-body-sm text-on-surface focus:outline-none">
+<option>Premier League</option>
+<option>Süper Lig</option>
+<option>La Liga</option>
+<option>Serie A</option>
+</select>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-outline font-semibold">Sezon</label>
+<select class="h-9 px-2 bg-surface-container-low rounded-lg font-body-sm text-body-sm text-on-surface focus:outline-none">
+<option>2024/2025</option>
+<option>2023/2024</option>
+</select>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-outline font-semibold">Hafta / Tur</label>
+<select class="h-9 px-2 bg-surface-container-low rounded-lg font-body-sm text-body-sm text-on-surface focus:outline-none">
+<option>28. Hafta</option>
+<option>29. Hafta</option>
+<option>Canlı Akış</option>
+</select>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="flex items-center gap-space-sm">
+<button class="flex-1 h-10 px-space-md rounded-lg bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md font-bold shadow-sm transition-colors flex items-center justify-center gap-1.5" type="button">
+<span class="material-symbols-outlined text-[18px]">download</span>
+<span>Veriyi Çek</span>
+</button>
+<button class="flex-1 h-10 px-space-md rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md font-semibold transition-colors flex items-center justify-center gap-1.5" type="button">
+<span class="material-symbols-outlined text-[18px]">history</span>
+<span>Geçmiş Veriyi Tara</span>
+</button>
+</div>
+<!-- Progress Bar -->
+<div class="flex flex-col gap-1">
+<div class="flex items-center justify-between font-label-sm text-label-sm">
+<span class="text-on-surface font-semibold">Toplu Senkron İlerlemesi (%78)</span>
+<span class="font-data-mono-sm text-data-mono-sm text-outline">İşlenen: 312 / Kalan: 88 Maç</span>
+</div>
+<div class="w-full h-2 bg-surface-variant rounded-full overflow-hidden">
+<div class="h-full bg-secondary rounded-full" style="width: 78%;"></div>
+</div>
+</div>
+<!-- Live Scraper Terminal Log Box -->
+<div class="p-space-sm rounded-lg bg-surface-container-low font-data-mono-sm text-data-mono-sm flex flex-col gap-1 text-on-surface-variant overflow-x-auto">
+<div class="flex items-center gap-2">
+<span class="text-outline font-bold">[14:48:10]</span>
+<span class="text-secondary font-bold">INFO:</span>
+<span>NowGoal WebSocket live stream connected.</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-outline font-bold">[14:48:11]</span>
+<span class="text-tertiary-container font-bold">SUCCESS:</span>
+<span>Crown odds parsed for Arsenal vs Man City (AH -0.5 updated).</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-outline font-bold">[14:48:12]</span>
+<span class="text-primary font-bold">SYNC:</span>
+<span>Bet365 Asian Totals synchronized for 12 live fixtures.</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-outline font-bold">[14:48:13]</span>
+<span class="text-tertiary-container font-bold">READY:</span>
+<span>Database bulk upsert executed in 14ms (0 warnings).</span>
+</div>
+</div>
+</div>
+</div>
+</div></main></div></body></html>
