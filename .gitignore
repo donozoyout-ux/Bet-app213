@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+env/
+env.bak/
+venv/
+ENV/
+__pycache__/
+
+# Distribution / packaging
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.sln
+*.suo
+*.user
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Dotfiles
+.env
+*.env*
