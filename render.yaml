@@ -20,6 +20,8 @@ services:
         generateValue: true
       - key: SCRAPER_WORKER_ENABLED
         value: "true"
+      - key: AUTO_BACKFILL_ON_EMPTY
+        value: "true"
 databases:
   - name: betapp213-db
     databaseName: betapp213

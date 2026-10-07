@@ -1,4 +1,6 @@
 from datetime import date as Date, datetime, timezone, timedelta
+from typing import Literal
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 import hmac
 from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from sqlalchemy import select, func, or_, text
@@ -7,6 +9,8 @@ from src.config import settings
 from src.db import database
 from src.models import League, Season, Team, Match, Bookmaker, Odds1X2, AsianHandicap, AsianTotals, ScraperJob
 from src.jobs.worker import enqueue, aware
+from src.models import utcnow
+from src.match_views import LIVE_STATUSES, DISPLAY_TIMEZONE, day_bounds
 from .schemas import LeagueResponse, SeasonResponse, BookmakerResponse, MatchPage, MatchDetail, OddsResponse, JobResponse, JobRequest, StatusResponse, ScraperStatus
 
 router = APIRouter()
@@ -53,7 +57,14 @@ async def leagues(session=Depends(session_dependency)):
 async def seasons(league_id: int, session=Depends(session_dependency)):
     if not await session.get(League, league_id):
         raise HTTPException(404, 'League not found (use the internal ID from /api/leagues)')
-    return (await session.scalars(select(Season).where(Season.league_id == league_id).order_by(Season.season_name.desc()))).all()
+    rows = (await session.scalars(select(Season).where(Season.league_id == league_id).order_by(Season.season_name.desc()))).all()
+    rounds = (await session.execute(select(Match.season_id, Match.round).where(Match.league_id == league_id).distinct())).all()
+    result = []
+    for row in rows:
+        item = SeasonResponse.model_validate(row)
+        item.rounds = sorted(r for season_id, r in rounds if season_id == row.id)
+        result.append(item)
+    return result
 
 
 @router.get('/bookmakers', response_model=list[BookmakerResponse])
@@ -80,8 +91,28 @@ async def matches(league: str | None = None, season: str | None = None,
                   round: int | None = Query(default=None, ge=1), date: Date | None = None,
                   status: str | None = None, team: str | None = None, bookmaker: str | None = None,
                   limit: int = Query(default=50, ge=1, le=200), offset: int = Query(default=0, ge=0), include_odds: bool = False,
+                  view: Literal['all', 'live', 'today', 'upcoming', 'history'] = 'all',
+                  display_timezone: str = DISPLAY_TIMEZONE,
+                  upcoming_days: int = Query(default=7, ge=1, le=3650),
                   session=Depends(session_dependency)):
     query, home, away = match_query()
+    try:
+        zone = ZoneInfo(display_timezone)
+    except (ZoneInfoNotFoundError, ValueError):
+        raise HTTPException(400, 'Unknown display timezone')
+    now = utcnow()
+    ascending = view in {'today', 'upcoming'}
+    if view == 'live':
+        query = query.where(Match.status.in_(LIVE_STATUSES))
+    elif view == 'today':
+        start, end = day_bounds(now.astimezone(zone).date(), display_timezone)
+        query = query.where(Match.kickoff_at >= start, Match.kickoff_at < end)
+    elif view == 'upcoming':
+        query = query.where(Match.status == 'scheduled', Match.kickoff_at > now)
+        if not date:
+            query = query.where(Match.kickoff_at <= now + timedelta(days=upcoming_days))
+    elif view == 'history':
+        query = query.where(Match.status == 'finished')
     if league:
         query = query.where(League.id == int(league)) if league.isdigit() else query.where(League.name.ilike(f'%{league}%'))
     if season:
@@ -89,8 +120,8 @@ async def matches(league: str | None = None, season: str | None = None,
     if round is not None:
         query = query.where(Match.round == round)
     if date:
-        start = datetime.combine(date, datetime.min.time(), tzinfo=timezone.utc)
-        query = query.where(Match.kickoff_at >= start, Match.kickoff_at < start + timedelta(days=1))
+        start, end = day_bounds(date, display_timezone)
+        query = query.where(Match.kickoff_at >= start, Match.kickoff_at < end)
     if status:
         query = query.where(Match.status == status)
     if team:
@@ -101,7 +132,8 @@ async def matches(league: str | None = None, season: str | None = None,
             raise HTTPException(400, 'Unknown bookmaker. Use Crown, Bet365 or Sbobet.')
         query = query.where(or_(*[select(model.id).where(model.match_id == Match.id, model.bookmaker_id == book).exists() for model in [Odds1X2, AsianHandicap, AsianTotals]]))
     total = await session.scalar(select(func.count()).select_from(query.subquery()))
-    rows = (await session.execute(query.order_by(Match.kickoff_at.desc(), Match.id.desc()).limit(limit).offset(offset))).all()
+    order = (Match.kickoff_at.asc(), Match.id.asc()) if ascending else (Match.kickoff_at.desc(), Match.id.desc())
+    rows = (await session.execute(query.order_by(*order).limit(limit).offset(offset))).all()
     items = [match_response(row) for row in rows]
     if include_odds and items:
         grouped = await odds_data_bulk(session, [item['id'] for item in items])

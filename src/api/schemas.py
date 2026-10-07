@@ -18,6 +18,7 @@ class SeasonResponse(ORMResponse):
     id: int
     league_id: int
     season_name: str
+    rounds: list[int] = Field(default_factory=list)
 
 
 class BookmakerResponse(ORMResponse):
