@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from src.etl.nowgoal_scrape import fetch_nowgoal_odds, implied_probability
+from src.etl.nowgoal_clean import fetch_nowgoal_odds, implied_probability
 from src.etl.sofascore_scrape import fetch_sofascore_stats
 
 
