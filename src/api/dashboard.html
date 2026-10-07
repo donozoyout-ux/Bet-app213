@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>BetApp213 | Football Intelligence</title>
+  <style>
+    :root{
+      --blue:#1769e0;--blue2:#0b4fb3;--sky:#eaf4ff;--ink:#10233f;
+      --muted:#6b7f99;--line:#dbe8f5;--card:#fff;--ok:#19a974;
+      --warn:#f5a623;--danger:#df4b56;--shadow:0 18px 45px rgba(22,86,160,.10)
+    }
+    *{box-sizing:border-box} body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      background:linear-gradient(180deg,#f8fbff 0%,#eef6ff 100%);color:var(--ink)}
+    .shell{max-width:1280px;margin:auto;padding:22px}
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}
+    .brand{display:flex;align-items:center;gap:12px}.logo{width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,var(--blue),#64b5ff);display:grid;place-items:center;color:white;font-weight:900;box-shadow:var(--shadow)}
+    .brand h1{font-size:20px;margin:0}.brand p{margin:3px 0 0;color:var(--muted);font-size:12px}
+    .live-pill{display:flex;align-items:center;gap:8px;background:white;border:1px solid var(--line);padding:10px 14px;border-radius:999px;font-weight:700;font-size:13px}
+    .dot{width:9px;height:9px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 6px rgba(25,169,116,.12);animation:pulse 1.8s infinite}
+    @keyframes pulse{50%{box-shadow:0 0 0 10px rgba(25,169,116,0)}}
+    .hero{display:grid;grid-template-columns:1.5fr .8fr;gap:18px;margin-bottom:18px}
+    .panel,.card{background:var(--card);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow)}
+    .hero-main{padding:26px;background:linear-gradient(135deg,#0d5fd3,#2788ff);color:#fff;position:relative;overflow:hidden}
+    .hero-main:after{content:"";position:absolute;width:280px;height:280px;border-radius:50%;background:rgba(255,255,255,.08);right:-90px;top:-90px}
+    .eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;opacity:.78}.hero h2{font-size:32px;line-height:1.08;margin:8px 0 10px;max-width:700px}.hero-main p{margin:0;opacity:.9;max-width:720px}
+    .hero-side{padding:22px;display:flex;flex-direction:column;justify-content:space-between}.time{font-size:34px;font-weight:900}.date{color:var(--muted);font-size:13px}.mini{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}.mini div{padding:13px;border-radius:16px;background:var(--sky)}.mini b{display:block;font-size:18px}.mini span{font-size:11px;color:var(--muted)}
+    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}.stat{padding:18px}.stat .label{font-size:12px;color:var(--muted)}.stat .value{font-size:28px;font-weight:900;margin:7px 0}.stat .hint{font-size:11px;color:var(--muted)}
+    .main{display:grid;grid-template-columns:1.7fr .9fr;gap:18px}.section{padding:20px}.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}.section-head h3{margin:0;font-size:16px}.section-head span{font-size:11px;color:var(--muted)}
+    .status-row{display:grid;grid-template-columns:1.4fr .7fr .7fr;gap:10px;align-items:center;padding:14px 0;border-top:1px solid #edf3f9}.status-row:first-of-type{border-top:0}.svc{display:flex;gap:10px;align-items:center}.svc-icon{width:36px;height:36px;border-radius:12px;background:var(--sky);display:grid;place-items:center;color:var(--blue);font-weight:900}.svc strong{display:block;font-size:13px}.svc small{color:var(--muted)}.badge{justify-self:start;padding:6px 9px;border-radius:999px;font-size:11px;font-weight:800;background:#eaf9f3;color:#11855d}
+    .latency{font-weight:800;font-size:12px;color:var(--muted)}
+    .toolbox{display:grid;gap:12px}.tool{background:#f8fbff;border:1px solid var(--line);padding:15px;border-radius:16px}.tool label{display:block;font-size:12px;font-weight:800;margin-bottom:8px}.row{display:flex;gap:8px}.tool input{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px;background:#fff;outline:none}.tool button{border:0;border-radius:12px;background:var(--blue);color:#fff;font-weight:800;padding:0 15px;cursor:pointer}.result{margin-top:10px;padding:11px;background:white;border:1px dashed var(--line);border-radius:12px;font:12px ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap;max-height:220px;overflow:auto;color:#31506f}
+    .footer{padding:18px 2px 4px;color:var(--muted);font-size:11px;display:flex;justify-content:space-between;gap:12px}
+    @media(max-width:900px){.hero,.main{grid-template-columns:1fr}.grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:560px){.grid{grid-template-columns:1fr}.topbar{align-items:flex-start}.hero h2{font-size:26px}.status-row{grid-template-columns:1fr auto}.latency{display:none}}
+  </style>
+</head>
+<body>
+<div class="shell">
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo">B</div>
+      <div><h1>BetApp213</h1><p>Football Intelligence & Live Data</p></div>
+    </div>
+    <div class="live-pill"><span class="dot"></span><span id="liveText">Sistem kontrol ediliyor</span></div>
+  </div>
+
+  <section class="hero">
+    <div class="panel hero-main">
+      <div class="eyebrow">CANLI VERİ MERKEZİ</div>
+      <h2>Maç verileri, oran servisleri ve sistem durumu tek ekranda.</h2>
+      <p>Render servisi, veri kaynakları ve API uç noktalarını canlı olarak takip et. Bu panel gerçek backend durumunu gösterir; hazır olmayan veri alanlarını uydurmaz.</p>
+    </div>
+    <div class="panel hero-side">
+      <div><div class="eyebrow" style="color:var(--muted)">İSTANBUL SAATİ</div><div class="time" id="clock">--:--:--</div><div class="date" id="date">--</div></div>
+      <div class="mini"><div><b id="apiCode">--</b><span>API HTTP</span></div><div><b id="nullCount">--</b><span>NULL BYTE</span></div></div>
+    </div>
+  </section>
+
+  <section class="grid">
+    <div class="card stat"><div class="label">API DURUMU</div><div class="value" id="apiStatus">Kontrol</div><div class="hint">/health endpoint</div></div>
+    <div class="card stat"><div class="label">UPTIME BOT</div><div class="value">10 dk</div><div class="hint">GitHub Actions keep-alive</div></div>
+    <div class="card stat"><div class="label">PYTHON</div><div class="value">3.12</div><div class="hint">Render runtime</div></div>
+    <div class="card stat"><div class="label">SON KONTROL</div><div class="value" id="lastCheck">--:--</div><div class="hint">30 sn otomatik yenileme</div></div>
+  </section>
+
+  <section class="main">
+    <div class="panel section">
+      <div class="section-head"><h3>Servis Sağlığı</h3><span>canlı kontrol</span></div>
+      <div class="status-row">
+        <div class="svc"><div class="svc-icon">API</div><div><strong>FastAPI / Render</strong><small>bet-app213.onrender.com</small></div></div>
+        <div class="badge" id="renderBadge">Kontrol</div><div class="latency" id="latency">-- ms</div>
+      </div>
+      <div class="status-row">
+        <div class="svc"><div class="svc-icon">NG</div><div><strong>NowGoal Modülü</strong><small>Kaynak dosya tanısı</small></div></div>
+        <div class="badge" id="sourceBadge">Kontrol</div><div class="latency" id="sourceMeta">--</div>
+      </div>
+      <div class="status-row">
+        <div class="svc"><div class="svc-icon">GH</div><div><strong>GitHub Keepalive</strong><small>10 dakikada bir /health ping</small></div></div>
+        <div class="badge">Aktif</div><div class="latency">*/10 * * * *</div>
+      </div>
+    </div>
+
+    <div class="panel section">
+      <div class="section-head"><h3>Canlı Test Araçları</h3><span>backend endpoint</span></div>
+      <div class="toolbox">
+        <div class="tool">
+          <label>NowGoal Event ID</label>
+          <div class="row"><input id="eventId" placeholder="Örn. 123456"><button onclick="runOdds()">Oran</button></div>
+          <div class="result" id="oddsResult">Event ID girerek endpoint'i test edebilirsin.</div>
+        </div>
+        <div class="tool">
+          <label>SofaScore Match ID</label>
+          <div class="row"><input id="matchId" placeholder="Örn. 987654"><button onclick="runSofa()">İstatistik</button></div>
+          <div class="result" id="sofaResult">Match ID girerek endpoint'i test edebilirsin.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="footer"><span>BetApp213 • Live Football Intelligence</span><span id="build">Backend v1.0.2</span></div>
+</div>
+<script>
+  const fmt = n => String(n).padStart(2,'0');
+  function tick(){
+    const d=new Date();
+    document.getElementById('clock').textContent=fmt(d.getHours())+':'+fmt(d.getMinutes())+':'+fmt(d.getSeconds());
+    document.getElementById('date').textContent=d.toLocaleDateString('tr-TR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+  }
+  setInterval(tick,1000); tick();
+
+  async function refresh(){
+    const started=performance.now();
+    try{
+      const r=await fetch('/health',{cache:'no-store'}); const j=await r.json();
+      const ms=Math.round(performance.now()-started);
+      document.getElementById('apiCode').textContent=r.status;
+      document.getElementById('apiStatus').textContent=j.status==='ok'?'Çalışıyor':'Sorun';
+      document.getElementById('renderBadge').textContent=j.status==='ok'?'Online':'Hata';
+      document.getElementById('latency').textContent=ms+' ms';
+      document.getElementById('liveText').textContent='Sistem canlı';
+    }catch(e){
+      document.getElementById('apiStatus').textContent='Offline';
+      document.getElementById('renderBadge').textContent='Offline';
+      document.getElementById('liveText').textContent='Bağlantı sorunu';
+    }
+    try{
+      const r=await fetch('/diagnostics/source',{cache:'no-store'}); const j=await r.json();
+      document.getElementById('nullCount').textContent=j.null_bytes;
+      document.getElementById('sourceBadge').textContent=j.null_bytes===0?'Temiz':'Bozuk';
+      document.getElementById('sourceMeta').textContent=j.size+' byte';
+    }catch(e){
+      document.getElementById('sourceBadge').textContent='Okunamadı';
+    }
+    const d=new Date(); document.getElementById('lastCheck').textContent=fmt(d.getHours())+':'+fmt(d.getMinutes());
+  }
+  refresh(); setInterval(refresh,30000);
+
+  async function runOdds(){
+    const id=document.getElementById('eventId').value.trim(); const out=document.getElementById('oddsResult');
+    if(!id){out.textContent='Önce Event ID gir.';return}
+    out.textContent='Yükleniyor...';
+    try{const r=await fetch('/odds/'+encodeURIComponent(id)); const j=await r.json(); out.textContent=JSON.stringify(j,null,2)}
+    catch(e){out.textContent='Hata: '+e}
+  }
+  async function runSofa(){
+    const id=document.getElementById('matchId').value.trim(); const out=document.getElementById('sofaResult');
+    if(!id){out.textContent='Önce Match ID gir.';return}
+    out.textContent='Yükleniyor...';
+    try{const r=await fetch('/sofascore/'+encodeURIComponent(id)); const j=await r.json(); out.textContent=JSON.stringify(j,null,2)}
+    catch(e){out.textContent='Hata: '+e}
+  }
+</script>
+</body>
+</html>
