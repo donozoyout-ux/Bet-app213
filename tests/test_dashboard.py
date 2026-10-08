@@ -45,7 +45,7 @@ def test_stitch_panels_and_safe_empty_states_are_retained():
     assert '<aside' not in source and 'league-nav' not in source and 'pl-64' not in source
     assert '#dashboard-shell {width:100%;padding-left:0;}' in source
     assert source.index('id="predictions-section"') < source.index('id="history-filters"')
-    assert 'Günün İstatistiksel Tahminleri' in text and 'sidebar' not in text
+    assert 'Günün En Güçlü Tahminleri' in text and 'sidebar' not in text
     for unsupported in ['AI İvmesi', 'AI Taktik', 'Topla Oynama', 'Tehlikeli Ataklar', 'Son Olaylar', 'Hakem:', 'Veri Kazıyıcı Kontrol Merkezi', 'Favoriler']:
         assert unsupported not in text
     assert '/dashboard.js' in source
@@ -66,7 +66,7 @@ def test_dashboard_executes_with_empty_unavailable_and_removed_controls():
     subprocess.run([node, 'tests/dashboard_runtime.cjs'], check=True, capture_output=True, text=True)
 
 
-@pytest.mark.parametrize('scenario',['populated','insufficient','empty','failed','detail-failed','missing','race','filter','best'])
+@pytest.mark.parametrize('scenario',['populated','insufficient','empty','failed','detail-failed','missing','race','filter','best','one','two','three','confidence','pagination'])
 def test_predictions_frontend(scenario):
     node=shutil.which('node')
     if not node:pytest.skip('Node.js unavailable; supplied in CI')
