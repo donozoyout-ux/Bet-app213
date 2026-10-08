@@ -219,7 +219,7 @@ async def calculate_predictions(session,league,date,team=None):
             item={key:result[key] for key in ('match','prediction','bookmaker_consensus','as_of','recommendations','strongest_prediction')}
             item['match_id']=row[0].id;calculated.append(item)
             from src.analytics.performance import capture
-            captured=await capture(session,row[0],result['recommendations'],now) or captured
+            captured=await capture(session,row[0],result['recommendations'],utcnow()) or captured
     if captured:await session.commit()
     return calculated,now,len(rows)
 
