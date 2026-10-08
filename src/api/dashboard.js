@@ -187,10 +187,10 @@
   });
   document.querySelectorAll('[data-bookmaker]').forEach(button=>button.onclick=()=>{state.bookmaker=button.dataset.bookmaker;loadMatches();});
   if ($('league-select')) $('league-select').onchange=()=>changeLeague($('league-select').value);
-  if ($('season-select')) $('season-select').onchange=()=>{state.season=$('season-select')?.value || '';state.offset=0;fillRounds();loadMatches();};
-  if ($('round-select')) $('round-select').onchange=()=>{state.round=$('round-select')?.value || '';state.offset=0;loadMatches();};
-  if ($('date-select')) $('date-select').onchange=()=>{state.offset=0;refreshPredictions(true);loadMatches();};
-  if ($('refresh-button')) $('refresh-button').onclick=async()=>{refreshPredictions(true);await health();await refresh();};
+  if ($('season-select')) $('season-select').onchange=()=>{state.season=$('season-select')?.value || '';state.offset=0;state.selected=null;clearDetail();fillRounds();loadMatches();};
+  if ($('round-select')) $('round-select').onchange=()=>{state.round=$('round-select')?.value || '';state.offset=0;state.selected=null;clearDetail();loadMatches();};
+  if ($('date-select')) $('date-select').onchange=()=>{state.offset=0;state.selected=null;clearDetail();refreshPredictions(true);loadMatches();};
+  if ($('refresh-button')) $('refresh-button').onclick=async()=>{globalThis.BetAppPredictions?.clear();refreshPredictions(true);await health();await refresh();};
   let searchTimer;
   document.querySelectorAll('[data-team-search]').forEach(input=>input.oninput=()=>{document.querySelectorAll('[data-team-search]').forEach(other=>{if(other !== input)other.value=input.value;});clearTimeout(searchTimer);searchTimer=setTimeout(()=>{state.offset=0;loadMatches();},350);});
   if ($('previous-page')) $('previous-page').onclick=()=>{state.offset=Math.max(0,state.offset-50);loadMatches();};if ($('next-page')) $('next-page').onclick=()=>{state.offset+=50;loadMatches();};
