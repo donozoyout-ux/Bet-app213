@@ -10,7 +10,7 @@ from sqlalchemy.orm import aliased
 from src.config import settings
 from src.db import database
 from src.models import League, Season, Team, Match, Bookmaker, Odds1X2, AsianHandicap, AsianTotals, ScraperJob
-from src.jobs.worker import enqueue, aware
+from src.jobs.worker import enqueue, aware, enqueue_all_updates
 from src.models import utcnow
 from src.match_views import LIVE_STATUSES, DISPLAY_TIMEZONE, day_bounds
 from .schemas import LeagueResponse, SeasonResponse, BookmakerResponse, MatchPage, MatchDetail, OddsResponse, JobResponse, JobRequest, StatusResponse, ScraperStatus
@@ -24,11 +24,13 @@ async def diagnostics():
     result = {'app': 'ok', 'database_configured': database.configured,
               'database_connected': False, 'worker_enabled': settings.worker_enabled,
               'auto_backfill_enabled': settings.auto_backfill_on_empty,
-              'latest_job_status': None, 'total_matches': None, 'total_odds': None}
+              'latest_job_status': None, 'total_matches': None, 'total_odds': None,
+              'enabled_competitions': None, 'completed_competitions': None,
+              'active_backfill_competition': None, 'queued_backfills': None}
     if database.configured and database.ready:
         try:
             summary = await asyncio.wait_for(database_summary(database), timeout=5)
-            result.update({key: summary[key] for key in ('latest_job_status', 'total_matches', 'total_odds')})
+            result.update({key: summary[key] for key in ('latest_job_status', 'total_matches', 'total_odds', 'enabled_competitions', 'completed_competitions', 'active_backfill_competition', 'queued_backfills')})
             result['database_connected'] = True
         except Exception:
             logging.getLogger(__name__).exception('[DB] diagnostics unavailable')
@@ -69,7 +71,7 @@ async def status():
 
 @router.get('/leagues', response_model=list[LeagueResponse])
 async def leagues(session=Depends(session_dependency)):
-    return (await session.scalars(select(League).order_by(League.name))).all()
+    return (await session.scalars(select(League).where(League.enabled.is_(True)).order_by(League.competition_type, League.priority, League.name))).all()
 
 
 @router.get('/leagues/{league_id}/seasons', response_model=list[SeasonResponse])
@@ -77,11 +79,12 @@ async def seasons(league_id: int, session=Depends(session_dependency)):
     if not await session.get(League, league_id):
         raise HTTPException(404, 'League not found (use the internal ID from /api/leagues)')
     rows = (await session.scalars(select(Season).where(Season.league_id == league_id).order_by(Season.season_name.desc()))).all()
-    rounds = (await session.execute(select(Match.season_id, Match.round).where(Match.league_id == league_id).distinct())).all()
+    rounds = (await session.execute(select(Match.season_id, Match.round, Match.round_label).where(Match.league_id == league_id).distinct())).all()
     result = []
     for row in rows:
         item = SeasonResponse.model_validate(row)
-        item.rounds = sorted(r for season_id, r in rounds if season_id == row.id)
+        item.rounds = sorted({r for season_id, r, label in rounds if season_id == row.id})
+        item.round_labels = {r: label for season_id, r, label in rounds if season_id == row.id and label}
         result.append(item)
     return result
 
@@ -99,9 +102,9 @@ def match_query():
 
 def match_response(row):
     match, league, season, home, away = row
-    fields = ['id', 'external_match_id', 'league_id', 'round', 'status', 'ht_home', 'ht_away', 'ft_home', 'ft_away', 'odds_complete']
+    fields = ['id', 'external_match_id', 'league_id', 'round', 'round_label', 'stage_key', 'status', 'ht_home', 'ht_away', 'ft_home', 'ft_away', 'odds_complete']
     return {**{f: getattr(match, f) for f in fields}, 'kickoff_at': aware(match.kickoff_at), 'updated_at': aware(match.updated_at),
-            'external_league_id': league.external_id, 'league': league.name, 'season': season.season_name,
+            'external_league_id': league.external_id, 'league': league.name, 'competition_type': league.competition_type, 'season': season.season_name,
             'home_team': home, 'away_team': away}
 
 
@@ -115,6 +118,7 @@ async def matches(league: str | None = None, season: str | None = None,
                   upcoming_days: int = Query(default=7, ge=1, le=3650),
                   session=Depends(session_dependency)):
     query, home, away = match_query()
+    query = query.where(League.enabled.is_(True))
     try:
         zone = ZoneInfo(display_timezone)
     except (ZoneInfoNotFoundError, ValueError):
@@ -128,8 +132,6 @@ async def matches(league: str | None = None, season: str | None = None,
         query = query.where(Match.kickoff_at >= start, Match.kickoff_at < end)
     elif view == 'upcoming':
         query = query.where(Match.status == 'scheduled', Match.kickoff_at > now)
-        if not date:
-            query = query.where(Match.kickoff_at <= now + timedelta(days=upcoming_days))
     elif view == 'history':
         query = query.where(Match.status == 'finished')
     if league:
@@ -150,6 +152,18 @@ async def matches(league: str | None = None, season: str | None = None,
         if book is None:
             raise HTTPException(400, 'Unknown bookmaker. Use Crown, Bet365 or Sbobet.')
         query = query.where(or_(*[select(model.id).where(model.match_id == Match.id, model.bookmaker_id == book).exists() for model in [Odds1X2, AsianHandicap, AsianTotals]]))
+    upcoming_expanded = False
+    if view == 'upcoming' and not date:
+        window = query.where(Match.kickoff_at <= now + timedelta(days=upcoming_days))
+        in_window = await session.scalar(select(func.count()).select_from(window.subquery()))
+        if in_window:
+            query = window
+        else:
+            nearest = await session.scalar(select(func.min(query.subquery().c.kickoff_at)))
+            if nearest:
+                start, end = day_bounds(aware(nearest).astimezone(zone).date(), display_timezone)
+                query = query.where(Match.kickoff_at >= start, Match.kickoff_at < end)
+                upcoming_expanded = True
     total = await session.scalar(select(func.count()).select_from(query.subquery()))
     order = (Match.kickoff_at.asc(), Match.id.asc()) if ascending else (Match.kickoff_at.desc(), Match.id.desc())
     rows = (await session.execute(query.order_by(*order).limit(limit).offset(offset))).all()
@@ -158,7 +172,7 @@ async def matches(league: str | None = None, season: str | None = None,
         grouped = await odds_data_bulk(session, [item['id'] for item in items])
         for item in items:
             item['odds'] = grouped.get(item['id'], [])
-    return {'items': items, 'total': total, 'limit': limit, 'offset': offset}
+    return {'items': items, 'total': total, 'limit': limit, 'offset': offset, 'upcoming_expanded': upcoming_expanded}
 
 
 async def odds_data(session, match_id):
@@ -226,6 +240,13 @@ async def backfill(request: JobRequest, session=Depends(session_dependency)):
 @router.post('/scraper/update', response_model=JobResponse, status_code=202, dependencies=[Depends(require_scraper_token)])
 async def daily_update(request: JobRequest, session=Depends(session_dependency)):
     return await submit('update', request, session)
+
+
+@router.post('/scraper/update-all', response_model=list[JobResponse], status_code=202, dependencies=[Depends(require_scraper_token)])
+async def daily_update_all(session=Depends(session_dependency)):
+    jobs = await enqueue_all_updates()
+    names = dict((await session.execute(select(League.id, League.name))).all())
+    return [job_response(job, names.get(job.league_id)) for job in jobs]
 
 
 @router.post('/scraper/match/{match_id}', response_model=JobResponse, status_code=202, dependencies=[Depends(require_scraper_token)])

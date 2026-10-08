@@ -31,6 +31,12 @@ class GoalooClient:
         await self.client.aclose()
 
     async def get(self, url, params=None):
+        return await self._request(url, params, as_json=True)
+
+    async def get_text(self, url, params=None):
+        return await self._request(url, params, as_json=False)
+
+    async def _request(self, url, params, as_json):
         async with self.semaphore:
             for attempt in range(settings.retries):
                 async with self.rate_lock:
@@ -39,6 +45,8 @@ class GoalooClient:
                 try:
                     response = await self.client.get(url, params=params)
                     response.raise_for_status()
+                    if not as_json:
+                        return response.text.lstrip('\ufeff')
                     payload = json.loads(response.text.lstrip('\ufeff'))
                     if not isinstance(payload, dict):
                         raise SourceError('Goaloo returned a non-object response')

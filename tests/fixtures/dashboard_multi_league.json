@@ -1,0 +1,1809 @@
+{
+  "leagues": [
+    {
+      "id": 1,
+      "external_id": 36,
+      "name": "English Premier League",
+      "country": "England",
+      "source": "goaloo",
+      "competition_type": "club",
+      "enabled": true,
+      "backfill_from_year": 2024,
+      "priority": 1,
+      "latest_season": "2026-2027"
+    },
+    {
+      "id": 2,
+      "external_id": 31,
+      "name": "Spanish La Liga",
+      "country": "Spain",
+      "source": "goaloo",
+      "competition_type": "club",
+      "enabled": true,
+      "backfill_from_year": 2024,
+      "priority": 2,
+      "latest_season": "2026-2027"
+    },
+    {
+      "id": 3,
+      "external_id": 34,
+      "name": "Italy Serie A",
+      "country": "Italy",
+      "source": "goaloo",
+      "competition_type": "club",
+      "enabled": true,
+      "backfill_from_year": 2024,
+      "priority": 3,
+      "latest_season": "2026-2027"
+    },
+    {
+      "id": 4,
+      "external_id": 8,
+      "name": "German Bundesliga",
+      "country": "Germany",
+      "source": "goaloo",
+      "competition_type": "club",
+      "enabled": true,
+      "backfill_from_year": 2024,
+      "priority": 4,
+      "latest_season": "2026-2027"
+    },
+    {
+      "id": 5,
+      "external_id": 11,
+      "name": "France Ligue 1",
+      "country": "France",
+      "source": "goaloo",
+      "competition_type": "club",
+      "enabled": true,
+      "backfill_from_year": 2024,
+      "priority": 5,
+      "latest_season": "2026-2027"
+    },
+    {
+      "id": 6,
+      "external_id": 30,
+      "name": "Turkey Super Lig",
+      "country": "Turkey",
+      "source": "goaloo",
+      "competition_type": "club",
+      "enabled": true,
+      "backfill_from_year": 2024,
+      "priority": 6,
+      "latest_season": "2026-2027"
+    },
+    {
+      "id": 7,
+      "external_id": 16,
+      "name": "Holland Eredivisie",
+      "country": "Netherlands",
+      "source": "goaloo",
+      "competition_type": "club",
+      "enabled": true,
+      "backfill_from_year": 2024,
+      "priority": 7,
+      "latest_season": "2026-2027"
+    },
+    {
+      "id": 8,
+      "external_id": 23,
+      "name": "Liga Portugal 1",
+      "country": "Portugal",
+      "source": "goaloo",
+      "competition_type": "club",
+      "enabled": true,
+      "backfill_from_year": 2024,
+      "priority": 8,
+      "latest_season": "2026-2027"
+    },
+    {
+      "id": 9,
+      "external_id": 5,
+      "name": "Belgian Pro League",
+      "country": "Belgium",
+      "source": "goaloo",
+      "competition_type": "club",
+      "enabled": true,
+      "backfill_from_year": 2024,
+      "priority": 9,
+      "latest_season": "2026-2027"
+    },
+    {
+      "id": 10,
+      "external_id": 29,
+      "name": "Scottish Premiership",
+      "country": "Scotland",
+      "source": "goaloo",
+      "competition_type": "club",
+      "enabled": true,
+      "backfill_from_year": 2024,
+      "priority": 10,
+      "latest_season": "2026-2027"
+    },
+    {
+      "id": 11,
+      "external_id": 3,
+      "name": "Austrian Bundesliga",
+      "country": "Austria",
+      "source": "goaloo",
+      "competition_type": "club",
+      "enabled": true,
+      "backfill_from_year": 2024,
+      "priority": 11,
+      "latest_season": "2026-2027"
+    },
+    {
+      "id": 12,
+      "external_id": 27,
+      "name": "Switzerland Super League",
+      "country": "Switzerland",
+      "source": "goaloo",
+      "competition_type": "club",
+      "enabled": true,
+      "backfill_from_year": 2024,
+      "priority": 12,
+      "latest_season": "2026-2027"
+    },
+    {
+      "id": 13,
+      "external_id": 32,
+      "name": "Greece Super League A",
+      "country": "Greece",
+      "source": "goaloo",
+      "competition_type": "club",
+      "enabled": true,
+      "backfill_from_year": 2024,
+      "priority": 13,
+      "latest_season": "2026-2027"
+    },
+    {
+      "id": 14,
+      "external_id": 292,
+      "name": "Saudi Professional League",
+      "country": "Saudi Arabia",
+      "source": "goaloo",
+      "competition_type": "club",
+      "enabled": true,
+      "backfill_from_year": 2024,
+      "priority": 14,
+      "latest_season": "2026-2027"
+    },
+    {
+      "id": 15,
+      "external_id": 21,
+      "name": "USA Major League Soccer",
+      "country": "United States",
+      "source": "goaloo",
+      "competition_type": "club",
+      "enabled": true,
+      "backfill_from_year": 2024,
+      "priority": 15,
+      "latest_season": "2026"
+    },
+    {
+      "id": 16,
+      "external_id": 75,
+      "name": "FIFA World Cup",
+      "country": "International",
+      "source": "goaloo",
+      "competition_type": "national",
+      "enabled": true,
+      "backfill_from_year": 2024,
+      "priority": 16,
+      "latest_season": "2026"
+    },
+    {
+      "id": 17,
+      "external_id": 650,
+      "name": "FIFA World Cup qualification (UEFA)",
+      "country": "International",
+      "source": "goaloo",
+      "competition_type": "national",
+      "enabled": true,
+      "backfill_from_year": 2024,
+      "priority": 17,
+      "latest_season": "2025-2026"
+    },
+    {
+      "id": 18,
+      "external_id": 648,
+      "name": "FIFA World Cup qualification (AFC)",
+      "country": "International",
+      "source": "goaloo",
+      "competition_type": "national",
+      "enabled": true,
+      "backfill_from_year": 2024,
+      "priority": 18,
+      "latest_season": "2023-2025"
+    },
+    {
+      "id": 19,
+      "external_id": 652,
+      "name": "FIFA World Cup qualification (CONMEBOL)",
+      "country": "International",
+      "source": "goaloo",
+      "competition_type": "national",
+      "enabled": true,
+      "backfill_from_year": 2024,
+      "priority": 19,
+      "latest_season": "2023-2025"
+    },
+    {
+      "id": 20,
+      "external_id": 651,
+      "name": "FIFA World Cup qualification (CAF)",
+      "country": "International",
+      "source": "goaloo",
+      "competition_type": "national",
+      "enabled": true,
+      "backfill_from_year": 2024,
+      "priority": 20,
+      "latest_season": "2023-2025"
+    },
+    {
+      "id": 21,
+      "external_id": 653,
+      "name": "FIFA World Cup qualification (CONCACAF)",
+      "country": "International",
+      "source": "goaloo",
+      "competition_type": "national",
+      "enabled": true,
+      "backfill_from_year": 2024,
+      "priority": 21,
+      "latest_season": "2024-2025"
+    },
+    {
+      "id": 22,
+      "external_id": 649,
+      "name": "FIFA World Cup qualification (OFC)",
+      "country": "International",
+      "source": "goaloo",
+      "competition_type": "national",
+      "enabled": true,
+      "backfill_from_year": 2024,
+      "priority": 22,
+      "latest_season": "2024-2025"
+    },
+    {
+      "id": 23,
+      "external_id": 892,
+      "name": "World Cup (Preliminaries) Play-Offs",
+      "country": "International",
+      "source": "goaloo",
+      "competition_type": "national",
+      "enabled": true,
+      "backfill_from_year": 2024,
+      "priority": 23,
+      "latest_season": "2026"
+    },
+    {
+      "id": 24,
+      "external_id": 67,
+      "name": "UEFA European Championship",
+      "country": "Europe",
+      "source": "goaloo",
+      "competition_type": "national",
+      "enabled": true,
+      "backfill_from_year": 2024,
+      "priority": 24,
+      "latest_season": "2023-2024"
+    },
+    {
+      "id": 25,
+      "external_id": 1864,
+      "name": "UEFA Nations League",
+      "country": "Europe",
+      "source": "goaloo",
+      "competition_type": "national",
+      "enabled": true,
+      "backfill_from_year": 2024,
+      "priority": 25,
+      "latest_season": "2026-2027"
+    },
+    {
+      "id": 26,
+      "external_id": 224,
+      "name": "Copa America",
+      "country": "Americas",
+      "source": "goaloo",
+      "competition_type": "national",
+      "enabled": true,
+      "backfill_from_year": 2024,
+      "priority": 26,
+      "latest_season": "2024"
+    },
+    {
+      "id": 27,
+      "external_id": 93,
+      "name": "Africa Cup of Nations",
+      "country": "Africa",
+      "source": "goaloo",
+      "competition_type": "national",
+      "enabled": true,
+      "backfill_from_year": 2024,
+      "priority": 27,
+      "latest_season": "2026-2028"
+    },
+    {
+      "id": 28,
+      "external_id": 95,
+      "name": "AFC Asian Cup",
+      "country": "Asia",
+      "source": "goaloo",
+      "competition_type": "national",
+      "enabled": true,
+      "backfill_from_year": 2024,
+      "priority": 28,
+      "latest_season": "2024-2027"
+    },
+    {
+      "id": 29,
+      "external_id": 232,
+      "name": "Concacaf Gold",
+      "country": "Americas",
+      "source": "goaloo",
+      "competition_type": "national",
+      "enabled": true,
+      "backfill_from_year": 2024,
+      "priority": 29,
+      "latest_season": "2025"
+    },
+    {
+      "id": 30,
+      "external_id": 1366,
+      "name": "International Friendly",
+      "country": "International",
+      "source": "goaloo",
+      "competition_type": "national",
+      "enabled": true,
+      "backfill_from_year": 2024,
+      "priority": 30,
+      "latest_season": "2026"
+    }
+  ],
+  "page": {
+    "items": [
+      {
+        "id": 3,
+        "external_match_id": 3013717,
+        "league_id": 2,
+        "external_league_id": 31,
+        "league": "Spanish La Liga",
+        "season": "2026-2027",
+        "round": 8,
+        "round_label": "Round 8",
+        "stage_key": "R_8",
+        "competition_type": "club",
+        "kickoff_at": "2026-10-09T19:00:00Z",
+        "home_team": "Malaga",
+        "away_team": "RCD Espanyol",
+        "status": "scheduled",
+        "ht_home": null,
+        "ht_away": null,
+        "ft_home": null,
+        "ft_away": null,
+        "odds_complete": false,
+        "updated_at": "2026-10-08T16:35:27.015058Z",
+        "odds": [
+          {
+            "bookmaker": "Bet365",
+            "bookmaker_id": 2,
+            "market": "1x2",
+            "opening": {
+              "home": 2.4,
+              "draw": 3.2,
+              "away": 2.9
+            },
+            "latest": {
+              "home": 2.8,
+              "draw": 3.1,
+              "away": 2.7
+            },
+            "closing": {
+              "home": null,
+              "draw": null,
+              "away": null
+            },
+            "format": "decimal",
+            "line_perspective": null,
+            "updated_at": "2026-10-08T16:35:27.002035Z"
+          },
+          {
+            "bookmaker": "Sbobet",
+            "bookmaker_id": 3,
+            "market": "1x2",
+            "opening": {
+              "home": 2.43,
+              "draw": 3.12,
+              "away": 2.7
+            },
+            "latest": {
+              "home": 2.59,
+              "draw": 3.11,
+              "away": 2.54
+            },
+            "closing": {
+              "home": null,
+              "draw": null,
+              "away": null
+            },
+            "format": "decimal",
+            "line_perspective": null,
+            "updated_at": "2026-10-08T16:35:27.007512Z"
+          },
+          {
+            "bookmaker": "Crown",
+            "bookmaker_id": 1,
+            "market": "1x2",
+            "opening": {
+              "home": 2.45,
+              "draw": 3.55,
+              "away": 2.85
+            },
+            "latest": {
+              "home": 2.78,
+              "draw": 3.3,
+              "away": 2.66
+            },
+            "closing": {
+              "home": null,
+              "draw": null,
+              "away": null
+            },
+            "format": "decimal",
+            "line_perspective": null,
+            "updated_at": "2026-10-08T16:35:27.011556Z"
+          },
+          {
+            "bookmaker": "Bet365",
+            "bookmaker_id": 2,
+            "market": "ah",
+            "opening": {
+              "line": 0.0,
+              "home": 1.75,
+              "away": 2.13
+            },
+            "latest": {
+              "line": 0.0,
+              "home": 1.95,
+              "away": 1.9
+            },
+            "closing": {
+              "line": null,
+              "home": null,
+              "away": null
+            },
+            "format": "decimal",
+            "line_perspective": "home",
+            "updated_at": "2026-10-08T16:35:27.003602Z"
+          },
+          {
+            "bookmaker": "Sbobet",
+            "bookmaker_id": 3,
+            "market": "ah",
+            "opening": {
+              "line": -0.25,
+              "home": 2.17,
+              "away": 1.75
+            },
+            "latest": {
+              "line": 0.0,
+              "home": 1.97,
+              "away": 1.93
+            },
+            "closing": {
+              "line": null,
+              "home": null,
+              "away": null
+            },
+            "format": "decimal",
+            "line_perspective": "home",
+            "updated_at": "2026-10-08T16:35:27.008489Z"
+          },
+          {
+            "bookmaker": "Crown",
+            "bookmaker_id": 1,
+            "market": "ah",
+            "opening": {
+              "line": 0.0,
+              "home": 1.8,
+              "away": 2.08
+            },
+            "latest": {
+              "line": 0.0,
+              "home": 1.99,
+              "away": 1.89
+            },
+            "closing": {
+              "line": null,
+              "home": null,
+              "away": null
+            },
+            "format": "decimal",
+            "line_perspective": "home",
+            "updated_at": "2026-10-08T16:35:27.013539Z"
+          },
+          {
+            "bookmaker": "Bet365",
+            "bookmaker_id": 2,
+            "market": "ou",
+            "opening": {
+              "line": 2.25,
+              "over": 1.88,
+              "under": 1.98
+            },
+            "latest": {
+              "line": 2.25,
+              "over": 1.85,
+              "under": 2.0
+            },
+            "closing": {
+              "line": null,
+              "over": null,
+              "under": null
+            },
+            "format": "decimal",
+            "line_perspective": null,
+            "updated_at": "2026-10-08T16:35:27.004585Z"
+          },
+          {
+            "bookmaker": "Sbobet",
+            "bookmaker_id": 3,
+            "market": "ou",
+            "opening": {
+              "line": 2.25,
+              "over": 1.85,
+              "under": 2.03
+            },
+            "latest": {
+              "line": 2.25,
+              "over": 1.85,
+              "under": 2.03
+            },
+            "closing": {
+              "line": null,
+              "over": null,
+              "under": null
+            },
+            "format": "decimal",
+            "line_perspective": null,
+            "updated_at": "2026-10-08T16:35:27.009994Z"
+          },
+          {
+            "bookmaker": "Crown",
+            "bookmaker_id": 1,
+            "market": "ou",
+            "opening": {
+              "line": 2.25,
+              "over": 1.84,
+              "under": 2.04
+            },
+            "latest": {
+              "line": 2.25,
+              "over": 1.87,
+              "under": 2.01
+            },
+            "closing": {
+              "line": null,
+              "over": null,
+              "under": null
+            },
+            "format": "decimal",
+            "line_perspective": null,
+            "updated_at": "2026-10-08T16:35:27.015058Z"
+          }
+        ]
+      },
+      {
+        "id": 1,
+        "external_match_id": 3003899,
+        "league_id": 1,
+        "external_league_id": 36,
+        "league": "English Premier League",
+        "season": "2026-2027",
+        "round": 6,
+        "round_label": "Round 6",
+        "stage_key": "R_6",
+        "competition_type": "club",
+        "kickoff_at": "2026-10-10T11:30:00Z",
+        "home_team": "Arsenal",
+        "away_team": "Leeds United",
+        "status": "scheduled",
+        "ht_home": null,
+        "ht_away": null,
+        "ft_home": null,
+        "ft_away": null,
+        "odds_complete": false,
+        "updated_at": "2026-10-08T16:35:24.370154Z",
+        "odds": [
+          {
+            "bookmaker": "Bet365",
+            "bookmaker_id": 2,
+            "market": "1x2",
+            "opening": {
+              "home": 1.25,
+              "draw": 5.5,
+              "away": 12.0
+            },
+            "latest": {
+              "home": 1.4,
+              "draw": 5.0,
+              "away": 7.0
+            },
+            "closing": {
+              "home": null,
+              "draw": null,
+              "away": null
+            },
+            "format": "decimal",
+            "line_perspective": null,
+            "updated_at": "2026-10-08T16:35:24.354240Z"
+          },
+          {
+            "bookmaker": "Sbobet",
+            "bookmaker_id": 3,
+            "market": "1x2",
+            "opening": {
+              "home": 1.3,
+              "draw": 4.91,
+              "away": 7.7
+            },
+            "latest": {
+              "home": 1.37,
+              "draw": 4.27,
+              "away": 7.0
+            },
+            "closing": {
+              "home": null,
+              "draw": null,
+              "away": null
+            },
+            "format": "decimal",
+            "line_perspective": null,
+            "updated_at": "2026-10-08T16:35:24.361753Z"
+          },
+          {
+            "bookmaker": "Crown",
+            "bookmaker_id": 1,
+            "market": "1x2",
+            "opening": {
+              "home": 1.33,
+              "draw": 5.5,
+              "away": 9.5
+            },
+            "latest": {
+              "home": 1.39,
+              "draw": 4.9,
+              "away": 7.8
+            },
+            "closing": {
+              "home": null,
+              "draw": null,
+              "away": null
+            },
+            "format": "decimal",
+            "line_perspective": null,
+            "updated_at": "2026-10-08T16:35:24.366657Z"
+          },
+          {
+            "bookmaker": "Bet365",
+            "bookmaker_id": 2,
+            "market": "ah",
+            "opening": {
+              "line": -1.75,
+              "home": 2.03,
+              "away": 1.83
+            },
+            "latest": {
+              "line": -1.25,
+              "home": 1.9,
+              "away": 1.95
+            },
+            "closing": {
+              "line": null,
+              "home": null,
+              "away": null
+            },
+            "format": "decimal",
+            "line_perspective": "home",
+            "updated_at": "2026-10-08T16:35:24.356768Z"
+          },
+          {
+            "bookmaker": "Sbobet",
+            "bookmaker_id": 3,
+            "market": "ah",
+            "opening": {
+              "line": -1.5,
+              "home": 1.92,
+              "away": 1.98
+            },
+            "latest": {
+              "line": -1.25,
+              "home": 1.97,
+              "away": 1.93
+            },
+            "closing": {
+              "line": null,
+              "home": null,
+              "away": null
+            },
+            "format": "decimal",
+            "line_perspective": "home",
+            "updated_at": "2026-10-08T16:35:24.362730Z"
+          },
+          {
+            "bookmaker": "Crown",
+            "bookmaker_id": 1,
+            "market": "ah",
+            "opening": {
+              "line": -1.5,
+              "home": 1.94,
+              "away": 1.94
+            },
+            "latest": {
+              "line": -1.25,
+              "home": 1.93,
+              "away": 1.95
+            },
+            "closing": {
+              "line": null,
+              "home": null,
+              "away": null
+            },
+            "format": "decimal",
+            "line_perspective": "home",
+            "updated_at": "2026-10-08T16:35:24.367640Z"
+          },
+          {
+            "bookmaker": "Bet365",
+            "bookmaker_id": 2,
+            "market": "ou",
+            "opening": {
+              "line": 2.75,
+              "over": 1.85,
+              "under": 2.0
+            },
+            "latest": {
+              "line": 2.5,
+              "over": 1.85,
+              "under": 2.0
+            },
+            "closing": {
+              "line": null,
+              "over": null,
+              "under": null
+            },
+            "format": "decimal",
+            "line_perspective": null,
+            "updated_at": "2026-10-08T16:35:24.359797Z"
+          },
+          {
+            "bookmaker": "Sbobet",
+            "bookmaker_id": 3,
+            "market": "ou",
+            "opening": {
+              "line": 2.75,
+              "over": 1.9,
+              "under": 1.98
+            },
+            "latest": {
+              "line": 2.5,
+              "over": 1.84,
+              "under": 2.04
+            },
+            "closing": {
+              "line": null,
+              "over": null,
+              "under": null
+            },
+            "format": "decimal",
+            "line_perspective": null,
+            "updated_at": "2026-10-08T16:35:24.364567Z"
+          },
+          {
+            "bookmaker": "Crown",
+            "bookmaker_id": 1,
+            "market": "ou",
+            "opening": {
+              "line": 2.75,
+              "over": 1.92,
+              "under": 1.96
+            },
+            "latest": {
+              "line": 2.5,
+              "over": 1.84,
+              "under": 2.04
+            },
+            "closing": {
+              "line": null,
+              "over": null,
+              "under": null
+            },
+            "format": "decimal",
+            "line_perspective": null,
+            "updated_at": "2026-10-08T16:35:24.369622Z"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "external_match_id": 3013719,
+        "league_id": 2,
+        "external_league_id": 31,
+        "league": "Spanish La Liga",
+        "season": "2026-2027",
+        "round": 8,
+        "round_label": "Round 8",
+        "stage_key": "R_8",
+        "competition_type": "club",
+        "kickoff_at": "2026-10-10T12:00:00Z",
+        "home_team": "Rayo Vallecano",
+        "away_team": "Athletic Bilbao",
+        "status": "scheduled",
+        "ht_home": null,
+        "ht_away": null,
+        "ft_home": null,
+        "ft_away": null,
+        "odds_complete": false,
+        "updated_at": "2026-10-08T16:35:27.999843Z",
+        "odds": [
+          {
+            "bookmaker": "Bet365",
+            "bookmaker_id": 2,
+            "market": "1x2",
+            "opening": {
+              "home": 3.0,
+              "draw": 3.4,
+              "away": 2.25
+            },
+            "latest": {
+              "home": 2.7,
+              "draw": 3.4,
+              "away": 2.6
+            },
+            "closing": {
+              "home": null,
+              "draw": null,
+              "away": null
+            },
+            "format": "decimal",
+            "line_perspective": null,
+            "updated_at": "2026-10-08T16:35:27.987226Z"
+          },
+          {
+            "bookmaker": "Sbobet",
+            "bookmaker_id": 3,
+            "market": "1x2",
+            "opening": {
+              "home": 2.85,
+              "draw": 3.21,
+              "away": 2.28
+            },
+            "latest": {
+              "home": 2.58,
+              "draw": 3.17,
+              "away": 2.5
+            },
+            "closing": {
+              "home": null,
+              "draw": null,
+              "away": null
+            },
+            "format": "decimal",
+            "line_perspective": null,
+            "updated_at": "2026-10-08T16:35:27.992255Z"
+          },
+          {
+            "bookmaker": "Crown",
+            "bookmaker_id": 1,
+            "market": "1x2",
+            "opening": {
+              "home": 2.99,
+              "draw": 3.7,
+              "away": 2.29
+            },
+            "latest": {
+              "home": 2.74,
+              "draw": 3.5,
+              "away": 2.53
+            },
+            "closing": {
+              "home": null,
+              "draw": null,
+              "away": null
+            },
+            "format": "decimal",
+            "line_perspective": null,
+            "updated_at": "2026-10-08T16:35:27.996817Z"
+          },
+          {
+            "bookmaker": "Bet365",
+            "bookmaker_id": 2,
+            "market": "ah",
+            "opening": {
+              "line": 0.25,
+              "home": 1.88,
+              "away": 1.98
+            },
+            "latest": {
+              "line": 0.0,
+              "home": 1.98,
+              "away": 1.88
+            },
+            "closing": {
+              "line": null,
+              "home": null,
+              "away": null
+            },
+            "format": "decimal",
+            "line_perspective": "home",
+            "updated_at": "2026-10-08T16:35:27.988773Z"
+          },
+          {
+            "bookmaker": "Sbobet",
+            "bookmaker_id": 3,
+            "market": "ah",
+            "opening": {
+              "line": 0.25,
+              "home": 1.85,
+              "away": 2.05
+            },
+            "latest": {
+              "line": 0.0,
+              "home": 1.98,
+              "away": 1.92
+            },
+            "closing": {
+              "line": null,
+              "home": null,
+              "away": null
+            },
+            "format": "decimal",
+            "line_perspective": "home",
+            "updated_at": "2026-10-08T16:35:27.993791Z"
+          },
+          {
+            "bookmaker": "Crown",
+            "bookmaker_id": 1,
+            "market": "ah",
+            "opening": {
+              "line": 0.25,
+              "home": 1.88,
+              "away": 2.0
+            },
+            "latest": {
+              "line": 0.0,
+              "home": 1.98,
+              "away": 1.9
+            },
+            "closing": {
+              "line": null,
+              "home": null,
+              "away": null
+            },
+            "format": "decimal",
+            "line_perspective": "home",
+            "updated_at": "2026-10-08T16:35:27.997794Z"
+          },
+          {
+            "bookmaker": "Bet365",
+            "bookmaker_id": 2,
+            "market": "ou",
+            "opening": {
+              "line": 2.5,
+              "over": 1.95,
+              "under": 1.9
+            },
+            "latest": {
+              "line": 2.5,
+              "over": 1.93,
+              "under": 1.93
+            },
+            "closing": {
+              "line": null,
+              "over": null,
+              "under": null
+            },
+            "format": "decimal",
+            "line_perspective": null,
+            "updated_at": "2026-10-08T16:35:27.990305Z"
+          },
+          {
+            "bookmaker": "Sbobet",
+            "bookmaker_id": 3,
+            "market": "ou",
+            "opening": {
+              "line": 2.5,
+              "over": 1.94,
+              "under": 1.94
+            },
+            "latest": {
+              "line": 2.5,
+              "over": 1.95,
+              "under": 1.93
+            },
+            "closing": {
+              "line": null,
+              "over": null,
+              "under": null
+            },
+            "format": "decimal",
+            "line_perspective": null,
+            "updated_at": "2026-10-08T16:35:27.994859Z"
+          },
+          {
+            "bookmaker": "Crown",
+            "bookmaker_id": 1,
+            "market": "ou",
+            "opening": {
+              "line": 2.5,
+              "over": 1.92,
+              "under": 1.96
+            },
+            "latest": {
+              "line": 2.5,
+              "over": 1.95,
+              "under": 1.93
+            },
+            "closing": {
+              "line": null,
+              "over": null,
+              "under": null
+            },
+            "format": "decimal",
+            "line_perspective": null,
+            "updated_at": "2026-10-08T16:35:27.999843Z"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "external_match_id": 3003900,
+        "league_id": 1,
+        "external_league_id": 36,
+        "league": "English Premier League",
+        "season": "2026-2027",
+        "round": 6,
+        "round_label": "Round 6",
+        "stage_key": "R_6",
+        "competition_type": "club",
+        "kickoff_at": "2026-10-10T14:00:00Z",
+        "home_team": "Aston Villa",
+        "away_team": "Brentford",
+        "status": "scheduled",
+        "ht_home": null,
+        "ht_away": null,
+        "ft_home": null,
+        "ft_away": null,
+        "odds_complete": false,
+        "updated_at": "2026-10-08T16:35:25.012423Z",
+        "odds": [
+          {
+            "bookmaker": "Bet365",
+            "bookmaker_id": 2,
+            "market": "1x2",
+            "opening": {
+              "home": 2.8,
+              "draw": 3.4,
+              "away": 2.35
+            },
+            "latest": {
+              "home": 2.63,
+              "draw": 3.5,
+              "away": 2.6
+            },
+            "closing": {
+              "home": null,
+              "draw": null,
+              "away": null
+            },
+            "format": "decimal",
+            "line_perspective": null,
+            "updated_at": "2026-10-08T16:35:24.998974Z"
+          },
+          {
+            "bookmaker": "Sbobet",
+            "bookmaker_id": 3,
+            "market": "1x2",
+            "opening": {
+              "home": 2.42,
+              "draw": 3.28,
+              "away": 2.6
+            },
+            "latest": {
+              "home": 2.52,
+              "draw": 3.33,
+              "away": 2.47
+            },
+            "closing": {
+              "home": null,
+              "draw": null,
+              "away": null
+            },
+            "format": "decimal",
+            "line_perspective": null,
+            "updated_at": "2026-10-08T16:35:25.004079Z"
+          },
+          {
+            "bookmaker": "Crown",
+            "bookmaker_id": 1,
+            "market": "1x2",
+            "opening": {
+              "home": 2.41,
+              "draw": 3.85,
+              "away": 2.74
+            },
+            "latest": {
+              "home": 2.71,
+              "draw": 3.6,
+              "away": 2.52
+            },
+            "closing": {
+              "home": null,
+              "draw": null,
+              "away": null
+            },
+            "format": "decimal",
+            "line_perspective": null,
+            "updated_at": "2026-10-08T16:35:25.008778Z"
+          },
+          {
+            "bookmaker": "Bet365",
+            "bookmaker_id": 2,
+            "market": "ah",
+            "opening": {
+              "line": 0.25,
+              "home": 1.78,
+              "away": 2.1
+            },
+            "latest": {
+              "line": 0.0,
+              "home": 1.95,
+              "away": 1.9
+            },
+            "closing": {
+              "line": null,
+              "home": null,
+              "away": null
+            },
+            "format": "decimal",
+            "line_perspective": "home",
+            "updated_at": "2026-10-08T16:35:25.000478Z"
+          },
+          {
+            "bookmaker": "Sbobet",
+            "bookmaker_id": 3,
+            "market": "ah",
+            "opening": {
+              "line": 0.0,
+              "home": 1.94,
+              "away": 1.96
+            },
+            "latest": {
+              "line": 0.0,
+              "home": 1.97,
+              "away": 1.93
+            },
+            "closing": {
+              "line": null,
+              "home": null,
+              "away": null
+            },
+            "format": "decimal",
+            "line_perspective": "home",
+            "updated_at": "2026-10-08T16:35:25.005650Z"
+          },
+          {
+            "bookmaker": "Crown",
+            "bookmaker_id": 1,
+            "market": "ah",
+            "opening": {
+              "line": 0.0,
+              "home": 1.82,
+              "away": 2.06
+            },
+            "latest": {
+              "line": 0.0,
+              "home": 2.01,
+              "away": 1.87
+            },
+            "closing": {
+              "line": null,
+              "home": null,
+              "away": null
+            },
+            "format": "decimal",
+            "line_perspective": "home",
+            "updated_at": "2026-10-08T16:35:25.010379Z"
+          },
+          {
+            "bookmaker": "Bet365",
+            "bookmaker_id": 2,
+            "market": "ou",
+            "opening": {
+              "line": 2.75,
+              "over": 1.95,
+              "under": 1.9
+            },
+            "latest": {
+              "line": 2.75,
+              "over": 1.88,
+              "under": 1.98
+            },
+            "closing": {
+              "line": null,
+              "over": null,
+              "under": null
+            },
+            "format": "decimal",
+            "line_perspective": null,
+            "updated_at": "2026-10-08T16:35:25.002048Z"
+          },
+          {
+            "bookmaker": "Sbobet",
+            "bookmaker_id": 3,
+            "market": "ou",
+            "opening": {
+              "line": 2.75,
+              "over": 2.0,
+              "under": 1.88
+            },
+            "latest": {
+              "line": 2.75,
+              "over": 1.9,
+              "under": 1.98
+            },
+            "closing": {
+              "line": null,
+              "over": null,
+              "under": null
+            },
+            "format": "decimal",
+            "line_perspective": null,
+            "updated_at": "2026-10-08T16:35:25.007214Z"
+          },
+          {
+            "bookmaker": "Crown",
+            "bookmaker_id": 1,
+            "market": "ou",
+            "opening": {
+              "line": 2.75,
+              "over": 1.96,
+              "under": 1.92
+            },
+            "latest": {
+              "line": 2.75,
+              "over": 1.88,
+              "under": 2.0
+            },
+            "closing": {
+              "line": null,
+              "over": null,
+              "under": null
+            },
+            "format": "decimal",
+            "line_perspective": null,
+            "updated_at": "2026-10-08T16:35:25.011441Z"
+          }
+        ]
+      }
+    ],
+    "total": 4,
+    "limit": 50,
+    "offset": 0,
+    "upcoming_expanded": false
+  },
+  "seasons": {
+    "1": [
+      {
+        "id": 1,
+        "league_id": 1,
+        "season_name": "2026-2027",
+        "rounds": [
+          6
+        ],
+        "round_labels": {
+          "6": "Round 6"
+        }
+      }
+    ],
+    "2": [
+      {
+        "id": 2,
+        "league_id": 2,
+        "season_name": "2026-2027",
+        "rounds": [
+          8
+        ],
+        "round_labels": {
+          "8": "Round 8"
+        }
+      }
+    ],
+    "25": [
+      {
+        "id": 3,
+        "league_id": 25,
+        "season_name": "2026-2027",
+        "rounds": [
+          1,
+          10
+        ],
+        "round_labels": {
+          "1": "League A • Group A",
+          "10": "League C • Group B"
+        }
+      }
+    ]
+  },
+  "national_page": {
+    "items": [
+      {
+        "id": 5,
+        "external_match_id": 2981457,
+        "league_id": 25,
+        "external_league_id": 1864,
+        "league": "UEFA Nations League",
+        "season": "2026-2027",
+        "round": 1,
+        "round_label": "League A • Group A",
+        "stage_key": "G28577A",
+        "competition_type": "national",
+        "kickoff_at": "2026-11-12T17:00:00Z",
+        "home_team": "Turkey",
+        "away_team": "Belgium",
+        "status": "scheduled",
+        "ht_home": null,
+        "ht_away": null,
+        "ft_home": null,
+        "ft_away": null,
+        "odds_complete": false,
+        "updated_at": "2026-10-08T16:35:29.978166Z",
+        "odds": [
+          {
+            "bookmaker": "Bet365",
+            "bookmaker_id": 2,
+            "market": "1x2",
+            "opening": {
+              "home": null,
+              "draw": null,
+              "away": null
+            },
+            "latest": {
+              "home": null,
+              "draw": null,
+              "away": null
+            },
+            "closing": {
+              "home": null,
+              "draw": null,
+              "away": null
+            },
+            "format": "decimal",
+            "line_perspective": null,
+            "updated_at": "2026-10-08T16:35:29.967718Z"
+          },
+          {
+            "bookmaker": "Sbobet",
+            "bookmaker_id": 3,
+            "market": "1x2",
+            "opening": {
+              "home": null,
+              "draw": null,
+              "away": null
+            },
+            "latest": {
+              "home": null,
+              "draw": null,
+              "away": null
+            },
+            "closing": {
+              "home": null,
+              "draw": null,
+              "away": null
+            },
+            "format": "decimal",
+            "line_perspective": null,
+            "updated_at": "2026-10-08T16:35:29.972202Z"
+          },
+          {
+            "bookmaker": "Crown",
+            "bookmaker_id": 1,
+            "market": "1x2",
+            "opening": {
+              "home": null,
+              "draw": null,
+              "away": null
+            },
+            "latest": {
+              "home": null,
+              "draw": null,
+              "away": null
+            },
+            "closing": {
+              "home": null,
+              "draw": null,
+              "away": null
+            },
+            "format": "decimal",
+            "line_perspective": null,
+            "updated_at": "2026-10-08T16:35:29.975237Z"
+          },
+          {
+            "bookmaker": "Bet365",
+            "bookmaker_id": 2,
+            "market": "ah",
+            "opening": {
+              "line": null,
+              "home": null,
+              "away": null
+            },
+            "latest": {
+              "line": null,
+              "home": null,
+              "away": null
+            },
+            "closing": {
+              "line": null,
+              "home": null,
+              "away": null
+            },
+            "format": "decimal",
+            "line_perspective": "home",
+            "updated_at": "2026-10-08T16:35:29.968695Z"
+          },
+          {
+            "bookmaker": "Sbobet",
+            "bookmaker_id": 3,
+            "market": "ah",
+            "opening": {
+              "line": null,
+              "home": null,
+              "away": null
+            },
+            "latest": {
+              "line": null,
+              "home": null,
+              "away": null
+            },
+            "closing": {
+              "line": null,
+              "home": null,
+              "away": null
+            },
+            "format": "decimal",
+            "line_perspective": "home",
+            "updated_at": "2026-10-08T16:35:29.972202Z"
+          },
+          {
+            "bookmaker": "Crown",
+            "bookmaker_id": 1,
+            "market": "ah",
+            "opening": {
+              "line": null,
+              "home": null,
+              "away": null
+            },
+            "latest": {
+              "line": null,
+              "home": null,
+              "away": null
+            },
+            "closing": {
+              "line": null,
+              "home": null,
+              "away": null
+            },
+            "format": "decimal",
+            "line_perspective": "home",
+            "updated_at": "2026-10-08T16:35:29.977188Z"
+          },
+          {
+            "bookmaker": "Bet365",
+            "bookmaker_id": 2,
+            "market": "ou",
+            "opening": {
+              "line": null,
+              "over": null,
+              "under": null
+            },
+            "latest": {
+              "line": null,
+              "over": null,
+              "under": null
+            },
+            "closing": {
+              "line": null,
+              "over": null,
+              "under": null
+            },
+            "format": "decimal",
+            "line_perspective": null,
+            "updated_at": "2026-10-08T16:35:29.970243Z"
+          },
+          {
+            "bookmaker": "Sbobet",
+            "bookmaker_id": 3,
+            "market": "ou",
+            "opening": {
+              "line": null,
+              "over": null,
+              "under": null
+            },
+            "latest": {
+              "line": null,
+              "over": null,
+              "under": null
+            },
+            "closing": {
+              "line": null,
+              "over": null,
+              "under": null
+            },
+            "format": "decimal",
+            "line_perspective": null,
+            "updated_at": "2026-10-08T16:35:29.974254Z"
+          },
+          {
+            "bookmaker": "Crown",
+            "bookmaker_id": 1,
+            "market": "ou",
+            "opening": {
+              "line": null,
+              "over": null,
+              "under": null
+            },
+            "latest": {
+              "line": null,
+              "over": null,
+              "under": null
+            },
+            "closing": {
+              "line": null,
+              "over": null,
+              "under": null
+            },
+            "format": "decimal",
+            "line_perspective": null,
+            "updated_at": "2026-10-08T16:35:29.978166Z"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "external_match_id": 2981555,
+        "league_id": 25,
+        "external_league_id": 1864,
+        "league": "UEFA Nations League",
+        "season": "2026-2027",
+        "round": 10,
+        "round_label": "League C • Group B",
+        "stage_key": "G28579B",
+        "competition_type": "national",
+        "kickoff_at": "2026-11-12T17:00:00Z",
+        "home_team": "Armenia",
+        "away_team": "Cyprus",
+        "status": "scheduled",
+        "ht_home": null,
+        "ht_away": null,
+        "ft_home": null,
+        "ft_away": null,
+        "odds_complete": false,
+        "updated_at": "2026-10-08T16:35:31.015344Z",
+        "odds": [
+          {
+            "bookmaker": "Bet365",
+            "bookmaker_id": 2,
+            "market": "1x2",
+            "opening": {
+              "home": null,
+              "draw": null,
+              "away": null
+            },
+            "latest": {
+              "home": null,
+              "draw": null,
+              "away": null
+            },
+            "closing": {
+              "home": null,
+              "draw": null,
+              "away": null
+            },
+            "format": "decimal",
+            "line_perspective": null,
+            "updated_at": "2026-10-08T16:35:31.003404Z"
+          },
+          {
+            "bookmaker": "Sbobet",
+            "bookmaker_id": 3,
+            "market": "1x2",
+            "opening": {
+              "home": null,
+              "draw": null,
+              "away": null
+            },
+            "latest": {
+              "home": null,
+              "draw": null,
+              "away": null
+            },
+            "closing": {
+              "home": null,
+              "draw": null,
+              "away": null
+            },
+            "format": "decimal",
+            "line_perspective": null,
+            "updated_at": "2026-10-08T16:35:31.008381Z"
+          },
+          {
+            "bookmaker": "Crown",
+            "bookmaker_id": 1,
+            "market": "1x2",
+            "opening": {
+              "home": null,
+              "draw": null,
+              "away": null
+            },
+            "latest": {
+              "home": null,
+              "draw": null,
+              "away": null
+            },
+            "closing": {
+              "home": null,
+              "draw": null,
+              "away": null
+            },
+            "format": "decimal",
+            "line_perspective": null,
+            "updated_at": "2026-10-08T16:35:31.011886Z"
+          },
+          {
+            "bookmaker": "Bet365",
+            "bookmaker_id": 2,
+            "market": "ah",
+            "opening": {
+              "line": null,
+              "home": null,
+              "away": null
+            },
+            "latest": {
+              "line": null,
+              "home": null,
+              "away": null
+            },
+            "closing": {
+              "line": null,
+              "home": null,
+              "away": null
+            },
+            "format": "decimal",
+            "line_perspective": "home",
+            "updated_at": "2026-10-08T16:35:31.005447Z"
+          },
+          {
+            "bookmaker": "Sbobet",
+            "bookmaker_id": 3,
+            "market": "ah",
+            "opening": {
+              "line": null,
+              "home": null,
+              "away": null
+            },
+            "latest": {
+              "line": null,
+              "home": null,
+              "away": null
+            },
+            "closing": {
+              "line": null,
+              "home": null,
+              "away": null
+            },
+            "format": "decimal",
+            "line_perspective": "home",
+            "updated_at": "2026-10-08T16:35:31.009359Z"
+          },
+          {
+            "bookmaker": "Crown",
+            "bookmaker_id": 1,
+            "market": "ah",
+            "opening": {
+              "line": null,
+              "home": null,
+              "away": null
+            },
+            "latest": {
+              "line": null,
+              "home": null,
+              "away": null
+            },
+            "closing": {
+              "line": null,
+              "home": null,
+              "away": null
+            },
+            "format": "decimal",
+            "line_perspective": "home",
+            "updated_at": "2026-10-08T16:35:31.012863Z"
+          },
+          {
+            "bookmaker": "Bet365",
+            "bookmaker_id": 2,
+            "market": "ou",
+            "opening": {
+              "line": null,
+              "over": null,
+              "under": null
+            },
+            "latest": {
+              "line": null,
+              "over": null,
+              "under": null
+            },
+            "closing": {
+              "line": null,
+              "over": null,
+              "under": null
+            },
+            "format": "decimal",
+            "line_perspective": null,
+            "updated_at": "2026-10-08T16:35:31.006429Z"
+          },
+          {
+            "bookmaker": "Sbobet",
+            "bookmaker_id": 3,
+            "market": "ou",
+            "opening": {
+              "line": null,
+              "over": null,
+              "under": null
+            },
+            "latest": {
+              "line": null,
+              "over": null,
+              "under": null
+            },
+            "closing": {
+              "line": null,
+              "over": null,
+              "under": null
+            },
+            "format": "decimal",
+            "line_perspective": null,
+            "updated_at": "2026-10-08T16:35:31.010905Z"
+          },
+          {
+            "bookmaker": "Crown",
+            "bookmaker_id": 1,
+            "market": "ou",
+            "opening": {
+              "line": null,
+              "over": null,
+              "under": null
+            },
+            "latest": {
+              "line": null,
+              "over": null,
+              "under": null
+            },
+            "closing": {
+              "line": null,
+              "over": null,
+              "under": null
+            },
+            "format": "decimal",
+            "line_perspective": null,
+            "updated_at": "2026-10-08T16:35:31.013840Z"
+          }
+        ]
+      }
+    ],
+    "total": 2,
+    "limit": 50,
+    "offset": 0,
+    "upcoming_expanded": true
+  }
+}

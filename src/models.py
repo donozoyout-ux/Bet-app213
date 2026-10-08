@@ -18,6 +18,15 @@ class League(Base):
     name: Mapped[str] = mapped_column(String(150))
     country: Mapped[str] = mapped_column(String(80))
     source: Mapped[str] = mapped_column(String(30), default='goaloo')
+    competition_type: Mapped[str] = mapped_column(String(16), default='club')
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    backfill_from_year: Mapped[int] = mapped_column(default=2024)
+    priority: Mapped[int] = mapped_column(default=100)
+    schedule_format: Mapped[str] = mapped_column(String(8), default='league')
+    latest_season: Mapped[str | None] = mapped_column(String(20))
+    verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
 
 
 class Season(Base):
@@ -43,6 +52,8 @@ class Match(Base):
     league_id: Mapped[int] = mapped_column(ForeignKey('leagues.id'))
     season_id: Mapped[int] = mapped_column(ForeignKey('seasons.id'))
     round: Mapped[int] = mapped_column(Integer)
+    round_label: Mapped[str | None] = mapped_column(String(160))
+    stage_key: Mapped[str | None] = mapped_column(String(80))
     kickoff_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
     home_team_id: Mapped[int] = mapped_column(ForeignKey('teams.id'))
     away_team_id: Mapped[int] = mapped_column(ForeignKey('teams.id'))
@@ -131,6 +142,7 @@ class ScraperJob(Base):
     __tablename__ = 'scraper_jobs'
     id: Mapped[int] = mapped_column(primary_key=True)
     kind: Mapped[str] = mapped_column(String(20))
+    priority: Mapped[int] = mapped_column(default=100)
     status: Mapped[str] = mapped_column(String(30), default='queued', index=True)
     league_id: Mapped[int] = mapped_column(ForeignKey('leagues.id'))
     start_year: Mapped[int] = mapped_column(default=2024)

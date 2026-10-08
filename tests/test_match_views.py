@@ -119,5 +119,7 @@ def test_browser_odds_opening_closing_and_latest_prematch():
       assert.equal(movement({status:'scheduled'},missing,'home'),'2.15 → 1.92');
       const asian={opening:{home:1.8,line:-1,away:2.0},latest:{home:1.9,line:-0.75,away:1.9},closing:{home:null,line:null,away:null}};
       assert.equal(asianMovement({status:'scheduled'},asian,['home','line','away']),'1.8 / -1 / 2 → 1.9 / -0.75 / 1.9');
+      assert.equal(movement({status:'finished'},{opening:{home:null},closing:{home:null},raw:{r:{u:999}}},'home'),'—');
+      assert.equal(asianMovement({status:'scheduled'},{},['home','line','away']),'—');
     '''
     subprocess.run(['node','-e',script],check=True,capture_output=True)

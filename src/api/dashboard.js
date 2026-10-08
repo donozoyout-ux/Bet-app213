@@ -22,12 +22,17 @@
     const select = $('round-select'); if (!select) return; select.replaceChildren(); option(select,'','Tüm haftalar');
     const seasons = state.season ? state.seasons.filter(s => s.season_name === state.season) : state.seasons;
     const rounds = [...new Set(seasons.flatMap(s => s.rounds))].sort((a,b) => a-b);
-    rounds.forEach(round => option(select,round,`${round}. Hafta`));
+    rounds.forEach(round => option(select,round,seasons.find(s=>s.round_labels?.[round])?.round_labels[round] || `${round}. Hafta`));
     if (!rounds.some(round => String(round) === state.round)) state.round = '';
     select.value = state.round;
   }
   async function loadSeasons() {
-    if (!state.league) return;
+    if (!state.league) {
+      state.seasons=[];state.season='';state.round='';
+      const select=$('season-select');if(select){select.replaceChildren();option(select,'','Tüm sezonlar');select.disabled=true;}
+      fillRounds();if($('round-select'))$('round-select').disabled=true;return;
+    }
+    if($('season-select'))$('season-select').disabled=false;if($('round-select'))$('round-select').disabled=false;
     const league = state.league;
     const rows = await api(`/api/leagues/${league}/seasons`);
     if (state.league !== league) return;
@@ -43,18 +48,28 @@
     document.querySelectorAll('[data-bookmaker]').forEach(button => button.disabled = !bookmakers.some(book => book.name === button.dataset.bookmaker));
     const select = $('league-select'); select?.replaceChildren();
     const nav = $('league-nav'); nav?.replaceChildren();
-    for (const league of leagues) {
-      option(select,league.id,league.name);
-      const button = document.createElement('button'); button.type='button'; button.className='px-space-sm py-2 rounded-lg text-left hover:bg-surface-container';button.textContent=league.name;
-      button.onclick=()=>changeLeague(String(league.id));nav?.append(button);
+    option(select,'','Tüm Ligler');
+    if(nav) {const all=document.createElement('button');all.type='button';all.textContent='Tüm Ligler';all.className='px-space-sm py-2 rounded-lg text-left hover:bg-surface-container';all.onclick=()=>changeLeague('');nav.append(all);}
+    for (const [type,label] of [['club','KULÜP LİGLERİ'],['national','MİLLİ TAKIMLAR']]) {
+      const rows=leagues.filter(league=>(league.competition_type || 'club') === type);if(!rows.length)continue;
+      const group=document.createElement('optgroup');group.label=label;
+      const heading=document.createElement('span');heading.className='px-space-sm pt-3 font-label-sm text-outline';heading.textContent=label;nav?.append(heading);
+      for (const league of rows) {
+        option(group,league.id,league.name);
+        const button = document.createElement('button'); button.type='button'; button.className='px-space-sm py-2 rounded-lg text-left hover:bg-surface-container';button.textContent=league.name;
+        button.onclick=()=>changeLeague(String(league.id));nav?.append(button);
+      }
+      select?.append(group);
     }
-    if (!leagues.some(league => String(league.id) === state.league)) state.league = leagues.length ? String(leagues[0].id) : '';
+    if (!leagues.some(league => String(league.id) === state.league)) state.league = '';
     if (select) select.value = state.league;
     await loadSeasons();
   }
   async function changeLeague(league) {
     state.league=league;state.season='';state.round='';state.offset=0;if ($('league-select')) $('league-select').value=league;
-    try {await loadSeasons();await loadMatches();} catch (_) {write('matches-count','Veri bekleniyor');}
+    state.selected=null;clearDetail();
+    await loadMatches();
+    try {await loadSeasons();} catch (_) {write('matches-count','Sezon verileri bekleniyor');}
   }
   function cell(row, text) {
     const index=row._cellIndex || 0;row._cellIndex=index+1;
@@ -89,6 +104,7 @@
       state.total=page.total;const body=$('matches-body');if (!body) return;body.replaceChildren();page.items.forEach(match=>body.append(renderMatch(match)));
       if (!page.items.length) emptyRows(empty);
       write('matches-count',`${page.total} maç • ${state.bookmaker} • Europe/Istanbul`);write('table-count',`${page.total} maç`);
+      write('upcoming-window',state.view === 'upcoming' ? (page.upcoming_expanded ? 'Önümüzdeki 7 günde maç yok; en yakın maç günü gösteriliyor' : 'Önümüzdeki 7 gün') : '');
       if ($('previous-page')) $('previous-page').disabled=state.offset === 0;if ($('next-page')) $('next-page').disabled=state.offset+50 >= page.total;
       if (state.selected) await selectMatch(state.selected);
     } catch (_) {
@@ -105,7 +121,7 @@
     try {
       const [match,allOdds]=await Promise.all([api(`/api/matches/${id}`),api(`/api/matches/${id}/odds`)]);if(state.selected !== id)return;
       write('detail-title',`${match.home_team} vs ${match.away_team}`);write('detail-home',match.home_team);write('detail-away',match.away_team);
-      write('detail-league',`${match.league} • ${match.season} • ${match.round}. Hafta`);write('detail-time',date(match.kickoff_at)+' • Europe/Istanbul');write('detail-status',statuses[match.status] || match.status);
+      write('detail-league',`${match.league} • ${match.season} • ${match.round_label || `${match.round}. Hafta`}`);write('detail-time',date(match.kickoff_at)+' • Europe/Istanbul');write('detail-status',statuses[match.status] || match.status);
       write('detail-home-score',number(match.ft_home));write('detail-away-score',number(match.ft_away));write('detail-ht',`İY: ${score(match.ht_home,match.ht_away)}`);
       const markets=allOdds.filter(odds=>odds.bookmaker === state.bookmaker);
       write('odds-stage-label',match.status === 'finished' || markets.some(m=>stage(match,m) === 'closing') ? 'Kapanış' : 'Güncel');
@@ -144,7 +160,8 @@
       const job=state.job;let message='Veri bekleniyor';
       if(job) {
         const count=`${job.processed_matches+job.failed_matches} / ${job.total_matches} maç işlendi`;
-        message=['queued','running'].includes(job.status) ? `Premier League verileri hazırlanıyor • ${count}` : job.status === 'completed' ? 'Premier League güncel' : `Premier League verileri eksik • ${count} • ${job.failed_matches} hata`;
+        const competition=job.current_league || 'Yarışma';
+        message=['queued','running'].includes(job.status) ? `${competition} verileri hazırlanıyor • ${count}` : job.status === 'completed' ? `${competition} güncel` : `${competition} verileri eksik • ${count} • ${job.failed_matches} hata`;
       }
       write('collection-progress',message);write('system-scraper',message);
     } catch (_) {write('collection-progress','Bağlantı bekleniyor');write('system-scraper','Bağlantı bekleniyor');}

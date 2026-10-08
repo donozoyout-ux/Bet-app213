@@ -12,6 +12,11 @@ class LeagueResponse(ORMResponse):
     name: str
     country: str
     source: str
+    competition_type: str
+    enabled: bool
+    backfill_from_year: int
+    priority: int
+    latest_season: str | None = None
 
 
 class SeasonResponse(ORMResponse):
@@ -19,6 +24,7 @@ class SeasonResponse(ORMResponse):
     league_id: int
     season_name: str
     rounds: list[int] = Field(default_factory=list)
+    round_labels: dict[int, str] = Field(default_factory=dict)
 
 
 class BookmakerResponse(ORMResponse):
@@ -71,6 +77,9 @@ class MatchResponse(BaseModel):
     league: str
     season: str
     round: int
+    round_label: str | None = None
+    stage_key: str | None = None
+    competition_type: str = 'club'
     kickoff_at: datetime | None
     home_team: str
     away_team: str
@@ -94,6 +103,7 @@ class MatchPage(BaseModel):
     total: int
     limit: int
     offset: int
+    upcoming_expanded: bool = False
 
 
 class StatusResponse(BaseModel):

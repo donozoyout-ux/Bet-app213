@@ -1,0 +1,193 @@
+{
+  "LeagueInfo": [
+    21,
+    "USA Major League Soccer",
+    "2026",
+    "#660033",
+    "league_match/images/20200709144320.png",
+    "MLS",
+    "Major&nbsp;League&nbsp;Soccer&nbsp;is&nbsp;divided&nbsp;into&nbsp;Eastern&nbsp;and&nbsp;Western&nbsp;Conferences,&nbsp;with&nbsp;15&nbsp;teams&nbsp;in&nbsp;each&nbsp;competing.&nbsp;Match&nbsp;points&nbsp;are&nbsp;calculated&nbsp;as&nbsp;follows:&nbsp;3&nbsp;points&nbsp;for&nbsp;a&nbsp;win,&nbsp;0&nbsp;points&nbsp;for&nbsp;a&nbsp;loss,&nbsp;and&nbsp;1&nbsp;point&nbsp;each&nbsp;for&nbsp;a&nbsp;draw.&nbsp;Teams&nbsp;are&nbsp;ultimately&nbsp;ranked&nbsp;by&nbsp;total&nbsp;points.&nbsp;Should&nbsp;teams&nbsp;be&nbsp;level&nbsp;on&nbsp;points,&nbsp;the&nbsp;standings&nbsp;are&nbsp;determined&nbsp;by&nbsp;the&nbsp;number&nbsp;of&nbsp;wins.&nbsp;If&nbsp;wins&nbsp;remain&nbsp;equal,&nbsp;the&nbsp;goal&nbsp;difference&nbsp;is&nbsp;considered.&nbsp;Should&nbsp;goal&nbsp;difference&nbsp;still&nbsp;be&nbsp;identical,&nbsp;the&nbsp;total&nbsp;goals&nbsp;scored&nbsp;are&nbsp;used&nbsp;to&nbsp;separate&nbsp;the&nbsp;teams.&nbsp;The&nbsp;MLS&nbsp;Cup&nbsp;champions&nbsp;qualify&nbsp;for&nbsp;the&nbsp;CONCACAF&nbsp;Champions&nbsp;League.&nbsp;Canadian&nbsp;MLS&nbsp;clubs&nbsp;are&nbsp;ineligible&nbsp;for&nbsp;direct&nbsp;CONCACAF&nbsp;Champions&nbsp;League&nbsp;qualification&nbsp;and&nbsp;must&nbsp;instead&nbsp;compete&nbsp;in&nbsp;the&nbsp;Canadian&nbsp;Championship&nbsp;for&nbsp;a&nbsp;spot.&nbsp;Should&nbsp;a&nbsp;Canadian&nbsp;club&nbsp;win&nbsp;the&nbsp;Canadian&nbsp;Championship,&nbsp;the&nbsp;CONCACAF&nbsp;Champions&nbsp;League&nbsp;qualification&nbsp;spot&nbsp;is&nbsp;awarded&nbsp;to&nbsp;the&nbsp;MLS&nbsp;Cup&nbsp;runners-up.<br/><br/>The&nbsp;play-offs&nbsp;are&nbsp;conducted&nbsp;across&nbsp;Eastern&nbsp;and&nbsp;Western&nbsp;Conferences,&nbsp;comprising&nbsp;the&nbsp;First&nbsp;Round,&nbsp;Semi-finals,&nbsp;Conference&nbsp;Finals,&nbsp;and&nbsp;MLS&nbsp;Cup&nbsp;(the&nbsp;Championship&nbsp;Final).&nbsp;Eighteen&nbsp;teams&nbsp;participate:&nbsp;the&nbsp;top&nbsp;seven&nbsp;from&nbsp;each&nbsp;conference's&nbsp;regular&nbsp;season&nbsp;qualify&nbsp;directly&nbsp;for&nbsp;the&nbsp;First&nbsp;Round.&nbsp;The&nbsp;eighth&nbsp;and&nbsp;ninth-placed&nbsp;teams&nbsp;from&nbsp;each&nbsp;conference&nbsp;contest&nbsp;a&nbsp;play-off&nbsp;match&nbsp;for&nbsp;the&nbsp;remaining&nbsp;First&nbsp;Round&nbsp;spot.&nbsp;The&nbsp;play-offs&nbsp;commence&nbsp;on&nbsp;22nd&nbsp;October&nbsp;and&nbsp;conclude&nbsp;on&nbsp;7th&nbsp;December.<br/><br/>First&nbsp;Round&nbsp;Playoffs:&nbsp;The&nbsp;format&nbsp;is&nbsp;best-of-three&nbsp;matches.&nbsp;Should&nbsp;a&nbsp;match&nbsp;end&nbsp;in&nbsp;a&nbsp;draw&nbsp;after&nbsp;90&nbsp;minutes,&nbsp;it&nbsp;proceeds&nbsp;directly&nbsp;to&nbsp;a&nbsp;penalty&nbsp;shootout&nbsp;to&nbsp;determine&nbsp;the&nbsp;winner.&nbsp;No&nbsp;aggregate&nbsp;score&nbsp;is&nbsp;carried&nbsp;over&nbsp;from&nbsp;this&nbsp;round.<br/><br/>Quarter-finals,&nbsp;Semi-finals&nbsp;(Conference&nbsp;Finals),&nbsp;and&nbsp;Finals&nbsp;(Championship):&nbsp;These&nbsp;are&nbsp;single-elimination&nbsp;matches.&nbsp;Should&nbsp;a&nbsp;match&nbsp;end&nbsp;in&nbsp;a&nbsp;draw&nbsp;after&nbsp;regulation&nbsp;time,&nbsp;it&nbsp;proceeds&nbsp;to&nbsp;extra&nbsp;time.&nbsp;Should&nbsp;extra&nbsp;time&nbsp;also&nbsp;end&nbsp;in&nbsp;a&nbsp;draw,&nbsp;a&nbsp;penalty&nbsp;shootout&nbsp;is&nbsp;conducted.",
+    0
+  ],
+  "ScheduleList": {
+    "sub_165": {
+      "R_1": [
+        [
+          2908412,
+          21,
+          -1,
+          "2026-02-22 03:40",
+          64730,
+          51741,
+          "1-1",
+          "0-0",
+          "西13",
+          "东4",
+          "0.25",
+          "0.25",
+          "2.5/3",
+          "1/1.5",
+          1,
+          1,
+          1,
+          1,
+          0,
+          0,
+          "",
+          "13",
+          "4"
+        ],
+        [
+          2908413,
+          21,
+          -1,
+          "2026-02-22 05:50",
+          26530,
+          31761,
+          "2-0",
+          "0-0",
+          "东2",
+          "东14",
+          "0.75",
+          "0.25",
+          "3",
+          "1/1.5",
+          1,
+          1,
+          1,
+          1,
+          0,
+          0,
+          "",
+          "2",
+          "14"
+        ]
+      ],
+      "R_2": [
+        [
+          2908427,
+          21,
+          -1,
+          "2026-03-01 03:40",
+          319,
+          5530,
+          "3-0",
+          "1-0",
+          "东10",
+          "东15",
+          "1",
+          "0.5",
+          "3/3.5",
+          "1.5",
+          1,
+          1,
+          1,
+          1,
+          1,
+          0,
+          "",
+          "10",
+          "15"
+        ],
+        [
+          2908428,
+          21,
+          -1,
+          "2026-03-01 03:40",
+          310,
+          316,
+          "1-0",
+          "0-0",
+          "东3",
+          "东13",
+          "0.75",
+          "0.25",
+          "2.5/3",
+          "1/1.5",
+          1,
+          1,
+          1,
+          1,
+          0,
+          0,
+          "",
+          "3",
+          "13"
+        ]
+      ]
+    }
+  },
+  "TeamInfo": [
+    [
+      310,
+      "New York Red Bulls",
+      "",
+      "images/310/1j3s20wrkq7.png",
+      1
+    ],
+    [
+      316,
+      "New England Revolution",
+      "",
+      "images/316/1gt31ntq8c11.png",
+      1
+    ],
+    [
+      319,
+      "Chicago Fire",
+      "",
+      "images/319/1m04731ma22.png",
+      1
+    ],
+    [
+      5530,
+      "CF Montreal",
+      "",
+      "images/5530/1hxkcfqmkck.png",
+      1
+    ],
+    [
+      26530,
+      "FC Cincinnati",
+      "",
+      "images/26530/1m01gqq6ge1z.png",
+      1
+    ],
+    [
+      31761,
+      "Atlanta United",
+      "",
+      "images/31761/1j3p97vqk12w.png",
+      1
+    ],
+    [
+      51741,
+      "Charlotte FC",
+      "",
+      "images/51741/1m01gqq6gm6.png",
+      1
+    ],
+    [
+      64730,
+      "St. Louis City",
+      "",
+      "images/64730/1gt30b8dgh2w.png",
+      2
+    ]
+  ],
+  "SubLeagueInfo": [
+    [
+      165,
+      "League",
+      1,
+      34,
+      28,
+      0,
+      1,
+      27,
+      1,
+      1,
+      0
+    ]
+  ]
+}

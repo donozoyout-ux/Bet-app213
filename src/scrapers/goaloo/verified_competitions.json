@@ -1,0 +1,869 @@
+{
+  "catalog_url": "https://football.goaloo.com/jsData/infoHeaderEn.js",
+  "checked_at": "2026-10-08T16:30:26.934569+00:00",
+  "competitions": [
+    {
+      "external_id": 36,
+      "catalog_name": "ENG PR",
+      "country": "England",
+      "competition_type": "club",
+      "schedule_format": "league",
+      "priority": 1,
+      "name": "English Premier League",
+      "latest_season": "2026-2027",
+      "seasons": [
+        "2024-2025",
+        "2025-2026",
+        "2026-2027"
+      ],
+      "verified": true,
+      "odds_endpoint": "ok",
+      "odds_books": [
+        "Bet365",
+        "Sbobet",
+        "Crown"
+      ],
+      "historical_matches": 1140,
+      "season_counts": {
+        "2024-2025": 380,
+        "2025-2026": 380,
+        "2026-2027": 380
+      },
+      "verified_at": "2026-10-08T16:18:51.915677+00:00",
+      "error": null
+    },
+    {
+      "external_id": 31,
+      "catalog_name": "SPA D1",
+      "country": "Spain",
+      "competition_type": "club",
+      "schedule_format": "league",
+      "priority": 2,
+      "name": "Spanish La Liga",
+      "latest_season": "2026-2027",
+      "seasons": [
+        "2024-2025",
+        "2025-2026",
+        "2026-2027"
+      ],
+      "verified": true,
+      "odds_endpoint": "ok",
+      "odds_books": [
+        "Bet365",
+        "Sbobet",
+        "Crown"
+      ],
+      "historical_matches": 1140,
+      "season_counts": {
+        "2024-2025": 380,
+        "2025-2026": 380,
+        "2026-2027": 380
+      },
+      "verified_at": "2026-10-08T16:18:56.891267+00:00",
+      "error": null
+    },
+    {
+      "external_id": 34,
+      "catalog_name": "ITA D1",
+      "country": "Italy",
+      "competition_type": "club",
+      "schedule_format": "league",
+      "priority": 3,
+      "name": "Italy Serie A",
+      "latest_season": "2026-2027",
+      "seasons": [
+        "2024-2025",
+        "2025-2026",
+        "2026-2027"
+      ],
+      "verified": true,
+      "odds_endpoint": "ok",
+      "odds_books": [
+        "Bet365",
+        "Sbobet",
+        "Crown"
+      ],
+      "historical_matches": 1140,
+      "season_counts": {
+        "2024-2025": 380,
+        "2025-2026": 380,
+        "2026-2027": 380
+      },
+      "verified_at": "2026-10-08T16:19:01.898076+00:00",
+      "error": null
+    },
+    {
+      "external_id": 8,
+      "catalog_name": "GER D1",
+      "country": "Germany",
+      "competition_type": "club",
+      "schedule_format": "league",
+      "priority": 4,
+      "name": "German Bundesliga",
+      "latest_season": "2026-2027",
+      "seasons": [
+        "2024-2025",
+        "2025-2026",
+        "2026-2027"
+      ],
+      "verified": true,
+      "odds_endpoint": "ok",
+      "odds_books": [
+        "Bet365",
+        "Sbobet",
+        "Crown"
+      ],
+      "historical_matches": 918,
+      "season_counts": {
+        "2024-2025": 306,
+        "2025-2026": 306,
+        "2026-2027": 306
+      },
+      "verified_at": "2026-10-08T16:19:06.893122+00:00",
+      "error": null
+    },
+    {
+      "external_id": 11,
+      "catalog_name": "FRA D1",
+      "country": "France",
+      "competition_type": "club",
+      "schedule_format": "league",
+      "priority": 5,
+      "name": "France Ligue 1",
+      "latest_season": "2026-2027",
+      "seasons": [
+        "2024-2025",
+        "2025-2026",
+        "2026-2027"
+      ],
+      "verified": true,
+      "odds_endpoint": "ok",
+      "odds_books": [
+        "Bet365",
+        "Sbobet",
+        "Crown"
+      ],
+      "historical_matches": 918,
+      "season_counts": {
+        "2024-2025": 306,
+        "2025-2026": 306,
+        "2026-2027": 306
+      },
+      "verified_at": "2026-10-08T16:19:11.906049+00:00",
+      "error": null
+    },
+    {
+      "external_id": 30,
+      "catalog_name": "TUR D1",
+      "country": "Turkey",
+      "competition_type": "club",
+      "schedule_format": "league",
+      "priority": 6,
+      "name": "Turkey Super Lig",
+      "latest_season": "2026-2027",
+      "seasons": [
+        "2024-2025",
+        "2025-2026",
+        "2026-2027"
+      ],
+      "verified": true,
+      "odds_endpoint": "ok",
+      "odds_books": [
+        "Bet365",
+        "Sbobet",
+        "Crown"
+      ],
+      "historical_matches": 954,
+      "season_counts": {
+        "2024-2025": 342,
+        "2025-2026": 306,
+        "2026-2027": 306
+      },
+      "verified_at": "2026-10-08T16:19:16.928904+00:00",
+      "error": null
+    },
+    {
+      "external_id": 16,
+      "catalog_name": "HOL D1",
+      "country": "Netherlands",
+      "competition_type": "club",
+      "schedule_format": "league",
+      "priority": 7,
+      "name": "Holland Eredivisie",
+      "latest_season": "2026-2027",
+      "seasons": [
+        "2024-2025",
+        "2025-2026",
+        "2026-2027"
+      ],
+      "verified": true,
+      "odds_endpoint": "ok",
+      "odds_books": [
+        "Bet365",
+        "Sbobet",
+        "Crown"
+      ],
+      "historical_matches": 924,
+      "season_counts": {
+        "2024-2025": 309,
+        "2025-2026": 309,
+        "2026-2027": 306
+      },
+      "verified_at": "2026-10-08T16:19:21.930025+00:00",
+      "error": null
+    },
+    {
+      "external_id": 23,
+      "catalog_name": "POR D1",
+      "country": "Portugal",
+      "competition_type": "club",
+      "schedule_format": "league",
+      "priority": 8,
+      "name": "Liga Portugal 1",
+      "latest_season": "2026-2027",
+      "seasons": [
+        "2024-2025",
+        "2025-2026",
+        "2026-2027"
+      ],
+      "verified": true,
+      "odds_endpoint": "ok",
+      "odds_books": [
+        "Bet365",
+        "Sbobet",
+        "Crown"
+      ],
+      "historical_matches": 917,
+      "season_counts": {
+        "2024-2025": 306,
+        "2025-2026": 306,
+        "2026-2027": 305
+      },
+      "verified_at": "2026-10-08T16:19:26.938692+00:00",
+      "error": null
+    },
+    {
+      "external_id": 5,
+      "catalog_name": "BEL D1",
+      "country": "Belgium",
+      "competition_type": "club",
+      "schedule_format": "league",
+      "priority": 9,
+      "name": "Belgian Pro League",
+      "latest_season": "2026-2027",
+      "seasons": [
+        "2024-2025",
+        "2025-2026",
+        "2026-2027"
+      ],
+      "verified": true,
+      "odds_endpoint": "ok",
+      "odds_books": [
+        "Bet365",
+        "Sbobet",
+        "Crown"
+      ],
+      "historical_matches": 932,
+      "season_counts": {
+        "2024-2025": 313,
+        "2025-2026": 313,
+        "2026-2027": 306
+      },
+      "verified_at": "2026-10-08T16:19:31.933789+00:00",
+      "error": null
+    },
+    {
+      "external_id": 29,
+      "catalog_name": "SCO PR",
+      "country": "Scotland",
+      "competition_type": "club",
+      "schedule_format": "league",
+      "priority": 10,
+      "name": "Scottish Premiership",
+      "latest_season": "2026-2027",
+      "seasons": [
+        "2024-2025",
+        "2025-2026",
+        "2026-2027"
+      ],
+      "verified": true,
+      "odds_endpoint": "ok",
+      "odds_books": [
+        "Bet365",
+        "Sbobet",
+        "Crown"
+      ],
+      "historical_matches": 660,
+      "season_counts": {
+        "2024-2025": 228,
+        "2025-2026": 234,
+        "2026-2027": 198
+      },
+      "verified_at": "2026-10-08T16:19:36.946457+00:00",
+      "error": null
+    },
+    {
+      "external_id": 3,
+      "catalog_name": "AUT D1",
+      "country": "Austria",
+      "competition_type": "club",
+      "schedule_format": "league",
+      "priority": 11,
+      "name": "Austrian Bundesliga",
+      "latest_season": "2026-2027",
+      "seasons": [
+        "2024-2025",
+        "2025-2026",
+        "2026-2027"
+      ],
+      "verified": true,
+      "odds_endpoint": "ok",
+      "odds_books": [
+        "Bet365",
+        "Sbobet",
+        "Crown"
+      ],
+      "historical_matches": 518,
+      "season_counts": {
+        "2024-2025": 193,
+        "2025-2026": 193,
+        "2026-2027": 132
+      },
+      "verified_at": "2026-10-08T16:19:41.954463+00:00",
+      "error": null
+    },
+    {
+      "external_id": 27,
+      "catalog_name": "SUI SL",
+      "country": "Switzerland",
+      "competition_type": "club",
+      "schedule_format": "league",
+      "priority": 12,
+      "name": "Switzerland Super League",
+      "latest_season": "2026-2027",
+      "seasons": [
+        "2024-2025",
+        "2025-2026",
+        "2026-2027"
+      ],
+      "verified": true,
+      "odds_endpoint": "ok",
+      "odds_books": [
+        "Bet365",
+        "Sbobet",
+        "Crown"
+      ],
+      "historical_matches": 588,
+      "season_counts": {
+        "2024-2025": 228,
+        "2025-2026": 228,
+        "2026-2027": 132
+      },
+      "verified_at": "2026-10-08T16:19:46.936828+00:00",
+      "error": null
+    },
+    {
+      "external_id": 32,
+      "catalog_name": "GRE D1",
+      "country": "Greece",
+      "competition_type": "club",
+      "schedule_format": "league",
+      "priority": 13,
+      "name": "Greece Super League A",
+      "latest_season": "2026-2027",
+      "seasons": [
+        "2024-2025",
+        "2025-2026",
+        "2026-2027"
+      ],
+      "verified": true,
+      "odds_endpoint": "ok",
+      "odds_books": [
+        "Bet365",
+        "Sbobet",
+        "Crown"
+      ],
+      "historical_matches": 654,
+      "season_counts": {
+        "2024-2025": 236,
+        "2025-2026": 236,
+        "2026-2027": 182
+      },
+      "verified_at": "2026-10-08T16:19:51.939221+00:00",
+      "error": null
+    },
+    {
+      "external_id": 292,
+      "catalog_name": "SPL",
+      "country": "Saudi Arabia",
+      "competition_type": "club",
+      "schedule_format": "league",
+      "priority": 14,
+      "name": "Saudi Professional League",
+      "latest_season": "2026-2027",
+      "seasons": [
+        "2024-2025",
+        "2025-2026",
+        "2026-2027"
+      ],
+      "verified": true,
+      "odds_endpoint": "ok",
+      "odds_books": [
+        "Bet365",
+        "Sbobet",
+        "Crown"
+      ],
+      "historical_matches": 918,
+      "season_counts": {
+        "2024-2025": 306,
+        "2025-2026": 306,
+        "2026-2027": 306
+      },
+      "verified_at": "2026-10-08T16:19:56.935965+00:00",
+      "error": null
+    },
+    {
+      "external_id": 21,
+      "catalog_name": "MLS",
+      "country": "United States",
+      "competition_type": "club",
+      "schedule_format": "league",
+      "priority": 15,
+      "name": "USA Major League Soccer",
+      "latest_season": "2026",
+      "seasons": [
+        "2024",
+        "2025",
+        "2026"
+      ],
+      "verified": true,
+      "odds_endpoint": "ok",
+      "odds_books": [
+        "Bet365",
+        "Sbobet",
+        "Crown"
+      ],
+      "historical_matches": 1572,
+      "season_counts": {
+        "2024": 522,
+        "2025": 540,
+        "2026": 510
+      },
+      "verified_at": "2026-10-08T16:20:01.968795+00:00",
+      "error": null
+    },
+    {
+      "external_id": 75,
+      "catalog_name": "World Cup",
+      "country": "International",
+      "competition_type": "national",
+      "schedule_format": "cup",
+      "priority": 16,
+      "name": "FIFA World Cup",
+      "latest_season": "2026",
+      "seasons": [
+        "2026"
+      ],
+      "verified": true,
+      "odds_endpoint": "ok",
+      "odds_books": [
+        "Bet365",
+        "Sbobet",
+        "Crown"
+      ],
+      "historical_matches": 104,
+      "season_counts": {
+        "2026": 104
+      },
+      "verified_at": "2026-10-08T16:29:35.661206+00:00",
+      "error": null
+    },
+    {
+      "external_id": 650,
+      "catalog_name": "WCPEU",
+      "country": "International",
+      "competition_type": "national",
+      "schedule_format": "cup",
+      "priority": 17,
+      "name": "FIFA World Cup qualification (UEFA)",
+      "latest_season": "2025-2026",
+      "seasons": [
+        "2025-2026"
+      ],
+      "verified": true,
+      "odds_endpoint": "ok",
+      "odds_books": [
+        "Bet365",
+        "Sbobet",
+        "Crown"
+      ],
+      "historical_matches": 204,
+      "season_counts": {
+        "2025-2026": 204
+      },
+      "verified_at": "2026-10-08T16:29:38.476126+00:00",
+      "error": null
+    },
+    {
+      "external_id": 648,
+      "catalog_name": "FIFA WCQL",
+      "country": "International",
+      "competition_type": "national",
+      "schedule_format": "cup",
+      "priority": 18,
+      "name": "FIFA World Cup qualification (AFC)",
+      "latest_season": "2023-2025",
+      "seasons": [
+        "2023-2025"
+      ],
+      "verified": true,
+      "odds_endpoint": "ok",
+      "odds_books": [
+        "Bet365",
+        "Sbobet",
+        "Crown"
+      ],
+      "historical_matches": 168,
+      "season_counts": {
+        "2023-2025": 168
+      },
+      "verified_at": "2026-10-08T16:29:41.484894+00:00",
+      "error": null
+    },
+    {
+      "external_id": 652,
+      "catalog_name": "WCPSA",
+      "country": "International",
+      "competition_type": "national",
+      "schedule_format": "cup",
+      "priority": 19,
+      "name": "FIFA World Cup qualification (CONMEBOL)",
+      "latest_season": "2023-2025",
+      "seasons": [
+        "2023-2025"
+      ],
+      "verified": true,
+      "odds_endpoint": "ok",
+      "odds_books": [
+        "Bet365",
+        "Sbobet",
+        "Crown"
+      ],
+      "historical_matches": 60,
+      "season_counts": {
+        "2023-2025": 60
+      },
+      "verified_at": "2026-10-08T16:29:44.460030+00:00",
+      "error": null
+    },
+    {
+      "external_id": 651,
+      "catalog_name": "WCPAF",
+      "country": "International",
+      "competition_type": "national",
+      "schedule_format": "cup",
+      "priority": 20,
+      "name": "FIFA World Cup qualification (CAF)",
+      "latest_season": "2023-2025",
+      "seasons": [
+        "2023-2025"
+      ],
+      "verified": true,
+      "odds_endpoint": "ok",
+      "odds_books": [
+        "Bet365",
+        "Sbobet",
+        "Crown"
+      ],
+      "historical_matches": 211,
+      "season_counts": {
+        "2023-2025": 211
+      },
+      "verified_at": "2026-10-08T16:29:47.468900+00:00",
+      "error": null
+    },
+    {
+      "external_id": 653,
+      "catalog_name": "WCPCA",
+      "country": "International",
+      "competition_type": "national",
+      "schedule_format": "cup",
+      "priority": 21,
+      "name": "FIFA World Cup qualification (CONCACAF)",
+      "latest_season": "2024-2025",
+      "seasons": [
+        "2024-2025"
+      ],
+      "verified": true,
+      "odds_endpoint": "ok",
+      "odds_books": [
+        "Bet365",
+        "Sbobet",
+        "Crown"
+      ],
+      "historical_matches": 96,
+      "season_counts": {
+        "2024-2025": 96
+      },
+      "verified_at": "2026-10-08T16:29:50.470819+00:00",
+      "error": null
+    },
+    {
+      "external_id": 649,
+      "catalog_name": "WCPO",
+      "country": "International",
+      "competition_type": "national",
+      "schedule_format": "cup",
+      "priority": 22,
+      "name": "FIFA World Cup qualification (OFC)",
+      "latest_season": "2024-2025",
+      "seasons": [
+        "2024-2025"
+      ],
+      "verified": true,
+      "odds_endpoint": "ok",
+      "odds_books": [
+        "Sbobet"
+      ],
+      "historical_matches": 18,
+      "season_counts": {
+        "2024-2025": 18
+      },
+      "verified_at": "2026-10-08T16:29:53.459573+00:00",
+      "error": null
+    },
+    {
+      "external_id": 892,
+      "catalog_name": "WCP-PO",
+      "country": "International",
+      "competition_type": "national",
+      "schedule_format": "cup",
+      "priority": 23,
+      "name": "World Cup (Preliminaries) Play-Offs",
+      "latest_season": "2026",
+      "seasons": [
+        "2026"
+      ],
+      "verified": true,
+      "odds_endpoint": "ok",
+      "odds_books": [
+        "Bet365",
+        "Sbobet",
+        "Crown"
+      ],
+      "historical_matches": 4,
+      "season_counts": {
+        "2026": 4
+      },
+      "verified_at": "2026-10-08T16:29:56.460022+00:00",
+      "error": null
+    },
+    {
+      "external_id": 67,
+      "catalog_name": "EURO Cup",
+      "country": "Europe",
+      "competition_type": "national",
+      "schedule_format": "cup",
+      "priority": 24,
+      "name": "UEFA European Championship",
+      "latest_season": "2023-2024",
+      "seasons": [
+        "2023-2024"
+      ],
+      "verified": true,
+      "odds_endpoint": "ok",
+      "odds_books": [
+        "Bet365",
+        "Sbobet",
+        "Crown"
+      ],
+      "historical_matches": 60,
+      "season_counts": {
+        "2023-2024": 60
+      },
+      "verified_at": "2026-10-08T16:29:59.475644+00:00",
+      "error": null
+    },
+    {
+      "external_id": 1864,
+      "catalog_name": "UEFA NL",
+      "country": "Europe",
+      "competition_type": "national",
+      "schedule_format": "cup",
+      "priority": 25,
+      "name": "UEFA Nations League",
+      "latest_season": "2026-2027",
+      "seasons": [
+        "2022-2023",
+        "2024-2025",
+        "2026-2027"
+      ],
+      "verified": true,
+      "odds_endpoint": "ok",
+      "odds_books": [
+        "Bet365",
+        "Sbobet",
+        "Crown"
+      ],
+      "historical_matches": 316,
+      "season_counts": {
+        "2022-2023": 0,
+        "2024-2025": 160,
+        "2026-2027": 156
+      },
+      "verified_at": "2026-10-08T16:30:04.491688+00:00",
+      "error": null
+    },
+    {
+      "external_id": 224,
+      "catalog_name": "AMEC",
+      "country": "Americas",
+      "competition_type": "national",
+      "schedule_format": "cup",
+      "priority": 26,
+      "name": "Copa America",
+      "latest_season": "2024",
+      "seasons": [
+        "2024"
+      ],
+      "verified": true,
+      "odds_endpoint": "ok",
+      "odds_books": [
+        "Bet365",
+        "Sbobet",
+        "Crown"
+      ],
+      "historical_matches": 34,
+      "season_counts": {
+        "2024": 34
+      },
+      "verified_at": "2026-10-08T16:30:07.483450+00:00",
+      "error": null
+    },
+    {
+      "external_id": 93,
+      "catalog_name": "CAF NC",
+      "country": "Africa",
+      "competition_type": "national",
+      "schedule_format": "cup",
+      "priority": 27,
+      "name": "Africa Cup of Nations",
+      "latest_season": "2026-2028",
+      "seasons": [
+        "2022-2024",
+        "2024-2026",
+        "2026-2028"
+      ],
+      "verified": true,
+      "odds_endpoint": "ok",
+      "odds_books": [
+        "Bet365",
+        "Sbobet",
+        "Crown"
+      ],
+      "historical_matches": 392,
+      "season_counts": {
+        "2022-2024": 52,
+        "2024-2026": 196,
+        "2026-2028": 144
+      },
+      "verified_at": "2026-10-08T16:30:12.481206+00:00",
+      "error": null
+    },
+    {
+      "external_id": 95,
+      "catalog_name": "AFC",
+      "country": "Asia",
+      "competition_type": "national",
+      "schedule_format": "cup",
+      "priority": 28,
+      "name": "AFC Asian Cup",
+      "latest_season": "2024-2027",
+      "seasons": [
+        "2021-2023",
+        "2024-2027"
+      ],
+      "verified": true,
+      "odds_endpoint": "ok",
+      "odds_books": [
+        "Bet365",
+        "Sbobet",
+        "Crown"
+      ],
+      "historical_matches": 156,
+      "season_counts": {
+        "2021-2023": 51,
+        "2024-2027": 105
+      },
+      "verified_at": "2026-10-08T16:30:16.475840+00:00",
+      "error": null
+    },
+    {
+      "external_id": 232,
+      "catalog_name": "CGC",
+      "country": "Americas",
+      "competition_type": "national",
+      "schedule_format": "cup",
+      "priority": 29,
+      "name": "Concacaf Gold",
+      "latest_season": "2025",
+      "seasons": [
+        "2023",
+        "2025"
+      ],
+      "verified": true,
+      "odds_endpoint": "ok",
+      "odds_books": [
+        "Bet365",
+        "Sbobet",
+        "Crown"
+      ],
+      "historical_matches": 31,
+      "season_counts": {
+        "2023": 0,
+        "2025": 31
+      },
+      "verified_at": "2026-10-08T16:30:20.464373+00:00",
+      "error": null
+    },
+    {
+      "external_id": 1366,
+      "catalog_name": "INT FRL",
+      "country": "International",
+      "competition_type": "national",
+      "schedule_format": "cup",
+      "priority": 30,
+      "name": "International Friendly",
+      "latest_season": "2026",
+      "seasons": [
+        "2023",
+        "2024",
+        "2025",
+        "2026"
+      ],
+      "verified": true,
+      "odds_endpoint": "ok",
+      "odds_books": [
+        "Bet365",
+        "Sbobet",
+        "Crown"
+      ],
+      "historical_matches": 6208,
+      "season_counts": {
+        "2023": 1,
+        "2024": 2094,
+        "2025": 2358,
+        "2026": 1755
+      },
+      "verified_at": "2026-10-08T16:30:26.934569+00:00",
+      "error": null
+    }
+  ],
+  "notes": [
+    "EURO finals and qualifiers share the Goaloo EURO Cup competition; stage/group labels distinguish them.",
+    "World Cup qualifiers are separate confederation competitions, not a guessed aggregate ID.",
+    "Match counts are unique dated 2024+ fixtures currently published, not odds completeness guarantees.",
+    "Goaloo archived cup LeagueInfo can carry a current-season label; schedule dates validate requested archive intervals.",
+    "National verification checks the prior archive year too, to capture delayed 2023 tournaments played in 2024; only actual 2024+ kickoff dates are stored."
+  ]
+}
