@@ -11,6 +11,10 @@ class Prediction(BaseModel):
     away_probability: float | None = None
     over_25_probability: float | None = None
     under_25_probability: float | None = None
+    over_15_probability: float | None = None
+    under_15_probability: float | None = None
+    over_35_probability: float | None = None
+    under_35_probability: float | None = None
     btts_probability: float | None = None
     no_btts_probability: float | None = None
     expected_home_goals: float | None = None
@@ -86,6 +90,26 @@ class BookmakerStats(BaseModel):
     implied_probabilities: dict[str,float] | None
 
 
+class Recommendation(BaseModel):
+    id: str
+    market: str
+    selection: str
+    label: str
+    probability: float
+    confidence: Literal['low','medium','high']
+    score: float
+    reliability: float
+    sample_size: int
+    correlation_group: str
+    evidence: dict
+    score_components: dict[str,float]
+    penalties: dict[str,float]
+    qualifies: bool
+    market_probability: float | None
+    bookmaker_count: int
+    model_market_difference: float | None
+
+
 class Statistics(BaseModel):
     match: MatchResponse
     prediction: Prediction
@@ -104,6 +128,11 @@ class Statistics(BaseModel):
     cache_seconds: int
     methodology: str
     additional_statistics: dict = Field(default_factory=dict)
+    candidates: list[Recommendation] = Field(default_factory=list)
+    recommendations: list[Recommendation] = Field(default_factory=list)
+    strongest_prediction: str | None = None
+    ranking_evidence: dict = Field(default_factory=dict)
+    asian_handicap_candidates: list[dict] = Field(default_factory=list)
 
 
 class PredictionCard(BaseModel):
@@ -111,9 +140,24 @@ class PredictionCard(BaseModel):
     prediction: Prediction
     bookmaker_consensus: dict[str,float] | None
     as_of: datetime
+    match_id: int
+    recommendations: list[Recommendation]
+    strongest_prediction: str
 
 
 class PredictionPage(BaseModel):
     items: list[PredictionCard]
     window_hours: int
     generated_at: datetime
+
+
+class GlobalPick(BaseModel):
+    match: MatchResponse
+    recommendation: Recommendation
+    as_of: datetime
+
+
+class GlobalPicks(BaseModel):
+    items: list[GlobalPick]
+    generated_at: datetime
+    evaluated_matches: int

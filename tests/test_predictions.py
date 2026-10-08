@@ -162,11 +162,11 @@ async def test_predictions_nearest_window_league_date_and_insufficient(api,db,mo
                               home_team_id=ids[2],away_team_id=ids[3],status='scheduled',raw={},created_at=NOW,updated_at=NOW))
         await session.commit()
     page=(await api.get('/api/predictions?limit=8')).json()
-    assert page['window_hours']==168 and len(page['items'])==4
+    assert page['window_hours']==168 and len(page['items'])==1
     dates=[row['match']['kickoff_at'] for row in page['items']]
     assert dates==sorted(dates)
-    assert page['items'][0]['prediction']['status']=='insufficient_data'
-    assert page['items'][0]['prediction']['home_probability'] is None
+    assert page['items'][0]['match']['id']==match_id
+    assert 1<=len(page['items'][0]['recommendations'])<=3
     assert (await api.get('/api/predictions?league=999999')).json()['items']==[]
     assert len((await api.get('/api/predictions?date=2026-10-09')).json()['items'])==1
     assert (await api.get('/api/predictions?limit=100')).status_code==422

@@ -81,11 +81,15 @@ def count_prediction(rows,home_id,away_id,metric,card_basis='yellow_plus_red'):
 
 async def additional_statistics(session,match,cutoff):
     basis='yellow_plus_red'
-    rows=(await session.execute(select(Match,MatchStatistics).outerjoin(MatchStatistics,and_(MatchStatistics.match_id==Match.id,MatchStatistics.is_final.is_(True),MatchStatistics.updated_at<=cutoff)).where(
+    history_key=(match.league_id,cutoff)
+    history_cache=session.info.setdefault('recommendation_count_history',{})
+    query=select(Match,MatchStatistics).outerjoin(MatchStatistics,and_(MatchStatistics.match_id==Match.id,MatchStatistics.is_final.is_(True),MatchStatistics.updated_at<=cutoff)).where(
         Match.league_id==match.league_id,Match.id!=match.id,Match.status=='finished',
         Match.kickoff_at<=cutoff-timedelta(hours=3),Match.kickoff_at>=cutoff-timedelta(days=3*366),
         Match.created_at<=cutoff,Match.updated_at<=cutoff,or_(Match.last_scraped_at.is_(None),Match.last_scraped_at<=cutoff),
-        ).order_by(Match.kickoff_at.desc(),Match.id.desc()))).all()
+        ).order_by(Match.kickoff_at.desc(),Match.id.desc())
+    if history_key not in history_cache:history_cache[history_key]=(await session.execute(query)).all()
+    rows=history_cache[history_key]
     result={}
     for metric in ['corners','cards']:
         sides={}
