@@ -76,3 +76,17 @@ async def test_api_selected_filter_global_rank_and_full_candidates(api,db,monkey
     assert scores==sorted(scores,reverse=True)
     assert len(global_page['items'])==len(item['recommendations'])
     assert global_page['evaluated_matches']==1
+
+
+async def test_presentation_sort_and_pick_pagination(api,db,monkeypatch):
+    import src.api.routes as routes
+    monkeypatch.setattr(routes,'utcnow',lambda:NOW)
+    await seed(db)
+    rows=(await api.get('/api/matches?view=upcoming&sort=team')).json()['items']
+    assert [r['home_team'] for r in rows]==sorted(r['home_team'] for r in rows)
+    second=(await api.get('/api/matches?view=upcoming&sort=team&limit=1&offset=1')).json()['items']
+    assert second==rows[1:2]
+    picks=(await api.get('/api/predictions/best')).json()['items']
+    assert (await api.get('/api/predictions/best?limit=1&offset=1')).json()['items']==picks[1:2]
+    assert (await api.get('/api/matches?sort=unsupported')).status_code==422
+    assert (await api.get('/api/predictions/best?offset=-1')).status_code==422

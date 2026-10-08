@@ -9,13 +9,13 @@ class Element {
   append(node){this.children.push(node);}
   replaceChildren(){this.children=[];}
   get firstElementChild(){return this.children[0];}
-  setAttribute(){}
+  setAttribute(key,value){this[key]=value;}
 }
 async function scenario(mode) {
   const elements = new Map([...markup.matchAll(/\bid="([^"]+)"/g)].map(m=>[m[1],new Element()]));
   if(mode==='missing-controls') for(const id of ['league-select','season-select','round-select','date-select','refresh-button','previous-page','next-page','league-nav'])elements.delete(id);
-  const calls=[];const failures=[];
-  const sandbox={console,URLSearchParams,AbortSignal,setInterval(){},setTimeout(){},clearTimeout(){},
+  const calls=[];const failures=[];const selected=[];const pending=[];
+  const sandbox={BetAppPredictions:{select:id=>selected.push(id),clear(){},refresh(){}},console,URLSearchParams,AbortSignal,setInterval(){},setTimeout(){},clearTimeout(){},
     document:{getElementById:id=>elements.get(id) || null,querySelector:()=>null,querySelectorAll:()=>[],createElement:()=>new Element()},
     fetch:async path=>{
       calls.push(path);
@@ -23,13 +23,14 @@ async function scenario(mode) {
       let payload;
       if(path==='/health')payload={status:'ok'};
       else if(path==='/api/status')payload={database:unavailable?'unavailable':'connected',total_matches:0,total_odds:0};
-      else if(mode==='multi' && path==='/api/leagues')payload=recorded.leagues;
-      else if(mode==='multi' && path==='/api/bookmakers')payload=['Crown','Bet365','Sbobet'].map(name=>({name}));
-      else if(mode==='multi' && /\/seasons$/.test(path))payload=recorded.seasons[path.split('/')[3]] || [];
+      else if(['multi','detail-race'].includes(mode) && path==='/api/leagues')payload=recorded.leagues;
+      else if(['multi','detail-race'].includes(mode) && path==='/api/bookmakers')payload=['Crown','Bet365','Sbobet'].map(name=>({name}));
+      else if(['multi','detail-race'].includes(mode) && /\/seasons$/.test(path))payload=recorded.seasons[path.split('/')[3]] || [];
       else if(path.startsWith('/api/matches?')) {
         const query=new URLSearchParams(path.split('?')[1]);
-        payload=mode==='multi' && query.get('view')==='upcoming' ? (query.get('league') ? recorded.national_page : recorded.page) : {items:[],total:0};
+        payload=['multi','detail-race'].includes(mode) && query.get('view')==='upcoming' ? (query.get('league') ? recorded.national_page : recorded.page) : {items:[],total:0};
       }
+      else if(/^\/api\/matches\/\d+(\/odds)?$/.test(path)){const id=Number(path.split('/')[3]);const match=recorded.page.items.find(item=>item.id===id);payload=path.endsWith('/odds')?match.odds:match;if(mode==='detail-race' && id===recorded.page.items[0].id)return await new Promise(resolve=>pending.push(()=>resolve({ok:true,json:async()=>payload})));}
       else if(path==='/api/scraper/status')payload={status:'idle',jobs:[]};
       else payload=[];
       return {ok:!unavailable,status:unavailable?503:200,json:async()=>payload};
@@ -46,7 +47,10 @@ async function scenario(mode) {
     assert(calls.includes('/health'));
     assert(calls.includes('/api/status'));
     assert(calls.includes('/api/scraper/status'));
-    if(mode==='multi') {
+    if(['multi','detail-race'].includes(mode)) {
+      if(mode==='detail-race'){const first=sandbox.BetAppDashboard.selectMatch(recorded.page.items[0].id);await sandbox.BetAppDashboard.selectMatch(recorded.page.items[1].id);pending.forEach(release=>release());await first;assert.equal(elements.get('detail-title').textContent,`${recorded.page.items[1].home_team} vs ${recorded.page.items[1].away_team}`);sandbox.BetAppDashboard.closeDetail();return;}
+      const row=elements.get('matches-body').children[0];row.onclick();await settle();assert.equal(selected.at(-1),recorded.page.items[0].id);assert.equal(elements.get('detail-title').textContent,`${recorded.page.items[0].home_team} vs ${recorded.page.items[0].away_team}`);
+      row.onkeydown({key:'Enter',preventDefault(){}});await settle();assert.equal(selected.at(-1),recorded.page.items[0].id);sandbox.BetAppDashboard.closeDetail();
       const select=elements.get('league-select');
       assert(select.children.some(node=>node.label==='KULÜP LİGLERİ'));
       assert(select.children.some(node=>node.label==='MİLLİ TAKIMLAR'));
@@ -72,4 +76,4 @@ async function scenario(mode) {
     }
   } finally {process.off('unhandledRejection',listener);}
 }
-(async()=>{for(const mode of ['empty','unavailable','missing-controls','multi'])await scenario(mode);console.log('dashboard runtime: 4 scenarios passed');})().catch(error=>{console.error(error);process.exitCode=1;});
+(async()=>{for(const mode of ['empty','unavailable','missing-controls','multi','detail-race'])await scenario(mode);console.log('dashboard runtime: 5 scenarios passed');})().catch(error=>{console.error(error);process.exitCode=1;});

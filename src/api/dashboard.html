@@ -26,87 +26,13 @@
 #history-filters select,#history-filters input {max-width:100%;}
 @media(max-width:1199px){.prediction-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
 @media(max-width:639px){.prediction-grid{grid-template-columns:minmax(0,1fr);} .statistics-grid{grid-template-columns:minmax(0,1fr);} #dashboard-shell main{padding-left:12px;padding-right:12px;} #predictions-section h1{font-size:24px;line-height:32px;} #history-filters label{display:flex;flex-direction:column;flex:1 1 140px;}}
-</style></head><body class="bg-background font-body-md text-on-surface antialiased"><header class="fixed top-0 left-0 right-0 h-16 z-50 bg-surface-container-lowest/90 backdrop-blur-md border-b border-surface-variant shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="w-full h-16 px-gutter-desktop flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-lg"><div class="flex items-center gap-space-sm"><img alt="BetApp213 Brand Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1X6WzZneSA-SOcRJ-E6byMg__o_HXWhXIdKhLfdlXLsnlE59qGqPiGaZCaYtr3qX7awCiP0XOZYE5PM2Lp-sCU9u-IMSduu2Zxa4f9F5phr-Vy2b7r4XYX1vReMW60oukidHihrwa11KkiPhkyRjhPmzMppgnSbjvca21OvDZCtwHnaD9WlXg3-V0R1U9e8OCIQTSJx6L_ms0_ibqDzVi8zqCE2vCyVafifkQlgCMibFw"/><span class="font-headline-md text-headline-md text-primary font-bold tracking-tight">BetApp213</span><span class="px-space-xs py-0.5 rounded bg-surface-container text-primary font-label-sm text-label-sm uppercase tracking-wider">PRO</span></div><nav class="hidden xl:flex items-center gap-space-xs" data-active-classes="bg-primary-container text-on-primary font-label-md rounded-lg shadow-sm"><a class="relative px-space-md py-space-xs rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all flex items-center gap-space-xs" data-path="canli-skor" href="#">Canlı Skor<span class="flex h-2 w-2 relative"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-tertiary-fixed-dim opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-tertiary-container"></span></span></a><a class="px-space-md py-space-xs rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" data-path="bulten" href="#">Bülten</a><a class="px-space-md py-space-xs rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" data-path="oranlar" href="#">Oranlar</a></nav></div><div class="flex-1 max-w-md hidden md:block mx-space-md"><div class="relative flex items-center"><span class="material-symbols-outlined absolute left-3 text-outline text-[18px]">search</span><input class="w-full h-10 pl-9 pr-16 bg-surface-container-low rounded-lg border border-outline-variant font-body-sm text-body-sm text-on-surface placeholder-outline focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 transition-all" data-team-search="true" placeholder="Takım ara..." type="text"/><div class="absolute right-2.5 flex items-center pointer-events-none"><kbd class="px-1.5 py-0.5 rounded bg-surface-container-high border border-outline-variant font-data-mono-sm text-data-mono-sm text-on-surface-variant">Ctrl+K</kbd></div></div></div><div class="flex items-center gap-space-md"><div class="hidden lg:flex items-center gap-space-xs px-space-sm py-1 rounded-full bg-surface-container border border-surface-variant"><span class="flex h-2 w-2 relative"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-tertiary-fixed-dim opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-tertiary-container"></span></span><span class="font-data-mono-sm text-data-mono-sm text-on-surface">Son veri alımı:</span><span class="font-data-mono-sm text-data-mono-sm text-tertiary-container font-bold" id="header-last">Henüz veri yok</span></div><button class="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface border border-outline-variant transition-all flex items-center justify-center" id="refresh-button" title="Verileri Yenile" type="button"><span class="material-symbols-outlined text-[20px]">refresh</span></button><button class="relative p-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all flex items-center justify-center" type="button"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error ring-2 ring-surface-container-lowest"></span></button></div></div></header><div id="dashboard-shell"><main class="w-full min-h-screen pt-16 px-gutter-desktop py-space-lg bg-background"><div class="flex flex-col w-full gap-space-lg">
-<section class="w-full bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-wrap items-center justify-between gap-space-md" aria-label="Sistem durumu"><span class="font-bold text-primary">BetApp213 • Goaloo</span><span id="hero-status">Veri hazırlanıyor</span><span>Son senkronizasyon: <span id="hero-last">Veri hazırlanıyor</span></span><span id="hero-matches">Veri hazırlanıyor</span></section>
+</style><style>
+[hidden]{display:none!important}body{overflow-x:hidden}main{min-width:0}.compact-status{display:flex!important;flex-wrap:wrap;gap:8px;padding:8px!important}.compact-status>div{flex:1;min-width:130px;padding:8px!important;box-shadow:none!important}.compact-status p{font-size:12px!important}.compact-status .text-headline-xl{font-size:18px!important}#predictions-section{padding:16px}#predictions-section h1{font-size:24px;line-height:1.3}.prediction-card{padding:12px!important;gap:4px!important;border-radius:12px!important}.prediction-card h2{font-size:16px!important;line-height:1.3}.prediction-card p{margin:0}.prediction-main{font-size:19px!important}.prediction-open{font-size:12px;color:#1555ad;font-weight:600;background:none;text-align:left;padding:4px 0}.prediction-card:focus-visible,button:focus-visible{outline:3px solid #3b82f6;outline-offset:3px}.prediction-cards{grid-template-columns:repeat(4,minmax(0,1fr))!important}.matches-fullwidth{width:100%}#history-filters{padding:12px;background:white;border-radius:12px}#history-filters select,#history-filters input{max-width:100%;height:34px;padding:4px;border-radius:8px;background:#edf2fc}#analysis-dialog{width:min(1180px,96vw);max-width:96vw;height:90dvh;max-height:90dvh;padding:0;border:0;border-radius:18px;color:#172b4d;background:#f7f9ff}#analysis-dialog::backdrop{background:#14253a99}.analysis-shell{padding:20px;min-width:0}.analysis-close{position:sticky;top:0;z-index:4;padding:8px 12px;background:#e8efff;border-radius:8px;margin-bottom:12px}.analysis-match-header{position:sticky;top:40px;background:#f7f9ff;z-index:2;padding:8px 0}.analysis-match-header h2{font-size:22px}.analysis-tabs{display:flex;flex-wrap:wrap;gap:6px;padding:12px 0}.analysis-tabs button{padding:8px 12px;border-radius:8px;background:#e8efff}.analysis-tabs [aria-selected=true]{background:#1555ad;color:white}#analysis-panel{min-height:250px}#statistics-detail{padding:0!important;border:0!important}#statistics-detail>h3,#statistics-detail>.stats-meta{display:none}.stats-block{margin:8px 0!important;padding:14px!important}.analysis-loading{height:140px;background:linear-gradient(90deg,#edf2fb,#fff,#edf2fb);border-radius:12px;padding:20px}.selected-match{background:#dce9ff!important}#matches-body tr[tabindex]{cursor:pointer}#matches-scroll{max-width:100%;overflow:auto}#matches-body td{padding:8px!important}header{flex-wrap:wrap;height:auto!important;min-height:64px}header input{max-width:100%}
+@media(max-width:1100px){.prediction-cards{grid-template-columns:repeat(3,minmax(0,1fr))!important}}@media(max-width:900px){.prediction-cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}}@media(max-width:600px){.prediction-cards{grid-template-columns:1fr!important}#analysis-dialog{width:100vw;max-width:100vw;height:100dvh;max-height:100dvh;border-radius:0}.analysis-shell{padding:12px}.analysis-match-header .flex{flex-wrap:wrap;gap:8px}.analysis-tabs button{padding:8px;font-size:12px}.statistics-grid{grid-template-columns:1fr!important}.stats-line{gap:8px;flex-wrap:wrap}#history-filters>label{min-width:0;max-width:100%}header>*{min-width:0}#dashboard-shell{padding:8px!important}.compact-status{display:none!important}#predictions-section h1{font-size:20px}.prediction-global-button{white-space:normal}.analysis-match-header{position:static}}
+</style><style>.dashboard-nav{display:flex;gap:4px}.dashboard-nav a{padding:4px 8px;font-size:12px}#predictions-section,#history-filters,#matches-layout{scroll-margin-top:120px}@media(max-width:600px){header>div{padding:8px 12px;height:auto;flex-wrap:wrap;gap:8px}header>div>div:first-child{flex-wrap:wrap;gap:6px;flex:1}.dashboard-nav{flex-basis:100%;gap:8px}.dashboard-nav a{padding:2px 4px}#dashboard-shell main{padding-top:100px!important}}</style></head><body class="bg-background font-body-md text-on-surface antialiased"><header class="fixed top-0 left-0 right-0 h-16 z-50 bg-surface-container-lowest/90 backdrop-blur-md border-b border-surface-variant shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="w-full h-16 px-gutter-desktop flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-lg"><div class="flex items-center gap-space-sm"><img alt="BetApp213 Brand Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1X6WzZneSA-SOcRJ-E6byMg__o_HXWhXIdKhLfdlXLsnlE59qGqPiGaZCaYtr3qX7awCiP0XOZYE5PM2Lp-sCU9u-IMSduu2Zxa4f9F5phr-Vy2b7r4XYX1vReMW60oukidHihrwa11KkiPhkyRjhPmzMppgnSbjvca21OvDZCtwHnaD9WlXg3-V0R1U9e8OCIQTSJx6L_ms0_ibqDzVi8zqCE2vCyVafifkQlgCMibFw"/><span class="font-headline-md text-headline-md text-primary font-bold tracking-tight">BetApp213</span><span class="px-space-xs py-0.5 rounded bg-surface-container text-primary font-label-sm text-label-sm uppercase tracking-wider">PRO</span></div><nav class="dashboard-nav" data-active-classes="bg-primary-container text-on-primary font-label-md rounded-lg shadow-sm"><a class="relative px-space-md py-space-xs rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all flex items-center gap-space-xs" data-path="canli-skor" href="#predictions-section">Tahminler</a><a class="px-space-md py-space-xs rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" data-path="bulten" href="#matches-layout">Maçlar</a><a class="px-space-md py-space-xs rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" data-path="oranlar" href="#history-filters">Filtreler</a></nav></div><div class="flex-1 max-w-md hidden md:block mx-space-md"><div class="relative flex items-center"><span class="material-symbols-outlined absolute left-3 text-outline text-[18px]">search</span><input class="w-full h-10 pl-9 pr-16 bg-surface-container-low rounded-lg border border-outline-variant font-body-sm text-body-sm text-on-surface placeholder-outline focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 transition-all" data-team-search="true" placeholder="Takım ara..." type="text"/><div class="absolute right-2.5 flex items-center pointer-events-none"><kbd class="px-1.5 py-0.5 rounded bg-surface-container-high border border-outline-variant font-data-mono-sm text-data-mono-sm text-on-surface-variant">Ctrl+K</kbd></div></div></div><div class="flex items-center gap-space-md"><div class="hidden lg:flex items-center gap-space-xs px-space-sm py-1 rounded-full bg-surface-container border border-surface-variant"><span class="flex h-2 w-2 relative"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-tertiary-fixed-dim opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-tertiary-container"></span></span><span class="font-data-mono-sm text-data-mono-sm text-on-surface">Son veri alımı:</span><span class="font-data-mono-sm text-data-mono-sm text-tertiary-container font-bold" id="header-last">Henüz veri yok</span></div><button class="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface border border-outline-variant transition-all flex items-center justify-center" id="refresh-button" title="Verileri Yenile" type="button"><span class="material-symbols-outlined text-[20px]">refresh</span></button></div></div></header><div id="dashboard-shell"><main class="w-full min-h-screen pt-16 px-gutter-desktop py-space-lg bg-background"><div class="flex flex-col w-full gap-space-lg">
+<section aria-label="Sistem durumu" class="w-full bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-wrap items-center justify-between gap-space-md"><span class="font-bold text-primary">BetApp213 • Goaloo</span><span id="hero-status">Veri hazırlanıyor</span><span>Son senkronizasyon: <span id="hero-last">Veri hazırlanıyor</span></span><span id="hero-matches"><span class="font-bold" id="total-matches">Veri bekleniyor</span> maç</span><span>API: <span class="" id="api-health">Veri bekleniyor</span></span></section>
 <!-- 2. QUICK STATISTIC CARDS (6-CARD GRID) -->
-<section class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-space-md w-full">
-<!-- Card 1 -->
-<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
-<div class="flex items-center justify-between">
-<span class="font-label-sm text-label-sm uppercase text-outline font-semibold tracking-wider">Toplam Maç</span>
-<span class="material-symbols-outlined text-[18px] text-primary">event_note</span>
-</div>
-<div class="mt-space-sm">
-<span class="font-headline-xl text-headline-xl text-on-surface font-extrabold tracking-tight" id="total-matches">Veri bekleniyor</span>
-<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Veritabanında kayıtlı</p>
-</div>
-</div>
-<!-- Card 2 -->
-<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
-<div class="flex items-center justify-between">
-<span class="font-label-sm text-label-sm uppercase text-tertiary-container font-semibold tracking-wider">Canlı Maçlar</span>
-<span class="relative flex h-2 w-2">
-<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-tertiary-fixed-dim opacity-75"></span>
-<span class="relative inline-flex rounded-full h-2 w-2 bg-tertiary-container"></span>
-</span>
-</div>
-<div class="mt-space-sm">
-<div class="flex items-baseline gap-space-xs">
-<span class="font-headline-xl text-headline-xl text-tertiary-container font-extrabold tracking-tight" id="live-matches">Veri bekleniyor</span>
-<span class="px-1.5 py-0.2 rounded bg-tertiary-fixed text-on-tertiary-fixed font-data-mono-sm text-data-mono-sm font-bold"></span>
-</div>
-<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Veri bekleniyor</p>
-</div>
-</div>
-<!-- Card 3 -->
-<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
-<div class="flex items-center justify-between">
-<span class="font-label-sm text-label-sm uppercase text-outline font-semibold tracking-wider">Bugünkü Maçlar</span>
-<span class="material-symbols-outlined text-[18px] text-secondary">schedule</span>
-</div>
-<div class="mt-space-sm">
-<span class="font-headline-xl text-headline-xl text-on-surface font-extrabold tracking-tight" id="today-matches">Veri bekleniyor</span>
-<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">İstanbul takvim günü</p>
-</div>
-</div>
-<!-- Card 4 -->
-<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
-<div class="flex items-center justify-between">
-<span class="font-label-sm text-label-sm uppercase text-outline font-semibold tracking-wider">Veri Kaynakları</span>
-<span class="material-symbols-outlined text-[18px] text-primary">hub</span>
-</div>
-<div class="mt-space-sm">
-<span class="font-headline-xl text-headline-xl text-primary font-extrabold tracking-tight" id="data-source">Veri bekleniyor</span>
-<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5 truncate" title="Goaloo">Goaloo</p>
-</div>
-</div>
-<!-- Card 5 -->
-<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
-<div class="flex items-center justify-between">
-<span class="font-label-sm text-label-sm uppercase text-outline font-semibold tracking-wider">Son Güncelleme</span>
-<span class="material-symbols-outlined text-[18px] text-tertiary-container">bolt</span>
-</div>
-<div class="mt-space-sm">
-<div class="flex items-baseline gap-space-xs">
-<span class="font-body-sm text-body-sm text-on-surface break-words" id="last-scraped">Veri bekleniyor</span>
-<span class="font-data-mono-sm text-data-mono-sm text-tertiary-container font-semibold"></span>
-</div>
-<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Son başarılı veri alımı</p>
-</div>
-</div>
-<!-- Card 6 -->
-<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
-<div class="flex items-center justify-between">
-<span class="font-label-sm text-label-sm uppercase text-outline font-semibold tracking-wider">API Durumu</span>
-<span class="material-symbols-outlined text-[18px] text-tertiary-container">check_circle</span>
-</div>
-<div class="mt-space-sm">
-<span class="font-headline-xl text-headline-xl text-tertiary-container font-extrabold tracking-tight" id="api-health">Veri bekleniyor</span>
-<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">API bağlantısı</p>
-</div>
-</div>
-</section>
-<section id="predictions-section" class="w-full bg-surface-container-lowest rounded-xl p-space-lg shadow-sm border border-surface-variant"><div class="flex flex-wrap items-start justify-between gap-space-md"><div><h1 class="font-headline-xl text-headline-xl text-primary font-bold">Günün İstatistiksel Tahminleri</h1><p class="font-body-sm text-body-sm text-outline">Kayıtlı sonuçlara dayalı Poisson modeli • Beklenen Gol, ölçülmüş şut metriği değildir.</p></div><span id="prediction-window" class="font-body-sm text-body-sm text-outline">Veri hazırlanıyor</span></div><div class="flex flex-wrap items-center justify-between gap-space-md mt-space-md"><div class="flex flex-wrap gap-space-xs" role="group" aria-label="Seçilen tahmin pazarı"><button type="button" data-prediction-market="all" aria-pressed="true" class="px-space-md py-1.5 rounded-lg bg-surface-container font-label-md text-label-md">Tümü</button><button type="button" data-prediction-market="result" aria-pressed="false" class="px-space-md py-1.5 rounded-lg bg-surface-container font-label-md text-label-md">Sonuç</button><button type="button" data-prediction-market="goals" aria-pressed="false" class="px-space-md py-1.5 rounded-lg bg-surface-container font-label-md text-label-md">Gol</button><button type="button" data-prediction-market="btts" aria-pressed="false" class="px-space-md py-1.5 rounded-lg bg-surface-container font-label-md text-label-md">KG</button><button type="button" data-prediction-market="asian_handicap" aria-pressed="false" class="px-space-md py-1.5 rounded-lg bg-surface-container font-label-md text-label-md">Handikap</button><button type="button" data-prediction-market="corners" aria-pressed="false" class="px-space-md py-1.5 rounded-lg bg-surface-container font-label-md text-label-md">Korner</button><button type="button" data-prediction-market="cards" aria-pressed="false" class="px-space-md py-1.5 rounded-lg bg-surface-container font-label-md text-label-md">Kart</button></div><label class="font-body-sm text-outline">Sıralama <select id="prediction-view" class="h-9 rounded-lg bg-surface-container px-2"><option value="nearby">Yakın Maçlar</option><option value="best">En Güçlü Tahminler</option></select></label></div><div id="prediction-cards" class="prediction-grid" aria-live="polite"><p>Veri hazırlanıyor</p></div></section>
+<section class="w-full bg-surface-container-lowest rounded-xl p-space-lg shadow-sm border border-surface-variant" id="predictions-section"><div class="flex flex-wrap items-start justify-between gap-space-md"><div><h1 class="font-headline-xl text-headline-xl text-primary font-bold">Günün En Güçlü Tahminleri</h1><p class="font-body-sm text-body-sm text-outline">Kayıtlı sonuçlar · Modelin seçtiği güçlü tahminler</p></div><span class="font-body-sm text-body-sm text-outline" id="prediction-window">Veri hazırlanıyor</span></div><div class="flex flex-wrap items-center justify-between gap-space-md mt-space-md"><label class="font-body-sm text-outline">Sıralama <select class="h-9 rounded-lg bg-surface-container px-2" id="prediction-view"><option value="nearby">Yakın Maçlar</option><option value="best">En Güçlü Tahminler</option></select></label></div><div aria-live="polite" class="prediction-grid prediction-cards" id="prediction-cards"><p>Veri hazırlanıyor</p></div></section>
 <!-- 3. FILTER & LEAGUE CONTROLS BAR -->
 <section class="w-full bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-space-md">
 <!-- Pills Filter Track -->
@@ -119,15 +45,13 @@
 <input class="w-full h-8 pl-8 pr-3 bg-surface-container-low rounded-lg font-body-sm text-body-sm text-on-surface placeholder-outline focus:outline-none focus:bg-surface-container-lowest focus:ring-1 focus:ring-secondary" data-team-search="true" placeholder="Takım ara..." type="text"/>
 </div>
 <!-- Toggle Highlight -->
-
 <!-- View toggles -->
-
 </div>
-</section><span id="upcoming-window" aria-live="polite" class="font-body-sm text-outline"></span><div class="flex flex-wrap items-center gap-space-sm" id="history-filters"><label class="font-label-sm">Lig <select class="h-9 px-2 rounded-lg bg-surface-container-low" id="league-select"><option value="">Veri bekleniyor</option></select></label><label class="font-label-sm">Sezon <select class="h-9 px-2 rounded-lg bg-surface-container-low" id="season-select"><option value="">Tüm sezonlar</option></select></label><label class="font-label-sm">Tur / Grup <select class="h-9 px-2 rounded-lg bg-surface-container-low" id="round-select"><option value="">Tüm haftalar</option></select></label><label class="font-label-sm">Tarih <input class="h-9 px-2 rounded-lg bg-surface-container-low" id="date-select" type="date"/></label></div>
+</section><span aria-live="polite" class="font-body-sm text-outline" id="upcoming-window"></span><div class="flex flex-wrap items-center gap-space-sm" id="history-filters"><label class="font-label-sm">Lig <select class="h-9 px-2 rounded-lg bg-surface-container-low" id="league-select"><option value="">Veri bekleniyor</option></select></label><label class="font-label-sm">Sezon <select class="h-9 px-2 rounded-lg bg-surface-container-low" id="season-select"><option value="">Tüm sezonlar</option></select></label><label class="font-label-sm">Tur / Grup <select class="h-9 px-2 rounded-lg bg-surface-container-low" id="round-select"><option value="">Tüm haftalar</option></select></label><label class="font-label-sm">Tarih <input class="h-9 px-2 rounded-lg bg-surface-container-low" id="date-select" type="date"/></label><div aria-label="Seçilen tahmin pazarı" class="flex flex-wrap gap-space-xs" role="group"><button aria-pressed="true" class="px-space-md py-1.5 rounded-lg bg-surface-container font-label-md text-label-md" data-prediction-market="all" type="button">Tümü</button><button aria-pressed="false" class="px-space-md py-1.5 rounded-lg bg-surface-container font-label-md text-label-md" data-prediction-market="result" type="button">Sonuç</button><button aria-pressed="false" class="px-space-md py-1.5 rounded-lg bg-surface-container font-label-md text-label-md" data-prediction-market="goals" type="button">Gol</button><button aria-pressed="false" class="px-space-md py-1.5 rounded-lg bg-surface-container font-label-md text-label-md" data-prediction-market="btts" type="button">KG</button><button aria-pressed="false" class="px-space-md py-1.5 rounded-lg bg-surface-container font-label-md text-label-md" data-prediction-market="asian_handicap" type="button">Handikap</button><button aria-pressed="false" class="px-space-md py-1.5 rounded-lg bg-surface-container font-label-md text-label-md" data-prediction-market="corners" type="button">Korner</button><button aria-pressed="false" class="px-space-md py-1.5 rounded-lg bg-surface-container font-label-md text-label-md" data-prediction-market="cards" type="button">Kart</button></div><label>Güven <select id="prediction-confidence"><option value="">Tüm güven düzeyleri</option><option value="high">Yüksek Güven</option><option value="medium">Orta Güven</option></select></label><label>Maç sıralaması <select id="match-sort"><option value="kickoff">Başlama zamanı</option><option value="league">Lig</option><option value="team">Ev sahibi</option></select></label></div>
 <!-- 4. MAIN 2-COLUMN WORKSPACE -->
-<div id="matches-layout" class="grid grid-cols-1 xl:grid-cols-12 gap-space-lg w-full items-start">
+<div class="matches-fullwidth" id="matches-layout">
 <!-- LEFT COLUMN (Approx 68% - 8 cols on XL) - LIVE MATCH TABLE -->
-<div class="xl:col-span-8 flex flex-col gap-space-md min-w-0">
+<div class="min-w-0">
 <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
 <!-- Table Top Header Action Bar -->
 <div class="px-space-md py-space-sm bg-surface-container-low flex items-center justify-between">
@@ -145,7 +69,7 @@
 </div>
 </div>
 <!-- High Density Data Table -->
-<div id="matches-scroll" class="overflow-x-auto" tabindex="0" role="region" aria-label="Maç ve oran tablosu">
+<div aria-label="Maç ve oran tablosu" class="overflow-x-auto" id="matches-scroll" role="region" tabindex="0">
 <table class="w-full text-left border-collapse">
 <thead>
 <tr class="bg-surface-container-lowest text-outline font-label-sm text-label-sm uppercase tracking-wider border-b border-surface-container">
@@ -158,7 +82,6 @@
 <th class="py-2.5 px-2 font-semibold text-center w-24">2</th>
 <th class="py-2.5 px-2 font-semibold text-center w-24">Asya Handikap</th>
 <th class="py-2.5 px-2 font-semibold text-center w-24">Alt / Üst</th>
-
 </tr>
 </thead>
 <tbody class="divide-y divide-surface-container font-body-sm text-body-sm" id="matches-body"><tr><td class="p-space-md" colspan="9">Veri bekleniyor</td></tr></tbody>
@@ -181,8 +104,6 @@
 <td class="py-3 px-2 text-center align-middle"><div class="p-1 rounded bg-surface-container-lowest flex flex-col items-center">Veri bekleniyor</div></td>
 <!-- Alt / Üst -->
 <td class="py-3 px-2 text-center align-middle"><div class="p-1 rounded bg-surface-container-lowest flex flex-col items-center">Veri bekleniyor</div></td>
-
-
 </tr></template>
 </div>
 <!-- Table Footer / Telemetry Bar -->
@@ -190,10 +111,58 @@
 </div>
 </div>
 <!-- RIGHT COLUMN (Approx 32% - 4 cols on XL) - MATCH DETAIL PANEL -->
-<div class="xl:col-span-4 flex flex-col gap-space-md">
-<div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-md flex flex-col gap-space-md" id="match-detail">
-<!-- Match Header & Info -->
-<div class="flex flex-col gap-space-xs">
+</div>
+<!-- 5. LOWER SECTION - SYSTEM HEALTH & SCRAPER CONTROLS (2 DISTINCT CARDS) -->
+<div class="grid grid-cols-1 gap-space-lg w-full items-start">
+<!-- LEFT SUB-PANEL - SİSTEM SAĞLIK MERKEZİ -->
+<details class="system-details"><summary>Sistem ve veri toplama ayrıntıları</summary>
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[22px]">health_and_safety</span>
+<h3 class="font-headline-md text-headline-md font-bold text-on-surface">Sistem Sağlık Merkezi</h3>
+</div>
+<span class="px-2 py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed font-data-mono-sm text-data-mono-sm font-bold" id="services-status">Veri bekleniyor</span>
+</div><span aria-live="polite" class="font-body-sm text-body-sm text-outline" id="collection-progress">Veri bekleniyor</span>
+<!-- Service Status List -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-space-sm">
+<!-- Render API -->
+<div class="p-space-sm rounded-lg bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-tertiary-container"></span>
+<span class="font-label-md text-label-md font-semibold text-on-surface">Render API</span>
+</div>
+<span class="font-data-mono-sm text-data-mono-sm text-tertiary-container font-bold" id="system-api">Veri bekleniyor</span>
+</div>
+<!-- Scraper -->
+<div class="p-space-sm rounded-lg bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-tertiary-container"></span>
+<span class="font-label-md text-label-md font-semibold text-on-surface">Goaloo</span>
+</div>
+<span class="font-data-mono-sm text-data-mono-sm text-tertiary-container font-bold" id="system-scraper">Veri bekleniyor</span>
+</div>
+<!-- Postgres -->
+<div class="p-space-sm rounded-lg bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-tertiary-container"></span>
+<span class="font-label-md text-label-md font-semibold text-on-surface">Veritabanı</span>
+</div>
+<span class="font-data-mono-sm text-data-mono-sm text-tertiary-container font-bold" id="system-db">Veri bekleniyor</span>
+</div>
+<!-- GitHub Cron -->
+<div class="p-space-sm rounded-lg bg-surface-container-low flex items-center justify-between sm:col-span-2">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-tertiary-container"></span>
+<span class="font-label-md text-label-md font-semibold text-on-surface">GitHub Keepalive Cron</span>
+</div>
+<span class="font-data-mono-sm text-data-mono-sm text-on-surface font-semibold" id="system-cron">Veri bekleniyor</span>
+</div>
+</div>
+<!-- Summary Metrics Bar -->
+<div class="p-space-sm rounded-lg bg-surface-container-high flex flex-wrap items-center justify-between gap-space-sm text-body-sm font-body-sm"><span id="system-summary">Veri bekleniyor</span></div>
+</details>
+</div>
+</div></main></div><script defer="True" src="/dashboard-odds.js"></script><script defer="True" src="/dashboard-predictions.js"></script><script defer="True" src="/dashboard.js"></script><dialog aria-labelledby="detail-title" id="analysis-dialog"><div class="analysis-shell"><button class="analysis-close" id="analysis-close" type="button">← Geri / Kapat</button><div class="analysis-match-header"><div class="flex flex-col gap-space-xs">
 <div class="flex items-center justify-between">
 <span class="px-2 py-0.5 rounded bg-surface-container font-label-sm text-label-sm text-secondary font-bold uppercase" id="detail-league">Veri bekleniyor</span>
 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed font-data-mono-sm text-data-mono-sm font-bold" id="detail-status">Veri bekleniyor</span>
@@ -201,15 +170,11 @@
 <h2 class="font-headline-md text-headline-md text-on-surface font-bold" id="detail-title">Henüz veri yok</h2>
 <div class="flex items-center justify-between text-body-sm font-body-sm text-on-surface-variant">
 <span id="detail-time">Veri bekleniyor</span>
-
 </div>
-</div>
-<!-- Big Scoreboard -->
-<div class="p-space-md rounded-xl bg-surface-container-low flex flex-col items-center justify-center gap-space-xs">
+</div><div class="p-space-md rounded-xl bg-surface-container-low flex flex-col items-center justify-center gap-space-xs">
 <div class="flex items-center justify-center gap-space-lg w-full">
 <div class="flex flex-col items-center">
 <span class="font-headline-md text-headline-md font-bold text-on-surface" id="detail-home">Henüz veri yok</span>
-
 </div>
 <div class="px-space-md py-1 rounded-lg bg-surface-container-lowest shadow-sm flex items-center gap-2">
 <span class="font-headline-xl text-headline-xl font-extrabold text-primary" id="detail-home-score">—</span>
@@ -218,18 +183,15 @@
 </div>
 <div class="flex flex-col items-center">
 <span class="font-headline-md text-headline-md font-bold text-on-surface" id="detail-away">Henüz veri yok</span>
-
 </div>
 </div>
 <div class="flex items-center gap-space-md text-label-sm font-label-sm text-outline mt-1">
 <span id="detail-ht">İY: —</span>
-
-
 </div>
-</div>
+</div></div><nav aria-label="Maç analizi sekmeleri" class="analysis-tabs" role="tablist"><button aria-controls="analysis-panel" aria-selected="true" data-analysis-tab="predictions" id="analysis-tab-predictions" role="tab" tabindex="0" type="button">Tahminler</button><button aria-controls="analysis-panel" aria-selected="false" data-analysis-tab="form" id="analysis-tab-form" role="tab" tabindex="-1" type="button">Takım Formu</button><button aria-controls="analysis-panel" aria-selected="false" data-analysis-tab="goals" id="analysis-tab-goals" role="tab" tabindex="-1" type="button">Gol Analizi</button><button aria-controls="analysis-panel" aria-selected="false" data-analysis-tab="corners" id="analysis-tab-corners" role="tab" tabindex="-1" type="button">Korner</button><button aria-controls="analysis-panel" aria-selected="false" data-analysis-tab="cards" id="analysis-tab-cards" role="tab" tabindex="-1" type="button">Kart ve Hakem</button><button aria-controls="analysis-panel" aria-selected="false" data-analysis-tab="odds" id="analysis-tab-odds" role="tab" tabindex="-1" type="button">Oranlar</button><button aria-controls="analysis-panel" aria-selected="false" data-analysis-tab="h2h" id="analysis-tab-h2h" role="tab" tabindex="-1" type="button">H2H</button></nav><div aria-labelledby="analysis-tab-predictions" id="analysis-panel" role="tabpanel" tabindex="0"><div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-md flex flex-col gap-space-md" data-analysis-section="odds" hidden="" id="match-detail">
+<!-- Match Header & Info -->
+<!-- Big Scoreboard -->
 <!-- Badges Track -->
-
-<section id="statistics-detail" hidden aria-live="polite"></section>
 <!-- Bookmaker Switcher Tabs -->
 <div class="flex flex-col gap-1.5" id="bookmaker-tabs">
 <div class="flex items-center justify-between text-label-sm font-label-sm text-outline">
@@ -268,69 +230,4 @@
 <span class="text-tertiary-container font-bold max-w-full break-words" id="odds-ou-latest">—</span>
 </div>
 </div>
-
-
-
-
-
-
-
-
-
-
-</div>
-</div>
-</div>
-<!-- 5. LOWER SECTION - SYSTEM HEALTH & SCRAPER CONTROLS (2 DISTINCT CARDS) -->
-<div class="grid grid-cols-1 gap-space-lg w-full items-start">
-<!-- LEFT SUB-PANEL - SİSTEM SAĞLIK MERKEZİ -->
-<div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-md flex flex-col gap-space-md">
-<div class="flex items-center justify-between pb-space-xs">
-<div class="flex items-center gap-space-sm">
-<span class="material-symbols-outlined text-primary text-[22px]">health_and_safety</span>
-<h3 class="font-headline-md text-headline-md font-bold text-on-surface">Sistem Sağlık Merkezi</h3>
-</div>
-<span class="px-2 py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed font-data-mono-sm text-data-mono-sm font-bold" id="services-status">Veri bekleniyor</span>
-</div><span aria-live="polite" class="font-body-sm text-body-sm text-outline" id="collection-progress">Veri bekleniyor</span>
-<!-- Service Status List -->
-<div class="grid grid-cols-1 sm:grid-cols-2 gap-space-sm">
-<!-- Render API -->
-<div class="p-space-sm rounded-lg bg-surface-container-low flex items-center justify-between">
-<div class="flex items-center gap-2">
-<span class="w-2 h-2 rounded-full bg-tertiary-container"></span>
-<span class="font-label-md text-label-md font-semibold text-on-surface">Render API</span>
-</div>
-<span class="font-data-mono-sm text-data-mono-sm text-tertiary-container font-bold" id="system-api">Veri bekleniyor</span>
-</div>
-<!-- Scraper -->
-<div class="p-space-sm rounded-lg bg-surface-container-low flex items-center justify-between">
-<div class="flex items-center gap-2">
-<span class="w-2 h-2 rounded-full bg-tertiary-container"></span>
-<span class="font-label-md text-label-md font-semibold text-on-surface">Goaloo</span>
-</div>
-<span class="font-data-mono-sm text-data-mono-sm text-tertiary-container font-bold" id="system-scraper">Veri bekleniyor</span>
-</div>
-
-
-<!-- Postgres -->
-<div class="p-space-sm rounded-lg bg-surface-container-low flex items-center justify-between">
-<div class="flex items-center gap-2">
-<span class="w-2 h-2 rounded-full bg-tertiary-container"></span>
-<span class="font-label-md text-label-md font-semibold text-on-surface">Veritabanı</span>
-</div>
-<span class="font-data-mono-sm text-data-mono-sm text-tertiary-container font-bold" id="system-db">Veri bekleniyor</span>
-</div>
-<!-- GitHub Cron -->
-<div class="p-space-sm rounded-lg bg-surface-container-low flex items-center justify-between sm:col-span-2">
-<div class="flex items-center gap-2">
-<span class="w-2 h-2 rounded-full bg-tertiary-container"></span>
-<span class="font-label-md text-label-md font-semibold text-on-surface">GitHub Keepalive Cron</span>
-</div>
-<span class="font-data-mono-sm text-data-mono-sm text-on-surface font-semibold" id="system-cron">Veri bekleniyor</span>
-</div>
-</div>
-<!-- Summary Metrics Bar -->
-<div class="p-space-sm rounded-lg bg-surface-container-high flex flex-wrap items-center justify-between gap-space-sm text-body-sm font-body-sm"><span id="system-summary">Veri bekleniyor</span></div>
-</div>
-</div>
-</div></main></div><script defer="True" src="/dashboard-odds.js"></script><script defer="True" src="/dashboard-predictions.js"></script><script defer="True" src="/dashboard.js"></script></body></html>
+</div><section aria-live="polite" hidden="" id="statistics-detail"></section></div></div></dialog></body></html>

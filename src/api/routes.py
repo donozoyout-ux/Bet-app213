@@ -120,6 +120,7 @@ async def matches(league: str | None = None, season: str | None = None,
                   limit: int = Query(default=50, ge=1, le=200), offset: int = Query(default=0, ge=0), include_odds: bool = False,
                   view: Literal['all', 'live', 'today', 'upcoming', 'history'] = 'all',
                   display_timezone: str = DISPLAY_TIMEZONE,
+                  sort: Literal['kickoff','league','team'] = 'kickoff',
                   upcoming_days: int = Query(default=7, ge=1, le=3650),
                   session=Depends(session_dependency)):
     query, home, away = match_query()
@@ -171,6 +172,8 @@ async def matches(league: str | None = None, season: str | None = None,
                 upcoming_expanded = True
     total = await session.scalar(select(func.count()).select_from(query.subquery()))
     order = (Match.kickoff_at.asc(), Match.id.asc()) if ascending else (Match.kickoff_at.desc(), Match.id.desc())
+    if sort == 'league':order = (League.name.asc(), *order)
+    elif sort == 'team':order = (home.name.asc(), *order)
     rows = (await session.execute(query.order_by(*order).limit(limit).offset(offset))).all()
     items = [match_response(row) for row in rows]
     if include_odds and items:
@@ -214,12 +217,12 @@ async def calculate_predictions(session,league,date):
 
 
 @router.get('/predictions/best',response_model=GlobalPicks)
-async def global_predictions(league: str | None=None,date: Date | None=None,limit: int=Query(default=20,ge=1,le=100),
+async def global_predictions(league: str | None=None,date: Date | None=None,limit: int=Query(default=20,ge=1,le=100),offset: int=Query(default=0,ge=0),
                              market: Literal['all','result','goals','btts','corners','cards','asian_handicap','double_chance']='all',session=Depends(session_dependency)):
     matches,now,evaluated=await calculate_predictions(session,league,date)
     picks=[{'match':item['match'],'recommendation':r,'as_of':item['as_of']} for item in matches for r in item['recommendations'] if market_matches([r],market)]
     picks.sort(key=lambda item:(-item['recommendation']['score'],-item['recommendation']['reliability'],item['match']['kickoff_at'],item['match']['id'],item['recommendation']['id']))
-    return {'items':picks[:limit],'generated_at':now,'evaluated_matches':evaluated}
+    return {'items':picks[offset:offset+limit],'generated_at':now,'evaluated_matches':evaluated}
 
 
 @router.get('/matches/{match_id}/statistics', response_model=Statistics)

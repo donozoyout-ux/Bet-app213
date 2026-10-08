@@ -90,23 +90,24 @@
     cell(row,score(match.ft_home,match.ft_away)+ht);
     ['home','draw','away'].forEach(key => cell(row,movement(match,findMarket(match,'1x2'),key)));
     cell(row,asianMovement(match,findMarket(match,'ah'),['home','line','away']));cell(row,asianMovement(match,findMarket(match,'ou'),['over','line','under']));
-    row.onclick=()=>selectMatch(match.id);return row;
+    row.dataset.matchId=String(match.id);row.tabIndex=0;row.setAttribute('aria-label',`${match.home_team} / ${match.away_team}, analizi aç`);row.onclick=()=>selectMatch(match.id);row.onkeydown=event=>{if(['Enter',' '].includes(event.key)){event.preventDefault();selectMatch(match.id);}};return row;
   }
   function emptyRows(text) {
     const body=$('matches-body');if (!body) return;body.replaceChildren();const row=document.createElement('tr');const td=cell(row,text);td.colSpan=9;body.append(row);
   }
   async function loadMatches() {
     const generation=++state.generation;
-    const query=new URLSearchParams({view:state.view,display_timezone:displayTimezone,limit:'50',offset:String(state.offset),include_odds:'true'});
+    const query=new URLSearchParams({view:state.view,display_timezone:displayTimezone,limit:'50',offset:String(state.offset),include_odds:'true',sort:$('match-sort')?.value || 'kickoff'});
     [['league',state.league],['season',state.season],['round',state.round],['date',($('date-select')?.value || '')],['team',(document.querySelector('[data-team-search]')?.value || '')]].forEach(([key,value])=>{if(value)query.set(key,value);});
     try {
       const page=await api(`/api/matches?${query}`);if(generation !== state.generation)return;
-      state.total=page.total;const body=$('matches-body');if (!body) return;body.replaceChildren();page.items.forEach(match=>body.append(renderMatch(match)));
-      if (!page.items.length) emptyRows(empty);
-      write('matches-count',`${page.total} maç • ${state.bookmaker} • Europe/Istanbul`);write('table-count',`${page.total} maç`);
+      let items=await (globalThis.BetAppPredictions?.filterMatches?.(page.items) || page.items);if(generation!==state.generation)return;
+      state.total=page.total;const body=$('matches-body');if (!body) return;body.replaceChildren();items.forEach(match=>body.append(renderMatch(match)));
+      if (!items.length) emptyRows(empty);
+      write('matches-count',`${page.total} maç • ${state.bookmaker} • Europe/Istanbul`);write('table-count',`${items.length} / ${page.total} maç`);
       write('upcoming-window',state.view === 'upcoming' ? (page.upcoming_expanded ? 'Önümüzdeki 7 günde maç yok; en yakın maç günü gösteriliyor' : 'Önümüzdeki 7 gün') : '');
       if ($('previous-page')) $('previous-page').disabled=state.offset === 0;if ($('next-page')) $('next-page').disabled=state.offset+50 >= page.total;
-      if (state.selected) await selectMatch(state.selected);
+      if (state.selected) await selectMatch(state.selected,false,true);
     } catch (_) {
       if(generation !== state.generation)return;emptyRows('Veri bekleniyor');write('matches-count','Bağlantı bekleniyor');write('table-count','Veri bekleniyor');clearDetail();
       if ($('previous-page')) $('previous-page').disabled=true;if ($('next-page')) $('next-page').disabled=true;
@@ -117,10 +118,12 @@
     write('detail-title',empty);write('detail-home',empty);write('detail-away',empty);write('detail-home-score','—');write('detail-away-score','—');write('detail-ht','İY: —');write('detail-league','Veri bekleniyor');write('detail-time','');write('detail-status','');write('odds-updated','Veri bekleniyor');
     for(const key of ['1x2','ah','ou']){write(`odds-${key}-opening`,'—');write(`odds-${key}-latest`,'—');}
   }
-  async function selectMatch(id,scrollStatistics=false) {
+  async function selectMatch(id,scrollStatistics=false,background=false,fromHistory=false) {
     if(state.selected!==id)clearDetail();state.selected=id;
+    if(!background && !fromHistory && globalThis.history && globalThis.location?.hash!==`#match=${id}`)globalThis.history.pushState({betMatch:id},'',`#match=${id}`);
     const generation=++state.detailGeneration;
-    globalThis.BetAppPredictions?.select(id,scrollStatistics);
+    if(!background)globalThis.BetAppPredictions?.select(id,scrollStatistics);
+    document.querySelectorAll('[data-match-id]').forEach(row=>{const active=row.dataset.matchId===String(id);row.classList.toggle('selected-match',active);row.setAttribute('aria-selected',String(active));});
     try {
       const [matchResult,oddsResult]=await Promise.allSettled([api(`/api/matches/${id}`),api(`/api/matches/${id}/odds`)]);if(state.selected !== id || generation!==state.detailGeneration)return;
       if(matchResult.status!=='fulfilled'){write('detail-status','Bağlantı bekleniyor');return;}
@@ -150,7 +153,7 @@
       const system=await api('/api/status');
       write('system-db',[system.database_engine,system.database].filter(Boolean).join(' • '));write('hero-status',system.database === 'connected' ? 'Veritabanı bağlı' : 'Bağlantı bekleniyor');write('services-status',system.database === 'connected' ? 'Veritabanı bağlı' : 'Veri bekleniyor');
       write('total-matches',system.total_matches == null ? empty : system.total_matches);write('data-source','Goaloo');
-      write('hero-matches',system.total_matches == null ? empty : `${system.total_matches} maç`);
+
       for(const id of ['last-scraped','hero-last','header-last'])write(id,date(system.last_scraped_at));
       write('system-summary',system.total_odds == null ? 'Veri bekleniyor' : `${system.total_odds} bookmaker piyasa kaydı`);
       const [live,today]=await Promise.all([api('/api/matches?view=live&limit=1'),api('/api/matches?view=today&display_timezone=Europe%2FIstanbul&limit=1')]);write('live-matches',live.total);write('today-matches',today.total);
@@ -190,7 +193,7 @@
   if ($('season-select')) $('season-select').onchange=()=>{state.season=$('season-select')?.value || '';state.offset=0;state.selected=null;clearDetail();fillRounds();loadMatches();};
   if ($('round-select')) $('round-select').onchange=()=>{state.round=$('round-select')?.value || '';state.offset=0;state.selected=null;clearDetail();loadMatches();};
   if ($('date-select')) $('date-select').onchange=()=>{state.offset=0;state.selected=null;clearDetail();refreshPredictions(true);loadMatches();};
-  if ($('refresh-button')) $('refresh-button').onclick=async()=>{globalThis.BetAppPredictions?.clear();refreshPredictions(true);await health();await refresh();};
+  if ($('refresh-button')) $('refresh-button').onclick=async()=>{const id=state.selected;globalThis.BetAppPredictions?.clear();if(id)selectMatch(id);refreshPredictions(true);await health();await refresh();};
   let searchTimer;
   document.querySelectorAll('[data-team-search]').forEach(input=>input.oninput=()=>{document.querySelectorAll('[data-team-search]').forEach(other=>{if(other !== input)other.value=input.value;});clearTimeout(searchTimer);searchTimer=setTimeout(()=>{state.offset=0;loadMatches();},350);});
   if ($('previous-page')) $('previous-page').onclick=()=>{state.offset=Math.max(0,state.offset-50);loadMatches();};if ($('next-page')) $('next-page').onclick=()=>{state.offset+=50;loadMatches();};
@@ -198,6 +201,9 @@
     if(state.busy)return;state.busy=true;
     try {if(!state.leagues.length)await loadLeagues();await loadMatches();}catch(_){emptyRows('Veri bekleniyor');write('matches-count','Bağlantı bekleniyor');if ($('previous-page')) $('previous-page').disabled=true;if ($('next-page')) $('next-page').disabled=true;}finally{state.busy=false;}
   }
-  globalThis.BetAppDashboard=Object.freeze({selectMatch});
-  updateViewButtons();refreshPredictions();health();refresh();pollJobs();setInterval(health,30000);setInterval(refresh,25000);
+  if($('match-sort'))$('match-sort').onchange=()=>{state.offset=0;loadMatches();};
+  globalThis.BetAppDashboard=Object.freeze({selectMatch,refreshMatches:loadMatches,closeDetail:()=>{state.selected=null;state.detailGeneration++;if(globalThis.history?.state?.betMatch)globalThis.history.back();else if(globalThis.location?.hash.startsWith('#match='))globalThis.history.replaceState(null,'',globalThis.location.pathname+globalThis.location.search);document.querySelectorAll('[data-match-id]').forEach(row=>{row.classList.toggle('selected-match',false);row.setAttribute('aria-selected','false');});}});
+  function restoreMatch(){const match=globalThis.location?.hash.match(/^#match=(\d+)$/);if(match)selectMatch(Number(match[1]),false,false,true);else{state.selected=null;clearDetail();}}
+  globalThis.addEventListener?.('popstate',restoreMatch);
+  updateViewButtons();refreshPredictions();health();refresh();pollJobs();if(globalThis.location?.hash.startsWith('#match='))restoreMatch();setInterval(health,30000);setInterval(refresh,25000);
 })();
