@@ -58,6 +58,8 @@ class Match(Base):
     home_team_id: Mapped[int] = mapped_column(ForeignKey('teams.id'))
     away_team_id: Mapped[int] = mapped_column(ForeignKey('teams.id'))
     status: Mapped[str] = mapped_column(String(30), index=True)
+    referee_id: Mapped[int | None] = mapped_column(ForeignKey('referees.id'), index=True)
+    referee_observed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     ht_home: Mapped[int | None]
     ht_away: Mapped[int | None]
     ft_home: Mapped[int | None]
@@ -74,6 +76,59 @@ class Bookmaker(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     external_id: Mapped[int] = mapped_column(unique=True)
     name: Mapped[str] = mapped_column(String(80), unique=True)
+
+
+class Referee(Base):
+    __tablename__='referees'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    source_key: Mapped[str] = mapped_column(String(64),unique=True)
+    external_id: Mapped[str | None] = mapped_column(String(80))
+    name: Mapped[str] = mapped_column(String(150))
+    source: Mapped[str] = mapped_column(String(30),default='goaloo')
+
+
+class MatchStatistics(Base):
+    __tablename__='match_statistics'
+    match_id: Mapped[int] = mapped_column(ForeignKey('matches.id'),primary_key=True)
+    home_corners: Mapped[int | None]
+    away_corners: Mapped[int | None]
+    home_corners_ht: Mapped[int | None]
+    away_corners_ht: Mapped[int | None]
+    home_yellow_cards: Mapped[int | None]
+    away_yellow_cards: Mapped[int | None]
+    home_red_cards: Mapped[int | None]
+    away_red_cards: Mapped[int | None]
+    home_shots: Mapped[int | None]
+    away_shots: Mapped[int | None]
+    home_shots_on_target: Mapped[int | None]
+    away_shots_on_target: Mapped[int | None]
+    home_fouls: Mapped[int | None]
+    away_fouls: Mapped[int | None]
+    home_offsides: Mapped[int | None]
+    away_offsides: Mapped[int | None]
+    home_possession: Mapped[float | None]
+    away_possession: Mapped[float | None]
+    is_final: Mapped[bool] = mapped_column(Boolean,default=False)
+    collection_status: Mapped[str] = mapped_column(String(20),default='unavailable')
+    source: Mapped[str] = mapped_column(String(30),default='goaloo')
+    raw: Mapped[dict] = mapped_column(JSON,default=dict)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True),default=utcnow,onupdate=utcnow)
+
+
+class MatchEvent(Base):
+    __tablename__='match_events'
+    __table_args__=(UniqueConstraint('match_id','source_key'),)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    match_id: Mapped[int] = mapped_column(ForeignKey('matches.id'),index=True)
+    source_key: Mapped[str] = mapped_column(String(64))
+    minute: Mapped[int | None]
+    stoppage_minute: Mapped[int | None]
+    team_side: Mapped[str | None] = mapped_column(String(8))
+    event_type: Mapped[str] = mapped_column(String(30))
+    player_name: Mapped[str | None] = mapped_column(String(150))
+    secondary_player_name: Mapped[str | None] = mapped_column(String(150))
+    raw: Mapped[dict] = mapped_column(JSON,default=dict)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True),default=utcnow,onupdate=utcnow)
 
 
 class OddsBase:
