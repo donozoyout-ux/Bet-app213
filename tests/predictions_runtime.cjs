@@ -54,6 +54,9 @@ async function scenario(mode){
   assert(!box.hidden && box.scrolled);
   for(const word of ['Maç İstatistikleri','Son 5','Son 10','H2H','Crown','Bet365','Sbobet','Model / Piyasa'])assert(box.text().includes(word));
   assert(box.text().includes(recorded.statistics.match.home_team));
+  const requests=calls.filter(path=>path.includes('/statistics')).length;
+  await api.select(firstId);
+  assert.equal(calls.filter(path=>path.includes('/statistics')).length,requests);
   api.clear();assert(box.hidden && !box.children.length);
 }
 (async()=>{const modes=process.argv[2]?[process.argv[2]]:['populated','insufficient','empty','failed','detail-failed','missing','race'];for(const mode of modes)await scenario(mode);console.log(`prediction runtime: ${modes.length} scenarios passed`);})().catch(error=>{console.error(error);process.exitCode=1;});

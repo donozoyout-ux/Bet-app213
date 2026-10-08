@@ -2,7 +2,7 @@
 (() => {
   'use strict';
   const $=id=>document.getElementById(id);
-  const state={generation:0,detailGeneration:0,selected:null};
+  const state={generation:0,detailGeneration:0,selected:null,detailData:null,detailLoadedAt:0};
   const pct=value=>value == null ? '—' : `%${(100*value).toFixed(1)}`;
   const num=value=>value == null ? '—' : Number(value).toFixed(2);
   const date=value=>value ? new Date(value).toLocaleString('tr-TR',{timeZone:'Europe/Istanbul'}) : 'Veri hazırlanıyor';
@@ -10,7 +10,7 @@
   async function api(path){const response=await fetch(path,{signal:AbortSignal.timeout(15000)});if(!response.ok)throw new Error(`HTTP ${response.status}`);return response.json();}
   function node(tag,text,className=''){const element=document.createElement(tag);element.textContent=text;element.className=className;return element;}
   function line(parent,label,value){const row=node('div','','stats-line');row.append(node('span',label,'text-outline'),node('span',value,'font-semibold'));parent.append(row);}
-  function clear(){state.selected=null;state.detailGeneration++;const box=$('statistics-detail');if(box){box.replaceChildren();box.hidden=true;}}
+  function clear(){state.selected=null;state.detailGeneration++;state.detailData=null;state.detailLoadedAt=0;const box=$('statistics-detail');if(box){box.replaceChildren();box.hidden=true;}}
   function form(parent,label,data){
     const box=node('section','','stats-block');box.append(node('h4',label,'font-bold text-primary'));
     if(!data || !data.sample_size){box.append(node('p','Yetersiz veri'));parent.append(box);return;}
@@ -65,9 +65,11 @@
     box.append(explanation);
   }
   async function select(id,scroll=false){
-    state.selected=id;const generation=++state.detailGeneration;const box=$('statistics-detail');
+    const box=$('statistics-detail');
+    if(state.selected===id && state.detailData && Date.now()-state.detailLoadedAt<600000){if(scroll)box?.scrollIntoView?.({behavior:'smooth',block:'start'});return state.detailData;}
+    state.selected=id;state.detailData=null;state.detailLoadedAt=0;const generation=++state.detailGeneration;
     if(box){box.hidden=false;box.replaceChildren();box.append(node('p','Veri hazırlanıyor'));}
-    try {const data=await api(`/api/matches/${id}/statistics`);if(state.selected!==id || generation!==state.detailGeneration)return;renderStatistics(data);if(scroll)box?.scrollIntoView?.({behavior:'smooth',block:'start'});return data;}
+    try {const data=await api(`/api/matches/${id}/statistics`);if(state.selected!==id || generation!==state.detailGeneration)return;renderStatistics(data);state.detailData=data;state.detailLoadedAt=Date.now();if(scroll)box?.scrollIntoView?.({behavior:'smooth',block:'start'});return data;}
     catch(_){if(generation!==state.detailGeneration)return;if(box){box.replaceChildren();box.append(node('p','Veri hazırlanıyor • Bağlantı bekleniyor'));}}
   }
   function card(item){
