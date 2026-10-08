@@ -3,7 +3,7 @@
   'use strict';
   const $ = id => document.getElementById(id);
   const {stage, movement, asianMovement, liveStates, number} = globalThis.BetAppOdds;
-  const state = {leagues: [], seasons: [], league: '', season: '', round: '', selected: null, bookmaker: 'Crown', view: 'all', offset: 0, total: 0, job: null, generation: 0, busy: false};
+  const state = {leagues: [], seasons: [], league: '', season: '', round: '', selected: null, bookmaker: 'Crown', view: 'upcoming', offset: 0, total: 0, job: null, generation: 0, busy: false};
   const empty = 'Henüz veri yok';
   const displayTimezone = 'Europe/Istanbul';
   const date = value => value ? new Date(value).toLocaleString('tr-TR', {timeZone: displayTimezone}) : empty;
