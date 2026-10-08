@@ -48,6 +48,10 @@ def test_missing_identity_and_missing_statistics_never_become_zero():
     data=parse_statistics(text,1,36)
     assert all(value is None for value in data['statistics'].values())
     assert not data['events_available'] and data['events']==[]
+    # An empty scaffold is unavailable, not evidence that previously captured
+    # incidents have all been deleted from the match.
+    empty=parse_statistics(text+'<table id="eventsTable"><tr><th>Events</th></tr></table>',1,36)
+    assert not empty['events_available']
     with pytest.raises(SourceError):parse_statistics(text,2,36)
 
 
@@ -111,6 +115,9 @@ async def test_persist_idempotent_snapshot_zero_null_and_events(db):
         assert await session.scalar(select(func.count(MatchStatistics.match_id)))==1
         assert await session.scalar(select(func.count(MatchEvent.id)))==len(data['events'])
         assert match.referee_id is None
+        partial=deepcopy(data);partial['events_available']=False;partial['events']=[]
+        await store_statistics(session,match,partial);await session.commit()
+        assert await session.scalar(select(func.count(MatchEvent.id)))==len(data['events'])
 
 
 async def test_additional_statistics_api_splits_and_no_future_leakage(api,db,monkeypatch):
