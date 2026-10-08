@@ -15,6 +15,8 @@ from src.models import utcnow
 from src.match_views import LIVE_STATUSES, DISPLAY_TIMEZONE, day_bounds
 from .schemas import LeagueResponse, SeasonResponse, BookmakerResponse, MatchPage, MatchDetail, OddsResponse, JobResponse, JobRequest, StatusResponse, ScraperStatus
 from src.diagnostics import database_summary
+from src.analytics.service import statistics as compute_statistics, revision as prediction_revision
+from .prediction_schemas import PredictionPage, Statistics
 
 router = APIRouter()
 
@@ -173,6 +175,39 @@ async def matches(league: str | None = None, season: str | None = None,
         for item in items:
             item['odds'] = grouped.get(item['id'], [])
     return {'items': items, 'total': total, 'limit': limit, 'offset': offset, 'upcoming_expanded': upcoming_expanded}
+
+
+@router.get('/predictions', response_model=PredictionPage)
+async def predictions(league: str | None = None, date: Date | None = None,
+                      limit: int = Query(default=8, ge=1, le=20), session=Depends(session_dependency)):
+    now = utcnow()
+    query, _, _ = match_query()
+    query = query.where(League.enabled.is_(True), Match.status == 'scheduled', Match.kickoff_at > now,
+                        Match.kickoff_at <= now + timedelta(days=7))
+    if league:
+        query = query.where(League.id == int(league)) if league.isdigit() else query.where(League.name.ilike(f'%{league}%'))
+    if date:
+        start, end = day_bounds(date, DISPLAY_TIMEZONE)
+        query = query.where(Match.kickoff_at >= start, Match.kickoff_at < end)
+    rows = (await session.execute(query.order_by(Match.kickoff_at.asc(), Match.id.asc()).limit(40))).all()
+    rev = await prediction_revision(session)
+    calculated = []
+    for row in rows:
+        result = await compute_statistics(session, row[0], match_response(row), now, rev)
+        calculated.append({key: result[key] for key in ('match','prediction','bookmaker_consensus','as_of')})
+    primary = [item for item in calculated if aware(item['match']['kickoff_at']) <= now + timedelta(hours=72)]
+    enough = sum(item['prediction']['status'] == 'ok' for item in primary) >= min(5, limit)
+    chosen = calculated if date or not enough else primary
+    return {'items': chosen[:limit], 'window_hours': 72 if enough and not date else 168, 'generated_at': now}
+
+
+@router.get('/matches/{match_id}/statistics', response_model=Statistics)
+async def match_statistics(match_id: int, session=Depends(session_dependency)):
+    query, _, _ = match_query()
+    row = (await session.execute(query.where(Match.id == match_id, League.enabled.is_(True)))).first()
+    if not row:
+        raise HTTPException(404, 'Match not found')
+    return await compute_statistics(session, row[0], match_response(row), utcnow())
 
 
 async def odds_data(session, match_id):

@@ -47,9 +47,9 @@ async function scenario(mode) {
     assert(calls.includes('/api/status'));
     assert(calls.includes('/api/scraper/status'));
     if(mode==='multi') {
-      const nav=elements.get('league-nav');
-      assert(nav.children.some(node=>node.textContent==='KULÜP LİGLERİ'));
-      assert(nav.children.some(node=>node.textContent==='MİLLİ TAKIMLAR'));
+      const select=elements.get('league-select');
+      assert(select.children.some(node=>node.label==='KULÜP LİGLERİ'));
+      assert(select.children.some(node=>node.label==='MİLLİ TAKIMLAR'));
       assert.equal(elements.get('league-select').value,'');
       assert(calls.some(path=>path.includes('view=upcoming') && !path.includes('league=')));
       assert.equal(elements.get('matches-body').children.length,recorded.page.items.length);
@@ -57,11 +57,11 @@ async function scenario(mode) {
       assert(text.includes(recorded.page.items[0].home_team));
       const crown=recorded.page.items[0].odds.find(m=>m.bookmaker==='Crown' && m.market==='1x2');
       assert(text.includes(`${crown.opening.home} → ${crown.latest.home}`));
-      await nav.children.find(node=>node.textContent==='UEFA Nations League').onclick();await settle();
+      select.value=String(recorded.national_page.items[0].league_id);await select.onchange();await settle();
       assert.equal(elements.get('matches-body').children.length,recorded.national_page.items.length);
       assert(calls.some(path=>path.includes('league='+recorded.national_page.items[0].league_id)));
       assert(elements.get('upcoming-window').textContent.includes('en yakın maç günü'));
-      await nav.children.find(node=>node.textContent==='Tüm Ligler').onclick();await settle();
+      select.value='';await select.onchange();await settle();
       assert.equal(elements.get('matches-body').children.length,recorded.page.items.length);
       assert.equal(elements.get('league-select').value,'');
     } else if(mode!=='unavailable') {

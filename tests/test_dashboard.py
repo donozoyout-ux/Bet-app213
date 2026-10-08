@@ -41,7 +41,11 @@ def test_stitch_panels_and_safe_empty_states_are_retained():
     comments = ' '.join(parsed.comments)
     for panel in ['Big Scoreboard', 'Bookmaker Switcher Tabs', 'Asian Handicap', 'Asian Totals', 'Service Status List']:
         assert panel in comments
-    assert {'league-nav', 'matches-body', 'match-detail', 'bookmaker-tabs', 'league-select', 'season-select', 'round-select', 'collection-progress'} <= parsed.ids
+    assert {'predictions-section','prediction-cards','statistics-detail','dashboard-shell','matches-body', 'match-detail', 'bookmaker-tabs', 'league-select', 'season-select', 'round-select', 'collection-progress'} <= parsed.ids
+    assert '<aside' not in source and 'league-nav' not in source and 'pl-64' not in source
+    assert '#dashboard-shell {width:100%;padding-left:0;}' in source
+    assert source.index('id="predictions-section"') < source.index('id="history-filters"')
+    assert 'Günün İstatistiksel Tahminleri' in text and 'sidebar' not in text
     for unsupported in ['AI İvmesi', 'AI Taktik', 'Topla Oynama', 'Tehlikeli Ataklar', 'Son Olaylar', 'Hakem:', 'Veri Kazıyıcı Kontrol Merkezi', 'Favoriler']:
         assert unsupported not in text
     assert '/dashboard.js' in source
@@ -60,3 +64,10 @@ def test_dashboard_executes_with_empty_unavailable_and_removed_controls():
     if not node:
         pytest.skip('Node.js unavailable; supplied in CI')
     subprocess.run([node, 'tests/dashboard_runtime.cjs'], check=True, capture_output=True, text=True)
+
+
+@pytest.mark.parametrize('scenario',['populated','insufficient','empty','failed','detail-failed','missing','race'])
+def test_predictions_frontend(scenario):
+    node=shutil.which('node')
+    if not node:pytest.skip('Node.js unavailable; supplied in CI')
+    subprocess.run([node,'tests/predictions_runtime.cjs',scenario],check=True,capture_output=True,text=True)

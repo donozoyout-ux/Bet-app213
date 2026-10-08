@@ -35,4 +35,5 @@ jobs:
         run: |
           node --check src/api/dashboard.js
           node --check src/api/dashboard-odds.js
+          node --check src/api/dashboard-predictions.js
           node tests/dashboard_runtime.cjs
