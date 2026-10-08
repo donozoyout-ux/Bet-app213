@@ -91,5 +91,5 @@ async def capture_upcoming(session,league_id):
     rows=(await session.execute(query.order_by(Match.kickoff_at,Match.id))).all();rev=await revision(session);created=False
     for row in rows:
         result=await statistics(session,row[0],match_response(row),now,rev)
-        created=await capture(session,row[0],result['recommendations'],now) or created
+        created=await capture(session,row[0],result['recommendations'],utcnow()) or created
     if created:await session.commit()
