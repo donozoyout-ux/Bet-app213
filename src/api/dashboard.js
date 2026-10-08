@@ -168,7 +168,7 @@
       if(job) {
         const count=`${job.processed_matches+job.failed_matches} / ${job.total_matches} maç işlendi`;
         const competition=job.current_league || 'Yarışma';
-        message=['queued','running'].includes(job.status) ? `${competition} verileri hazırlanıyor • ${count}` : job.status === 'completed' ? `${competition} güncel` : `${competition} verileri eksik • ${count} • ${job.failed_matches} hata`;
+        message=['queued','running'].includes(job.status) ? `${competition} verileri hazırlanıyor • ${count}` : job.status === 'completed' ? (job.kind==='stats_backfill'?`${competition} istatistik işi tamamlandı • ${count}`:`${competition} güncel`) : `${competition} verileri eksik • ${count} • ${job.failed_matches} hata`;
       }
       write('collection-progress',message);write('system-scraper',message);
     } catch (_) {write('collection-progress','Bağlantı bekleniyor');write('system-scraper','Bağlantı bekleniyor');}

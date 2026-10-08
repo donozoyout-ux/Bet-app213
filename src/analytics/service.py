@@ -4,10 +4,11 @@ from datetime import timedelta
 import time
 from sqlalchemy import select, func, or_, event
 from sqlalchemy.orm import aliased, Session
-from src.models import Match, League, Team, Bookmaker, Odds1X2
+from src.models import Match, League, Team, Bookmaker, Odds1X2, MatchStatistics
 from src.jobs.worker import aware
 from .predictions import Result, predict, implied_probabilities
 from src.match_views import LIVE_STATUSES
+from .match_statistics import additional_statistics
 
 CACHE_SECONDS = 600
 _cache = OrderedDict()
@@ -23,7 +24,8 @@ def invalidate_after_commit(session):
 async def revision(session):
     matches = (await session.execute(select(func.count(Match.id), func.max(Match.updated_at), func.max(Match.last_scraped_at)))).one()
     odds = (await session.execute(select(func.count(Odds1X2.id), func.max(Odds1X2.updated_at)))).one()
-    return tuple(matches) + tuple(odds)
+    stats=(await session.execute(select(func.count(MatchStatistics.match_id),func.max(MatchStatistics.updated_at)))).one()
+    return tuple(matches) + tuple(odds) + tuple(stats)
 
 
 async def statistics(session, match, context, now, data_revision=None):
@@ -69,9 +71,16 @@ async def statistics(session, match, context, now, data_revision=None):
     if match.kickoff_at is None:
         prediction = {key: value for key,value in prediction.items() if 'probability' not in key and not key.startswith('expected_')}
         prediction.update(status='insufficient_data', confidence='low', model_market_difference=None)
+    additional=await additional_statistics(session,match,cutoff)
+    for metric in ['corners','cards']:
+        p=additional[metric]['prediction'];prediction[metric+'_status']=p['status']
+        prediction['expected_home_'+metric]=p['expected_home'];prediction['expected_away_'+metric]=p['expected_away'];prediction['expected_total_'+metric]=p['expected_total']
+        for threshold in ([8.5,9.5,10.5] if metric=='corners' else [3.5,4.5,5.5]):
+            prediction['over_'+str(threshold).replace('.','_')+'_'+metric+'_probability']=p['over_probabilities'].get(str(threshold))
+    prediction['card_basis']=additional['cards']['prediction']['basis']
     h2h_rows = [row for row in history if {row.home_id, row.away_id} == {match.home_team_id, match.away_team_id}][:5]
     h2h_stats = predict_h2h(h2h_rows, match.home_team_id)
-    result = {'match': context, 'prediction': prediction, **extra, 'h2h': h2h_stats['matches'],
+    result = {'match': context, 'prediction': prediction, **extra, 'additional_statistics':additional, 'h2h': h2h_stats['matches'],
               'h2h_summary': {key: value for key, value in h2h_stats.items() if key != 'matches'},
               'bookmakers': bookmakers, 'bookmaker_consensus': consensus, 'as_of': cutoff,
               'historical': historical, 'cache_seconds': CACHE_SECONDS,
