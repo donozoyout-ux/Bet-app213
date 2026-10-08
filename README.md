@@ -234,7 +234,7 @@ The dashboard defaults to upcoming across all enabled competitions. Its seven-da
 
 ## Statistical predictions and full-width dashboard
 
-The league sidebar is removed. Enabled club/national competitions remain in the grouped SQL-backed dropdown. The first main section is Günün İstatistiksel Tahminleri, with up to eight nearest cards; the same right-hand detail area displays computed statistics. Cards stack in one column on mobile, two on tablet and four on wider desktops.
+The sidebar is removed. The current dark navy/cyan terminal is market-first: enabled leagues, summary cards, category navigation, dense selected-pick tables and audited performance. Rows open a wide desktop / full-screen mobile match analysis dialog; eight tabs keep each match context isolated.
 
 Endpoints:
 
@@ -255,7 +255,7 @@ The cutoff is `min(now, kickoff)`. A prior result needs finished status, known f
 
 A bounded process-local cache holds 128 statistics entries for ten minutes. Database count/MAX revisions detect normal external updates; SQLAlchemy after-commit invalidation handles every local committed mutation, including corrections below the global maximum timestamp. No Redis or new runtime dependency is introduced. Cards refresh at most every ten minutes and on league/date/manual changes. Fixtures from real stored EPL responses cover frontend populated, insufficient, failure, missing-element, click and stale-response cases.
 
-No production scraping, queue launch or deployment is part of the prediction feature validation. The existing serialized multi-competition backfill architecture is retained. Production currently has only EPL; new competitions need enough observed history before numerical estimates appear.
+No production scraping, queue launch or deployment is part of the prediction feature validation. The existing serialized multi-competition backfill architecture is retained. Enabled competitions need enough observed history before numerical estimates appear; production is scoped to the eight verified rollout leagues.
 
 ## Corners, cards and match events
 
@@ -278,9 +278,9 @@ One pick per correlated group is allowed: outcome (result/double chance/handicap
 
 ### Compact dashboard and match analysis
 
-The homepage keeps the full-width blue/white shell, compact status, 4/3/2/1-column selected-pick cards, shared league/date/selected-market/confidence filters and a match list with server-side kickoff/league/team sorting. Recommendation calculations and ranking rules are unchanged. A zero-pick match remains available in the unfiltered match list. Selected-market filters cover the seven-day recommendation window; paginated global picks prevent dropping matches after the first 100 picks.
+The current homepage uses full-width dark market tables, compact status, category performance cards, shared league/date/selected-market/confidence filters and a collapsible match list with server-side kickoff/league/team sorting. Recommendation calculations and ranking gates are preserved. A zero-pick match remains available in the unfiltered match list. Selected-market filters cover the seven-day recommendation window; paginated global picks prevent dropping matches after the first 100 picks.
 
-Cards and keyboard-accessible match rows open the same native dialog: wide on desktop, full-screen at mobile widths. Its selected-match header remains above Tahminler, Takım Formu, Gol Analizi, Korner, Kart ve Hakem, Oranlar and H2H tabs. Statistics load only on opening a match; tab changes reuse that response. Odds use the existing price/stage APIs. Generation checks invalidate late statistics, match and odds responses after switching or closing. Native dialog focus trapping, Escape, close and tab arrow keys are supported; #match=<id> permits direct links and browser Back. Missing observations remain unavailable.
+Market picks and keyboard-accessible match rows open the same native dialog: wide on desktop, full-screen at mobile widths. Its selected-match header remains above Özet, Tahminler, Gol, Korner, Kart & Hakem, Oranlar, Form and H2H tabs. Statistics load only on opening a match; tab changes reuse that response. Odds use the existing price/stage APIs. Generation checks invalidate late statistics, match and odds responses after switching or closing. Native dialog focus trapping, Escape, close and tab arrow keys are supported; #match=<id> permits direct links and browser Back. Missing observations remain unavailable.
 
 ## Dark market terminal and audited performance
 
