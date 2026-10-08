@@ -25,6 +25,7 @@ class Result:
     kickoff_at: datetime
     home: str = ''
     away: str = ''
+    season_id: int | None = None
 
 
 def team_stats(results, team_id):
@@ -75,7 +76,7 @@ def poisson_probabilities(home_goals, away_goals):
         total = sum(values)
         return [value / total for value in values]
     home, away = distribution(home_goals), distribution(away_goals)
-    win = draw = loss = over = btts = 0.0
+    win = draw = loss = over = over15 = over35 = btts = 0.0
     for h, ph in enumerate(home):
         for a, pa in enumerate(away):
             p = ph * pa
@@ -83,10 +84,26 @@ def poisson_probabilities(home_goals, away_goals):
             elif h == a: draw += p
             else: loss += p
             if h + a > 2: over += p
+            if h + a > 1: over15 += p
+            if h + a > 3: over35 += p
             if h and a: btts += p
     return {'home_probability': win, 'draw_probability': draw, 'away_probability': loss,
+            'over_15_probability':over15,'under_15_probability':1-over15,
+            'over_35_probability':over35,'under_35_probability':1-over35,
             'over_25_probability': over, 'under_25_probability': 1 - over,
             'btts_probability': btts, 'no_btts_probability': 1 - btts}
+
+
+def handicap_probability(home_goals,away_goals,line,side):
+    """Binary cover probability for HALF lines only; no push/quarter settlement guess."""
+    if not math.isfinite(line):return None
+    if abs(line*2-round(line*2))>1e-9 or float(line).is_integer() or abs(line)>3.5:return None
+    def dist(mean):
+        values=[math.exp(-mean)]
+        for k in range(1,41):values.append(values[-1]*mean/k)
+        total=sum(values);return [v/total for v in values]
+    home,away=dist(home_goals),dist(away_goals)
+    return sum(ph*pa for h,ph in enumerate(home) for a,pa in enumerate(away) if (h-a if side=='home' else a-h)+line>0)
 
 
 def predict(history, home_id, away_id, competition_type, consensus=None):

@@ -241,7 +241,7 @@ Endpoints:
 - `GET /api/predictions?league=<internal ID or name>&date=YYYY-MM-DD&limit=8`
 - `GET /api/matches/{match_id}/statistics`
 
-Selection is chronological. Predictions prefer the next 72 hours; if fewer than five sufficiently sampled matches are available (or fewer than the requested limit), the candidate window expands to seven days. Explicit dates intersect that seven-day window. No monthly far-future fallback applies to prediction cards. Insufficient matches retain real match metadata with status `insufficient_data`, null probabilities and the UI label Yetersiz veri. Empty/unavailable APIs show Veri hazırlanıyor.
+Selection is chronological. Predictions prefer the next 72 hours; if fewer than five sufficiently sampled matches are available (or fewer than the requested limit), the candidate window expands to seven days. Explicit dates intersect that seven-day window. No monthly far-future fallback applies to prediction cards. Matches without qualifying recommendations are excluded. Empty filters show Bu filtrede eşikleri geçen tahmin bulunmuyor; unavailable APIs show Bağlantı bekleniyor.
 
 The model uses only observed, completed, scored results from the SAME competition. At most 2000 recent results within three years are examined; the latest 200 define competition home/away averages. Team form uses last 5/10 matches; venue profiles use the last 10 occurrences on the corresponding home/away side. H2H is descriptive and optional. No club results or club baselines enter a national competition's calculation. Venue means the provider's nominal side. The goal model does not use stadium, neutral-venue or event-level features. Ancillary statistics may be collected separately; measured xG and first-scorer features are not inferred.
 
@@ -269,3 +269,9 @@ python -m src.jobs.stats_backfill --league 36 --resume JOB_ID
 ```
 
 The authenticated POST `/api/scraper/stats-backfill` queues a competition; POST `/api/scraper/statistics/{match_id}` refreshes one stored completed match. Existing durable progress/locking/resume behavior applies. Startup does not enqueue statistics backfills. Normal odds updates also collect available live/finished statistics without failing the odds job on absent statistics. No new external dependency is required.
+
+### Automatic recommendation selection
+
+All supported markets remain in the statistics API candidates. Cards contain only 0–3 qualified recommendations. Probability must reach 60%, reliability 0.70 and score 0.74, with team/venue/competition samples of at least 8/5/50. Reliability combines samples, recent stability, season agreement, completeness, confidence and actual bookmaker support. Double-chance and extreme-probability penalties limit insurance picks. Missing support is never fabricated.
+
+One pick per correlated group is allowed: outcome (result/double chance/handicap), goal environment (totals/BTTS), corners, cards. No market receives a reserved slot. Filters inspect selected picks only. GET /api/predictions/best ranks selected picks across the seven-day window. Combined cards require published yellow and red totals for both teams.
