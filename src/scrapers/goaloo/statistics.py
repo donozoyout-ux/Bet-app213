@@ -69,8 +69,8 @@ def parse_statistics(source,match_id,league_id=None):
     ht=page.by_id('hf1stat')
     if ht:
         for row in ht.walk('li'):
-            title=next((node.text() for node in row.walk('span') if node.attrs.get('class')=='stat-title'),None)
-            cells=[node.text() for node in row.walk('span') if node.attrs.get('class')=='stat-c']
+            title=next((node.text() for node in row.walk('span') if 'stat-title' in node.attrs.get('class','').split()),None)
+            cells=[node.text() for node in row.walk('span') if 'stat-c' in node.attrs.get('class','').split()]
             if title=='Corner Kicks' and len(cells)==2:
                 for side,text in zip(('home','away'),cells):
                     if stats[side+'_corners_ht'] is None:stats[side+'_corners_ht']=value(text)
@@ -98,7 +98,7 @@ def parse_statistics(source,match_id,league_id=None):
                                'secondary_player_name':players[1] if len(players)>1 else None,'raw':raw})
     # Neither the six live/analysis sources nor their metadata expose a verified referee.
     # Do not infer one from unrelated names, commentary, ads or a match's country.
-    return {'statistics':stats,'events':events,'events_available':table is not None,'referee':None,
+    return {'statistics':stats,'events':events,'events_available':bool(table is not None and events),'referee':None,
             'is_final':bool(identities['state'] and int(identities['state'][1])==-1),
             'collection_status':'available' if any(v is not None for v in stats.values()) else 'unavailable',
             'raw':{'match_id':match_id,'competition_id':int(identities['sclassId'][1]) if identities['sclassId'] else None,'rows':raw_rows,'endpoint':f'https://www.goaloo.com/match/live-{match_id}'}}
