@@ -18,6 +18,7 @@ def smoke_test(base_url, timeout=20):
         assert '<html' in check('/', 'text/html').text.lower()
         check('/dashboard.js', 'javascript')
         check('/dashboard-odds.js', 'javascript')
+        check('/dashboard-predictions.js', 'javascript')
         status = client.get('/api/status')
         assert status.status_code in (200, 503), f'/api/status: HTTP {status.status_code}'
         connected = False

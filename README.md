@@ -231,3 +231,28 @@ The targets are selected by catalog country/abbreviation, then their IDs, names,
 `AUTO_BACKFILL_ON_EMPTY=true` and `SCRAPER_WORKER_ENABLED=true` queue one historical job for each empty, enabled, verified competition; the existing PostgreSQL advisory worker lock permits only one executing job globally. Jobs survive restart and run by priority. An existing partial/failed backfill is resumed explicitly rather than duplicated automatically. The daily authenticated workflow calls `/api/scraper/update-all` for every enabled competition.
 
 The dashboard defaults to upcoming across all enabled competitions. Its seven-day window expands only to the next available match day when empty. The response includes `upcoming_expanded`; calendar dates use Europe/Istanbul. The sidebar groups only records returned by PostgreSQL. National tournaments retain real stage/group labels and year-based seasons; no fake participants or seasons are generated.
+
+## Statistical predictions and full-width dashboard
+
+The league sidebar is removed. Enabled club/national competitions remain in the grouped SQL-backed dropdown. The first main section is Günün İstatistiksel Tahminleri, with up to eight nearest cards; the same right-hand detail area displays computed statistics. Cards stack in one column on mobile, two on tablet and four on wider desktops.
+
+Endpoints:
+
+- `GET /api/predictions?league=<internal ID or name>&date=YYYY-MM-DD&limit=8`
+- `GET /api/matches/{match_id}/statistics`
+
+Selection is chronological. Predictions prefer the next 72 hours; if fewer than five sufficiently sampled matches are available (or fewer than the requested limit), the candidate window expands to seven days. Explicit dates intersect that seven-day window. No monthly far-future fallback applies to prediction cards. Insufficient matches retain real match metadata with status `insufficient_data`, null probabilities and the UI label Yetersiz veri. Empty/unavailable APIs show Veri hazırlanıyor.
+
+The model uses only observed, completed, scored results from the SAME competition. At most 2000 recent results within three years are examined; the latest 200 define competition home/away averages. Team form uses last 5/10 matches; venue profiles use the last 10 occurrences on the corresponding home/away side. H2H is descriptive and optional. No club results or club baselines enter a national competition's calculation. Venue means the provider's nominal side; stadium, neutral venue, possession, shots, measured xG, first-scorer events and corners are not available or inferred.
+
+Minimums are 20 competition results, 5 results per team and 3 per relevant venue. Venue scoring/conceding rates are regularized with baseline weight 5. Home expected goals = regularized home scoring × regularized away conceding / competition home average; away is analogous. A zero scoring baseline returns insufficient data rather than a 100%/0% estimate. Expected goals are bounded to 0–8 for numerical stability. Independent Poisson score probabilities yield 1X2, over/under 2.5 and BTTS. These are model estimates labelled Beklenen Gol, not measured shot-based statistics or ML predictions.
+
+Confidence is a deterministic data-quality category, not an empirically calibrated accuracy probability. Medium requires each team 8 results, each venue 5, competition 50, last-5/10 scoring and conceding differences ≤0.5, and a model/market maximum difference ≤15 percentage points. High additionally requires team 10, venue 8, competition 100, at least two bookmakers and difference ≤10 points. National confidence is capped at medium. Missing market support or smaller valid samples produce low confidence. Both distinct team/venue sample size and competition baseline sample size are exposed.
+
+Only complete decimal 1X2 prices >1 and finite values enter margin normalization: `(1/odd) / sum(1/odd)`. Valid bookmaker probabilities are averaged equally. Upcoming uses latest prematch; finished/started uses the stored prematch closing fields when available. Raw in-play prices are never read. Model/Piyasa differences are percentage points and are not labelled automatic value bets.
+
+The cutoff is `min(now, kickoff)`. A prior result needs finished status, known full-time scores, kickoff at least three hours before cutoff, and created/updated/last-scraped observations no later than cutoff. This is deliberately conservative: historical archives imported later cannot produce trustworthy as-of forecasts and may return insufficient data. Bookmaker observations after cutoff are excluded from normalization, consensus and confidence; archived odds can still be shown separately with their observation time. The model never uses the target outcome or later fixtures.
+
+A bounded process-local cache holds 128 statistics entries for ten minutes. Database count/MAX revisions detect normal external updates; SQLAlchemy after-commit invalidation handles every local committed mutation, including corrections below the global maximum timestamp. No Redis or new runtime dependency is introduced. Cards refresh at most every ten minutes and on league/date/manual changes. Fixtures from real stored EPL responses cover frontend populated, insufficient, failure, missing-element, click and stale-response cases.
+
+No production scraping, queue launch or deployment is part of the prediction feature validation. The existing serialized multi-competition backfill architecture is retained. Production currently has only EPL; new competitions need enough observed history before numerical estimates appear.

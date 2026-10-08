@@ -75,5 +75,9 @@ async def dashboard_script():
 async def dashboard_odds_script():
     return FileResponse(Path(__file__).resolve().with_name('dashboard-odds.js'), media_type='application/javascript')
 
+@app.get('/dashboard-predictions.js', include_in_schema=False)
+async def dashboard_predictions_script():
+    return FileResponse(Path(__file__).resolve().with_name('dashboard-predictions.js'), media_type='application/javascript')
+
 from src.api.routes import router
 app.include_router(router, prefix='/api')
