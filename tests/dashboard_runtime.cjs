@@ -31,7 +31,7 @@ async function scenario(mode) {
         payload=['multi','detail-race'].includes(mode) && query.get('view')==='upcoming' ? (query.get('league') ? recorded.national_page : recorded.page) : {items:[],total:0};
       }
       else if(/^\/api\/matches\/\d+(\/odds)?$/.test(path)){const id=Number(path.split('/')[3]);const match=recorded.page.items.find(item=>item.id===id);payload=path.endsWith('/odds')?match.odds:match;if(mode==='detail-race' && id===recorded.page.items[0].id)return await new Promise(resolve=>pending.push(()=>resolve({ok:true,json:async()=>payload})));}
-      else if(path==='/api/scraper/status')payload={status:'idle',jobs:[]};
+      else if(path==='/api/scraper/status')payload={status:'idle',jobs:mode==='job-priority'?[{id:11,current_league:'Liga Portugal 1',kind:'stats_backfill',status:'queued',processed_matches:0,failed_matches:0,total_matches:30},{id:9,current_league:'English Premier League',kind:'stats_backfill',status:'running',processed_matches:3,failed_matches:0,total_matches:30}]:[]};
       else payload=[];
       return {ok:!unavailable,status:unavailable?503:200,json:async()=>payload};
     }};
@@ -46,7 +46,7 @@ async function scenario(mode) {
     assert.equal(failures.length,0,String(failures[0]));
     assert(calls.includes('/health'));
     assert(calls.includes('/api/status'));
-    assert(calls.includes('/api/scraper/status'));
+    assert(calls.includes('/api/scraper/status'));if(mode==='job-priority')assert(elements.get('collection-progress').textContent.includes('English Premier League'));
     if(['multi','detail-race'].includes(mode)) {
       if(mode==='detail-race'){const first=sandbox.BetAppDashboard.selectMatch(recorded.page.items[0].id);await sandbox.BetAppDashboard.selectMatch(recorded.page.items[1].id);pending.forEach(release=>release());await first;assert.equal(elements.get('detail-title').textContent,`${recorded.page.items[1].home_team} vs ${recorded.page.items[1].away_team}`);sandbox.BetAppDashboard.closeDetail();return;}
       const row=elements.get('matches-body').children[0];row.onclick();await settle();assert.equal(selected.at(-1),recorded.page.items[0].id);assert.equal(elements.get('detail-title').textContent,`${recorded.page.items[0].home_team} vs ${recorded.page.items[0].away_team}`);
@@ -76,4 +76,4 @@ async function scenario(mode) {
     }
   } finally {process.off('unhandledRejection',listener);}
 }
-(async()=>{for(const mode of ['empty','unavailable','missing-controls','multi','detail-race'])await scenario(mode);console.log('dashboard runtime: 5 scenarios passed');})().catch(error=>{console.error(error);process.exitCode=1;});
+(async()=>{for(const mode of ['empty','unavailable','missing-controls','multi','detail-race','job-priority'])await scenario(mode);console.log('dashboard runtime: 6 scenarios passed');})().catch(error=>{console.error(error);process.exitCode=1;});
