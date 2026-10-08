@@ -3,7 +3,7 @@
 FastAPI serves the existing Stitch dashboard from `src/api/dashboard.html`.
 The active Goaloo adapters use verified JSON/AJAX responses, SQLAlchemy async
 persists matches and bookmaker markets, and a durable database-backed worker
-collects the English Premier League (Goaloo ID 36) from the 2024–2025 season.
+collects verified global club and national-team competitions from 2024 onward.
 Archived NowGoal/SofaScore modules are isolated under `legacy/`.
 
 ## Local setup (Python 3.12)
@@ -31,7 +31,7 @@ python -m uvicorn src.api.main:app --host 127.0.0.1 --port 8000
 Open `/` for the dashboard or `/docs` for typed API documentation. Database
 initialization creates tables and seeds Premier League/Crown/Bet365/Sbobet
 idempotently, guarded by a PostgreSQL advisory transaction lock. This is the
-initial schema; `create_all` does not alter existing tables. Future schema
+base schema; an additive, idempotent competition migration extends existing tables without deleting data. Future schema
 changes require versioned migrations rather than dropping production tables.
 
 With no `DATABASE_URL`, `/health`, `/`, `/docs`, and `/api/status` still work;
@@ -216,3 +216,18 @@ use `--league EXTERNAL_ID` or the collection API. Seasons and teams are discover
 and normalized automatically. The current adapter supports `R_n` league rounds;
 validate a new league's fixtures/odds and extend its adapter for cup/group formats.
 Do not assume a cup has the Premier League's source schema.
+
+## Global competitions and national teams
+
+See [live discovery evidence and backfill order](docs/competition-discovery.md) for all 30 verified IDs, latest seasons, source-specific formats, odds availability and fixture-count estimates.
+
+```sh
+python -m src.scrapers.goaloo.competitions
+python -m src.scrapers.goaloo.competitions --output src/scrapers/goaloo/verified_competitions.json --seed
+```
+
+The targets are selected by catalog country/abbreviation, then their IDs, names, season feed and schedules are checked live. Seeding refuses unverified records. Startup seeds the recorded verified snapshot into PostgreSQL, retaining existing EPL data and disabled flags. Each job validates its source identity again before storing schedule data.
+
+`AUTO_BACKFILL_ON_EMPTY=true` and `SCRAPER_WORKER_ENABLED=true` queue one historical job for each empty, enabled, verified competition; the existing PostgreSQL advisory worker lock permits only one executing job globally. Jobs survive restart and run by priority. An existing partial/failed backfill is resumed explicitly rather than duplicated automatically. The daily authenticated workflow calls `/api/scraper/update-all` for every enabled competition.
+
+The dashboard defaults to upcoming across all enabled competitions. Its seven-day window expands only to the next available match day when empty. The response includes `upcoming_expanded`; calendar dates use Europe/Istanbul. The sidebar groups only records returned by PostgreSQL. National tournaments retain real stage/group labels and year-based seasons; no fake participants or seasons are generated.

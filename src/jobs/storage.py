@@ -22,6 +22,7 @@ async def store_match(session, league_id, season_name, data):
     home.name, away.name = data['home_name'], data['away_name']
     keys = ['round', 'kickoff_at', 'status', 'ht_home', 'ht_away', 'ft_home', 'ft_away', 'raw']
     values = {k: data[k] for k in keys}
+    values.update({k: data[k] for k in ['round_label', 'stage_key'] if k in data})
     values.update(league_id=league_id, season_id=season.id, home_team_id=home.id, away_team_id=away.id)
     match = await get_or_create(session, Match, {'external_match_id': data['external_match_id']}, values)
     for k, v in values.items():

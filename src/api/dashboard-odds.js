@@ -4,16 +4,19 @@
   const number = value => value == null ? '—' : String(value);
   function stage(match, market) {
     if (match.status === 'finished') return 'closing';
-    if (liveStates.includes(match.status) && Object.values(market.closing).some(v => v != null)) return 'closing';
+    if (liveStates.includes(match.status) && Object.values(market?.closing || {}).some(v => v != null)) return 'closing';
     return 'latest';
   }
   function movement(match, market, field) {
     if (!market) return '—';
-    return `${number(market.opening[field])} → ${number(market[stage(match,market)][field])}`;
+    const opening=market.opening?.[field], selected=market[stage(match,market)]?.[field];
+    if(opening == null && selected == null)return '—';
+    return `${number(opening)} → ${number(selected)}`;
   }
   function asianMovement(match, market, fields) {
     if (!market) return '—';
-    const format = kind => fields.map(field => number(market[kind][field])).join(' / ');
+    if(fields.every(field=>market.opening?.[field] == null && market[stage(match,market)]?.[field] == null))return '—';
+    const format = kind => fields.map(field => number(market[kind]?.[field])).join(' / ');
     return `${format('opening')} → ${format(stage(match,market))}`;
   }
   const api = {stage, movement, asianMovement, liveStates, number};

@@ -2,7 +2,7 @@
 import asyncio
 import logging
 from datetime import timedelta, timezone
-from sqlalchemy import select, text, func, delete
+from sqlalchemy import select, text, func, delete, case
 from src.config import settings
 from src.match_views import LIVE_STATUSES
 from src.db import database
@@ -32,7 +32,7 @@ async def enqueue(kind, league_external_id=36, start_year=2024, match_id=None, r
         if session.bind.dialect.name == 'postgresql':
             await session.execute(text('SELECT pg_advisory_xact_lock(213003)'))
         league = await session.scalar(select(League).where(League.external_id == league_external_id))
-        if league is None:
+        if league is None or not league.enabled:
             raise ValueError('League is not configured')
         if resume_id:
             job = await session.get(ScraperJob, resume_id)
@@ -51,7 +51,7 @@ async def enqueue(kind, league_external_id=36, start_year=2024, match_id=None, r
             active = await session.scalar(select(ScraperJob).where(ScraperJob.league_id == league.id, ScraperJob.status.in_(['queued', 'running'])))
             if active:
                 raise ValueError(f'League already has an active job: {active.id}')
-            job = ScraperJob(kind=kind, league_id=league.id, start_year=start_year, match_id=match_id)
+            job = ScraperJob(kind=kind, league_id=league.id, start_year=start_year, match_id=match_id, priority=0 if kind == 'update' else league.priority)
             session.add(job)
         await session.commit()
         return job
@@ -80,29 +80,76 @@ async def initial_backfill_job(session):
     active = await session.scalar(select(ScraperJob).where(ScraperJob.league_id == league.id, ScraperJob.status.in_(['queued','running'])))
     if previous or active:
         return previous or active
-    job = ScraperJob(kind='backfill', league_id=league.id, start_year=2024)
+    job = ScraperJob(kind='backfill', league_id=league.id, start_year=2024, priority=league.priority)
     session.add(job)
     await session.commit()
     log.info('[BACKFILL] initial backfill queued job_id=%s league=36 start_year=2024', job.id)
     return job
+
+
+async def enqueue_catalog_backfills(db=None, enabled=None):
+    """One durable historical job per verified, enabled competition; execution is serial."""
+    db = db or database
+    enabled = settings.auto_backfill_on_empty if enabled is None else enabled
+    if not enabled or not db.ready or db.engine.dialect.name != 'postgresql':
+        return []
+    async with db.session() as session:
+        await session.execute(text('SELECT pg_advisory_xact_lock(213003)'))
+        jobs = await queue_missing_competitions(session)
+        await session.commit()
+        return jobs
+
+
+async def queue_missing_competitions(session):
+    leagues = (await session.scalars(select(League).where(League.enabled.is_(True), League.verified_at.is_not(None)).order_by(League.priority, League.id))).all()
+    jobs = []
+    for league in leagues:
+        previous = await session.scalar(select(ScraperJob.id).where(ScraperJob.league_id == league.id, ScraperJob.kind == 'backfill'))
+        matches = await session.scalar(select(func.count(Match.id)).where(Match.league_id == league.id))
+        active = await session.scalar(select(ScraperJob.id).where(ScraperJob.league_id == league.id, ScraperJob.status.in_(['queued','running'])))
+        if previous or matches or active:
+            continue
+        job = ScraperJob(kind='backfill', league_id=league.id, start_year=league.backfill_from_year, priority=league.priority)
+        session.add(job)
+        jobs.append(job)
+    await session.flush()
+    return jobs
+
+
+async def enqueue_all_updates():
+    async with database.session() as session:
+        if session.bind.dialect.name == 'postgresql':
+            await session.execute(text('SELECT pg_advisory_xact_lock(213003)'))
+        result = []
+        for league in (await session.scalars(select(League).where(League.enabled.is_(True)).order_by(League.priority))).all():
+            active = await session.scalar(select(ScraperJob).where(ScraperJob.league_id == league.id, ScraperJob.status.in_(['queued','running'])))
+            if active:
+                result.append(active)
+            else:
+                job = ScraperJob(kind='update', league_id=league.id, start_year=league.backfill_from_year, priority=0)
+                session.add(job)
+                result.append(job)
+        await session.commit()
+        return result
 
 async def discover(job_id, client):
     async with database.session() as session:
         job = await session.get(ScraperJob, job_id)
         league = await session.get(League, job.league_id)
         kind, start_year, league_id, external_id = job.kind, job.start_year, league.id, league.external_id
+        competition_type, schedule_format = league.competition_type, league.schedule_format
         if job.discovery_complete:
             return
         if kind == 'match':
             match = await session.get(Match, job.match_id)
             season = await session.get(Season, match.season_id)
-            data = await fetch_match_details(client, match.external_match_id, external_id, season.season_name)
+            data = await fetch_match_details(client, match.external_match_id, external_id, season.season_name, schedule_format='cup') if schedule_format == 'cup' else await fetch_match_details(client, match.external_match_id, external_id, season.season_name)
             await store_match(session, league_id, season.season_name, data)
             await get_or_create(session, JobItem, {'job_id': job.id, 'match_id': match.id})
             job.total_matches, job.discovery_complete = 1, True
             await session.commit()
             return
-    seasons = await discover_seasons(client, external_id, start_year)
+    seasons = await discover_seasons(client, external_id, start_year, overlap=True) if competition_type == 'national' else await discover_seasons(client, external_id, start_year)
     if not seasons:
         raise SourceError('No seasons available from the requested year')
     if kind == 'update':
@@ -110,7 +157,12 @@ async def discover(job_id, client):
         seasons = seasons[-2:]
     now = utcnow()
     for season_name in seasons:
-        payload = await season_data(client, external_id, season_name)
+        payload = await season_data(client, external_id, season_name, schedule_format='cup') if schedule_format == 'cup' else await season_data(client, external_id, season_name)
+        if payload.get('LeagueInfo'):
+            from src.scrapers.goaloo.competitions import verified_snapshot, Competition, validate_identity
+            source = next((record for record in verified_snapshot() if record['external_id'] == external_id), None)
+            if source:
+                validate_identity(Competition(**source), payload, season_name)
         for round_number in discover_rounds(payload):
             log.info('[GOALOO] league=%s season=%s round=%s', external_id, season_name, round_number)
             async with database.session() as session:
@@ -122,6 +174,8 @@ async def discover(job_id, client):
                 for data in parse_matches(payload, round_number, errors):
                     if data['external_league_id'] != external_id:
                         raise SourceError('League ID does not match request')
+                    if competition_type == 'national' and (data['kickoff_at'] is None or data['kickoff_at'].year < start_year):
+                        continue
                     match = await store_match(session, league_id, season_name, data)
                     kickoff = aware(match.kickoff_at)
                     recent = kickoff is not None and now - timedelta(days=7) <= kickoff <= now + timedelta(days=7)
@@ -234,6 +288,7 @@ async def work(once=False):
                 await database.initialize()
             if not initialization_checked:
                 await enqueue_initial_backfill(database)
+                await enqueue_catalog_backfills(database)
                 initialization_checked = True
             async with database.engine.connect() as lock:
                 postgres = lock.dialect.name == 'postgresql'
@@ -246,7 +301,7 @@ async def work(once=False):
                     continue
                 try:
                     async with database.session() as session:
-                        job_id = await session.scalar(select(ScraperJob.id).where(ScraperJob.status.in_(['running', 'queued'])).order_by(ScraperJob.id).limit(1))
+                        job_id = await session.scalar(select(ScraperJob.id).join(League).where(League.enabled.is_(True), ScraperJob.status.in_(['running', 'queued'])).order_by(case((ScraperJob.status == 'running', 0), else_=1), ScraperJob.priority, ScraperJob.id).limit(1))
                     if job_id:
                         await run_job(job_id)
                 finally:

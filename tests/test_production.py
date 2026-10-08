@@ -82,7 +82,8 @@ async def test_diagnostics_connected_and_disconnected(api, db, monkeypatch):
     assert diagnostics['database_connected']
     assert diagnostics['total_matches'] == diagnostics['total_odds'] == 0
     assert set(diagnostics) == {'app', 'database_configured', 'database_connected', 'worker_enabled',
-                                'auto_backfill_enabled', 'latest_job_status', 'total_matches', 'total_odds'}
+                                'auto_backfill_enabled', 'latest_job_status', 'total_matches', 'total_odds',
+                                'enabled_competitions','completed_competitions','active_backfill_competition','queued_backfills'}
     monkeypatch.setattr(routes, 'settings', replace(routes.settings, scraper_token='SECRET_MARKER', database_url='SECRET_MARKER'))
     async def fail(*args):
         raise RuntimeError('SECRET_MARKER')

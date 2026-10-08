@@ -16,6 +16,11 @@ async def database_summary(db, verify_schema=False):
             if missing:
                 return result
         result['league_count'] = await session.scalar(select(func.count(League.id)))
+        result['enabled_competitions'] = await session.scalar(select(func.count(League.id)).where(League.enabled.is_(True)))
+        complete = select(ScraperJob.league_id).where(ScraperJob.kind == 'backfill', ScraperJob.status == 'completed').distinct()
+        result['completed_competitions'] = await session.scalar(select(func.count(League.id)).where(League.enabled.is_(True), League.id.in_(complete)))
+        result['active_backfill_competition'] = await session.scalar(select(League.name).join(ScraperJob).where(ScraperJob.kind == 'backfill', ScraperJob.status == 'running').limit(1))
+        result['queued_backfills'] = await session.scalar(select(func.count(ScraperJob.id)).join(League).where(League.enabled.is_(True), ScraperJob.kind == 'backfill', ScraperJob.status == 'queued'))
         result['total_matches'] = await session.scalar(select(func.count(Match.id)))
         result['total_odds'] = sum([await session.scalar(select(func.count(model.id))) for model in (Odds1X2, AsianHandicap, AsianTotals)])
         job = await session.scalar(select(ScraperJob).order_by(ScraperJob.id.desc()).limit(1))

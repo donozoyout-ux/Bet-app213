@@ -3,6 +3,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const assert = require('node:assert/strict');
 const markup = fs.readFileSync('src/api/dashboard.html', 'utf8');
+const recorded=JSON.parse(fs.readFileSync('tests/fixtures/dashboard_multi_league.json','utf8'));
 class Element {
   constructor() {this.children=[];this.value='';this.textContent='';this.dataset={};this.classList={toggle(){}};}
   append(node){this.children.push(node);}
@@ -22,7 +23,13 @@ async function scenario(mode) {
       let payload;
       if(path==='/health')payload={status:'ok'};
       else if(path==='/api/status')payload={database:unavailable?'unavailable':'connected',total_matches:0,total_odds:0};
-      else if(path.startsWith('/api/matches?'))payload={items:[],total:0};
+      else if(mode==='multi' && path==='/api/leagues')payload=recorded.leagues;
+      else if(mode==='multi' && path==='/api/bookmakers')payload=['Crown','Bet365','Sbobet'].map(name=>({name}));
+      else if(mode==='multi' && /\/seasons$/.test(path))payload=recorded.seasons[path.split('/')[3]] || [];
+      else if(path.startsWith('/api/matches?')) {
+        const query=new URLSearchParams(path.split('?')[1]);
+        payload=mode==='multi' && query.get('view')==='upcoming' ? (query.get('league') ? recorded.national_page : recorded.page) : {items:[],total:0};
+      }
       else if(path==='/api/scraper/status')payload={status:'idle',jobs:[]};
       else payload=[];
       return {ok:!unavailable,status:unavailable?503:200,json:async()=>payload};
@@ -33,18 +40,36 @@ async function scenario(mode) {
     vm.createContext(sandbox);
     vm.runInContext(fs.readFileSync('src/api/dashboard-odds.js','utf8'),sandbox);
     vm.runInContext(fs.readFileSync('src/api/dashboard.js','utf8'),sandbox);
-    await new Promise(resolve=>setImmediate(resolve));
-    await new Promise(resolve=>setImmediate(resolve));
+    const settle=async()=>{for(let i=0;i<5;i++)await new Promise(resolve=>setImmediate(resolve));};
+    await settle();
     assert.equal(failures.length,0,String(failures[0]));
     assert(calls.includes('/health'));
     assert(calls.includes('/api/status'));
     assert(calls.includes('/api/scraper/status'));
-    if(mode!=='unavailable') {
-      assert(calls.some(path=>path.startsWith('/api/matches?view=all')));
+    if(mode==='multi') {
+      const nav=elements.get('league-nav');
+      assert(nav.children.some(node=>node.textContent==='KULÜP LİGLERİ'));
+      assert(nav.children.some(node=>node.textContent==='MİLLİ TAKIMLAR'));
+      assert.equal(elements.get('league-select').value,'');
+      assert(calls.some(path=>path.includes('view=upcoming') && !path.includes('league=')));
+      assert.equal(elements.get('matches-body').children.length,recorded.page.items.length);
+      const text=elements.get('matches-body').children[0].children.map(td=>td.textContent).join(' ');
+      assert(text.includes(recorded.page.items[0].home_team));
+      const crown=recorded.page.items[0].odds.find(m=>m.bookmaker==='Crown' && m.market==='1x2');
+      assert(text.includes(`${crown.opening.home} → ${crown.latest.home}`));
+      await nav.children.find(node=>node.textContent==='UEFA Nations League').onclick();await settle();
+      assert.equal(elements.get('matches-body').children.length,recorded.national_page.items.length);
+      assert(calls.some(path=>path.includes('league='+recorded.national_page.items[0].league_id)));
+      assert(elements.get('upcoming-window').textContent.includes('en yakın maç günü'));
+      await nav.children.find(node=>node.textContent==='Tüm Ligler').onclick();await settle();
+      assert.equal(elements.get('matches-body').children.length,recorded.page.items.length);
+      assert.equal(elements.get('league-select').value,'');
+    } else if(mode!=='unavailable') {
+      assert(calls.some(path=>path.startsWith('/api/matches?view=upcoming')));
       assert(elements.get('matches-body').children.length===1);
     } else {
       assert.equal(elements.get('total-matches').textContent,'Veri bekleniyor');
     }
   } finally {process.off('unhandledRejection',listener);}
 }
-(async()=>{for(const mode of ['empty','unavailable','missing-controls'])await scenario(mode);console.log('dashboard runtime: 3 scenarios passed');})().catch(error=>{console.error(error);process.exitCode=1;});
+(async()=>{for(const mode of ['empty','unavailable','missing-controls','multi'])await scenario(mode);console.log('dashboard runtime: 4 scenarios passed');})().catch(error=>{console.error(error);process.exitCode=1;});

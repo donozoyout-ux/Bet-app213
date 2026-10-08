@@ -4,6 +4,7 @@ from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from src.config import settings
 from src.models import Base, League, Bookmaker
+from src.migrations import migrate_competitions
 
 log = logging.getLogger(__name__)
 
@@ -32,8 +33,13 @@ class Database:
             if conn.dialect.name == 'postgresql':
                 await conn.execute(text('SELECT pg_advisory_xact_lock(213001)'))
             await conn.run_sync(Base.metadata.create_all)
+            await migrate_competitions(conn)
             if not (await conn.execute(select(League.id).where(League.external_id == 36))).first():
                 await conn.execute(League.__table__.insert().values(external_id=36, name='English Premier League', country='England', source='goaloo'))
+            if conn.dialect.name == 'postgresql':
+                from src.scrapers.goaloo.competitions import verified_snapshot, upsert_competitions
+                async with async_sessionmaker(conn, expire_on_commit=False)() as session:
+                    await upsert_competitions(session, verified_snapshot())
             for external_id, name in [(3, 'Crown'), (8, 'Bet365'), (31, 'Sbobet')]:
                 if not (await conn.execute(select(Bookmaker.id).where(Bookmaker.name == name))).first():
                     await conn.execute(Bookmaker.__table__.insert().values(name=name, external_id=external_id))
