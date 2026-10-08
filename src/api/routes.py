@@ -16,7 +16,8 @@ from src.match_views import LIVE_STATUSES, DISPLAY_TIMEZONE, day_bounds
 from .schemas import LeagueResponse, SeasonResponse, BookmakerResponse, MatchPage, MatchDetail, OddsResponse, JobResponse, JobRequest, StatusResponse, ScraperStatus
 from src.diagnostics import database_summary
 from src.analytics.service import statistics as compute_statistics, revision as prediction_revision
-from .prediction_schemas import PredictionPage, Statistics
+from .prediction_schemas import PredictionPage, Statistics, GlobalPicks
+from src.analytics.recommendations import market_matches
 
 router = APIRouter()
 
@@ -181,7 +182,17 @@ async def matches(league: str | None = None, season: str | None = None,
 
 @router.get('/predictions', response_model=PredictionPage)
 async def predictions(league: str | None = None, date: Date | None = None,
-                      limit: int = Query(default=8, ge=1, le=20), session=Depends(session_dependency)):
+                      limit: int = Query(default=8, ge=1, le=20),
+                      market: Literal['all','result','goals','btts','corners','cards','asian_handicap','double_chance']='all', session=Depends(session_dependency)):
+    calculated,now,evaluated=await calculate_predictions(session,league,date)
+    calculated=[item for item in calculated if market_matches(item['recommendations'],market)]
+    primary = [item for item in calculated if aware(item['match']['kickoff_at']) <= now + timedelta(hours=72)]
+    enough=len(primary)>=min(5,limit)
+    chosen=calculated if date or not enough else primary
+    return {'items':chosen[:limit],'window_hours':72 if enough and not date else 168,'generated_at':now}
+
+
+async def calculate_predictions(session,league,date):
     now = utcnow()
     query, _, _ = match_query()
     query = query.where(League.enabled.is_(True), Match.status == 'scheduled', Match.kickoff_at > now,
@@ -191,16 +202,24 @@ async def predictions(league: str | None = None, date: Date | None = None,
     if date:
         start, end = day_bounds(date, DISPLAY_TIMEZONE)
         query = query.where(Match.kickoff_at >= start, Match.kickoff_at < end)
-    rows = (await session.execute(query.order_by(Match.kickoff_at.asc(), Match.id.asc()).limit(40))).all()
+    rows = (await session.execute(query.order_by(Match.kickoff_at.asc(), Match.id.asc()))).all()
     rev = await prediction_revision(session)
     calculated = []
     for row in rows:
         result = await compute_statistics(session, row[0], match_response(row), now, rev)
-        calculated.append({key: result[key] for key in ('match','prediction','bookmaker_consensus','as_of')})
-    primary = [item for item in calculated if aware(item['match']['kickoff_at']) <= now + timedelta(hours=72)]
-    enough = sum(item['prediction']['status'] == 'ok' for item in primary) >= min(5, limit)
-    chosen = calculated if date or not enough else primary
-    return {'items': chosen[:limit], 'window_hours': 72 if enough and not date else 168, 'generated_at': now}
+        if result['recommendations']:
+            item={key:result[key] for key in ('match','prediction','bookmaker_consensus','as_of','recommendations','strongest_prediction')}
+            item['match_id']=row[0].id;calculated.append(item)
+    return calculated,now,len(rows)
+
+
+@router.get('/predictions/best',response_model=GlobalPicks)
+async def global_predictions(league: str | None=None,date: Date | None=None,limit: int=Query(default=20,ge=1,le=100),
+                             market: Literal['all','result','goals','btts','corners','cards','asian_handicap','double_chance']='all',session=Depends(session_dependency)):
+    matches,now,evaluated=await calculate_predictions(session,league,date)
+    picks=[{'match':item['match'],'recommendation':r,'as_of':item['as_of']} for item in matches for r in item['recommendations'] if market_matches([r],market)]
+    picks.sort(key=lambda item:(-item['recommendation']['score'],-item['recommendation']['reliability'],item['match']['kickoff_at'],item['match']['id'],item['recommendation']['id']))
+    return {'items':picks[:limit],'generated_at':now,'evaluated_matches':evaluated}
 
 
 @router.get('/matches/{match_id}/statistics', response_model=Statistics)

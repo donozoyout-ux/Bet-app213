@@ -66,7 +66,7 @@ def test_dashboard_executes_with_empty_unavailable_and_removed_controls():
     subprocess.run([node, 'tests/dashboard_runtime.cjs'], check=True, capture_output=True, text=True)
 
 
-@pytest.mark.parametrize('scenario',['populated','insufficient','empty','failed','detail-failed','missing','race'])
+@pytest.mark.parametrize('scenario',['populated','insufficient','empty','failed','detail-failed','missing','race','filter','best'])
 def test_predictions_frontend(scenario):
     node=shutil.which('node')
     if not node:pytest.skip('Node.js unavailable; supplied in CI')

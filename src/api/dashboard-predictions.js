@@ -2,7 +2,7 @@
 (() => {
   'use strict';
   const $=id=>document.getElementById(id);
-  const state={generation:0,detailGeneration:0,selected:null,detailData:null,detailLoadedAt:0};
+  const state={generation:0,detailGeneration:0,selected:null,detailData:null,detailLoadedAt:0,market:'all',view:'nearby',league:'',dateFilter:''};
   const pct=value=>value == null ? '—' : `%${(100*value).toFixed(1)}`;
   const num=value=>value == null ? '—' : Number(value).toFixed(2);
   const date=value=>value ? new Date(value).toLocaleString('tr-TR',{timeZone:'Europe/Istanbul'}) : 'Veri hazırlanıyor';
@@ -52,6 +52,7 @@
     const m=data.match,p=data.prediction;
     box.append(node('h3','Maç İstatistikleri','font-headline-md text-headline-md font-bold text-primary'));
     box.append(node('p',`${m.home_team} / ${m.away_team} • ${m.league} • ${m.season} • ${m.round_label || m.round} • ${date(m.kickoff_at)}`));
+    if(data.recommendations?.length){const chosen=node('section','','stats-block');chosen.append(node('h4','Seçilen Güçlü Tahminler','font-bold text-primary'));for(const rec of data.recommendations)line(chosen,rec.label,`${pct(rec.probability)} • ${confidence[rec.confidence]} Güven • skor ${num(rec.score)}`);box.append(chosen);}
     const model=node('section','','stats-block');model.append(node('h4','İstatistiksel Tahmin','font-bold text-primary'));
     if(p.status!=='ok')model.append(node('p','Yetersiz veri','font-bold'));
     else {
@@ -88,7 +89,8 @@
     line(market,'Model / Piyasa Farkı (puan)',difference ? ['home','draw','away'].map(key=>`${difference[key]>=0?'+':''}${(100*difference[key]).toFixed(1)}`).join(' / ') : '—');box.append(market);
     const explanation=node('details','','stats-block');explanation.append(node('summary','Model ve güven kuralları','font-bold'));
     explanation.append(node('p','Poisson gol modeli; venue oranları aynı yarışmanın ortalamalarına ağırlık 5 ile yaklaştırılır. En az 20 yarışma maçı, her takım için 5 ve her venue için 3 maç gerekir. Beklenen Gol ölçülmüş şut bazlı bir metrik değildir.'));
-    explanation.append(node('p','Orta güven: takım 8, venue 5, yarışma 50 maç; son 5/10 gol oranları farkı en fazla 0.5 ve piyasa farkı en fazla 15 puan. Yüksek: takım 10, venue 8, yarışma 100, en az 2 bookmaker ve en fazla 10 puan fark. Milli takımlarda yüksek güven verilmez. Bu düzeyler doğruluk garantisi değildir.'));
+    explanation.append(node('p','Orta güven: takım 8, venue 5, yarışma 50 maç; son 5/10 gol oranları farkı en fazla 0.5 ve piyasa farkı en fazla 15 puan. Yüksek: takım 10, venue 8, yarışma 100, en az 2 bookmaker ve en fazla 10 puan fark. Milli takımlarda yüksek güven verilmez. Güven düzeyi örnek ve tutarlılık kurallarını ifade eder; doğruluk olasılığı değildir.'));
+    explanation.append(node('p','Seçim: olasılık en az %60, veri güvenilirliği en az 0.70, skor en az 0.74; takım 8, venue 5, yarışma 50 ve veri tamlığı %60. Sonuç/çifte şans/handikap aynı gruptadır; gol toplamları ve KG aynı gruptadır. Her gruptan en fazla bir, maç başına en fazla üç tahmin seçilir. Tüm hesaplar API aday listesinde korunur.'));
     explanation.append(node('p','En fazla son 200 yarışma sonucu ve üç yıllık dönemdeki son 2000 kayıt incelenir. Beklenen Gol 0–8 aralığında sınırlandırılır. Ev/deplasman, kaynakta belirtilen takım tarafıdır; gerçek stad veya tarafsız saha bilgisi modellenmez.'));
     if(data.historical)explanation.append(node('p','Geçmiş maçta yalnızca başlama zamanından önce kaydedilmiş sonuçlar kullanılır. Sonradan toplanmış arşiv sonuçları ve fiyatları tahmine katılmaz; bu yüzden örnek yetersiz kalabilir.'));
     box.append(explanation);
@@ -102,18 +104,13 @@
     catch(_){if(generation!==state.detailGeneration)return;if(box){box.replaceChildren();box.append(node('p','Veri hazırlanıyor • Bağlantı bekleniyor'));}}
   }
   function card(item){
-    const m=item.match,p=item.prediction,element=node('article','','prediction-card');
+    const m=item.match,recs=item.recommendations,element=node('article','','prediction-card');
     element.tabIndex=0;element.setAttribute('aria-label',`${m.home_team} / ${m.away_team}, istatistikleri gör`);
     element.append(node('p',`${m.league} • ${date(m.kickoff_at)}`,'text-outline text-body-sm'),node('h2',`${m.home_team} / ${m.away_team}`,'font-headline-md text-headline-md font-bold'));
-    if(p.status!=='ok')element.append(node('p','Yetersiz veri','prediction-main'));
-    else {
-      const choices=[['Ev Sahibi',p.home_probability],['Beraberlik',p.draw_probability],['Deplasman',p.away_probability]].sort((a,b)=>b[1]-a[1]);
-      element.append(node('p',`${choices[0][0]} ${pct(choices[0][1])}`,'prediction-main'));
-      element.append(node('p',`1: ${pct(p.home_probability)} • X: ${pct(p.draw_probability)} • 2: ${pct(p.away_probability)}`));
-      element.append(node('p',`2.5 Üst: ${pct(p.over_25_probability)} • KG Var: ${pct(p.btts_probability)}`));
-      element.append(node('p',`Beklenen Gol: ${num(p.expected_home_goals)} – ${num(p.expected_away_goals)}`));
-    }
-    element.append(node('p',`Güven: ${p.status==='ok'?confidence[p.confidence]:'—'} • Örnek: ${p.sample_size} maç`,'text-outline text-body-sm'));
+    element.append(node('p','En Güçlü Tahmin','font-bold text-primary'));
+    element.append(node('p',`${recs[0].label} ${pct(recs[0].probability)}`,'prediction-main'));
+    element.append(node('p',`${confidence[recs[0].confidence]} Güven • Örnek: ${recs[0].sample_size} maç`,'text-outline text-body-sm'));
+    if(recs.length>1){element.append(node('p','Diğer Güçlü Tahminler','font-bold text-primary'));for(const rec of recs.slice(1,3))element.append(node('p',`${rec.label} ${pct(rec.probability)} • ${confidence[rec.confidence]} Güven`));}
     element.append(node('p',`Veri kesimi: ${date(item.as_of)}`,'text-outline text-body-sm'));
     const open=()=>{if(globalThis.BetAppDashboard?.selectMatch)globalThis.BetAppDashboard.selectMatch(m.id,true);else select(m.id,true);};
     const button=node('button','İstatistikleri Gör','prediction-button');button.type='button';button.onclick=event=>{event.stopPropagation();open();};element.append(button);
@@ -121,10 +118,17 @@
     return element;
   }
   async function refresh(league='',dateFilter=''){
+    state.league=league;state.dateFilter=dateFilter;
     const box=$('prediction-cards');if(!box)return;const generation=++state.generation;
-    const query=new URLSearchParams({limit:'8'});if(league)query.set('league',league);if(dateFilter)query.set('date',dateFilter);
-    try {const page=await api(`/api/predictions?${query}`);if(generation!==state.generation)return;box.replaceChildren();for(const item of page.items)box.append(card(item));if(!page.items.length)box.append(node('p','Veri hazırlanıyor • Yakın tarihte kayıtlı maç yok'));const note=$('prediction-window');if(note)note.textContent=`Önümüzdeki ${page.window_hours===72?'72 saat':'7 gün'} • ${date(page.generated_at)}`;}
+    const query=new URLSearchParams({limit:state.view==='best'?'20':'8',market:state.market});if(league)query.set('league',league);if(dateFilter)query.set('date',dateFilter);
+    try {const page=await api(`/api/predictions${state.view==='best'?'/best':''}?${query}`);if(generation!==state.generation)return;box.replaceChildren();let shown=0;
+      if(state.view==='best'){
+        const list=node('ol','','prediction-global-list');for(const [index,item] of page.items.entries()){const row=node('li');const button=node('button',`${index+1}. ${item.match.home_team} / ${item.match.away_team} — ${item.recommendation.label} ${pct(item.recommendation.probability)} • ${confidence[item.recommendation.confidence]} Güven`,'prediction-global-button');button.type='button';button.onclick=()=>globalThis.BetAppDashboard?.selectMatch ? globalThis.BetAppDashboard.selectMatch(item.match.id,true) : select(item.match.id,true);row.append(button);list.append(row);shown++;}box.append(list);
+      }else{for(const item of page.items){if(item.recommendations?.length){box.append(card(item));shown++;}}}
+      if(!shown)box.append(node('p','Bu filtrede eşikleri geçen tahmin bulunmuyor.'));const note=$('prediction-window');if(note)note.textContent=`${state.view==='best'?'En güçlü seçilmiş tahminler • Önümüzdeki 7 gün':'Önümüzdeki '+(page.window_hours===72?'72 saat':'7 gün')} • ${date(page.generated_at)}`;}
     catch(_){if(generation!==state.generation)return;box.replaceChildren();box.append(node('p','Veri hazırlanıyor • Bağlantı bekleniyor'));}
   }
   globalThis.BetAppPredictions=Object.freeze({refresh,select,clear});
+  document.querySelectorAll('[data-prediction-market]').forEach(button=>button.onclick=()=>{state.market=button.dataset.predictionMarket;document.querySelectorAll('[data-prediction-market]').forEach(other=>other.setAttribute('aria-pressed',String(other===button)));refresh(state.league,state.dateFilter);});
+  const view=$('prediction-view');if(view)view.onchange=()=>{state.view=view.value;refresh(state.league,state.dateFilter);};
 })();
