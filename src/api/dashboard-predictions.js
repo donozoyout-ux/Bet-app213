@@ -19,6 +19,34 @@
     for(const [label,key] of [['Gol yememe','clean_sheet_rate'],['KG Var','btts_rate'],['1.5 Üst','over_15_rate'],['2.5 Üst','over_25_rate'],['3.5 Üst','over_35_rate']])line(box,label,pct(data[key]));
     line(box,'Ortalama toplam gol',num(data.avg_total_goals));parent.append(box);
   }
+  function extraStatistics(box,data){
+    const extra=data.additional_statistics || {};
+    const observed=extra.observed_match_statistics;
+    if(observed){const section=node('section','','stats-block');section.append(node('h4','Kaydedilmiş Maç İstatistikleri','font-bold text-primary'));line(section,'Kayıt zamanı',date(extra.observed_statistics_at));for(const [label,key] of [['Korner','corners'],['İY korner','corners_ht'],['Sarı kart','yellow_cards'],['Kırmızı kart','red_cards'],['Şut','shots'],['İsabetli şut','shots_on_target'],['Faul','fouls'],['Ofsayt','offsides'],['Topla oynama (%)','possession']]){const a=observed['home_'+key],b=observed['away_'+key];if(a!=null || b!=null || key==='red_cards')line(section,label,`${a==null?'—':a} / ${b==null?'—':b}`);}box.append(section);}
+    for(const [metric,title] of [['corners','KORNERLER'],['cards','KARTLAR']]){
+      const section=node('section','','stats-block');section.append(node('h4',title,'font-bold text-primary'));
+      const values=extra[metric];
+      if(!values){section.append(node('p','Yetersiz veri'));box.append(section);continue;}
+      if(metric==='cards')section.append(node('p',values.prediction.basis==='yellow_plus_red'?'Tahmin tanımı: sarı + kırmızı kart, her kayıt 1 kart':'Tahmin tanımı: sarı kart sayısı. Kırmızı kart eksikleri sıfır sayılmaz.'));
+      for(const [side,label] of [['home',data.match.home_team],['away',data.match.away_team]]){
+        const profile=values[side];line(section,label,'');
+        for(const [key,name] of [['last_5','Son 5'],['last_10','Son 10'],['season','Sezon'],[side==='home'?'home_split':'away_split',side==='home'?'Ev sahibi tarafı':'Deplasman tarafı']]){
+          const summary=profile[key];
+          line(section,name,summary.status==='insufficient_data'?'Yetersiz veri':`${num(summary.for_avg)} / ${num(summary.against_avg)} • ${summary.for_sample_size}/${summary.against_sample_size} bilinen maç`);
+        }
+        const recent=profile.last_10;
+        line(section,metric==='corners'?'Toplam korner ortalaması':recent.rate_basis==='yellow_plus_red'?'Toplam sarı + kırmızı ortalaması':'Toplam sarı kart ortalaması',`${num(recent.total_avg)} • ${recent.sample_size} tam kayıt`);
+        if(metric==='cards'){line(section,'Sarı kart ort. (takım / rakip)',`${num(recent.yellow_cards_for_avg)} / ${num(recent.yellow_cards_against_avg)} • ${recent.yellow_for_sample_size}/${recent.yellow_against_sample_size} bilinen maç`);line(section,'Kırmızı kart ortalaması',`${num(recent.red_cards_for_avg)} • ${recent.red_sample_size} bilinen maç`);line(section,'Sarı + kırmızı toplamı',`${num(recent.total_match_cards_avg)} • ${recent.all_card_sample_size} tam kayıt`);}
+        for(const [threshold,rate] of Object.entries(recent.over_rates || {}))line(section,threshold.replace('over_','').replace('_','.')+' Üst (gözlenen)',pct(rate));
+      }
+      const p=values.prediction;
+      if(p.status!=='ok')section.append(node('p','Yetersiz veri • Tahmin için yarışma 20, her takım 5, her ilgili venue 3 tam kayıt gerekir.'));
+      else {line(section,metric==='corners'?'Beklenen korner (ev / dep / toplam)':'Beklenen kart (ev / dep / toplam)',`${num(p.expected_home)} / ${num(p.expected_away)} / ${num(p.expected_total)}`);for(const [threshold,probability] of Object.entries(p.over_probabilities))line(section,threshold+' Üst (model)',pct(probability));}
+      line(section,'Model örneği / yarışma örneği',`${p.sample_size} / ${p.league_sample_size}`);box.append(section);
+    }
+    if(extra.referee){const ref=extra.referee,section=node('section','','stats-block');section.append(node('h4','HAKEM','font-bold text-primary'));line(section,'Ad',ref.name);line(section,'Bilinen maç',String(ref.matches_officiated));if(ref.status!=='ok')section.append(node('p','Yetersiz hakem verisi'));for(const [label,key] of [['Sarı kart / maç','average_total_yellow_cards'],['Kırmızı kart / maç','average_total_red_cards'],['Faul / maç','average_total_fouls']])line(section,label,num(ref[key]));box.append(section);}
+    if(extra.events?.length){const section=node('details','','stats-block');section.append(node('summary','Kaydedilmiş Maç Olayları','font-bold'));const labels={goal:'Gol',yellow_card:'Sarı kart',red_card:'Kırmızı kart',second_yellow_red:'İkinci sarı / kırmızı',corner:'Korner',penalty:'Penaltı',own_goal:'Kendi kalesine gol',substitution:'Değişiklik',var:'VAR',unknown:'Kaynak olayı'};for(const event of extra.events){const minute=event.minute==null?'—':event.minute+(event.stoppage_minute==null?'':'+'+event.stoppage_minute);section.append(node('p',`${minute} • ${event.team_side==='home'?data.match.home_team:data.match.away_team} • ${labels[event.event_type] || event.event_type}${event.player_name?' • '+event.player_name:''}${event.secondary_player_name?' / '+event.secondary_player_name:''}`));}box.append(section);}
+  }
   function renderStatistics(data){
     const box=$('statistics-detail');if(!box)return;box.replaceChildren();box.hidden=false;
     const m=data.match,p=data.prediction;
@@ -44,6 +72,7 @@
     for(const match of data.h2h)h2h.append(node('p',`${date(match.date)} • ${match.home} ${match.home_goals}–${match.away_goals} ${match.away}`));
     if(data.h2h.length)line(h2h,`${m.home_team} G / B / M`,`${data.h2h_summary.wins} / ${data.h2h_summary.draws} / ${data.h2h_summary.losses}`);
     box.append(h2h);
+    extraStatistics(box,data);
     const market=node('section','','stats-block');market.append(node('h4','1X2 • Model / Piyasa Karşılaştırması','font-bold text-primary'));
     for(const name of ['Crown','Bet365','Sbobet']){
       const book=data.bookmakers.find(item=>item.bookmaker===name);const block=node('div','','stats-book');block.append(node('h5',name,'font-bold'));

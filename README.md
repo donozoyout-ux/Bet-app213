@@ -243,7 +243,7 @@ Endpoints:
 
 Selection is chronological. Predictions prefer the next 72 hours; if fewer than five sufficiently sampled matches are available (or fewer than the requested limit), the candidate window expands to seven days. Explicit dates intersect that seven-day window. No monthly far-future fallback applies to prediction cards. Insufficient matches retain real match metadata with status `insufficient_data`, null probabilities and the UI label Yetersiz veri. Empty/unavailable APIs show Veri hazırlanıyor.
 
-The model uses only observed, completed, scored results from the SAME competition. At most 2000 recent results within three years are examined; the latest 200 define competition home/away averages. Team form uses last 5/10 matches; venue profiles use the last 10 occurrences on the corresponding home/away side. H2H is descriptive and optional. No club results or club baselines enter a national competition's calculation. Venue means the provider's nominal side; stadium, neutral venue, possession, shots, measured xG, first-scorer events and corners are not available or inferred.
+The model uses only observed, completed, scored results from the SAME competition. At most 2000 recent results within three years are examined; the latest 200 define competition home/away averages. Team form uses last 5/10 matches; venue profiles use the last 10 occurrences on the corresponding home/away side. H2H is descriptive and optional. No club results or club baselines enter a national competition's calculation. Venue means the provider's nominal side. The goal model does not use stadium, neutral-venue or event-level features. Ancillary statistics may be collected separately; measured xG and first-scorer features are not inferred.
 
 Minimums are 20 competition results, 5 results per team and 3 per relevant venue. Venue scoring/conceding rates are regularized with baseline weight 5. Home expected goals = regularized home scoring × regularized away conceding / competition home average; away is analogous. A zero scoring baseline returns insufficient data rather than a 100%/0% estimate. Expected goals are bounded to 0–8 for numerical stability. Independent Poisson score probabilities yield 1X2, over/under 2.5 and BTTS. These are model estimates labelled Beklenen Gol, not measured shot-based statistics or ML predictions.
 
@@ -256,3 +256,16 @@ The cutoff is `min(now, kickoff)`. A prior result needs finished status, known f
 A bounded process-local cache holds 128 statistics entries for ten minutes. Database count/MAX revisions detect normal external updates; SQLAlchemy after-commit invalidation handles every local committed mutation, including corrections below the global maximum timestamp. No Redis or new runtime dependency is introduced. Cards refresh at most every ten minutes and on league/date/manual changes. Fixtures from real stored EPL responses cover frontend populated, insufficient, failure, missing-element, click and stale-response cases.
 
 No production scraping, queue launch or deployment is part of the prediction feature validation. The existing serialized multi-competition backfill architecture is retained. Production currently has only EPL; new competitions need enough observed history before numerical estimates appear.
+
+## Corners, cards and match events
+
+See [live source findings and field mappings](docs/goaloo-match-statistics.md). The collector persists nullable real FT/HT statistics and incidents, preserving explicit zero while leaving absent fields NULL. All six inspected competitions exposed requested match statistics; none exposed a confirmed referee identity. Referee sections remain hidden without a real stored assignment.
+
+The detail API/UI now includes corner/card last-5/10, season and venue summaries with usable denominators, expected corner/card counts and Poisson over probabilities when minimum samples are met. Combined cards mean published yellow + red counts; both sides need all four fields. Missing red totals are not treated as zero. Referee tendencies require ten real observations per metric and are not used in predictions.
+
+```sh
+python -m src.jobs.stats_backfill --league 36 --enqueue-only
+python -m src.jobs.stats_backfill --league 36 --resume JOB_ID
+```
+
+The authenticated POST `/api/scraper/stats-backfill` queues a competition; POST `/api/scraper/statistics/{match_id}` refreshes one stored completed match. Existing durable progress/locking/resume behavior applies. Startup does not enqueue statistics backfills. Normal odds updates also collect available live/finished statistics without failing the odds job on absent statistics. No new external dependency is required.

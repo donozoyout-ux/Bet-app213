@@ -1,7 +1,7 @@
 """One durable worker per database, enforced using a PostgreSQL advisory lock."""
 import asyncio
 import logging
-from datetime import timedelta, timezone
+from datetime import datetime, timedelta, timezone
 from sqlalchemy import select, text, func, delete, case
 from src.config import settings
 from src.match_views import LIVE_STATUSES
@@ -14,6 +14,9 @@ from src.scrapers.goaloo.matches import parse_matches
 from src.scrapers.goaloo.details import fetch_match_details
 from src.scrapers.goaloo.odds import fetch_odds, complete_odds, fetch_history
 from .storage import store_match, store_odds, store_history, get_or_create
+from .storage import store_statistics
+from src.models import MatchStatistics
+from src.scrapers.goaloo.statistics import fetch_statistics
 
 log = logging.getLogger('scraper')
 LOCK_ID = 213002
@@ -140,6 +143,17 @@ async def discover(job_id, client):
         competition_type, schedule_format = league.competition_type, league.schedule_format
         if job.discovery_complete:
             return
+        if kind == 'stats_backfill':
+            query=select(Match).where(Match.league_id==league_id, Match.status=='finished')
+            if job.match_id:query=query.where(Match.id==job.match_id)
+            else:query=query.where(Match.kickoff_at >= datetime(start_year,1,1,tzinfo=timezone.utc), ~select(MatchStatistics.match_id).where(MatchStatistics.match_id==Match.id).exists())
+            for match in (await session.scalars(query.order_by(Match.kickoff_at,Match.id))).all():
+                await get_or_create(session,JobItem,{'job_id':job.id,'match_id':match.id})
+            await session.flush()
+            job.total_matches=await session.scalar(select(func.count(JobItem.id)).where(JobItem.job_id==job.id))
+            job.discovery_complete=True
+            await session.commit()
+            return
         if kind == 'match':
             match = await session.get(Match, job.match_id)
             season = await session.get(Season, match.season_id)
@@ -243,13 +257,25 @@ async def process_item(job_id, item_id, client):
             item.status = 'running'
             await session.commit()
             log.info('[MATCH] match_id=%s season=%s round=%s', external_id, season.season_name, match.round)
-            odds = await fetch_odds(client, external_id, final)
-            await store_odds(session, match, odds, final)
-            if settings.save_snapshots:
+            league=await session.get(League,match.league_id)
+            if job.kind=='stats_backfill':
+                data=await fetch_statistics(client,external_id,league.external_id)
+                await store_statistics(session,match,data)
+                ok=True  # Valid unavailable statistics are persisted, never fabricated.
+            else:
+                odds = await fetch_odds(client, external_id, final)
+                await store_odds(session, match, odds, final)
+                ok = complete_odds(odds, final)
+                if match.status=='finished' or match.status in LIVE_STATUSES:
+                    try:
+                        data=await fetch_statistics(client,external_id,league.external_id)
+                        await store_statistics(session,match,data)
+                    except SourceError:
+                        log.warning('[STATISTICS] source unavailable match_id=%s; odds retained',external_id)
+            if settings.save_snapshots and job.kind!='stats_backfill':
                 for bookmaker in (await session.scalars(select(Bookmaker))).all():
                     history = await fetch_history(client, external_id, bookmaker.external_id)
                     await store_history(session, match.id, bookmaker.id, history)
-            ok = complete_odds(odds, final)
             item.status = 'completed' if ok else 'failed'
             item.error = None if ok else f'Incomplete bookmaker markets match_id={external_id}'
             await session.flush()

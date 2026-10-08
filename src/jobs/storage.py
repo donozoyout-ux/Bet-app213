@@ -1,6 +1,9 @@
 import logging
+import hashlib
 from sqlalchemy import select
 from src.models import Team, Season, Match, Bookmaker, Odds1X2, AsianHandicap, AsianTotals, OddsSnapshot, utcnow
+from src.models import MatchStatistics, MatchEvent, Referee
+from sqlalchemy import delete
 from src.scrapers.goaloo.odds import complete_odds
 
 log = logging.getLogger('scraper')
@@ -49,3 +52,36 @@ async def store_history(session, match_id, bookmaker_id, history):
     for market, timestamp, raw in history:
         await get_or_create(session, OddsSnapshot,
             {'match_id': match_id, 'bookmaker_id': bookmaker_id, 'market': market, 'source_timestamp': timestamp}, {'raw': raw})
+
+
+async def store_statistics(session,match,data):
+    from src.scrapers.goaloo.statistics import STAT_FIELDS
+    if data['raw'].get('match_id')!=match.external_match_id:
+        raise ValueError('Statistics snapshot does not match stored fixture')
+    row=await session.get(MatchStatistics,match.id)
+    if row is None:
+        row=MatchStatistics(match_id=match.id);session.add(row)
+    for key in STAT_FIELDS:setattr(row,key,data['statistics'].get(key))
+    row.raw,row.is_final,row.collection_status,row.updated_at=data['raw'],data['is_final'],data['collection_status'],utcnow()
+    referee=data.get('referee')
+    if referee and referee.get('name'):
+        # Anonymous same-name referees are kept within a competition, not guessed
+        # to be the same person across leagues. The current parser emits none.
+        identity=referee.get('external_id') or f"{match.league_id}:{referee['name'].strip().casefold()}"
+        key=hashlib.sha256(('goaloo:'+str(identity)).encode()).hexdigest()
+        ref=await get_or_create(session,Referee,{'source_key':key},{'name':referee['name'],'external_id':str(referee['external_id']) if referee.get('external_id') is not None else None})
+        match.referee_id,match.referee_observed_at=ref.id,utcnow()
+    if data['events_available']:
+        existing={event.source_key:event for event in (await session.scalars(select(MatchEvent).where(MatchEvent.match_id==match.id))).all()}
+        keys=[]
+        for item in data['events']:
+            keys.append(item['source_key']);event=existing.get(item['source_key'])
+            if event is None:event=MatchEvent(match_id=match.id,**item);session.add(event)
+            else:
+                for key,value in item.items():setattr(event,key,value)
+            event.updated_at=utcnow()
+        query=delete(MatchEvent).where(MatchEvent.match_id==match.id)
+        if keys:query=query.where(MatchEvent.source_key.not_in(keys))
+        await session.execute(query)
+    await session.flush()
+    return row

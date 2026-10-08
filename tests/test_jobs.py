@@ -16,6 +16,10 @@ async def install_source(monkeypatch,db):
     monkeypatch.setattr(worker,'discover_seasons',seasons)
     monkeypatch.setattr(worker,'season_data',data)
     monkeypatch.setattr(worker,'fetch_odds',odds)
+    async def no_stats(*args):
+        from src.scrapers.goaloo.client import SourceError
+        raise SourceError('Statistics not included in the odds-only fixture')
+    monkeypatch.setattr(worker,'fetch_statistics',no_stats)
     return worker
 
 

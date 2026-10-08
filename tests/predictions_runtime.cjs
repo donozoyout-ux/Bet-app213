@@ -52,7 +52,8 @@ async function scenario(mode){
   const box=ids.get('statistics-detail');
   if(mode==='detail-failed'){assert(box.text().includes('Bağlantı bekleniyor'));return;}
   assert(!box.hidden && box.scrolled);
-  for(const word of ['Maç İstatistikleri','Son 5','Son 10','H2H','Crown','Bet365','Sbobet','Model / Piyasa'])assert(box.text().includes(word));
+  for(const word of ['Maç İstatistikleri','Son 5','Son 10','H2H','Crown','Bet365','Sbobet','Model / Piyasa','KORNERLER','KARTLAR'])assert(box.text().includes(word));
+  assert(!box.text().includes('HAKEM'));
   assert(box.text().includes(recorded.statistics.match.home_team));
   const requests=calls.filter(path=>path.includes('/statistics')).length;
   await api.select(firstId);

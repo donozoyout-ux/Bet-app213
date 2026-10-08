@@ -25,6 +25,21 @@ class Prediction(BaseModel):
     model_version: str
     confidence_rules: dict
     model_market_difference: dict[str,float] | None = None
+    corners_status: str = 'insufficient_data'
+    cards_status: str = 'insufficient_data'
+    card_basis: str = 'yellow_plus_red'
+    expected_home_corners: float | None = None
+    expected_away_corners: float | None = None
+    expected_total_corners: float | None = None
+    expected_home_cards: float | None = None
+    expected_away_cards: float | None = None
+    expected_total_cards: float | None = None
+    over_8_5_corners_probability: float | None = None
+    over_9_5_corners_probability: float | None = None
+    over_10_5_corners_probability: float | None = None
+    over_3_5_cards_probability: float | None = None
+    over_4_5_cards_probability: float | None = None
+    over_5_5_cards_probability: float | None = None
 
 
 class FormMatch(BaseModel):
@@ -88,6 +103,7 @@ class Statistics(BaseModel):
     historical: bool
     cache_seconds: int
     methodology: str
+    additional_statistics: dict = Field(default_factory=dict)
 
 
 class PredictionCard(BaseModel):

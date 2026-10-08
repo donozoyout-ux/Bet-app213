@@ -9,7 +9,7 @@ from sqlalchemy import select, func, or_, text
 from sqlalchemy.orm import aliased
 from src.config import settings
 from src.db import database
-from src.models import League, Season, Team, Match, Bookmaker, Odds1X2, AsianHandicap, AsianTotals, ScraperJob
+from src.models import League, Season, Team, Match, Bookmaker, Odds1X2, AsianHandicap, AsianTotals, ScraperJob, MatchStatistics
 from src.jobs.worker import enqueue, aware, enqueue_all_updates
 from src.models import utcnow
 from src.match_views import LIVE_STATUSES, DISPLAY_TIMEZONE, day_bounds
@@ -68,6 +68,8 @@ async def status():
         total = await session.scalar(select(func.count(Match.id)))
         odds_total = sum([await session.scalar(select(func.count(model.id))) for model in [Odds1X2, AsianHandicap, AsianTotals]])
         last = await session.scalar(select(func.max(Match.last_scraped_at)))
+        stats_last=await session.scalar(select(func.max(MatchStatistics.updated_at)))
+        last=max((aware(value) for value in [last,stats_last] if value is not None),default=None)
     return StatusResponse(database='connected', database_engine=database.engine.dialect.name, total_matches=total, total_odds=odds_total, last_scraped_at=aware(last), app_env=settings.app_env)
 
 
@@ -282,6 +284,19 @@ async def daily_update_all(session=Depends(session_dependency)):
     jobs = await enqueue_all_updates()
     names = dict((await session.execute(select(League.id, League.name))).all())
     return [job_response(job, names.get(job.league_id)) for job in jobs]
+
+
+@router.post('/scraper/stats-backfill', response_model=JobResponse, status_code=202, dependencies=[Depends(require_scraper_token)])
+async def statistics_backfill(request: JobRequest, session=Depends(session_dependency)):
+    return await submit('stats_backfill',request,session)
+
+
+@router.post('/scraper/statistics/{match_id}', response_model=JobResponse, status_code=202, dependencies=[Depends(require_scraper_token)])
+async def statistics_single(match_id: int, session=Depends(session_dependency)):
+    match=await session.get(Match,match_id)
+    if not match or match.status!='finished':raise HTTPException(404,'Stored completed match not found')
+    league=await session.get(League,match.league_id)
+    return await submit('stats_backfill',JobRequest(league_id=league.external_id),session,match_id)
 
 
 @router.post('/scraper/match/{match_id}', response_model=JobResponse, status_code=202, dependencies=[Depends(require_scraper_token)])
