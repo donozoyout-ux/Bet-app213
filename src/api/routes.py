@@ -29,11 +29,12 @@ async def diagnostics():
               'auto_backfill_enabled': settings.auto_backfill_on_empty,
               'latest_job_status': None, 'total_matches': None, 'total_odds': None,
               'enabled_competitions': None, 'completed_competitions': None,
-              'active_backfill_competition': None, 'queued_backfills': None}
+              'active_backfill_competition': None, 'queued_backfills': None,'enabled_leagues':[],'match_counts_by_league':[],'stats_rows':None,'matches_with_corners':None,'matches_with_cards':None,'matches_with_referee':None,'active_backfill':None}
     if database.configured and database.ready:
         try:
             summary = await asyncio.wait_for(database_summary(database), timeout=5)
             result.update({key: summary[key] for key in ('latest_job_status', 'total_matches', 'total_odds', 'enabled_competitions', 'completed_competitions', 'active_backfill_competition', 'queued_backfills')})
+            result.update({key:summary[key] for key in ('enabled_leagues','match_counts_by_league','stats_rows','matches_with_corners','matches_with_cards','matches_with_referee','active_backfill')})
             result['database_connected'] = True
         except Exception:
             logging.getLogger(__name__).exception('[DB] diagnostics unavailable')
@@ -81,7 +82,7 @@ async def leagues(session=Depends(session_dependency)):
 
 @router.get('/leagues/{league_id}/seasons', response_model=list[SeasonResponse])
 async def seasons(league_id: int, session=Depends(session_dependency)):
-    if not await session.get(League, league_id):
+    if not await session.scalar(select(League.id).where(League.id==league_id,League.enabled.is_(True))):
         raise HTTPException(404, 'League not found (use the internal ID from /api/leagues)')
     rows = (await session.scalars(select(Season).where(Season.league_id == league_id).order_by(Season.season_name.desc()))).all()
     rounds = (await session.execute(select(Match.season_id, Match.round, Match.round_label).where(Match.league_id == league_id).distinct())).all()
@@ -186,18 +187,21 @@ async def matches(league: str | None = None, season: str | None = None,
 @router.get('/predictions', response_model=PredictionPage)
 async def predictions(league: str | None = None, date: Date | None = None,
                       limit: int = Query(default=8, ge=1, le=20),
+                      confidence: Literal['high','medium','low'] | None=None, min_probability: float=Query(default=0,ge=0,le=1),
                       market: Literal['all','result','goals','btts','corners','cards','asian_handicap','double_chance']='all', session=Depends(session_dependency)):
     calculated,now,evaluated=await calculate_predictions(session,league,date)
-    calculated=[item for item in calculated if market_matches(item['recommendations'],market)]
+    calculated=[{**item,'recommendations':[r for r in item['recommendations'] if market_matches([r],market) and (not confidence or r['confidence']==confidence) and r['probability']>=min_probability]} for item in calculated]
+    calculated=[item for item in calculated if item['recommendations']]
+    for item in calculated:item['strongest_prediction']=item['recommendations'][0]['id']
     primary = [item for item in calculated if aware(item['match']['kickoff_at']) <= now + timedelta(hours=72)]
     enough=len(primary)>=min(5,limit)
     chosen=calculated if date or not enough else primary
     return {'items':chosen[:limit],'window_hours':72 if enough and not date else 168,'generated_at':now}
 
 
-async def calculate_predictions(session,league,date):
+async def calculate_predictions(session,league,date,team=None):
     now = utcnow()
-    query, _, _ = match_query()
+    query, home, away = match_query()
     query = query.where(League.enabled.is_(True), Match.status == 'scheduled', Match.kickoff_at > now,
                         Match.kickoff_at <= now + timedelta(days=7))
     if league:
@@ -205,23 +209,29 @@ async def calculate_predictions(session,league,date):
     if date:
         start, end = day_bounds(date, DISPLAY_TIMEZONE)
         query = query.where(Match.kickoff_at >= start, Match.kickoff_at < end)
+    if team:query=query.where(or_(home.name.ilike('%'+team+'%'),away.name.ilike('%'+team+'%')))
     rows = (await session.execute(query.order_by(Match.kickoff_at.asc(), Match.id.asc()))).all()
     rev = await prediction_revision(session)
-    calculated = []
+    calculated = [];captured=False
     for row in rows:
         result = await compute_statistics(session, row[0], match_response(row), now, rev)
         if result['recommendations']:
             item={key:result[key] for key in ('match','prediction','bookmaker_consensus','as_of','recommendations','strongest_prediction')}
             item['match_id']=row[0].id;calculated.append(item)
+            from src.analytics.performance import capture
+            captured=await capture(session,row[0],result['recommendations'],now) or captured
+    if captured:await session.commit()
     return calculated,now,len(rows)
 
 
 @router.get('/predictions/best',response_model=GlobalPicks)
-async def global_predictions(league: str | None=None,date: Date | None=None,limit: int=Query(default=20,ge=1,le=100),offset: int=Query(default=0,ge=0),
-                             market: Literal['all','result','goals','btts','corners','cards','asian_handicap','double_chance']='all',session=Depends(session_dependency)):
-    matches,now,evaluated=await calculate_predictions(session,league,date)
-    picks=[{'match':item['match'],'recommendation':r,'as_of':item['as_of']} for item in matches for r in item['recommendations'] if market_matches([r],market)]
+async def global_predictions(league: str | None=None,date: Date | None=None,team: str | None=None,sort: Literal['ranking','kickoff','probability']='ranking',limit: int=Query(default=20,ge=1,le=100),offset: int=Query(default=0,ge=0),
+                             market: Literal['all','result','goals','btts','corners','cards','asian_handicap','double_chance']='all',confidence: Literal['high','medium','low'] | None=None,min_probability: float=Query(default=0,ge=0,le=1),session=Depends(session_dependency)):
+    matches,now,evaluated=await calculate_predictions(session,league,date,team)
+    picks=[{'match':item['match'],'recommendation':r,'as_of':item['as_of']} for item in matches for r in item['recommendations'] if market_matches([r],market) and (not confidence or r['confidence']==confidence) and r['probability']>=min_probability]
     picks.sort(key=lambda item:(-item['recommendation']['score'],-item['recommendation']['reliability'],item['match']['kickoff_at'],item['match']['id'],item['recommendation']['id']))
+    if sort=='kickoff':picks.sort(key=lambda item:(item['match']['kickoff_at'],item['match']['id']))
+    elif sort=='probability':picks.sort(key=lambda item:-item['recommendation']['probability'])
     return {'items':picks[offset:offset+limit],'generated_at':now,'evaluated_matches':evaluated}
 
 
@@ -254,7 +264,7 @@ async def odds_data_bulk(session, match_ids):
 @router.get('/matches/{match_id}', response_model=MatchDetail)
 async def match_detail(match_id: int, session=Depends(session_dependency)):
     query, _, _ = match_query()
-    row = (await session.execute(query.where(Match.id == match_id))).first()
+    row = (await session.execute(query.where(Match.id == match_id,League.enabled.is_(True)))).first()
     if not row:
         raise HTTPException(404, 'Match not found (use the internal ID from /api/matches)')
     return {**match_response(row), 'odds': await odds_data(session, match_id), 'raw': row[0].raw}
@@ -262,21 +272,21 @@ async def match_detail(match_id: int, session=Depends(session_dependency)):
 
 @router.get('/matches/{match_id}/odds', response_model=list[OddsResponse])
 async def match_odds(match_id: int, session=Depends(session_dependency)):
-    if not await session.get(Match, match_id):
+    if not await session.scalar(select(Match.id).join(League).where(Match.id==match_id,League.enabled.is_(True))):
         raise HTTPException(404, 'Match not found')
     return await odds_data(session, match_id)
 
 
 @router.get('/scraper/status', response_model=ScraperStatus)
 async def scraper_status(session=Depends(session_dependency)):
-    rows = (await session.execute(select(ScraperJob, League.name).join(League).order_by(ScraperJob.id.desc()).limit(10))).all()
+    rows = (await session.execute(select(ScraperJob, League.name).join(League).where(League.enabled.is_(True)).order_by(ScraperJob.id.desc()).limit(10))).all()
     return {'status': 'running' if any(j.status in {'queued', 'running'} for j, _ in rows) else 'idle',
             'jobs': [job_response(j, name) for j, name in rows]}
 
 
 @router.get('/scraper/jobs/{job_id}', response_model=JobResponse)
 async def job_detail(job_id: int, session=Depends(session_dependency)):
-    row = (await session.execute(select(ScraperJob, League.name).join(League).where(ScraperJob.id == job_id))).first()
+    row = (await session.execute(select(ScraperJob, League.name).join(League).where(ScraperJob.id == job_id,League.enabled.is_(True)))).first()
     if not row:
         raise HTTPException(404, 'Scraper job not found')
     return job_response(*row)
@@ -328,3 +338,18 @@ async def scrape_match(match_id: int, session=Depends(session_dependency)):
         raise HTTPException(404, 'Match not found')
     league = await session.get(League, match.league_id)
     return await submit('match', JobRequest(league_id=league.external_id), session, match_id)
+
+
+@router.get('/market-performance')
+async def market_performance(league: str | None=None,market: Literal['all','result','goals','btts','corners','cards','asian_handicap','double_chance']='all',exact_market: str | None=None,date_from: Date | None=None,date_to: Date | None=None,confidence: Literal['high','medium','low'] | None=None,limit: int=Query(default=50,ge=1,le=100),offset: int=Query(default=0,ge=0),session=Depends(session_dependency)):
+    if date_from and date_to and date_from>date_to:raise HTTPException(400,'Invalid date range')
+    from src.analytics.performance import performance
+    start=day_bounds(date_from,DISPLAY_TIMEZONE)[0] if date_from else None
+    end=day_bounds(date_to,DISPLAY_TIMEZONE)[1] if date_to else None
+    return await performance(session,league,start,end,market,exact_market,confidence,limit,offset)
+
+
+@router.post('/scraper/stats-backfill-enabled',response_model=list[JobResponse],dependencies=[Depends(require_scraper_token),Depends(session_dependency)])
+async def stats_rollout():
+    from src.jobs.worker import enqueue_stats_rollout
+    return [job_response(job) for job in await enqueue_stats_rollout()]

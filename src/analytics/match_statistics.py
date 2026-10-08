@@ -25,7 +25,7 @@ def summary(rows,team_id,metric,card_basis='yellow_plus_red'):
         values=[stats.home_yellow_cards,stats.away_yellow_cards,stats.home_red_cards,stats.away_red_cards]
         if all(value is not None for value in values):all_cards.append(sum(values))
     avg=lambda values:sum(values)/len(values) if values else None
-    thresholds=[7.5,8.5,9.5,10.5,11.5] if metric=='corners' else [2.5,3.5,4.5,5.5]
+    thresholds=[7.5,8.5,9.5,10.5,11.5] if metric=='corners' else [2.5,3.5,4.5,5.5,6.5]
     totals=all_cards if metric=='cards' and card_basis=='yellow_plus_red' else paired
     own_values=combined_own if metric=='cards' and card_basis=='yellow_plus_red' else own
     opponent_values=combined_opponent if metric=='cards' and card_basis=='yellow_plus_red' else opponent
@@ -73,7 +73,7 @@ def count_prediction(rows,home_id,away_id,metric,card_basis='yellow_plus_red'):
     expected_away=shrink(sum(v[1] for m,s,v in aws),len(aws),ba)*shrink(sum(v[1] for m,s,v in hs),len(hs),ba)/ba
     # Bounds ensure stable computation for corrupted/extreme input, not synthetic data.
     expected_home,expected_away=min(30,expected_home),min(30,expected_away)
-    total=expected_home+expected_away;thresholds=[8.5,9.5,10.5] if metric=='corners' else [3.5,4.5,5.5]
+    total=expected_home+expected_away;thresholds=[7.5,8.5,9.5,10.5,11.5] if metric=='corners' else [2.5,3.5,4.5,5.5,6.5]
     result.update(status='ok',expected_home=expected_home,expected_away=expected_away,expected_total=total,
                   over_probabilities={str(t):poisson_over(total,t) for t in thresholds})
     return result

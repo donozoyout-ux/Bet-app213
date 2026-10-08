@@ -39,7 +39,12 @@ class Database:
             if conn.dialect.name == 'postgresql':
                 from src.scrapers.goaloo.competitions import verified_snapshot, upsert_competitions
                 async with async_sessionmaker(conn, expire_on_commit=False)() as session:
-                    await upsert_competitions(session, verified_snapshot())
+                    records=verified_snapshot()
+                    if settings.app_env == 'production':
+                        from src.scrapers.goaloo.competitions import PRODUCTION_LEAGUE_IDS, apply_production_scope
+                        records=[r for r in records if r['external_id'] in PRODUCTION_LEAGUE_IDS]
+                    await upsert_competitions(session, records)
+                    if settings.app_env == 'production':await apply_production_scope(session)
             for external_id, name in [(3, 'Crown'), (8, 'Bet365'), (31, 'Sbobet')]:
                 if not (await conn.execute(select(Bookmaker.id).where(Bookmaker.name == name))).first():
                     await conn.execute(Bookmaker.__table__.insert().values(name=name, external_id=external_id))

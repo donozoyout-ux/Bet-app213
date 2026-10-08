@@ -80,7 +80,7 @@ def build_candidates(result,market_support=None):
         add('btts','yes','KG Var',p['btts_probability'],'goal_environment',evidence)
         add('btts','no','KG Yok',p['no_btts_probability'],'goal_environment',evidence)
         for candidate in result.get('asian_handicap_candidates',[]):add('asian_handicap',candidate['selection'],candidate['label'],candidate['probability'],'outcome',evidence)
-    for metric,label,lines in [('corners','Korner',['8_5','9_5','10_5']),('cards','Kart',['3_5','4_5','5_5'])]:
+    for metric,label,lines in [('corners','Korner',['7_5','8_5','9_5','10_5','11_5']),('cards','Kart',['2_5','3_5','4_5','5_5','6_5'])]:
         values=extra.get(metric);cp=values.get('prediction') if values else None
         if not cp or cp['status']!='ok':continue
         ratios=[];stabilities=[];seasons=[]
