@@ -166,7 +166,7 @@
     clearTimeout(jobTimer);
     try {
       const status=await api('/api/scraper/status');
-      state.job=status.jobs.find(job=>['queued','running'].includes(job.status)) || status.jobs[0] || null;
+      state.job=status.jobs.find(job=>job.status==='running') || status.jobs.find(job=>job.status==='queued') || status.jobs[0] || null;
       const job=state.job;let message='Veri bekleniyor';
       if(job) {
         const count=`${job.processed_matches+job.failed_matches} / ${job.total_matches} maç işlendi`;
