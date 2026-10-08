@@ -2,7 +2,7 @@
 import asyncio
 import logging
 from datetime import datetime, timedelta, timezone
-from sqlalchemy import select, text, func, delete, case
+from sqlalchemy import select, text, func, delete, case, or_
 from src.config import settings
 from src.match_views import LIVE_STATUSES
 from src.db import database
@@ -144,9 +144,9 @@ async def discover(job_id, client):
         if job.discovery_complete:
             return
         if kind == 'stats_backfill':
-            query=select(Match).where(Match.league_id==league_id, Match.status=='finished')
+            query=select(Match).where(Match.league_id==league_id)
             if job.match_id:query=query.where(Match.id==job.match_id)
-            else:query=query.where(Match.kickoff_at >= datetime(start_year,1,1,tzinfo=timezone.utc), ~select(MatchStatistics.match_id).where(MatchStatistics.match_id==Match.id).exists())
+            else:query=query.where(Match.status=='finished',Match.kickoff_at >= datetime(start_year,1,1,tzinfo=timezone.utc), ~select(MatchStatistics.match_id).where(MatchStatistics.match_id==Match.id, or_(MatchStatistics.updated_at > utcnow()-timedelta(days=7), (MatchStatistics.is_final.is_(True) & MatchStatistics.home_corners.is_not(None) & MatchStatistics.away_corners.is_not(None) & MatchStatistics.home_yellow_cards.is_not(None) & MatchStatistics.away_yellow_cards.is_not(None) & MatchStatistics.home_red_cards.is_not(None) & MatchStatistics.away_red_cards.is_not(None)))).exists())
             for match in (await session.scalars(query.order_by(Match.kickoff_at,Match.id))).all():
                 await get_or_create(session,JobItem,{'job_id':job.id,'match_id':match.id})
             await session.flush()
@@ -232,6 +232,11 @@ async def run_job(job_id):
             job.finished_at = utcnow()
             await session.commit()
             log.info('[WORKER] job completed id=%s status=%s processed=%s failed=%s', job.id, job.status, job.processed_matches, job.failed_matches)
+        try:
+            from src.analytics.performance import capture_upcoming
+            async with database.session() as session:await capture_upcoming(session,job.league_id)
+        except Exception as exc:
+            log.warning('[PREDICTIONS] capture deferred: %s',type(exc).__name__)
     except asyncio.CancelledError:
         # Job stays running; the next lock-owning worker resumes persisted items.
         raise
@@ -345,3 +350,19 @@ async def work(once=False):
             if once:
                 raise
             await asyncio.sleep(10)
+
+
+async def enqueue_stats_rollout():
+    """Queue the scoped rollout explicitly; the global worker lock serializes work."""
+    from src.scrapers.goaloo.competitions import PRODUCTION_LEAGUE_IDS
+    async with database.session() as session:
+        if session.bind.dialect.name == 'postgresql':await session.execute(text('SELECT pg_advisory_xact_lock(213003)'))
+        jobs=[]
+        leagues=(await session.scalars(select(League).where(League.enabled.is_(True),League.external_id.in_(PRODUCTION_LEAGUE_IDS)).order_by(League.priority))).all()
+        for league in leagues:
+            previous=await session.scalar(select(ScraperJob).where(ScraperJob.league_id==league.id, or_(ScraperJob.kind=='stats_backfill',ScraperJob.status.in_(['queued','running']))).order_by(ScraperJob.id.desc()).limit(1))
+            if previous:jobs.append(previous);continue
+            job=ScraperJob(kind='stats_backfill',league_id=league.id,start_year=2024,priority=league.priority)
+            session.add(job);jobs.append(job)
+        await session.commit()
+        return jobs

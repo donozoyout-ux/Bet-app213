@@ -233,3 +233,13 @@ class ScraperIssue(Base):
     round: Mapped[int]
     error: Mapped[str] = mapped_column(String(500))
     raw: Mapped[dict] = mapped_column(JSON)
+
+
+class PredictionSnapshot(Base):
+    """First qualified prematch selection, never rewritten after seeing results."""
+    __tablename__ = 'prediction_snapshots'
+    match_id: Mapped[int] = mapped_column(ForeignKey('matches.id'), primary_key=True)
+    league_id: Mapped[int] = mapped_column(ForeignKey('leagues.id'), index=True)
+    captured_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    model_version: Mapped[str] = mapped_column(String(40), default='quality-poisson-v1')
+    picks: Mapped[list] = mapped_column(JSON)

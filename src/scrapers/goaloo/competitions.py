@@ -1,8 +1,10 @@
 """Discover target competitions from Goaloo's catalog, then validate live data.
 
 python -m src.scrapers.goaloo.competitions [--output report.json] [--seed]
-No numeric competition IDs are defined in the target policy.
+Catalog discovery remains independent of the explicit eight-league production rollout.
 """
+PRODUCTION_LEAGUE_IDS = (36,31,34,8,11,30,16,23)
+
 import argparse
 import asyncio
 from dataclasses import dataclass, asdict
@@ -199,8 +201,11 @@ async def upsert_competitions(session, records):
             raise ValueError('Invalid verified competition identity or type')
         row = await session.scalar(select(League).where(League.external_id == record['external_id']))
         if row is None:
-            row = League(external_id=record['external_id'], enabled=True)
+            from src.config import settings
+            row = League(external_id=record['external_id'], enabled=settings.app_env!='production' or record['external_id'] in PRODUCTION_LEAGUE_IDS)
             session.add(row)
+        from src.config import settings
+        if settings.app_env=='production' and record['external_id'] not in PRODUCTION_LEAGUE_IDS:row.enabled=False
         for field in ('name','country','competition_type','priority','schedule_format','latest_season'):
             setattr(row, field, record[field])
         row.verified_at = datetime.fromisoformat(record['verified_at'])
@@ -247,3 +252,14 @@ if __name__ == '__main__':
         print(f'Verification failed: {type(exc).__name__}', flush=True)
         code = 1
     raise SystemExit(code)
+
+
+
+
+
+async def apply_production_scope(session):
+    """Explicit eight-league rollout, preserving every stored match and odds row."""
+    from sqlalchemy import update
+    from src.models import League
+    await session.execute(update(League).where(League.external_id.not_in(PRODUCTION_LEAGUE_IDS)).values(enabled=False))
+    await session.execute(update(League).where(League.external_id.in_(PRODUCTION_LEAGUE_IDS)).values(enabled=True))

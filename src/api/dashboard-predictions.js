@@ -54,8 +54,8 @@
     const m=data.match,p=data.prediction;
     box.append(node('h3','Maç İstatistikleri','font-headline-md text-headline-md font-bold text-primary'));
     box.append(node('p',`${m.home_team} / ${m.away_team} • ${m.league} • ${m.season} • ${m.round_label || m.round} • ${date(m.kickoff_at)}`,'stats-meta'));
-    if(state.tab==='predictions' && !data.recommendations?.length)box.append(node('p','Yetersiz veri'));
-    if(state.tab==='predictions' && data.recommendations?.length){const chosen=node('section','','stats-block');chosen.append(node('h4','Seçilen Güçlü Tahminler','font-bold text-primary'));for(const rec of data.recommendations)line(chosen,rec.label,`${pct(rec.probability)} • ${confidence[rec.confidence]} Güven • ${rec.sample_size} maç`);box.append(chosen);}
+    if(['summary','predictions'].includes(state.tab) && !data.recommendations?.length)box.append(node('p','Yetersiz veri'));
+    if(['summary','predictions'].includes(state.tab) && data.recommendations?.length){const chosen=node('section','','stats-block');chosen.append(node('h4','Seçilen Güçlü Tahminler','font-bold text-primary'));for(const rec of data.recommendations)line(chosen,rec.label,`${pct(rec.probability)} • ${confidence[rec.confidence]} Güven • ${rec.sample_size} maç`);box.append(chosen);}
     if(['predictions','goals'].includes(state.tab)){
     const model=node('section','','stats-block');model.append(node('h4','İstatistiksel Tahmin','font-bold text-primary'));
     if(p.status!=='ok')model.append(node('p','Yetersiz veri','font-bold'));
@@ -94,7 +94,7 @@
     line(market,'Piyasa ortak olasılığı',consensus ? `${pct(consensus.home)} / ${pct(consensus.draw)} / ${pct(consensus.away)}` : 'Yetersiz veri');
     const difference=p.model_market_difference;
     line(market,'Model / Piyasa Farkı (puan)',difference ? ['home','draw','away'].map(key=>`${difference[key]>=0?'+':''}${(100*difference[key]).toFixed(1)}`).join(' / ') : '—');box.append(market);}
-    if(state.tab==='predictions'){
+    if(['summary','predictions'].includes(state.tab)){
     const explanation=node('details','','stats-block');explanation.append(node('summary','Model ve güven kuralları','font-bold'));
     explanation.append(node('p','Poisson gol modeli; venue oranları aynı yarışmanın ortalamalarına ağırlık 5 ile yaklaştırılır. En az 20 yarışma maçı, her takım için 5 ve her venue için 3 maç gerekir. Beklenen Gol ölçülmüş şut bazlı bir metrik değildir.'));
     explanation.append(node('p','Orta güven: takım 8, venue 5, yarışma 50 maç; son 5/10 gol oranları farkı en fazla 0.5 ve piyasa farkı en fazla 15 puan. Yüksek: takım 10, venue 8, yarışma 100, en az 2 bookmaker ve en fazla 10 puan fark. Milli takımlarda yüksek güven verilmez. Güven düzeyi örnek ve tutarlılık kurallarını ifade eder; doğruluk olasılığı değildir.'));
@@ -106,7 +106,7 @@
   async function select(id,scroll=false){
     const box=$('statistics-detail');
     const changed=state.selected!==id;const dialog=$('analysis-dialog');if(dialog && !dialog.open){dialog.showModal?.();if(!dialog.showModal)dialog.open=true;}
-    if(changed){state.tab='predictions';setTab('predictions');}
+    if(changed){state.tab='summary';setTab('summary');}
     if(state.selected===id && state.detailData && Date.now()-state.detailLoadedAt<600000){if(scroll)box?.scrollIntoView?.({behavior:'smooth',block:'start'});return state.detailData;}
     state.selected=id;state.detailData=null;state.detailLoadedAt=0;const generation=++state.detailGeneration;
     if(box){box.hidden=false;box.replaceChildren();box.append(node('p','Veri hazırlanıyor','analysis-loading'));}
@@ -128,6 +128,7 @@
     return element;
   }
   async function refresh(league='',dateFilter=''){
+    if(globalThis.BetAppMarket)return globalThis.BetAppMarket.refresh(league,dateFilter);
     state.league=league;state.dateFilter=dateFilter;
     const box=$('prediction-cards');if(!box)return;const generation=++state.generation;
     const query=new URLSearchParams({limit:state.view==='best'?'20':'8',market:state.market});if(league)query.set('league',league);if(dateFilter)query.set('date',dateFilter);

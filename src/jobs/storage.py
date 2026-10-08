@@ -61,8 +61,14 @@ async def store_statistics(session,match,data):
     row=await session.get(MatchStatistics,match.id)
     if row is None:
         row=MatchStatistics(match_id=match.id);session.add(row)
-    for key in STAT_FIELDS:setattr(row,key,data['statistics'].get(key))
-    row.raw,row.is_final,row.collection_status,row.updated_at=data['raw'],data['is_final'],data['collection_status'],utcnow()
+    was_final=bool(row.is_final)
+    if was_final and not data['is_final']:return row
+    for key in STAT_FIELDS:
+        observed=data['statistics'].get(key)
+        if observed is not None or data['is_final'] and not was_final:setattr(row,key,observed)
+    row.raw=data['raw'];row.is_final=bool(row.is_final or data['is_final'])
+    row.collection_status='available' if any(getattr(row,key) is not None for key in STAT_FIELDS) else 'unavailable'
+    row.updated_at=utcnow()
     referee=data.get('referee')
     if referee and referee.get('name'):
         # Anonymous same-name referees are kept within a competition, not guessed

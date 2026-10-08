@@ -81,3 +81,10 @@ async def dashboard_predictions_script():
 
 from src.api.routes import router
 app.include_router(router, prefix='/api')
+
+
+@app.get('/dashboard-market.js',include_in_schema=False)
+async def market_script():return FileResponse(Path(__file__).resolve().with_name('dashboard-market.js'),media_type='application/javascript')
+
+@app.get('/dashboard-market.css',include_in_schema=False)
+async def market_styles():return FileResponse(Path(__file__).resolve().with_name('dashboard-market.css'),media_type='text/css')

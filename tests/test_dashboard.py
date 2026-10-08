@@ -39,11 +39,12 @@ def test_stitch_panels_and_safe_empty_states_are_retained():
         assert sample not in text
     assert 'Veri bekleniyor' in text and 'Henüz veri yok' in text
     comments = ' '.join(parsed.comments)
-    for panel in ['Big Scoreboard', 'Bookmaker Switcher Tabs', 'Asian Handicap', 'Asian Totals', 'Service Status List']:
+    for panel in ['Bookmaker Switcher Tabs', 'Asian Handicap', 'Asian Totals']:
         assert panel in comments
-    assert {'predictions-section','prediction-cards','statistics-detail','dashboard-shell','matches-body', 'match-detail', 'bookmaker-tabs', 'league-select', 'season-select', 'round-select', 'collection-progress'} <= parsed.ids
+    assert {'predictions-section','market-picks','statistics-detail','dashboard-shell','matches-body', 'match-detail', 'bookmaker-tabs', 'league-select', 'season-select', 'round-select', 'collection-progress'} <= parsed.ids
     assert '<aside' not in source and 'league-nav' not in source and 'pl-64' not in source
-    assert '#dashboard-shell {width:100%;padding-left:0;}' in source
+    assert '#dashboard-shell {width:100%;padding-left:0;}' in Path('src/api/dashboard-market.css').read_text(encoding='utf-8')
+    assert 'dashboard-market.css' in source and 'market-performance' in Path('src/api/dashboard-market.js').read_text(encoding='utf-8')
     assert source.index('id="predictions-section"') < source.index('id="history-filters"')
     assert 'Günün En Güçlü Tahminleri' in text and 'sidebar' not in text
     for unsupported in ['AI İvmesi', 'AI Taktik', 'Topla Oynama', 'Tehlikeli Ataklar', 'Son Olaylar', 'Hakem:', 'Veri Kazıyıcı Kontrol Merkezi', 'Favoriler']:

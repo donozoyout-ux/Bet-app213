@@ -50,3 +50,21 @@ Red-card fields were absent in the EPL, La Liga, Serie A, Bundesliga and Süper 
 - Normal live/finished odds updates attempt statistics collection too; a missing HTML statistics source does not discard successfully collected odds. No statistics jobs are automatically queued at startup, and no massive production collection was triggered during implementation.
 
 Captured relevant HTML blocks are stored under tests/fixtures/match_statistics_*.html. Fixtures retain real source IDs and field structures.
+
+## Reverification and rollout fix (2026-10-08)
+
+Verified additional final match pages using their actual competition and match identities:
+
+- Ligue 1: https://www.goaloo.com/match/live-2594896 — FT corners 2/8, HT 2/2, yellow 3/0; red totals absent.
+- Eredivisie: https://www.goaloo.com/match/live-2592240 — FT corners 8/1, HT 5/1, yellow 1/3, explicitly published red 0/1. This supplies a complete real combined-card observation.
+- Primeira Liga: https://www.goaloo.com/match/live-2611656 — FT corners 6/1, HT 4/0, yellow 2/2; red/offsides absent.
+
+The official live-page `/scripts/soccer/detail` bundle calls `/Ajax/SoccerAjax?type=15&id=2590898` for event/technical updates. Its verified archived response is JSON with ErrCode=0 and Data containing empty d_f, tT_f, tT_o_f and event objects. There are no historical statistics to safely decode there. Type=4 is in-play odds, not match statistics. Type=5 is corner odds XML, not corner counts (the archived probe returned code 1002). These endpoints are documented findings, not guessed count sources; the collector continues parsing the identity-checked live-page #ftstat, #hf1stat and #eventsTable. External JavaScript is never evaluated.
+
+No referee identity was present in any of these three additional sources. Referees remain nullable and unavailable; no names are inferred.
+
+The collector previously skipped any existing statistics row indefinitely. It now retries incomplete/unavailable observations after seven days during an explicit new stats job; completed job items remain completed during resume. Complete final corner/card records are skipped. Partial source responses no longer erase published counts or regress a final snapshot. Missing red fields remain NULL, never inferred from an absent red-card row or event.
+
+POST /api/scraper/stats-backfill-enabled (Bearer token required) explicitly queues the eight-league rollout in verified priority order: EPL, La Liga, Serie A, Bundesliga, Ligue 1, Süper Lig, Eredivisie, Primeira Liga. Repeated calls reuse existing jobs. No rollout is launched automatically by the dashboard or initialization. The existing global PostgreSQL advisory worker lock permits one heavy job at a time. GET /api/diagnostics reports actual row coverage and progress without credentials. Production APP_ENV=production disables other catalog leagues without deleting their data.
+
+Corner lines are 7.5/8.5/9.5/10.5/11.5; combined-card lines are 2.5/3.5/4.5/5.5/6.5. Over and under candidates use complete published observations and the same reliability gates; the existing correlation groups still select at most one count-market representative per family and zero to three recommendations per match. A working parser/model is not proof of sufficient production coverage: an actual stats backfill and complete red-card samples are still required before qualified card recommendations appear.

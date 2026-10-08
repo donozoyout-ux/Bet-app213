@@ -36,4 +36,7 @@ jobs:
           node --check src/api/dashboard.js
           node --check src/api/dashboard-odds.js
           node --check src/api/dashboard-predictions.js
+          node --check src/api/dashboard-market.js
           node tests/dashboard_runtime.cjs
+          node tests/predictions_runtime.cjs
+          node tests/market_runtime.cjs
