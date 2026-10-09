@@ -230,11 +230,11 @@ The targets are selected by catalog country/abbreviation, then their IDs, names,
 
 `AUTO_BACKFILL_ON_EMPTY=true` and `SCRAPER_WORKER_ENABLED=true` queue one historical job for each empty, enabled, verified competition; the existing PostgreSQL advisory worker lock permits only one executing job globally. Jobs survive restart and run by priority. An existing partial/failed backfill is resumed explicitly rather than duplicated automatically. The daily authenticated workflow calls `/api/scraper/update-all` for every enabled competition.
 
-The dashboard defaults to upcoming across all enabled competitions. Its seven-day window expands only to the next available match day when empty. The response includes `upcoming_expanded`; calendar dates use Europe/Istanbul. The sidebar groups only records returned by PostgreSQL. National tournaments retain real stage/group labels and year-based seasons; no fake participants or seasons are generated.
+The dashboard defaults to upcoming across all enabled competitions. Its seven-day window expands only to the next available match day when empty. The response includes `upcoming_expanded`; calendar dates use Europe/Istanbul. The league selectors show only records returned by PostgreSQL. National tournaments retain real stage/group labels and year-based seasons; no fake participants or seasons are generated.
 
 ## Statistical predictions and full-width dashboard
 
-The sidebar is removed. The current dark navy/cyan terminal is market-first: enabled leagues, summary cards, category navigation, dense selected-pick tables and audited performance. Rows open a wide desktop / full-screen mobile match analysis dialog; eight tabs keep each match context isolated.
+The Arctic White & Cobalt interface has five URL-addressable primary pages. Only the active page is visible; desktop/tablet top navigation becomes five-item bottom navigation on mobile. Real selected recommendations appear as home cards and a filtered prediction table.
 
 Endpoints:
 
@@ -278,15 +278,15 @@ One pick per correlated group is allowed: outcome (result/double chance/handicap
 
 ### Compact dashboard and match analysis
 
-The current homepage uses full-width dark market tables, compact status, category performance cards, shared league/date/selected-market/confidence filters and a collapsible match list with server-side kickoff/league/team sorting. Recommendation calculations and ranking gates are preserved. A zero-pick match remains available in the unfiltered match list. Selected-market filters cover the seven-day recommendation window; paginated global picks prevent dropping matches after the first 100 picks.
+The homepage presents real summary metrics and up to six upcoming matches with the backend's 0–3 selected recommendations. Predictions, Market Analysis, Match Center and Historical Performance load on navigation. No prediction models, selection gates or background data jobs are changed by the UI.
 
-Market picks and keyboard-accessible match rows open the same native dialog: wide on desktop, full-screen at mobile widths. Its selected-match header remains above Özet, Tahminler, Gol, Korner, Kart & Hakem, Oranlar, Form and H2H tabs. Statistics load only on opening a match; tab changes reuse that response. Odds use the existing price/stage APIs. Generation checks invalidate late statistics, match and odds responses after switching or closing. Native dialog focus trapping, Escape, close and tab arrow keys are supported; #match=<id> permits direct links and browser Back. Missing observations remain unavailable.
+Match cards and keyboard-accessible rows open the same native dialog, with Özet, Tahminler, Gol, Korner, Kart, Handikap, Oranlar and Form / H2H tabs. URL forms such as `#predictions?match=123` preserve the originating section; legacy `#match=123` links still work. Escape, close, browser Back/Forward and tab arrow keys are supported. Fetch cancellation and generation guards prevent late responses from replacing the selected match. Odds retain opening/current-prematch/closing semantics.
 
-## Dark market terminal and audited performance
+The read-only frontend polls active page data every 30 seconds, match-center rows every 25 seconds, and scraper jobs every 4 seconds while active. Diagnostics show actual per-league coverage and stats-backfill progress. API, PostgreSQL, loading, valid empty and insufficient-history states are distinct. CSS tokens implement Arctic White & Cobalt with reduced-motion support and no external fonts, assets or frontend dependencies.
 
-The homepage is now a dark navy/cyan market terminal with summary cards, market-category navigation, dense selected-pick tables, server-side family/confidence/probability/team/date/sort filters, pagination and eight-tab match analysis. Disabled leagues are hidden. Production initialization upserts only the eight scoped verified leagues and disables others without deleting stored data.
+## Audited performance
 
-GET /api/predictions and /api/predictions/best retain the 0–3 strongest-pick engine. First qualified prematch selections are frozen atomically in prediction_snapshots (one row per match, immutable JSON pick set); the worker captures after a successful data job and the predictions API captures published picks as well. Existing completed matches are never retroactively converted into performance records. GET /api/market-performance streams saved records and settles only from final scores or published final count statistics. Pending, missing final data and void results are distinct; success denominators include won/lost only. Dates filter capture time in Europe/Istanbul. Average reliability is a quality index, not calibrated accuracy. No profit/ROI or bookmaker settlement convention is claimed.
+Performance contains only saved prematch picks and their real settlement outcomes. Success rates remain unavailable until there are settled records.
 
 The new table is created additively by the existing PostgreSQL startup lock/create_all path; repeated startup is idempotent. Existing statistics/referee/event migrations remain in place. Diagnostics include enabled leagues and actual final corner/complete yellow+red/referee coverage. See docs/goaloo-match-statistics.md for verified source URLs and the authenticated, explicit serialized stats rollout. No production backfill or deployment was executed while developing this branch.
 

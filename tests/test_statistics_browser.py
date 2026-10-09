@@ -31,20 +31,24 @@ async def test_browser_count_markets_coverage_dialog_and_failed_request(api,db,m
                 content_type=response.headers.get('content-type','application/json'))
         await page.route('http://test/**',forward)
         await page.goto('http://test/')
+        await page.locator('.desktop-nav [data-page-link=predictions]').click()
         await page.locator('#upcoming-board').click()
         for metric in ('corners','cards'):
-            await page.locator(f'[data-market-family="{metric}"]').click()
+            await page.locator('#pred-market').select_option(metric)
             await expect(page.locator('#market-picks tr[data-match-id]')).to_have_count(1)
             await expect(page.locator('#market-picks')).to_contain_text('Test team')
         await page.locator('#market-picks tr[data-match-id]').click()
         await expect(page.locator('#analysis-dialog')).to_be_visible()
         await page.keyboard.press('Escape')
         await expect(page.locator('#analysis-dialog')).not_to_be_visible()
+        await page.locator('.desktop-nav [data-page-link=markets]').click()
         await expect(page.locator('#stats-league-coverage')).to_contain_text('80')
+        await page.locator('.desktop-nav [data-page-link=performance]').click()
         # An independent performance request failure must not discard the board.
         fail=True
         await page.locator('#performance-market').select_option('cards')
-        await expect(page.locator('#performance-summary')).to_contain_text('Bağlantı bekleniyor')
+        await expect(page.locator('#performance-summary')).to_contain_text('PostgreSQL')
+        await page.locator('.desktop-nav [data-page-link=predictions]').click()
         await expect(page.locator('#market-picks tr[data-match-id]')).to_have_count(1)
         # An honest empty state explains the filter rather than inventing a pick.
         await page.locator('#min-probability').fill('100')

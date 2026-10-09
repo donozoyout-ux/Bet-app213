@@ -43,7 +43,7 @@ def test_stitch_panels_and_safe_empty_states_are_retained():
         assert panel in comments
     assert {'predictions-section','market-picks','statistics-detail','dashboard-shell','matches-body', 'match-detail', 'bookmaker-tabs', 'league-select', 'season-select', 'round-select', 'collection-progress'} <= parsed.ids
     assert '<aside' not in source and 'league-nav' not in source and 'pl-64' not in source
-    assert '#dashboard-shell {width:100%;padding-left:0;}' in Path('src/api/dashboard-market.css').read_text(encoding='utf-8')
+    assert '--app-bg:#EFF3F8' in Path('src/api/dashboard-market.css').read_text(encoding='utf-8')
     assert 'dashboard-market.css' in source and 'market-performance' in Path('src/api/dashboard-market.js').read_text(encoding='utf-8')
     assert source.index('id="predictions-section"') < source.index('id="history-filters"')
     assert 'Günün En Güçlü Tahminleri' in text and 'sidebar' not in text
