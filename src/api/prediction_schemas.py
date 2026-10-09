@@ -30,6 +30,20 @@ class Prediction(BaseModel):
     confidence_rules: dict
     model_market_difference: dict[str,float] | None = None
     corners_status: str = 'insufficient_data'
+    yellow_cards_status: str = 'insufficient_data'
+    expected_home_yellow_cards: float | None = None
+    expected_away_yellow_cards: float | None = None
+    expected_total_yellow_cards: float | None = None
+    over_3_5_yellow_cards_probability: float | None = None
+    over_4_5_yellow_cards_probability: float | None = None
+    over_5_5_yellow_cards_probability: float | None = None
+    red_cards_status: str = 'insufficient_data'
+    expected_home_red_cards: float | None = None
+    expected_away_red_cards: float | None = None
+    expected_total_red_cards: float | None = None
+    over_0_5_red_cards_probability: float | None = None
+    over_1_5_red_cards_probability: float | None = None
+    over_2_5_red_cards_probability: float | None = None
     cards_status: str = 'insufficient_data'
     card_basis: str = 'yellow_plus_red'
     expected_home_corners: float | None = None

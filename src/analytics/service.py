@@ -129,10 +129,10 @@ async def statistics(session, match, context, now, data_revision=None):
         prediction = {key: value for key,value in prediction.items() if 'probability' not in key and not key.startswith('expected_')}
         prediction.update(status='insufficient_data', confidence='low', model_market_difference=None)
     additional=await additional_statistics(session,match,cutoff)
-    for metric in ['corners','cards']:
+    for metric in ['corners','cards','yellow_cards','red_cards']:
         p=additional[metric]['prediction'];prediction[metric+'_status']=p['status']
         prediction['expected_home_'+metric]=p['expected_home'];prediction['expected_away_'+metric]=p['expected_away'];prediction['expected_total_'+metric]=p['expected_total']
-        for threshold in ([8.5,9.5,10.5] if metric=='corners' else [3.5,4.5,5.5]):
+        for threshold in ([8.5,9.5,10.5] if metric=='corners' else [0.5,1.5,2.5] if metric=='red_cards' else [3.5,4.5,5.5]):
             prediction['over_'+str(threshold).replace('.','_')+'_'+metric+'_probability']=p['over_probabilities'].get(str(threshold))
     prediction['card_basis']=additional['cards']['prediction']['basis']
     def agree(a,b):return max(0,1-abs(a-b)/max(1,abs(b))) if a is not None and b is not None else .5
