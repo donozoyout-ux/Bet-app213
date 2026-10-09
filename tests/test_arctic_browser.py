@@ -27,6 +27,8 @@ async def test_arctic_navigation_filters_analysis_and_responsive_layout(api,db,m
         async def forward(route):
             path=route.request.url.removeprefix('http://test');calls.append(path)
             if path.startswith('/api/predictions?'):await release.wait()
+            if mode=='timeout' and path.startswith('/api/predictions/best'):
+                await route.fulfill(status=504,body='Timeout');return
             if mode=='db-down' and path.startswith('/api/predictions/best'):
                 await route.fulfill(status=503,body='Unavailable');return
             if mode=='empty' and path.startswith('/api/predictions/best'):
@@ -95,6 +97,40 @@ async def test_arctic_navigation_filters_analysis_and_responsive_layout(api,db,m
             await page.go_forward();await expect(page.locator('[data-page="home"]')).to_be_visible()
             mode='empty';await go('predictions');await expect(page.locator('#market-picks')).to_contain_text('yaklaşan maç yok')
             mode='db-down';await page.locator('#pred-market').select_option('corners');await expect(page.locator('#market-picks')).to_contain_text('PostgreSQL')
+            mode='timeout';await page.locator('#pred-market').select_option('goals');await expect(page.locator('#market-picks')).to_contain_text('zaman aşımına')
+            await expect(page.locator('#market-picks')).to_have_attribute('aria-busy','false')
             assert not errors
+        finally:
+            release.set();await page.unroute_all(behavior='ignoreErrors');await browser.close()
+
+
+async def test_duplicate_refresh_and_hidden_tab_do_not_create_polling_storm(api):
+    async with async_playwright() as p:
+        browser=await p.chromium.launch()
+        page=await browser.new_page()
+        calls=[];entered=asyncio.Event();release=asyncio.Event()
+        async def forward(route):
+            path=route.request.url.removeprefix('http://test');calls.append(path)
+            if path.startswith('/api/predictions/best'):
+                entered.set();await release.wait()
+                await route.fulfill(status=504,json={'code':'api_timeout'});return
+            response=await api.get(path)
+            await route.fulfill(status=response.status_code,body=response.content,content_type=response.headers.get('content-type','application/json'))
+        await page.route('http://test/**',forward)
+        try:
+            await page.clock.install()
+            await page.goto('http://test/#predictions')
+            await asyncio.wait_for(entered.wait(),5)
+            await page.evaluate('BetAppMarket.refresh(); BetAppMarket.refresh(); BetAppMarket.refresh()')
+            assert sum(path.startswith('/api/predictions/best') for path in calls)==1
+            await page.evaluate("Object.defineProperty(document,'hidden',{get:()=>true,configurable:true})")
+            # Finish outstanding requests before counting hidden-tab polling.
+            release.set()
+            await expect(page.locator('#market-picks')).to_contain_text('zaman aşımına')
+            await page.wait_for_load_state('networkidle')
+            before=len(calls)
+            await page.clock.run_for(31000)
+            assert len(calls)==before
+            await expect(page.locator('#market-picks')).to_have_attribute('aria-busy','false')
         finally:
             release.set();await page.unroute_all(behavior='ignoreErrors');await browser.close()

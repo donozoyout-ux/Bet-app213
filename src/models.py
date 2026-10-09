@@ -46,7 +46,8 @@ class Team(Base):
 
 class Match(Base):
     __tablename__ = 'matches'
-    __table_args__ = (Index('ix_matches_season_round', 'season_id', 'round'),)
+    __table_args__ = (Index('ix_matches_season_round', 'season_id', 'round'),
+                      Index('ix_matches_league_status_kickoff', 'league_id', 'status', 'kickoff_at', 'id'))
     id: Mapped[int] = mapped_column(primary_key=True)
     external_match_id: Mapped[int] = mapped_column(unique=True)
     league_id: Mapped[int] = mapped_column(ForeignKey('leagues.id'))

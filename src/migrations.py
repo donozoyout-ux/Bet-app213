@@ -32,3 +32,9 @@ async def migrate_competitions(conn):
                 await conn.execute(text(f'ALTER TABLE {qualified} ADD COLUMN {preparer.quote(name)} {sql_type}'))
     leagues = (preparer.quote_schema(schema) + '.' if schema else '') + 'leagues'
     await conn.execute(text(f'UPDATE {leagues} SET created_at=COALESCE(created_at,CURRENT_TIMESTAMP), updated_at=COALESCE(updated_at,CURRENT_TIMESTAMP) WHERE created_at IS NULL OR updated_at IS NULL'))
+    # create_all does not add indexes to tables that already exist.
+    from src.models import Match
+    index = next(i for i in Match.__table__.indexes if i.name == 'ix_matches_league_status_kickoff')
+    exists = await conn.run_sync(lambda sync: inspect(sync).has_index('matches', index.name, schema=schema))
+    if not exists:
+        await conn.run_sync(lambda sync: index.create(sync))

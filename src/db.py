@@ -1,5 +1,8 @@
 from contextlib import asynccontextmanager
 import logging
+import os
+import time
+from sqlalchemy import event
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from src.config import settings
@@ -17,7 +20,27 @@ class Database:
             raise ValueError('DATABASE_URL must use PostgreSQL asyncpg (SQLite aiosqlite is supported for tests)')
         if settings.app_env == 'production' and url.startswith('sqlite'):
             raise ValueError('Production requires PostgreSQL')
-        self.engine = create_async_engine(url, pool_pre_ping=True) if url else None
+        options = {}
+        if url.startswith('postgresql+asyncpg://'):
+            # Reserve HTTP connections; a scraper process has only its lock + one writer.
+            worker = os.getenv('BETAPP_PROCESS_ROLE') == 'scraper'
+            options = dict(pool_size=2 if worker else 5, max_overflow=0,
+                           pool_timeout=2, pool_recycle=300,
+                           connect_args={'timeout': 5, 'command_timeout': 15,
+                               'server_settings': {'application_name': 'betapp-scraper' if worker else 'betapp-web',
+                                   'statement_timeout': '12000', 'lock_timeout': '2000'}})
+        self.engine = create_async_engine(url, pool_pre_ping=True, **options) if url else None
+        if self.engine:
+            @event.listens_for(self.engine.sync_engine, 'before_cursor_execute')
+            def query_start(conn, cursor, statement, parameters, context, executemany):
+                context.betapp_started = time.monotonic()
+
+            @event.listens_for(self.engine.sync_engine, 'after_cursor_execute')
+            def query_end(conn, cursor, statement, parameters, context, executemany):
+                elapsed = time.monotonic() - context.betapp_started
+                if elapsed >= .25:
+                    # Never log SQL parameter values or connection credentials.
+                    log.warning('[DB] slow query operation=%s duration_ms=%.1f', statement.split()[0], elapsed * 1000)
         self.sessions = async_sessionmaker(self.engine, expire_on_commit=False) if self.engine else None
         self.ready = False
 

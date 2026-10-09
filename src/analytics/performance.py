@@ -1,6 +1,7 @@
 """Forward-only, immutable prematch picks; settlement uses published final data."""
 from collections import defaultdict
 from sqlalchemy import select
+from sqlalchemy.orm import defer
 from src.models import PredictionSnapshot, Match, MatchStatistics, League
 from src.jobs.worker import aware
 from src.analytics.recommendations import market_matches
@@ -8,12 +9,32 @@ from src.analytics.recommendations import market_matches
 
 async def capture(session, match, picks, now):
     if match.status != 'scheduled' or not match.kickoff_at or aware(match.kickoff_at) <= now or not picks:return False
-    if await session.get(PredictionSnapshot,match.id):return False
+    known=session.info.get('captured_matches')
+    if (match.id in known) if known is not None else (await session.get(PredictionSnapshot,match.id)):
+        return False
     if session.bind.dialect.name == 'postgresql':
         from sqlalchemy.dialects.postgresql import insert
     else:
         from sqlalchemy.dialects.sqlite import insert
     result=await session.execute(insert(PredictionSnapshot).values(match_id=match.id,league_id=match.league_id,captured_at=now,model_version='quality-poisson-v1',picks=picks).on_conflict_do_nothing(index_elements=['match_id']))
+    if known is not None:known.add(match.id)
+    return result.rowcount > 0
+
+
+async def capture_many(session, observations, now):
+    """Publish a board atomically without an INSERT round trip per match."""
+    known = session.info.get('captured_matches', set())
+    records = [dict(match_id=m.id, league_id=m.league_id, captured_at=now,
+                    model_version='quality-poisson-v1', picks=picks)
+               for m,picks in observations if m.id not in known and picks and
+               m.status=='scheduled' and m.kickoff_at and aware(m.kickoff_at)>now]
+    if not records:
+        return False
+    if session.bind.dialect.name == 'postgresql':
+        from sqlalchemy.dialects.postgresql import insert
+    else:
+        from sqlalchemy.dialects.sqlite import insert
+    result = await session.execute(insert(PredictionSnapshot).values(records).on_conflict_do_nothing(index_elements=['match_id']))
     return result.rowcount > 0
 
 
@@ -62,7 +83,7 @@ def finish(result):
 async def performance(session, league=None, start=None, end=None, market='all', exact_market=None, confidence=None, limit=50, offset=0):
     from src.api.routes import match_query,match_response
     query,_,_=match_query()
-    query=query.add_columns(PredictionSnapshot,MatchStatistics).join(PredictionSnapshot,PredictionSnapshot.match_id==Match.id).outerjoin(MatchStatistics,MatchStatistics.match_id==Match.id).where(League.enabled.is_(True))
+    query=query.add_columns(PredictionSnapshot,MatchStatistics).options(defer(Match.raw),defer(MatchStatistics.raw)).join(PredictionSnapshot,PredictionSnapshot.match_id==Match.id).outerjoin(MatchStatistics,MatchStatistics.match_id==Match.id).where(League.enabled.is_(True))
     if league:query=query.where(League.id==int(league)) if league.isdigit() else query.where(League.name.ilike('%'+league+'%'))
     if start:query=query.where(PredictionSnapshot.captured_at>=start)
     if end:query=query.where(PredictionSnapshot.captured_at<end)

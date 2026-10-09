@@ -18,6 +18,7 @@ from src.diagnostics import database_summary
 from src.analytics.service import statistics as compute_statistics, revision as prediction_revision
 from .prediction_schemas import PredictionPage, Statistics, GlobalPicks
 from src.analytics.recommendations import market_matches, summarize_availability
+from .read_cache import summary_cache, prediction_cache, performance_cache
 
 router = APIRouter()
 
@@ -32,7 +33,7 @@ async def diagnostics():
               'active_backfill_competition': None, 'queued_backfills': None,'enabled_leagues':[],'match_counts_by_league':[],'stats_rows':None,'matches_with_corners':None,'matches_with_cards':None,'matches_with_referee':None,'active_backfill':None,'stats_coverage_by_league':[],'active_stats_backfill':None,'queued_stats_backfills':[]}
     if database.configured and database.ready:
         try:
-            summary = await asyncio.wait_for(database_summary(database), timeout=5)
+            summary = await summary_cache.get(database.engine, 'diagnostics', lambda: database_summary(database))
             result.update({key: summary[key] for key in ('latest_job_status', 'total_matches', 'total_odds', 'enabled_competitions', 'completed_competitions', 'active_backfill_competition', 'queued_backfills')})
             result.update({key:summary[key] for key in ('enabled_leagues','match_counts_by_league','stats_rows','matches_with_corners','matches_with_cards','matches_with_referee','active_backfill','stats_coverage_by_league','active_stats_backfill','queued_stats_backfills')})
             result['database_connected'] = True
@@ -45,7 +46,8 @@ async def session_dependency():
     if not database.configured or not database.ready:
         raise HTTPException(503, 'Database not ready. Configure DATABASE_URL and initialize PostgreSQL.')
     async with database.session() as session:
-        yield session
+        async with asyncio.timeout(12):
+            yield session
 
 
 async def require_scraper_token(authorization: str | None = Header(default=None)):
@@ -63,12 +65,18 @@ def job_response(job, league_name=None):
 
 @router.get('/status', response_model=StatusResponse)
 async def status():
+    if database.configured and database.ready:
+        return await summary_cache.get(database.engine, 'status', uncached_status)
+    return await uncached_status()
+
+
+async def uncached_status():
     if not database.configured or not database.ready:
         return StatusResponse(database='unavailable' if database.configured else 'unconfigured', app_env=settings.app_env)
     async with database.session() as session:
         await session.execute(text('SELECT 1'))
         total = await session.scalar(select(func.count(Match.id)))
-        odds_total = sum([await session.scalar(select(func.count(model.id))) for model in [Odds1X2, AsianHandicap, AsianTotals]])
+        odds_total = await session.scalar(select(sum(select(func.count(model.id)).scalar_subquery() for model in (Odds1X2, AsianHandicap, AsianTotals))))
         last = await session.scalar(select(func.max(Match.last_scraped_at)))
         stats_last=await session.scalar(select(func.max(MatchStatistics.updated_at)))
         last=max((aware(value) for value in [last,stats_last] if value is not None),default=None)
@@ -200,6 +208,15 @@ async def predictions(league: str | None = None, date: Date | None = None,
 
 
 async def calculate_predictions(session,league,date,team=None):
+    async def compute():
+        result = await uncached_predictions(session, league, date, team)
+        return result, session.info.get('count_availability', [])
+    result, availability = await prediction_cache.get(session.bind, (league, date, team), compute)
+    session.info['count_availability'] = availability
+    return result
+
+
+async def uncached_predictions(session,league,date,team=None):
     now = utcnow()
     query, home, away = match_query()
     query = query.where(League.enabled.is_(True), Match.status == 'scheduled', Match.kickoff_at > now,
@@ -211,18 +228,21 @@ async def calculate_predictions(session,league,date,team=None):
         query = query.where(Match.kickoff_at >= start, Match.kickoff_at < end)
     if team:query=query.where(or_(home.name.ilike('%'+team+'%'),away.name.ilike('%'+team+'%')))
     rows = (await session.execute(query.order_by(Match.kickoff_at.asc(), Match.id.asc()))).all()
+    from src.analytics.service import prefetch_markets
+    await prefetch_markets(session, [row[0] for row in rows])
     rev = await prediction_revision(session)
-    calculated = [];captured=False
+    calculated = [];observations=[]
     session.info['count_availability']=[]
     for row in rows:
+        await asyncio.sleep(0)  # Allow liveness and short requests between matches.
         result = await compute_statistics(session, row[0], match_response(row), now, rev)
         session.info['count_availability'].append((row[0].id,result['market_availability']))
         if result['recommendations']:
             item={key:result[key] for key in ('match','prediction','bookmaker_consensus','as_of','recommendations','strongest_prediction')}
             item['match_id']=row[0].id;calculated.append(item)
-            from src.analytics.performance import capture
-            captured=await capture(session,row[0],result['recommendations'],utcnow()) or captured
-    if captured:await session.commit()
+            observations.append((row[0],result['recommendations']))
+    from src.analytics.performance import capture_many
+    if await capture_many(session,observations,utcnow()):await session.commit()
     return calculated,now,len(rows)
 
 
@@ -348,7 +368,8 @@ async def market_performance(league: str | None=None,market: Literal['all','resu
     from src.analytics.performance import performance
     start=day_bounds(date_from,DISPLAY_TIMEZONE)[0] if date_from else None
     end=day_bounds(date_to,DISPLAY_TIMEZONE)[1] if date_to else None
-    return await performance(session,league,start,end,market,exact_market,confidence,limit,offset)
+    return await performance_cache.get(session.bind, (league,start,end,market,exact_market,confidence,limit,offset),
+        lambda: performance(session,league,start,end,market,exact_market,confidence,limit,offset))
 
 
 @router.post('/scraper/stats-backfill-enabled',response_model=list[JobResponse],dependencies=[Depends(require_scraper_token),Depends(session_dependency)])

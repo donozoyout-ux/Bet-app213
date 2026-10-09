@@ -2,6 +2,8 @@
 from contextlib import asynccontextmanager
 import asyncio
 import logging
+import os
+import sys
 from pathlib import Path
 from fastapi import FastAPI
 from fastapi.responses import FileResponse, JSONResponse
@@ -22,7 +24,10 @@ async def supervise_database():
                 await database.initialize()
             await enqueue_initial_backfill(database)
             if settings.worker_enabled:
-                await work()
+                if settings.app_env == 'production':
+                    await supervise_scraper_process()
+                else:
+                    await work()
             else:
                 # Also detect/recover a database outage when scraping is disabled.
                 async with database.engine.connect() as conn:
@@ -34,6 +39,24 @@ async def supervise_database():
             database.ready = False
             log.exception('[BACKGROUND] task failed; retrying while HTTP remains available')
         await asyncio.sleep(BACKGROUND_RETRY_SECONDS)
+
+
+async def supervise_scraper_process():
+    """Isolate source parsing/CPU and connections on the existing free instance."""
+    child = await asyncio.create_subprocess_exec(
+        sys.executable, '-m', 'src.jobs.runner',
+        env={**os.environ, 'BETAPP_PROCESS_ROLE': 'scraper', 'GOALOO_CONCURRENCY': '1'})
+    try:
+        await child.wait()
+        log.error('[BACKGROUND] scraper exited code=%s; durable jobs will resume', child.returncode)
+    finally:
+        if child.returncode is None:
+            child.terminate()
+            try:
+                await asyncio.wait_for(child.wait(), 5)
+            except TimeoutError:
+                child.kill()
+                await child.wait()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -54,9 +77,16 @@ app = FastAPI(title='BetApp213', version='2.0.0', lifespan=lifespan)
 # Gunicorn's module-only target resolves `application`; Uvicorn continues using :app.
 application = app
 
+
+@app.exception_handler(TimeoutError)
+async def request_timeout(request, exc):
+    log.warning('[API] bounded timeout path=%s', request.url.path)
+    return JSONResponse(status_code=504, content={'detail': 'API request timed out. Please retry.', 'code': 'api_timeout'})
+
 @app.exception_handler(SQLAlchemyError)
 async def database_error(request, exc):
-    logging.getLogger(__name__).error('Database request failed', exc_info=exc)
+    logging.getLogger(__name__).error('Database request failed path=%s type=%s pool=%s',
+        request.url.path, type(exc).__name__, database.engine.pool.status() if database.engine else 'unconfigured')
     return JSONResponse(status_code=503, content={'detail': 'Database unavailable. Check server configuration.'})
 
 @app.get('/health')

@@ -2,6 +2,7 @@
 import math
 from datetime import timedelta
 from sqlalchemy import select, or_, and_
+from sqlalchemy.orm import defer
 from src.models import Match, MatchStatistics, MatchEvent, Referee
 from src.jobs.worker import aware
 from src.scrapers.goaloo.statistics import STAT_FIELDS
@@ -88,7 +89,7 @@ async def additional_statistics(session,match,cutoff):
     basis='yellow_plus_red'
     history_key=(match.league_id,cutoff)
     history_cache=session.info.setdefault('recommendation_count_history',{})
-    query=select(Match,MatchStatistics).outerjoin(MatchStatistics,and_(MatchStatistics.match_id==Match.id,MatchStatistics.is_final.is_(True),MatchStatistics.updated_at<=cutoff)).where(
+    query=select(Match,MatchStatistics).options(defer(Match.raw),defer(MatchStatistics.raw)).outerjoin(MatchStatistics,and_(MatchStatistics.match_id==Match.id,MatchStatistics.is_final.is_(True),MatchStatistics.updated_at<=cutoff)).where(
         Match.league_id==match.league_id,Match.id!=match.id,Match.status=='finished',
         Match.kickoff_at<=cutoff-timedelta(hours=3),Match.kickoff_at>=cutoff-timedelta(days=3*366),
         Match.created_at<=cutoff,Match.updated_at<=cutoff,or_(Match.last_scraped_at.is_(None),Match.last_scraped_at<=cutoff),
@@ -108,11 +109,14 @@ async def additional_statistics(session,match,cutoff):
         prediction=count_prediction(rows,match.home_team_id,match.away_team_id,metric,basis)
         if match.kickoff_at is None:prediction.update(status='insufficient_data',expected_home=None,expected_away=None,expected_total=None,over_probabilities={})
         result[metric]={**sides,'prediction':prediction}
-    observed=await session.get(MatchStatistics,match.id)
+    observed_cache=session.info.get('board_statistics',{})
+    observed=observed_cache[match.id] if match.id in observed_cache else await session.get(MatchStatistics,match.id)
     result['observed_match_statistics']={key:getattr(observed,key) for key in STAT_FIELDS} if observed and observed.collection_status=='available' else None
     result['observed_statistics_at']=aware(observed.updated_at) if observed else None
+    event_cache=session.info.get('board_events',{})
+    events=event_cache[match.id] if match.id in event_cache else (await session.scalars(select(MatchEvent).where(MatchEvent.match_id==match.id).order_by(MatchEvent.minute,MatchEvent.stoppage_minute,MatchEvent.id))).all()
     result['events']=[{'minute':e.minute,'stoppage_minute':e.stoppage_minute,'team_side':e.team_side,'event_type':e.event_type,
-                       'player_name':e.player_name,'secondary_player_name':e.secondary_player_name} for e in (await session.scalars(select(MatchEvent).where(MatchEvent.match_id==match.id).order_by(MatchEvent.minute,MatchEvent.stoppage_minute,MatchEvent.id))).all()]
+                       'player_name':e.player_name,'secondary_player_name':e.secondary_player_name} for e in events]
     result['referee']=None
     if match.referee_id:
         referee=await session.get(Referee,match.referee_id)
