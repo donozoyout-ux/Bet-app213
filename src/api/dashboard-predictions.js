@@ -7,10 +7,11 @@
   const num=value=>value == null ? '—' : Number(value).toFixed(2);
   const date=value=>value ? new Date(value).toLocaleString('tr-TR',{timeZone:'Europe/Istanbul'}) : 'Veri hazırlanıyor';
   const confidence={low:'Düşük',medium:'Orta',high:'Yüksek'};
-  async function api(path){const response=await fetch(path,{signal:AbortSignal.timeout(15000)});if(!response.ok)throw new Error(`HTTP ${response.status}`);return response.json();}
+  let detailController;
+  async function api(path,signal){const response=await fetch(path,{signal:signal ? AbortSignal.any([signal,AbortSignal.timeout(15000)]) : AbortSignal.timeout(15000)});if(!response.ok)throw new Error(`HTTP ${response.status}`);return response.json();}
   function node(tag,text,className=''){const element=document.createElement(tag);element.textContent=text;element.className=className;return element;}
   function line(parent,label,value){const row=node('div','','stats-line');row.append(node('span',label,'text-outline'),node('span',value,'font-semibold'));parent.append(row);}
-  function clear(){state.selected=null;state.detailGeneration++;state.detailData=null;state.detailLoadedAt=0;const box=$('statistics-detail');if(box){box.replaceChildren();box.hidden=true;}const dialog=$('analysis-dialog');if(dialog?.open)dialog.close();}
+  function clear(){detailController?.abort();state.selected=null;state.detailGeneration++;state.detailData=null;state.detailLoadedAt=0;const box=$('statistics-detail');if(box){box.replaceChildren();box.hidden=true;}const dialog=$('analysis-dialog');if(dialog?.open)dialog.close();}
   function form(parent,label,data){
     const box=node('section','','stats-block');box.append(node('h4',label,'font-bold text-primary'));
     if(!data || !data.sample_size){box.append(node('p','Yetersiz veri'));parent.append(box);return;}
@@ -73,12 +74,13 @@
     form(stats,`${m.home_team} • Son 5`,data.home_form);form(stats,`${m.away_team} • Son 5`,data.away_form);
     form(stats,`${m.home_team} • Son 10`,data.home_last_10);form(stats,`${m.away_team} • Son 10`,data.away_last_10);
     form(stats,`${m.home_team} • Ev sahibi tarafı (son 10)`,data.home_split);form(stats,`${m.away_team} • Deplasman tarafı (son 10)`,data.away_split);box.append(stats);}
-    if(state.tab==='h2h'){
+    if(['form','h2h'].includes(state.tab)){
     const h2h=node('section','','stats-block');h2h.append(node('h4','Son Karşılaşmalar (H2H)','font-bold text-primary'));
     if(!data.h2h_summary.sufficient)h2h.append(node('p','Yeterli H2H verisi yok'));
     for(const match of data.h2h)h2h.append(node('p',`${date(match.date)} • ${match.home} ${match.home_goals}–${match.away_goals} ${match.away}`));
     if(data.h2h.length)line(h2h,`${m.home_team} G / B / M`,`${data.h2h_summary.wins} / ${data.h2h_summary.draws} / ${data.h2h_summary.losses}`);
     box.append(h2h);}
+    if(state.tab==='handicap'){const section=node('section','','stats-block');section.append(node('h4','Asya Handikap'));const picks=(data.candidates || []).filter(r=>r.market==='asian_handicap');if(!picks.length)section.append(node('p','Bu maç için kullanılabilir handikap modeli yok. Oranlar sekmesinde kaynak fiyatlarını inceleyebilirsiniz.'));for(const r of picks)line(section,r.label,`${pct(r.probability)} • ${r.qualifies?'Kalite eşiğini geçti':'Kalite eşiğinin altında'}`);box.append(section);}
     if(['corners','cards'].includes(state.tab))extraStatistics(box,data,state.tab);
     if(state.tab==='odds'){
     const market=node('section','','stats-block');market.append(node('h4','1X2 • Model / Piyasa Karşılaştırması','font-bold text-primary'));
@@ -108,9 +110,10 @@
     const changed=state.selected!==id;const dialog=$('analysis-dialog');if(dialog && !dialog.open){dialog.showModal?.();if(!dialog.showModal)dialog.open=true;}
     if(changed){state.tab='summary';setTab('summary');}
     if(state.selected===id && state.detailData && Date.now()-state.detailLoadedAt<600000){if(scroll)box?.scrollIntoView?.({behavior:'smooth',block:'start'});return state.detailData;}
+    detailController?.abort();detailController=globalThis.AbortController ? new AbortController() : null;
     state.selected=id;state.detailData=null;state.detailLoadedAt=0;const generation=++state.detailGeneration;
     if(box){box.hidden=false;box.replaceChildren();box.append(node('p','Veri hazırlanıyor','analysis-loading'));}
-    try {const data=await api(`/api/matches/${id}/statistics`);if(state.selected!==id || generation!==state.detailGeneration)return;if(data.match.id!==id)throw new Error('Match identity mismatch');renderStatistics(data);state.detailData=data;state.detailLoadedAt=Date.now();if(scroll)box?.scrollIntoView?.({behavior:'smooth',block:'start'});return data;}
+    try {const data=await api(`/api/matches/${id}/statistics`,detailController?.signal);if(state.selected!==id || generation!==state.detailGeneration)return;if(data.match.id!==id)throw new Error('Match identity mismatch');renderStatistics(data);state.detailData=data;state.detailLoadedAt=Date.now();if(scroll)box?.scrollIntoView?.({behavior:'smooth',block:'start'});return data;}
     catch(_){if(generation!==state.detailGeneration)return;if(box){box.replaceChildren();box.append(node('p','Veri hazırlanıyor • Bağlantı bekleniyor'));}}
   }
   function card(item){
