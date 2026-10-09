@@ -1,5 +1,6 @@
 import logging
 import hashlib
+from datetime import timedelta, timezone
 from sqlalchemy import select
 from src.models import Team, Season, Match, Bookmaker, Odds1X2, AsianHandicap, AsianTotals, OddsSnapshot, utcnow
 from src.models import MatchStatistics, MatchEvent, Referee
@@ -29,8 +30,13 @@ async def store_match(session, league_id, season_name, data):
     values.update(league_id=league_id, season_id=season.id, home_team_id=home.id, away_team_id=away.id)
     match = await get_or_create(session, Match, {'external_match_id': data['external_match_id']}, values)
     # An archive schedule can lag the verified live scoreboard. Do not regress it.
-    protect_score = (match.status == 'finished' and data['status'] != 'finished') or (
+    observed=match.status_observed_at
+    if observed and observed.tzinfo is None:observed=observed.replace(tzinfo=timezone.utc)
+    fresh_live=observed is not None and observed>=utcnow()-timedelta(minutes=5)
+    protect_score = fresh_live or (match.status == 'finished' and data['status'] != 'finished') or (
         match.status_observed_at is not None and match.status != 'scheduled' and data['status']=='scheduled')
+    if (match.raw or {}).get('live') is not None:
+        values['raw']={**values['raw'],'live':match.raw['live']}
     for k, v in values.items():
         if protect_score and k in {'status','ft_home','ft_away','ht_home','ht_away'}:
             continue

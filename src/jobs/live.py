@@ -7,7 +7,7 @@ import asyncio
 import logging
 import time
 from datetime import timedelta, timezone
-from sqlalchemy import select, or_
+from sqlalchemy import select, or_, case
 from sqlalchemy.orm import aliased
 
 from src.models import Match, League, Team, MatchStatistics, utcnow
@@ -53,6 +53,7 @@ class PriorityUpdater:
         now=utcnow()
         start,end=day_bounds(now.astimezone(ZoneInfo(DISPLAY_TIMEZONE)).date(),DISPLAY_TIMEZONE)
         home,away=aliased(Team),aliased(Team)
+        urgent=or_(Match.status.in_(LIVE_STATUSES),Match.kickoff_at<=now+timedelta(minutes=30))
         async with self.db.session() as session:
             rows=(await session.execute(select(Match,League.external_id,home.external_id,away.external_id)
                 .join(League).join(home,home.id==Match.home_team_id).join(away,away.id==Match.away_team_id)
@@ -60,14 +61,13 @@ class PriorityUpdater:
                     or_(Match.status.in_(LIVE_STATUSES),
                         (Match.status.in_(['scheduled','pending','interrupted'])) &
                         (Match.kickoff_at>=start-timedelta(days=1)) & (Match.kickoff_at<end)),
-                    or_(Match.live_checked_at.is_(None),Match.live_checked_at<=now-timedelta(seconds=60)))
-                .order_by(Match.live_checked_at.asc().nullsfirst(),Match.kickoff_at,Match.id).limit(32))).all()
+                    or_(Match.live_checked_at.is_(None),
+                        urgent & (Match.live_checked_at<=now-timedelta(seconds=60)),
+                        ~urgent & (Match.live_checked_at<=now-timedelta(minutes=10))))
+                .order_by(case((urgent,0),else_=1),Match.live_checked_at.asc().nullsfirst(),Match.kickoff_at,Match.id).limit(32))).all()
         deadline=time.monotonic()+20
         for match,league,home_id,away_id in rows:
             if time.monotonic()>=deadline:break
-            # Far-away fixtures need status refreshes, not minute-by-minute fetches.
-            if match.status=='scheduled' and aware(match.kickoff_at)>now+timedelta(minutes=30):
-                if match.live_checked_at and aware(match.live_checked_at)>now-timedelta(minutes=10):continue
             try:
                 async with asyncio.timeout(8):
                     observation,source=await fetch_live(client,match.external_match_id,league,home_id,away_id)
