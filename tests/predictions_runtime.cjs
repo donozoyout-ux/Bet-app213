@@ -28,6 +28,11 @@ async function scenario(mode){
       if(mode==='pagination' && path.includes('/best')){const offset=Number(new URLSearchParams(path.split('?')[1]).get('offset') || 0);const item=recorded.page.items[offset===0?0:1];const recommendation=item.recommendations.find(r=>r.confidence==='high');payload.items=Array.from({length:offset===0?100:1},()=>({match:item.match,recommendation}));}
       if(mode==='empty' && path.includes('/api/predictions'))payload.items=[];
       if(mode==='insufficient' && path.includes('/api/predictions'))payload.items=[{...payload.items[0],recommendations:[],prediction:{...payload.items[0].prediction,status:'insufficient_data',home_probability:null,draw_probability:null,away_probability:null}}];
+      if(mode==='card-categories' && path.includes('/statistics')){
+        const summary={for_avg:2,against_avg:3,for_sample_size:2,against_sample_size:2,matches_considered:5,sample_size:2,total_avg:5,missing_total_sample_size:3,over_rates:{},red_sample_size:0};
+        const profile=Object.fromEntries(['last_5','last_10','season','home_split','away_split'].map(key=>[key,summary]));
+        payload.additional_statistics={yellow_cards:{home:profile,away:profile,prediction:{basis:'yellow_only',status:'insufficient_data',sample_size:2,league_sample_size:2,insufficient_reasons:[{code:'league_sample_size',actual:2,required:20}]}}};
+      }
       if(mode==='race' && path.includes('/statistics')){
         const first=recorded.page.items[0].match.id;
         if(path===`/api/matches/${first}/statistics`)return await new Promise(resolve=>{releaseFirst=()=>resolve({ok:true,json:async()=>payload});});
@@ -69,6 +74,16 @@ async function scenario(mode){
   assert(ids.get('analysis-dialog').open);
   assert(box.text().includes('Seçilen Güçlü Tahminler'));
   for(const [key,words] of [['form',['Son 5','Son 10']],['goals',['Beklenen Gol']],['h2h',['H2H']],['odds',['Crown','Bet365','Sbobet','Model / Piyasa']],['corners',['KORNERLER','Yetersiz veri']],['cards',['KARTLAR','Yetersiz veri']]]){tabs.find(tab=>tab.dataset.analysisTab===key).onclick();for(const word of words)assert(box.text().includes(word));assert(box.text().includes(recorded.statistics.match.home_team));}
+  if(mode==='card-categories'){
+    const all=(el)=>[el,...el.children.flatMap(all)];
+    assert(box.text().includes('2.00 / 3.00'));
+    assert(box.text().includes('2 / 20 gerekli'));
+    assert(box.text().includes('Tahmin önerisi değildir'));
+    let red=all(box).find(el=>el.attrs['data-card-category']==='red_cards');red.onclick();
+    assert(box.text().includes('KIRMIZI KARTLAR') && box.text().includes('Yetersiz veri'));
+    const yellow=all(box).find(el=>el.attrs['data-card-category']==='yellow_cards');yellow.onclick();
+    assert(box.text().includes('2.00 / 3.00'));return;
+  }
   tabs[0].onkeydown({key:'ArrowRight',preventDefault(){}});assert(tabs[1].focused);
   tabs[0].onclick();
   assert(!box.text().includes('HAKEM'));
@@ -79,4 +94,4 @@ async function scenario(mode){
   ids.get('analysis-close').onclick();assert(box.hidden && !box.children.length && !ids.get('analysis-dialog').open);
   await api.select(firstId);ids.get('analysis-dialog').oncancel({preventDefault(){}});assert(!ids.get('analysis-dialog').open);
 }
-(async()=>{const modes=process.argv[2]?[process.argv[2]]:['populated','insufficient','empty','failed','detail-failed','missing','race','filter','best','one','two','three','confidence','pagination'];for(const mode of modes)await scenario(mode);console.log(`prediction runtime: ${modes.length} scenarios passed`);})().catch(error=>{console.error(error);process.exitCode=1;});
+(async()=>{const modes=process.argv[2]?[process.argv[2]]:['populated','insufficient','empty','failed','detail-failed','missing','race','filter','best','one','two','three','confidence','pagination','card-categories'];for(const mode of modes)await scenario(mode);console.log(`prediction runtime: ${modes.length} scenarios passed`);})().catch(error=>{console.error(error);process.exitCode=1;});

@@ -6,7 +6,7 @@ const node=(tag,text='',cls='')=>{const el=document.createElement(tag);el.textCo
 const write=(id,text)=>{if($(id))$(id).textContent=text;},pct=v=>v==null?'—':'%'+(100*v).toFixed(1);
 const date=v=>v?new Date(v).toLocaleString('tr-TR',{timeZone:'Europe/Istanbul',dateStyle:'medium',timeStyle:'short'}):'Veri bekleniyor';
 const today=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Istanbul',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
-const families={all:'Tümü',result:'Sonuç',double_chance:'Çifte Şans',goals:'Gol',btts:'KG',asian_handicap:'Handikap',corners:'Korner',cards:'Kart'};
+const families={all:'Tümü',result:'Sonuç',double_chance:'Çifte Şans',goals:'Gol',btts:'KG',asian_handicap:'Handikap',corners:'Korner',cards:'Sarı + Kırmızı',yellow_cards:'Sarı Kart',red_cards:'Kırmızı Kart'};
 const confidences={high:'Yüksek',medium:'Orta',low:'Düşük'},outcomes={won:'Kazandı',lost:'Kaybetti',pending:'Bekliyor',awaiting_data:'Final veri bekleniyor',void:'İptal / geçersiz'};
 const pages=['home','predictions','markets','matches','performance'];
 const state={page:'home',market:'goals',offset:0,performanceOffset:0,controllers:new Map(),lastMatch:null};

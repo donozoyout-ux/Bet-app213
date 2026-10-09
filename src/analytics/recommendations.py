@@ -83,7 +83,7 @@ def build_candidates(result,market_support=None):
         add('btts','yes','KG Var',p['btts_probability'],'goal_environment',evidence)
         add('btts','no','KG Yok',p['no_btts_probability'],'goal_environment',evidence)
         for candidate in result.get('asian_handicap_candidates',[]):add('asian_handicap',candidate['selection'],candidate['label'],candidate['probability'],'outcome',evidence)
-    for metric,label,lines in [('corners','Korner',['7_5','8_5','9_5','10_5','11_5']),('cards','Kart',['2_5','3_5','4_5','5_5','6_5'])]:
+    for metric,label,lines in [('corners','Korner',['7_5','8_5','9_5','10_5','11_5']),('cards','Kart',['2_5','3_5','4_5','5_5','6_5']),('yellow_cards','Sarı Kart',['2_5','3_5','4_5','5_5','6_5']),('red_cards','Kırmızı Kart',['0_5','1_5','2_5'])]:
         values=extra.get(metric);cp=values.get('prediction') if values else None
         if not cp or cp['status']!='ok':continue
         ratios=[];stabilities=[];seasons=[]
@@ -103,15 +103,16 @@ def build_candidates(result,market_support=None):
         for line in lines:
             over=cp['over_probabilities'].get(line.replace('_','.'))
             if over is None:continue
-            add(metric,'over_'+line,line.replace('_','.')+' '+label+' Üst',over,metric,evidence)
-            add(metric,'under_'+line,line.replace('_','.')+' '+label+' Alt',1-over,metric,evidence)
+            add(metric,'over_'+line,line.replace('_','.')+' '+label+' Üst',over,'cards' if metric.endswith('cards') else metric,evidence)
+            add(metric,'under_'+line,line.replace('_','.')+' '+label+' Alt',1-over,'cards' if metric.endswith('cards') else metric,evidence)
     return candidates
 
 
 def count_market_availability(result):
     """Explain model, selection and ranking separately; never force a family pick."""
     availability={}
-    for market in ('corners','cards'):
+    for market in ('corners','cards','yellow_cards','red_cards'):
+        if market not in result['additional_statistics']:continue
         model=result['additional_statistics'][market]['prediction']
         candidates=[c for c in result['candidates'] if c['market']==market]
         selected=[c for c in result['recommendations'] if c['market']==market]
@@ -126,8 +127,8 @@ def count_market_availability(result):
 
 def summarize_availability(evaluated, market='all', visible=0):
     families={}
-    for metric in ('corners','cards'):
-        rows=[dict(match_id=id,**value[metric]) for id,value in evaluated]
+    for metric in ('corners','cards','yellow_cards','red_cards'):
+        rows=[dict(match_id=id,**value[metric]) for id,value in evaluated if metric in value]
         families[metric]=dict(evaluated_matches=len(rows),
             model_ready_matches=sum(row['model']['status']=='ok' for row in rows),
             selected_matches=sum(row['status']=='selected' for row in rows),matches=rows)
