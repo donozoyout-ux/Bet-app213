@@ -31,12 +31,15 @@ def rank_candidate(candidate):
     convenience_penalty=.06 if candidate['market']=='double_chance' else 0
     extreme_penalty=max(0,p-.85)*.25
     score=clamp(.2*p+.8*reliability-convenience_penalty-extreme_penalty)
-    passed=all([math.isfinite(p),p>=PROBABILITY_MIN,reliability>=RELIABILITY_MIN,score>=SCORE_MIN,
-                min(q['home_sample'],q['away_sample'])>=8,min(q['home_venue'],q['away_venue'])>=5,
-                q['league_sample']>=50,q['completeness']>=.6,q['stability']>=.5])
+    checks={'probability':math.isfinite(p) and p>=PROBABILITY_MIN,'reliability':reliability>=RELIABILITY_MIN,
+        'score':score>=SCORE_MIN,'team_samples':min(q['home_sample'],q['away_sample'])>=8,
+        'venue_samples':min(q['home_venue'],q['away_venue'])>=5,'league_samples':q['league_sample']>=50,
+        'completeness':q['completeness']>=.6,'stability':q['stability']>=.5}
+    rejected=[key for key,passed in checks.items() if not passed]
+    passed=not rejected
     confidence='high' if reliability>=.9 and q['season_agreement']>=.8 and candidate.get('bookmaker_count',0)>=2 and q.get('competition_type')!='national' else 'medium' if reliability>=.7 else 'low'
     return {**candidate,'score':score,'reliability':reliability,'confidence':confidence,'qualifies':passed,
-            'sample_size':q['sample_size'],'score_components':components,'model_market_difference':difference,
+            'rejection_reasons':rejected,'sample_size':q['sample_size'],'score_components':components,'model_market_difference':difference,
             'penalties':{'insurance':convenience_penalty,'extreme_probability':extreme_penalty}}
 
 
@@ -103,3 +106,33 @@ def build_candidates(result,market_support=None):
             add(metric,'over_'+line,line.replace('_','.')+' '+label+' Üst',over,metric,evidence)
             add(metric,'under_'+line,line.replace('_','.')+' '+label+' Alt',1-over,metric,evidence)
     return candidates
+
+
+def count_market_availability(result):
+    """Explain model, selection and ranking separately; never force a family pick."""
+    availability={}
+    for market in ('corners','cards'):
+        model=result['additional_statistics'][market]['prediction']
+        candidates=[c for c in result['candidates'] if c['market']==market]
+        selected=[c for c in result['recommendations'] if c['market']==market]
+        qualified=[c for c in candidates if c['qualifies']]
+        status=('insufficient_data' if model['status']!='ok' else 'selected' if selected else
+            'ranked_out' if qualified else 'below_quality_threshold')
+        availability[market]=dict(status=status,basis=model['basis'],model=model,
+            qualified_candidates=len(qualified),selected_recommendations=len(selected),
+            rejection_reasons=sorted({reason for c in candidates for reason in c.get('rejection_reasons',[])}))
+    return availability
+
+
+def summarize_availability(evaluated, market='all', visible=0):
+    families={}
+    for metric in ('corners','cards'):
+        rows=[dict(match_id=id,**value[metric]) for id,value in evaluated]
+        families[metric]=dict(evaluated_matches=len(rows),
+            model_ready_matches=sum(row['model']['status']=='ok' for row in rows),
+            selected_matches=sum(row['status']=='selected' for row in rows),matches=rows)
+    selected=families.get(market)
+    reason=('available' if visible else 'no_upcoming_matches' if not evaluated else
+        'insufficient_data' if selected and not selected['model_ready_matches'] else
+        'filtered_out' if selected and selected['selected_matches'] else 'no_qualified_recommendations')
+    return dict(status=reason,markets=families)

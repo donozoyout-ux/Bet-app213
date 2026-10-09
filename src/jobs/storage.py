@@ -29,7 +29,8 @@ async def store_match(session, league_id, season_name, data):
     values.update(league_id=league_id, season_id=season.id, home_team_id=home.id, away_team_id=away.id)
     match = await get_or_create(session, Match, {'external_match_id': data['external_match_id']}, values)
     for k, v in values.items():
-        setattr(match, k, v)
+        if v is not None or k not in {'ht_home','ht_away','ft_home','ft_away'}:
+            setattr(match, k, v)
     return match
 
 
@@ -37,7 +38,8 @@ async def store_odds(session, match, odds, final):
     for name, markets in odds.items():
         bookmaker = await session.scalar(select(Bookmaker).where(Bookmaker.name == name))
         for key, model in [('1x2', Odds1X2), ('ah', AsianHandicap), ('ou', AsianTotals)]:
-            data = markets[key]
+            data = markets.get(key)
+            if not data:continue
             row = await get_or_create(session, model, {'match_id': match.id, 'bookmaker_id': bookmaker.id}, {'raw': data['raw']})
             for field, value in data.items():
                 if field == 'raw' or value is not None:

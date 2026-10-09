@@ -268,7 +268,7 @@ python -m src.jobs.stats_backfill --league 36 --enqueue-only
 python -m src.jobs.stats_backfill --league 36 --resume JOB_ID
 ```
 
-The authenticated POST `/api/scraper/stats-backfill` queues a competition; POST `/api/scraper/statistics/{match_id}` refreshes one stored completed match. Existing durable progress/locking/resume behavior applies. Startup does not enqueue statistics backfills. Normal odds updates also collect available live/finished statistics without failing the odds job on absent statistics. No new external dependency is required.
+The authenticated POST `/api/scraper/stats-backfill` queues a competition; POST `/api/scraper/statistics/{match_id}` refreshes one stored completed match. Existing durable progress/locking/resume behavior applies. With PostgreSQL and AUTO_BACKFILL_ON_EMPTY=true, the worker now reconciles missing statistics every 60 seconds and queues the enabled eight-league rollout independently of odds coverage. Active jobs are reused; automatic failed-item retries wait one day. Normal odds updates also collect available live/finished statistics without failing the odds job on absent statistics. No new external dependency is required.
 
 ### Automatic recommendation selection
 
@@ -289,3 +289,5 @@ The homepage is now a dark navy/cyan market terminal with summary cards, market-
 GET /api/predictions and /api/predictions/best retain the 0–3 strongest-pick engine. First qualified prematch selections are frozen atomically in prediction_snapshots (one row per match, immutable JSON pick set); the worker captures after a successful data job and the predictions API captures published picks as well. Existing completed matches are never retroactively converted into performance records. GET /api/market-performance streams saved records and settles only from final scores or published final count statistics. Pending, missing final data and void results are distinct; success denominators include won/lost only. Dates filter capture time in Europe/Istanbul. Average reliability is a quality index, not calibrated accuracy. No profit/ROI or bookmaker settlement convention is claimed.
 
 The new table is created additively by the existing PostgreSQL startup lock/create_all path; repeated startup is idempotent. Existing statistics/referee/event migrations remain in place. Diagnostics include enabled leagues and actual final corner/complete yellow+red/referee coverage. See docs/goaloo-match-statistics.md for verified source URLs and the authenticated, explicit serialized stats rollout. No production backfill or deployment was executed while developing this branch.
+
+See [the production corner/card audit](docs/corner-card-production-audit.md) for measured per-league coverage, root causes, sample requirements and deployment verification.

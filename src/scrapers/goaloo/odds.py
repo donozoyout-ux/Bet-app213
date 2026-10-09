@@ -1,4 +1,5 @@
 import math
+import logging
 from datetime import datetime, timezone
 from .client import SourceError
 from .handicap import home_handicap
@@ -53,7 +54,13 @@ def parse_odds(payload, final=False):
         name = bookmaker_name(row['cn'])
         if name != BOOKMAKERS[cid] or name in result:
             raise SourceError('Bookmaker ID/name mismatch or duplicate')
-        result[name] = {market: normalize_market(row.get(key, {}), market, final) for key, market in [('euro', '1x2'), ('ah', 'ah'), ('ou', 'ou')]}
+        result[name] = {}
+        for key, market in [('euro', '1x2'), ('ah', 'ah'), ('ou', 'ou')]:
+            try:
+                result[name][market] = normalize_market(row.get(key) or {}, market, final)
+            except (ValueError, TypeError, AttributeError):
+                logging.getLogger('goaloo').warning('[ODDS] malformed market bookmaker=%s market=%s',name,market)
+                result[name][market] = normalize_market({}, market, final)
     return result
 
 

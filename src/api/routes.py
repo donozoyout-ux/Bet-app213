@@ -17,7 +17,7 @@ from .schemas import LeagueResponse, SeasonResponse, BookmakerResponse, MatchPag
 from src.diagnostics import database_summary
 from src.analytics.service import statistics as compute_statistics, revision as prediction_revision
 from .prediction_schemas import PredictionPage, Statistics, GlobalPicks
-from src.analytics.recommendations import market_matches
+from src.analytics.recommendations import market_matches, summarize_availability
 
 router = APIRouter()
 
@@ -29,12 +29,12 @@ async def diagnostics():
               'auto_backfill_enabled': settings.auto_backfill_on_empty,
               'latest_job_status': None, 'total_matches': None, 'total_odds': None,
               'enabled_competitions': None, 'completed_competitions': None,
-              'active_backfill_competition': None, 'queued_backfills': None,'enabled_leagues':[],'match_counts_by_league':[],'stats_rows':None,'matches_with_corners':None,'matches_with_cards':None,'matches_with_referee':None,'active_backfill':None}
+              'active_backfill_competition': None, 'queued_backfills': None,'enabled_leagues':[],'match_counts_by_league':[],'stats_rows':None,'matches_with_corners':None,'matches_with_cards':None,'matches_with_referee':None,'active_backfill':None,'stats_coverage_by_league':[],'active_stats_backfill':None,'queued_stats_backfills':[]}
     if database.configured and database.ready:
         try:
             summary = await asyncio.wait_for(database_summary(database), timeout=5)
             result.update({key: summary[key] for key in ('latest_job_status', 'total_matches', 'total_odds', 'enabled_competitions', 'completed_competitions', 'active_backfill_competition', 'queued_backfills')})
-            result.update({key:summary[key] for key in ('enabled_leagues','match_counts_by_league','stats_rows','matches_with_corners','matches_with_cards','matches_with_referee','active_backfill')})
+            result.update({key:summary[key] for key in ('enabled_leagues','match_counts_by_league','stats_rows','matches_with_corners','matches_with_cards','matches_with_referee','active_backfill','stats_coverage_by_league','active_stats_backfill','queued_stats_backfills')})
             result['database_connected'] = True
         except Exception:
             logging.getLogger(__name__).exception('[DB] diagnostics unavailable')
@@ -196,7 +196,7 @@ async def predictions(league: str | None = None, date: Date | None = None,
     primary = [item for item in calculated if aware(item['match']['kickoff_at']) <= now + timedelta(hours=72)]
     enough=len(primary)>=min(5,limit)
     chosen=calculated if date or not enough else primary
-    return {'items':chosen[:limit],'window_hours':72 if enough and not date else 168,'generated_at':now}
+    return {'availability':summarize_availability(session.info.get('count_availability',[]),market,len(chosen)), 'items':chosen[:limit],'window_hours':72 if enough and not date else 168,'generated_at':now}
 
 
 async def calculate_predictions(session,league,date,team=None):
@@ -213,8 +213,10 @@ async def calculate_predictions(session,league,date,team=None):
     rows = (await session.execute(query.order_by(Match.kickoff_at.asc(), Match.id.asc()))).all()
     rev = await prediction_revision(session)
     calculated = [];captured=False
+    session.info['count_availability']=[]
     for row in rows:
         result = await compute_statistics(session, row[0], match_response(row), now, rev)
+        session.info['count_availability'].append((row[0].id,result['market_availability']))
         if result['recommendations']:
             item={key:result[key] for key in ('match','prediction','bookmaker_consensus','as_of','recommendations','strongest_prediction')}
             item['match_id']=row[0].id;calculated.append(item)
@@ -232,7 +234,7 @@ async def global_predictions(league: str | None=None,date: Date | None=None,team
     picks.sort(key=lambda item:(-item['recommendation']['score'],-item['recommendation']['reliability'],item['match']['kickoff_at'],item['match']['id'],item['recommendation']['id']))
     if sort=='kickoff':picks.sort(key=lambda item:(item['match']['kickoff_at'],item['match']['id']))
     elif sort=='probability':picks.sort(key=lambda item:-item['recommendation']['probability'])
-    return {'items':picks[offset:offset+limit],'generated_at':now,'evaluated_matches':evaluated}
+    return {'availability':summarize_availability(session.info.get('count_availability',[]),market,len(picks)), 'items':picks[offset:offset+limit],'generated_at':now,'evaluated_matches':evaluated}
 
 
 @router.get('/matches/{match_id}/statistics', response_model=Statistics)

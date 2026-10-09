@@ -9,7 +9,7 @@ from src.jobs.worker import aware
 from .predictions import Result, predict, implied_probabilities, team_stats, handicap_probability
 from src.match_views import LIVE_STATUSES
 from .match_statistics import additional_statistics
-from .recommendations import build_candidates,select_recommendations
+from .recommendations import build_candidates,select_recommendations,count_market_availability
 
 CACHE_SECONDS = 600
 _cache = OrderedDict()
@@ -132,6 +132,7 @@ async def statistics(session, match, context, now, data_revision=None):
     result['asian_handicap_candidates']=list(asian_candidates.values())
     candidates=build_candidates(result,support)
     result['candidates'],result['recommendations']=select_recommendations(candidates)
+    result['market_availability']=count_market_availability(result)
     result['strongest_prediction']=result['recommendations'][0]['id'] if result['recommendations'] else None
     _cache[key] = (time.monotonic(), result)
     _cache.move_to_end(key)
