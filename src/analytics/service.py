@@ -2,8 +2,8 @@
 from collections import OrderedDict
 from datetime import timedelta
 import time
-from sqlalchemy import select, func, or_, event
-from sqlalchemy.orm import aliased, Session
+from sqlalchemy import select, func, or_, event, true
+from sqlalchemy.orm import aliased, Session, defer
 from src.models import Match, League, Team, Bookmaker, Odds1X2, MatchStatistics, AsianHandicap, AsianTotals
 from src.jobs.worker import aware
 from .predictions import Result, predict, implied_probabilities, team_stats, handicap_probability
@@ -15,20 +15,66 @@ CACHE_SECONDS = 600
 _cache = OrderedDict()
 
 
+@event.listens_for(Session, 'before_flush')
+def mark_model_changes(session, flush_context, instances):
+    if any(isinstance(obj, (Match, League, Team, Odds1X2, MatchStatistics, AsianHandicap, AsianTotals))
+           for obj in session.new | session.dirty | session.deleted):
+        session.info['model_changed'] = True
+
+
 @event.listens_for(Session, 'after_commit')
 def invalidate_after_commit(session):
-    # Catch updates below a global MAX timestamp, not just count/MAX changes.
-    # Fires only after writes become visible; no pre-commit stale-cache race.
-    _cache.clear()
+    # Job counters and immutable prediction snapshots do not invalidate models.
+    if session.info.pop('model_changed', False):
+        _cache.clear()
+
+
+@event.listens_for(Session, 'after_rollback')
+def discard_model_changes(session):
+    session.info.pop('model_changed', None)
 
 
 async def revision(session):
-    matches = (await session.execute(select(func.count(Match.id), func.max(Match.updated_at), func.max(Match.last_scraped_at)))).one()
-    odds = (await session.execute(select(func.count(Odds1X2.id), func.max(Odds1X2.updated_at)))).one()
-    stats=(await session.execute(select(func.count(MatchStatistics.match_id),func.max(MatchStatistics.updated_at)))).one()
-    asian=(await session.execute(select(func.count(AsianHandicap.id),func.max(AsianHandicap.updated_at)))).one()
-    totals=(await session.execute(select(func.count(AsianTotals.id),func.max(AsianTotals.updated_at)))).one()
-    return tuple(matches) + tuple(odds) + tuple(stats)+tuple(asian)+tuple(totals)
+    base = select(func.count(Match.id), func.max(Match.updated_at), func.max(Match.last_scraped_at)).subquery()
+    source, columns = base, list(base.c)
+    for model, pk in [(Odds1X2, Odds1X2.id), (MatchStatistics, MatchStatistics.match_id),
+                      (AsianHandicap, AsianHandicap.id), (AsianTotals, AsianTotals.id)]:
+        aggregate = select(func.count(pk), func.max(model.updated_at)).subquery()
+        source = source.join(aggregate, true())
+        columns.extend(aggregate.c)
+    return tuple((await session.execute(select(*columns).select_from(source))).one())
+
+
+async def prefetch_markets(session, matches):
+    """Three queries for the entire board, rather than three for every match."""
+    ids = [m.id for m in matches]
+    cache = session.info.setdefault('board_markets', {})
+    for model in (Odds1X2, AsianHandicap, AsianTotals):
+        grouped = {id: [] for id in ids}
+        if ids:
+            rows = await session.execute(select(model, Bookmaker.name).options(defer(model.raw)).join(Bookmaker).where(
+                model.match_id.in_(ids), Bookmaker.name.in_(['Crown', 'Bet365', 'Sbobet'])))
+            for row in rows:
+                grouped[row[0].match_id].append(row)
+        cache[model] = grouped
+    from src.models import MatchEvent, PredictionSnapshot
+    stats = (await session.scalars(select(MatchStatistics).options(defer(MatchStatistics.raw)).where(MatchStatistics.match_id.in_(ids)))).all() if ids else []
+    session.info['board_statistics'] = {id: None for id in ids}
+    session.info['board_statistics'].update({s.match_id: s for s in stats})
+    events = {id: [] for id in ids}
+    if ids:
+        for event in await session.scalars(select(MatchEvent).options(defer(MatchEvent.raw)).where(MatchEvent.match_id.in_(ids)).order_by(MatchEvent.minute,MatchEvent.stoppage_minute,MatchEvent.id)):
+            events[event.match_id].append(event)
+    session.info['board_events'] = events
+    session.info['captured_matches'] = set(await session.scalars(select(PredictionSnapshot.match_id).where(PredictionSnapshot.match_id.in_(ids)))) if ids else set()
+
+
+async def market_rows(session, model, match_id):
+    cached = session.info.get('board_markets', {}).get(model, {})
+    if match_id in cached:
+        return cached[match_id]
+    return (await session.execute(select(model, Bookmaker.name).options(defer(model.raw)).join(Bookmaker).where(
+        model.match_id == match_id, Bookmaker.name.in_(['Crown','Bet365','Sbobet'])))).all()
 
 
 async def statistics(session, match, context, now, data_revision=None):
@@ -59,7 +105,7 @@ async def statistics(session, match, context, now, data_revision=None):
         rows=(await session.execute(query)).all()
         history_cache[history_key]=[Result(*row[:5],aware(row[5]),row[6],row[7],row[8]) for row in rows]
     history=history_cache[history_key]
-    markets = (await session.execute(select(Odds1X2, Bookmaker.name).join(Bookmaker).where(Odds1X2.match_id == match.id, Bookmaker.name.in_(['Crown','Bet365','Sbobet'])))).all()
+    markets = await market_rows(session, Odds1X2, match.id)
     bookmakers, valid = [], []
     for market, name in markets:
         closing = any(getattr(market, f'closing_{field}') is not None for field in ('home','draw','away'))
@@ -99,7 +145,7 @@ async def statistics(session, match, context, now, data_revision=None):
     asian_candidates={};paired_support={}
     if prediction['status']=='ok':
         for model,metric in [(AsianTotals,'goals'),(AsianHandicap,'asian_handicap')]:
-            price_rows=(await session.execute(select(model,Bookmaker.name).join(Bookmaker).where(model.match_id==match.id,model.updated_at<=cutoff,Bookmaker.name.in_(['Crown','Bet365','Sbobet'])))).all()
+            price_rows=[row for row in await market_rows(session,model,match.id) if aware(row[0].updated_at)<=cutoff]
             for row,name in price_rows:
                 stage='closing' if match.status=='finished' else 'latest'
                 line=getattr(row,stage+'_line')

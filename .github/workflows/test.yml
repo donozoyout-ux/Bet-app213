@@ -31,7 +31,7 @@ jobs:
       - run: python -m playwright install --with-deps chromium
       - run: python -m compileall src legacy
       - run: python -c "import pathlib; paths=list(pathlib.Path('.').rglob('*.py')); assert not [str(p) for p in paths if b'\x00' in p.read_bytes()]"
-      - run: python -m pytest -q
+      - run: python -m pytest -q -rP
       - name: Dashboard JavaScript syntax and degraded-state execution
         run: |
           node --check src/api/dashboard.js

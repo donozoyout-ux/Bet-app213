@@ -18,6 +18,7 @@ from .storage import store_match, store_odds, store_history, get_or_create
 from .storage import store_statistics
 from src.models import MatchStatistics
 from src.scrapers.goaloo.statistics import fetch_statistics
+from .resources import wait_for_capacity
 
 log = logging.getLogger('scraper')
 LOCK_ID = 213002
@@ -181,6 +182,7 @@ async def discover(job_id, client):
         if kind == 'match':
             match = await session.get(Match, job.match_id)
             season = await session.get(Season, match.season_id)
+            await session.commit()
             data = await fetch_match_details(client, match.external_match_id, external_id, season.season_name, schedule_format='cup') if schedule_format == 'cup' else await fetch_match_details(client, match.external_match_id, external_id, season.season_name)
             await store_match(session, league_id, season.season_name, data)
             await get_or_create(session, JobItem, {'job_id': job.id, 'match_id': match.id})
@@ -253,6 +255,7 @@ async def run_job(job_id):
             async with database.session() as session:
                 item_ids = list(await session.scalars(select(JobItem.id).where(JobItem.job_id == job_id, JobItem.status.in_(['queued', 'running'])).order_by(JobItem.id)))
             for item_id in item_ids:
+                await wait_for_capacity()
                 async with database.session() as session:
                     job = await session.get(ScraperJob, job_id)
                     if not await league_enabled(session, job):
@@ -302,6 +305,9 @@ async def process_item(job_id, item_id, client):
             await session.commit()
             log.info('[MATCH] match_id=%s season=%s round=%s', external_id, season.season_name, match.round)
             league=await session.get(League,match.league_id)
+            # expire_on_commit=False keeps the loaded metadata usable while releasing
+            # the connection before potentially slow HTTP retries.
+            await session.commit()
             if job.kind=='stats_backfill':
                 data=await fetch_statistics(client,external_id,league.external_id)
                 await store_statistics(session,match,data)
@@ -325,7 +331,9 @@ async def process_item(job_id, item_id, client):
                     except SourceError:
                         log.warning('[STATISTICS] source unavailable match_id=%s; dedicated stats job will retry',external_id)
                 if settings.save_snapshots:
-                    for bookmaker in (await session.scalars(select(Bookmaker))).all():
+                    bookmakers = (await session.scalars(select(Bookmaker))).all()
+                    await session.commit()
+                    for bookmaker in bookmakers:
                         try:
                             history = await fetch_history(client, external_id, bookmaker.external_id)
                             await store_history(session, match.id, bookmaker.id, history)
@@ -368,6 +376,7 @@ async def work(once=False):
     stats_queue_checked = float('-inf')
     while True:
         try:
+            await wait_for_capacity()
             if not database.ready:
                 await database.initialize()
             if not initialization_checked:
