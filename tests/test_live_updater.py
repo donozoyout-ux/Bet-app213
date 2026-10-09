@@ -123,6 +123,22 @@ async def test_past_kickoff_stays_scheduled_when_source_says_scheduled(db,monkey
         assert match.ft_home is None and match.ft_away is None
 
 
+async def test_distant_fixtures_cannot_crowd_due_live_match_out_of_batch(db,monkeypatch):
+    import src.jobs.live as live
+    await seed_match(db);monkeypatch.setattr(live,'utcnow',lambda:NOW)
+    async with db.session() as session:
+        match=await session.get(Match,5959)
+        match.status='live';match.live_checked_at=NOW-timedelta(minutes=2)
+        for i in range(40):
+            session.add(Match(external_match_id=6000000+i,league_id=match.league_id,season_id=match.season_id,
+                round=8,home_team_id=match.home_team_id,away_team_id=match.away_team_id,
+                kickoff_at=NOW+timedelta(hours=2),status='scheduled',live_checked_at=NOW-timedelta(minutes=2),raw={}))
+        await session.commit()
+    source=Source();await PriorityUpdater(db).live_cycle(source)
+    assert source.calls==1
+    async with db.session() as session:assert (await session.get(Match,5959)).ft_home==0
+
+
 async def test_live_fetch_does_not_hold_transaction_and_api_remains_responsive(api,db,monkeypatch):
     import src.jobs.live as live
     await seed_match(db);monkeypatch.setattr(live,'utcnow',lambda:NOW)
@@ -187,6 +203,20 @@ async def test_stale_schedule_cannot_undo_live_status(db):
             ht_home=None,ht_away=None,ft_home=None,ft_away=None,raw={})
         await store_match(session,league,'2026-2027',stale);await session.commit()
         assert match.status=='live' and match.ft_home==0
+
+
+async def test_stale_live_schedule_cannot_erase_new_score(db):
+    from src.models import utcnow
+    league,_=await seed_match(db)
+    async with db.session() as session:
+        match=await session.get(Match,5959)
+        observed=parse_scoreboard(SCORE);observed['ft_home']=1
+        await store_live(session,match,observed,utcnow());await session.commit()
+        stale=dict(external_match_id=3026745,round=8,kickoff_at=NOW-timedelta(minutes=40),status='live',
+            home_external_id=516,away_external_id=4469,home_name='Galatasaray',away_name='Kasimpasa',
+            ht_home=None,ht_away=None,ft_home=0,ft_away=0,raw={'schedule':[]})
+        await store_match(session,league,'2026-2027',stale);await session.commit()
+        assert match.ft_home==1 and match.raw['live']==observed['raw']
 
 
 async def test_recent_statistics_rotates_all_eight_leagues_and_reports_progress(api,db,monkeypatch):

@@ -56,7 +56,8 @@ between durable historical items. No new service or paid infrastructure is added
   is queued, leaving completed items and counters untouched. Update jobs are
   selected before the retained running historical job.
 - An older scheduled archive row cannot overwrite a verified live score/status;
-  a finished record cannot regress to live. No recommendations are fabricated.
+  recent verified live scores also win over lagging archive scores for five
+  minutes. A finished record cannot regress to live. No recommendations are fabricated.
 - Additive nullable columns: `live_minute`, `live_checked_at`,
   `status_observed_at`. Existing match IDs, jobs, items and statistics remain intact.
 - Diagnostics exposes the latest stats-backfill counters for each enabled league;
