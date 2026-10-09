@@ -28,10 +28,33 @@ async def store_match(session, league_id, season_name, data):
     values.update({k: data[k] for k in ['round_label', 'stage_key'] if k in data})
     values.update(league_id=league_id, season_id=season.id, home_team_id=home.id, away_team_id=away.id)
     match = await get_or_create(session, Match, {'external_match_id': data['external_match_id']}, values)
+    # An archive schedule can lag the verified live scoreboard. Do not regress it.
+    protect_score = (match.status == 'finished' and data['status'] != 'finished') or (
+        match.status_observed_at is not None and match.status != 'scheduled' and data['status']=='scheduled')
     for k, v in values.items():
+        if protect_score and k in {'status','ft_home','ft_away','ht_home','ht_away'}:
+            continue
         if v is not None or k not in {'ht_home','ht_away','ft_home','ft_away'}:
             setattr(match, k, v)
+    if match.status=='finished':match.live_minute=None
     return match
+
+
+async def store_live(session, match, observation, observed_at):
+    """Persist verified score data independently from odds/statistics failures."""
+    match.live_checked_at=observed_at
+    status=observation['status']
+    if match.status=='finished' and status!='finished':return False
+    if match.status in {'live','half_time','extra_time','penalties'} and status=='scheduled':return False
+    match.status=status
+    match.live_minute=observation['live_minute']
+    for field in ('ft_home','ft_away'):
+        if observation[field] is not None:setattr(match,field,observation[field])
+    match.status_observed_at=observed_at
+    match.last_scraped_at=observed_at
+    match.raw={**(match.raw or {}),'live':observation['raw']}
+    await session.flush()
+    return True
 
 
 async def store_odds(session, match, odds, final):

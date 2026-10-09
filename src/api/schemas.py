@@ -85,6 +85,8 @@ class MatchResponse(BaseModel):
     away_team: str
     status: str
     ht_home: int | None
+    live_minute: str | None = None
+    status_observed_at: datetime | None = None
     ht_away: int | None
     ft_home: int | None
     ft_away: int | None

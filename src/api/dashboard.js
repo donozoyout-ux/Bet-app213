@@ -85,7 +85,7 @@
     const row=$('match-row-template')?.content?.firstElementChild?.cloneNode(true) || document.createElement('tr');
     row.classList.toggle('bg-surface-container-low/60',state.selected === match.id);
     const live=liveStates.includes(match.status);
-    cell(row, `${statuses[match.status] || match.status}${live ? '' : ' • '+date(match.kickoff_at)}`);
+    cell(row, `${statuses[match.status] || match.status}${live && match.live_minute ? ' • '+match.live_minute+'′' : ''}${live ? '' : ' • '+date(match.kickoff_at)}`);
     cell(row,match.league);cell(row,`${match.home_team} / ${match.away_team}`);
     const ht=match.ht_home == null || match.ht_away == null ? '' : ` • İY: ${score(match.ht_home,match.ht_away)}`;
     cell(row,score(match.ft_home,match.ft_away)+ht);
@@ -137,7 +137,7 @@
       if(matchResult.status!=='fulfilled'){write('detail-status','Bağlantı bekleniyor');return;}
       const match=matchResult.value,allOdds=oddsResult.status==='fulfilled'?oddsResult.value:(match.odds || []);
       write('detail-title',`${match.home_team} vs ${match.away_team}`);write('detail-home',match.home_team);write('detail-away',match.away_team);
-      write('detail-league',`${match.league} • ${match.season} • ${match.round_label || `${match.round}. Hafta`}`);write('detail-time',date(match.kickoff_at)+' • Europe/Istanbul');write('detail-status',statuses[match.status] || match.status);
+      write('detail-league',`${match.league} • ${match.season} • ${match.round_label || `${match.round}. Hafta`}`);write('detail-time',date(match.kickoff_at)+' • Europe/Istanbul');write('detail-status',(statuses[match.status] || match.status)+(liveStates.includes(match.status) && match.live_minute ? ' • '+match.live_minute+'′' : ''));
       write('detail-home-score',number(match.ft_home));write('detail-away-score',number(match.ft_away));write('detail-ht',`İY: ${score(match.ht_home,match.ht_away)}`);
       const markets=allOdds.filter(odds=>odds.bookmaker === state.bookmaker);
       write('odds-stage-label',match.status === 'finished' || markets.some(m=>stage(match,m) === 'closing') ? 'Kapanış' : 'Güncel');

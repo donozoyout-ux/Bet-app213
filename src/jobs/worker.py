@@ -19,6 +19,7 @@ from .storage import store_statistics
 from src.models import MatchStatistics
 from src.scrapers.goaloo.statistics import fetch_statistics
 from .resources import wait_for_capacity
+from .live import priority_cycle
 
 log = logging.getLogger('scraper')
 LOCK_ID = 213002
@@ -76,7 +77,9 @@ async def enqueue(kind, league_external_id=36, start_year=2024, match_id=None, r
                 item.status, item.error = 'queued', None
             job.failed_matches = 0
         else:
-            active = await session.scalar(select(ScraperJob).where(ScraperJob.league_id == league.id, ScraperJob.status.in_(['queued', 'running'])))
+            query=select(ScraperJob).where(ScraperJob.league_id == league.id, ScraperJob.status.in_(['queued', 'running']))
+            if kind=='update':query=query.where(ScraperJob.kind=='update')
+            active = await session.scalar(query)
             if active:
                 raise ValueError(f'League already has an active job: {active.id}')
             job = ScraperJob(kind=kind, league_id=league.id, start_year=start_year, match_id=match_id, priority=0 if kind == 'update' else league.priority)
@@ -150,7 +153,7 @@ async def enqueue_all_updates():
             await session.execute(text('SELECT pg_advisory_xact_lock(213003)'))
         result = []
         for league in (await session.scalars(select(League).where(League.enabled.is_(True)).order_by(League.priority))).all():
-            active = await session.scalar(select(ScraperJob).where(ScraperJob.league_id == league.id, ScraperJob.status.in_(['queued','running'])))
+            active = await session.scalar(select(ScraperJob).where(ScraperJob.league_id == league.id, ScraperJob.kind=='update', ScraperJob.status.in_(['queued','running'])))
             if active:
                 result.append(active)
             else:
@@ -204,6 +207,7 @@ async def discover(job_id, client):
             if source:
                 validate_identity(Competition(**source), payload, season_name)
         for round_number in discover_rounds(payload):
+            await priority_cycle(database,client)
             log.info('[GOALOO] league=%s season=%s round=%s', external_id, season_name, round_number)
             async with database.session() as session:
                 job = await session.get(ScraperJob, job_id)
@@ -251,13 +255,18 @@ async def run_job(job_id):
         await session.commit()
     try:
         async with GoalooClient() as client:
+            await priority_cycle(database,client)
             await discover(job_id, client)
             async with database.session() as session:
                 item_ids = list(await session.scalars(select(JobItem.id).where(JobItem.job_id == job_id, JobItem.status.in_(['queued', 'running'])).order_by(JobItem.id)))
             for item_id in item_ids:
                 await wait_for_capacity()
+                await priority_cycle(database,client)
                 async with database.session() as session:
                     job = await session.get(ScraperJob, job_id)
+                    if job.kind!='update' and await session.scalar(select(ScraperJob.id).join(League).where(
+                        League.enabled.is_(True),ScraperJob.kind=='update',ScraperJob.status=='queued').limit(1)):
+                        return  # Keep running checkpoint; priority update runs next.
                     if not await league_enabled(session, job):
                         job.status = 'queued'
                         await session.commit()
@@ -396,8 +405,10 @@ async def work(once=False):
                     await asyncio.sleep(5)
                     continue
                 try:
+                    async with GoalooClient() as client:
+                        await priority_cycle(database,client)
                     async with database.session() as session:
-                        job_id = await session.scalar(select(ScraperJob.id).join(League).where(League.enabled.is_(True), ScraperJob.status.in_(['running', 'queued'])).order_by(case((ScraperJob.status == 'running', 0), else_=1), ScraperJob.priority, ScraperJob.id).limit(1))
+                        job_id = await session.scalar(select(ScraperJob.id).join(League).where(League.enabled.is_(True), ScraperJob.status.in_(['running', 'queued'])).order_by(case((ScraperJob.kind == 'update', 0), else_=1),case((ScraperJob.status == 'running', 0), else_=1), ScraperJob.priority, ScraperJob.id).limit(1))
                     if job_id:
                         await run_job(job_id)
                 finally:

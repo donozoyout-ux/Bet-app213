@@ -18,6 +18,7 @@ async def migrate_competitions(conn):
         'scraper_jobs': {'priority': 'INTEGER NOT NULL DEFAULT 100'},
     }
     # Respect isolated PostgreSQL test schemas as well as the production schema.
+    additions['matches'].update(live_minute='VARCHAR(12)', live_checked_at=timestamp, status_observed_at=timestamp)
     schema = conn.get_execution_options().get('schema_translate_map', {}).get(None) if hasattr(conn, 'get_execution_options') else None
     if schema is None:
         schema = conn.sync_connection.get_execution_options().get('schema_translate_map', {}).get(None)
