@@ -93,6 +93,7 @@ async def test_job_authorization_validation_and_status(api,db,monkeypatch):
     assert job['status']=='queued'
     assert (await api.get(f'/api/scraper/jobs/{job["id"]}')).json()['id']==job['id']
     assert (await api.get('/api/scraper/status')).json()['status']=='running'
+    assert (await api.post('/api/scraper/update',json={},headers={'Authorization':'Bearer unit-test-token'})).status_code == 202
     assert (await api.post('/api/scraper/update',json={},headers={'Authorization':'Bearer unit-test-token'})).status_code == 409
     assert (await api.get('/api/scraper/jobs/999')).status_code==404
 

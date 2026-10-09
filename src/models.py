@@ -59,6 +59,9 @@ class Match(Base):
     home_team_id: Mapped[int] = mapped_column(ForeignKey('teams.id'))
     away_team_id: Mapped[int] = mapped_column(ForeignKey('teams.id'))
     status: Mapped[str] = mapped_column(String(30), index=True)
+    live_minute: Mapped[str | None] = mapped_column(String(12))
+    live_checked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    status_observed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     referee_id: Mapped[int | None] = mapped_column(ForeignKey('referees.id'), index=True)
     referee_observed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     ht_home: Mapped[int | None]

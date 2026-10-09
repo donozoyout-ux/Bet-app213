@@ -1,0 +1,10 @@
+{
+  "ErrCode": 0,
+  "Data": {
+    "state": 1,
+    "time": "2026-10-09 17:00:13",
+    "html": "<div class='half'><div class='score'>0</div><div class='vs '><span id='matchTime'>Ongoing</span></div><div class='score'>0</div></div>",
+    "injuryTime": ""
+  },
+  "MatchState": 0
+}

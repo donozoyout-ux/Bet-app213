@@ -21,6 +21,13 @@ async def statistics_coverage(session):
             total_stats_rows=rows,matches_with_corners=corner_count,matches_with_cards=card_count,
             stats_coverage_percent=dict(corners=percent(corner_count),cards=percent(card_count),both=percent(both)),
             coverage_denominator='finished_matches',card_basis='yellow_plus_red_requires_all_four'))
+    jobs=(await session.scalars(select(ScraperJob).join(League).where(League.enabled.is_(True),
+        ScraperJob.kind=='stats_backfill',ScraperJob.match_id.is_(None)).order_by(ScraperJob.id.desc()))).all()
+    latest={}
+    for job in jobs:
+        latest.setdefault(job.league_id,dict(id=job.id,status=job.status,processed=job.processed_matches,
+            total=job.total_matches,failed=job.failed_matches))
+    for row in result:row['stats_backfill']=latest.get(row['league_id'])
     return result
 
 

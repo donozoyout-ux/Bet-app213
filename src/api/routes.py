@@ -117,7 +117,7 @@ def match_query():
 def match_response(row):
     match, league, season, home, away = row
     fields = ['id', 'external_match_id', 'league_id', 'round', 'round_label', 'stage_key', 'status', 'ht_home', 'ht_away', 'ft_home', 'ft_away', 'odds_complete']
-    return {**{f: getattr(match, f) for f in fields}, 'kickoff_at': aware(match.kickoff_at), 'updated_at': aware(match.updated_at),
+    return {**{f: getattr(match, f) for f in fields}, 'live_minute': match.live_minute, 'status_observed_at': aware(match.status_observed_at), 'kickoff_at': aware(match.kickoff_at), 'updated_at': aware(match.updated_at),
             'external_league_id': league.external_id, 'league': league.name, 'competition_type': league.competition_type, 'season': season.season_name,
             'home_team': home, 'away_team': away}
 

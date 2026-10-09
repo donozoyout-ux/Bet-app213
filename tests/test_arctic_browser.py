@@ -36,6 +36,7 @@ async def test_arctic_navigation_filters_analysis_and_responsive_layout(api,db,m
             response=await api.get(path)
             if path=='/api/diagnostics':
                 data=response.json();data['active_stats_backfill']={'league':'English Premier League','processed':17,'failed':1,'total':80};data['queued_stats_backfills']=[{'id':2}]
+                data['stats_coverage_by_league'][0]['stats_backfill']={'status':'running','processed':17,'failed':1,'total':80}
                 await route.fulfill(json=data);return
             await route.fulfill(status=response.status_code,body=response.content,content_type=response.headers.get('content-type','application/json'))
         await page.route('http://test/**',forward)
@@ -84,6 +85,7 @@ async def test_arctic_navigation_filters_analysis_and_responsive_layout(api,db,m
             await page.locator('#analysis-close').click();await expect(page.locator('#analysis-dialog')).not_to_be_visible()
             await go('markets');await page.locator('[data-market-family="corners"]').click()
             await expect(page.locator('#stats-league-coverage')).to_contain_text('80 / 80')
+            await expect(page.locator('#stats-league-coverage')).to_contain_text('17/80')
             await expect(page.locator('#active-backfill-progress')).to_contain_text('18 / 80')
             await page.locator('[data-market-family="corners"]').focus();await page.keyboard.press('ArrowRight')
             await expect(page.locator('[data-market-family="cards"]')).to_have_attribute('aria-selected','true')
