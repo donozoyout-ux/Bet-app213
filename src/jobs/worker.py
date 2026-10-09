@@ -1,6 +1,7 @@
 """One durable worker per database, enforced using a PostgreSQL advisory lock."""
 import asyncio
 import logging
+import time
 from datetime import datetime, timedelta, timezone
 from sqlalchemy import select, text, func, delete, case, or_
 from src.config import settings
@@ -20,6 +21,23 @@ from src.scrapers.goaloo.statistics import fetch_statistics
 
 log = logging.getLogger('scraper')
 LOCK_ID = 213002
+
+
+def missing_statistics_query(league_id, start_year=2024):
+    """Retry old incomplete observations, never reinterpret missing values as zero."""
+    complete = (MatchStatistics.is_final.is_(True) &
+        MatchStatistics.home_corners.is_not(None) & MatchStatistics.away_corners.is_not(None) &
+        MatchStatistics.home_yellow_cards.is_not(None) & MatchStatistics.away_yellow_cards.is_not(None) &
+        MatchStatistics.home_red_cards.is_not(None) & MatchStatistics.away_red_cards.is_not(None))
+    observed = select(MatchStatistics.match_id).where(
+        MatchStatistics.match_id == Match.id,
+        or_(MatchStatistics.updated_at > utcnow()-timedelta(days=7), complete)).exists()
+    return select(Match).where(Match.league_id == league_id, Match.status == 'finished',
+        Match.kickoff_at >= datetime(start_year, 1, 1, tzinfo=timezone.utc), ~observed)
+
+
+async def league_enabled(session, job):
+    return bool(await session.scalar(select(League.enabled).where(League.id == job.league_id)))
 
 
 def aware(value):
@@ -43,6 +61,12 @@ async def enqueue(kind, league_external_id=36, start_year=2024, match_id=None, r
                 raise ValueError('Resume job does not match request')
             if job.status in {'queued', 'running'}:
                 return job
+            duplicate = await session.scalar(select(ScraperJob.id).where(
+                ScraperJob.league_id == league.id, ScraperJob.kind == kind,
+                ScraperJob.match_id == job.match_id, ScraperJob.id != job.id,
+                ScraperJob.status.in_(['queued', 'running'])))
+            if duplicate:
+                raise ValueError(f'An equivalent job is already active: {duplicate}')
             job.status, job.finished_at, job.last_error = 'queued', None, None
             if await session.scalar(select(func.count(ScraperIssue.id)).where(ScraperIssue.job_id == job.id)):
                 job.discovery_complete = False
@@ -146,8 +170,8 @@ async def discover(job_id, client):
         if kind == 'stats_backfill':
             query=select(Match).where(Match.league_id==league_id)
             if job.match_id:query=query.where(Match.id==job.match_id)
-            else:query=query.where(Match.status=='finished',Match.kickoff_at >= datetime(start_year,1,1,tzinfo=timezone.utc), ~select(MatchStatistics.match_id).where(MatchStatistics.match_id==Match.id, or_(MatchStatistics.updated_at > utcnow()-timedelta(days=7), (MatchStatistics.is_final.is_(True) & MatchStatistics.home_corners.is_not(None) & MatchStatistics.away_corners.is_not(None) & MatchStatistics.home_yellow_cards.is_not(None) & MatchStatistics.away_yellow_cards.is_not(None) & MatchStatistics.home_red_cards.is_not(None) & MatchStatistics.away_red_cards.is_not(None)))).exists())
-            for match in (await session.scalars(query.order_by(Match.kickoff_at,Match.id))).all():
+            else:query=missing_statistics_query(league_id,start_year)
+            for match in (await session.scalars(query.order_by(Match.kickoff_at.desc(),Match.id.desc()))).all():
                 await get_or_create(session,JobItem,{'job_id':job.id,'match_id':match.id})
             await session.flush()
             job.total_matches=await session.scalar(select(func.count(JobItem.id)).where(JobItem.job_id==job.id))
@@ -181,6 +205,10 @@ async def discover(job_id, client):
             log.info('[GOALOO] league=%s season=%s round=%s', external_id, season_name, round_number)
             async with database.session() as session:
                 job = await session.get(ScraperJob, job_id)
+                if not await league_enabled(session, job):
+                    job.status = 'queued'
+                    await session.commit()
+                    return
                 job.current_season, job.current_round = season_name, round_number
                 # A transaction commits each round plus job items; rediscovery is idempotent.
                 await session.execute(delete(ScraperIssue).where(ScraperIssue.job_id == job.id, ScraperIssue.season == season_name, ScraperIssue.round == round_number))
@@ -216,6 +244,7 @@ async def run_job(job_id):
     log.info('[WORKER] job started id=%s', job_id)
     async with database.session() as session:
         job = await session.get(ScraperJob, job_id)
+        if not await league_enabled(session, job):return
         job.status, job.started_at, job.finished_at = 'running', job.started_at or utcnow(), None
         await session.commit()
     try:
@@ -224,9 +253,19 @@ async def run_job(job_id):
             async with database.session() as session:
                 item_ids = list(await session.scalars(select(JobItem.id).where(JobItem.job_id == job_id, JobItem.status.in_(['queued', 'running'])).order_by(JobItem.id)))
             for item_id in item_ids:
+                async with database.session() as session:
+                    job = await session.get(ScraperJob, job_id)
+                    if not await league_enabled(session, job):
+                        job.status = 'queued'
+                        await session.commit()
+                        return
                 await process_item(job_id, item_id, client)
         async with database.session() as session:
             job = await session.get(ScraperJob, job_id)
+            if not await league_enabled(session, job):
+                job.status = 'queued'
+                await session.commit()
+                return
             await update_counts(session, job)
             job.status = 'partial' if job.failed_matches else 'completed'
             job.finished_at = utcnow()
@@ -268,21 +307,34 @@ async def process_item(job_id, item_id, client):
                 await store_statistics(session,match,data)
                 ok=True  # Valid unavailable statistics are persisted, never fabricated.
             else:
-                odds = await fetch_odds(client, external_id, final)
-                await store_odds(session, match, odds, final)
-                ok = complete_odds(odds, final)
+                errors=[]
+                try:
+                    odds = await fetch_odds(client, external_id, final)
+                    await store_odds(session, match, odds, final)
+                    await session.commit()  # A later source failure cannot roll back valid odds.
+                    ok = complete_odds(odds, final)
+                    if not ok:errors.append('Incomplete bookmaker markets')
+                except SourceError as exc:
+                    ok=False
+                    errors.append(str(exc))
                 if match.status=='finished' or match.status in LIVE_STATUSES:
                     try:
                         data=await fetch_statistics(client,external_id,league.external_id)
                         await store_statistics(session,match,data)
+                        await session.commit()
                     except SourceError:
-                        log.warning('[STATISTICS] source unavailable match_id=%s; odds retained',external_id)
-            if settings.save_snapshots and job.kind!='stats_backfill':
-                for bookmaker in (await session.scalars(select(Bookmaker))).all():
-                    history = await fetch_history(client, external_id, bookmaker.external_id)
-                    await store_history(session, match.id, bookmaker.id, history)
+                        log.warning('[STATISTICS] source unavailable match_id=%s; dedicated stats job will retry',external_id)
+                if settings.save_snapshots:
+                    for bookmaker in (await session.scalars(select(Bookmaker))).all():
+                        try:
+                            history = await fetch_history(client, external_id, bookmaker.external_id)
+                            await store_history(session, match.id, bookmaker.id, history)
+                            await session.commit()
+                        except SourceError as exc:
+                            ok=False
+                            errors.append('History: '+str(exc))
             item.status = 'completed' if ok else 'failed'
-            item.error = None if ok else f'Incomplete bookmaker markets match_id={external_id}'
+            item.error = None if ok else ('; '.join(errors)+f' match_id={external_id}')[:500]
             await session.flush()
             await update_counts(session, job)
             if not ok:
@@ -313,6 +365,7 @@ async def update_counts(session, job):
 
 async def work(once=False):
     initialization_checked = False
+    stats_queue_checked = float('-inf')
     while True:
         try:
             if not database.ready:
@@ -321,6 +374,9 @@ async def work(once=False):
                 await enqueue_initial_backfill(database)
                 await enqueue_catalog_backfills(database)
                 initialization_checked = True
+            if settings.auto_backfill_on_empty and database.engine.dialect.name == 'postgresql' and time.monotonic()-stats_queue_checked >= 60:
+                await enqueue_stats_rollout(automatic=True)
+                stats_queue_checked=time.monotonic()
             async with database.engine.connect() as lock:
                 postgres = lock.dialect.name == 'postgresql'
                 acquired = not postgres or await lock.scalar(text('SELECT pg_try_advisory_lock(:id)'), {'id': LOCK_ID})
@@ -352,17 +408,43 @@ async def work(once=False):
             await asyncio.sleep(10)
 
 
-async def enqueue_stats_rollout():
-    """Queue the scoped rollout explicitly; the global worker lock serializes work."""
+async def enqueue_stats_rollout(automatic=False):
+    """One active stats job per enabled league, independent of its odds backfill.
+
+    Explicit calls resume failures immediately. Automatic reconciliation has a
+    one-day failure cooldown; partial source observations have a seven-day TTL.
+    Completed items survive resumes. Newly discovered matches get a new job.
+    """
     from src.scrapers.goaloo.competitions import PRODUCTION_LEAGUE_IDS
     async with database.session() as session:
-        if session.bind.dialect.name == 'postgresql':await session.execute(text('SELECT pg_advisory_xact_lock(213003)'))
+        if session.bind.dialect.name == 'postgresql':
+            await session.execute(text('SELECT pg_advisory_xact_lock(213003)'))
         jobs=[]
-        leagues=(await session.scalars(select(League).where(League.enabled.is_(True),League.external_id.in_(PRODUCTION_LEAGUE_IDS)).order_by(League.priority))).all()
-        for league in leagues:
-            previous=await session.scalar(select(ScraperJob).where(ScraperJob.league_id==league.id, or_(ScraperJob.kind=='stats_backfill',ScraperJob.status.in_(['queued','running']))).order_by(ScraperJob.id.desc()).limit(1))
-            if previous:jobs.append(previous);continue
-            job=ScraperJob(kind='stats_backfill',league_id=league.id,start_year=2024,priority=league.priority)
-            session.add(job);jobs.append(job)
+        for priority, external_id in enumerate(PRODUCTION_LEAGUE_IDS, 1):
+            league=await session.scalar(select(League).where(League.enabled.is_(True),League.external_id==external_id))
+            if not league:continue
+            previous=await session.scalar(select(ScraperJob).where(ScraperJob.league_id==league.id,
+                ScraperJob.kind=='stats_backfill',ScraperJob.match_id.is_(None)).order_by(ScraperJob.id.desc()).limit(1))
+            if previous and previous.status in {'queued','running'}:
+                jobs.append(previous)
+                continue
+            if previous and previous.status in {'partial','failed'}:
+                if automatic and previous.finished_at and aware(previous.finished_at)>utcnow()-timedelta(days=1):
+                    jobs.append(previous)
+                    continue
+                for item in (await session.scalars(select(JobItem).where(JobItem.job_id==previous.id,JobItem.status!='completed'))).all():
+                    item.status,item.error='queued',None
+                previous.status,previous.finished_at,previous.last_error='queued',None,None
+                previous.failed_matches=0
+                jobs.append(previous)
+                continue
+            if previous and not await session.scalar(missing_statistics_query(league.id).with_only_columns(Match.id).limit(1)):
+                jobs.append(previous)
+                continue
+            # A stats job may wait behind an odds job. The single global worker
+            # lock serializes both; odds jobs never stand in for statistics jobs.
+            job=ScraperJob(kind='stats_backfill',league_id=league.id,start_year=2024,priority=priority)
+            session.add(job)
+            jobs.append(job)
         await session.commit()
         return jobs

@@ -1,6 +1,27 @@
 """Read-only checks. Deliberately exclude URLs, exception messages and job errors."""
-from sqlalchemy import select, func, text, inspect
+from sqlalchemy import select, func, text, inspect, case, and_
 from src.models import Base, League, Match, Odds1X2, AsianHandicap, AsianTotals, ScraperJob, MatchStatistics
+
+
+async def statistics_coverage(session):
+    final=and_(Match.status=='finished',MatchStatistics.is_final.is_(True))
+    corners=and_(final,MatchStatistics.home_corners.is_not(None),MatchStatistics.away_corners.is_not(None))
+    cards=and_(final,*[getattr(MatchStatistics,f).is_not(None) for f in
+        ('home_yellow_cards','away_yellow_cards','home_red_cards','away_red_cards')])
+    query=select(League.id,League.external_id,League.name,
+        func.count(Match.id),func.count(case((Match.status=='finished',1))),
+        func.count(MatchStatistics.match_id),func.count(case((corners,1))),
+        func.count(case((cards,1))),func.count(case((and_(corners,cards),1)))).select_from(League).outerjoin(
+        Match,Match.league_id==League.id).outerjoin(MatchStatistics,MatchStatistics.match_id==Match.id).where(
+        League.enabled.is_(True)).group_by(League.id,League.external_id,League.name,League.priority).order_by(League.priority,League.id)
+    result=[]
+    for id,external_id,name,total,finished,rows,corner_count,card_count,both in (await session.execute(query)).all():
+        percent=lambda n:round(100*n/finished,2) if finished else None
+        result.append(dict(league_id=id,external_id=external_id,name=name,total_matches=total,finished_matches=finished,
+            total_stats_rows=rows,matches_with_corners=corner_count,matches_with_cards=card_count,
+            stats_coverage_percent=dict(corners=percent(corner_count),cards=percent(card_count),both=percent(both)),
+            coverage_denominator='finished_matches',card_basis='yellow_plus_red_requires_all_four'))
+    return result
 
 
 async def database_summary(db, verify_schema=False):
@@ -15,6 +36,14 @@ async def database_summary(db, verify_schema=False):
             result['missing_tables'] = missing
             if missing:
                 return result
+        result['stats_coverage_by_league']=await statistics_coverage(session)
+        stats_jobs=(await session.execute(select(ScraperJob,League.name).join(League).where(
+            League.enabled.is_(True),ScraperJob.kind=='stats_backfill',ScraperJob.status.in_(['running','queued']))
+            .order_by(ScraperJob.priority,ScraperJob.id))).all()
+        serialize=lambda job,name:dict(id=job.id,league_id=job.league_id,league=name,status=job.status,
+            processed=job.processed_matches,total=job.total_matches,failed=job.failed_matches)
+        result['active_stats_backfill']=next((serialize(j,n) for j,n in stats_jobs if j.status=='running'),None)
+        result['queued_stats_backfills']=[serialize(j,n) for j,n in stats_jobs if j.status=='queued']
         leagues=(await session.execute(select(League.id,League.external_id,League.name,func.count(Match.id)).outerjoin(Match).where(League.enabled.is_(True)).group_by(League.id,League.external_id,League.name).order_by(League.priority))).all()
         result['enabled_leagues']=[dict(id=id,external_id=external_id,name=name) for id,external_id,name,count in leagues]
         result['match_counts_by_league']=[dict(league_id=id,name=name,matches=count) for id,external_id,name,count in leagues]

@@ -78,7 +78,9 @@ async def performance(session, league=None, start=None, end=None, market='all', 
             add(summary,pick,outcome);add(families[pick['market']],pick,outcome);add(exact[pick['id']],pick,outcome);labels[pick['id']]=(pick['market'],pick['label'])
             if offset<=count<offset+limit:items.append(dict(match=match_response(row[:5]),recommendation=pick,captured_at=aware(snapshot.captured_at),model_version=snapshot.model_version,outcome=outcome,actual=actual))
             count+=1
-    return dict(summary=finish(summary),families=[dict(market=key,**finish(value)) for key,value in families.items()],markets=[dict(id=key,market=labels[key][0],label=labels[key][1],**finish(value)) for key,value in exact.items()],items=items,total=count,offset=offset,limit=limit,basis='saved_prematch_picks',card_basis='yellow_plus_red_requires_all_four')
+    from src.diagnostics import statistics_coverage
+    coverage=await statistics_coverage(session)
+    return dict(stats_coverage_by_league=coverage,availability='saved_prematch_picks' if count else 'no_saved_prematch_picks',summary=finish(summary),families=[dict(market=key,**finish(value)) for key,value in families.items()],markets=[dict(id=key,market=labels[key][0],label=labels[key][1],**finish(value)) for key,value in exact.items()],items=items,total=count,offset=offset,limit=limit,basis='saved_prematch_picks',card_basis='yellow_plus_red_requires_all_four')
 
 
 async def capture_upcoming(session,league_id):

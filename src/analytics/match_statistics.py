@@ -65,9 +65,14 @@ def count_prediction(rows,home_id,away_id,metric,card_basis='yellow_plus_red'):
             'league_sample_size':min(200,len(complete)),'home_sample_size':len(home),'away_sample_size':len(away),
             'home_split_sample_size':len(hs),'away_split_sample_size':len(aws),
             'basis':'corners' if metric=='corners' else card_basis,'expected_home':None,'expected_away':None,'expected_total':None,'over_probabilities':{}}
-    if len(complete)<20 or min(len(home),len(away))<5 or min(len(hs),len(aws))<3:return result
+    required={'league_sample_size':20,'home_sample_size':5,'away_sample_size':5,'home_split_sample_size':3,'away_split_sample_size':3}
+    result['required_samples']=required
+    result['insufficient_reasons']=[{'code':key,'actual':result[key],'required':minimum} for key,minimum in required.items() if result[key]<minimum]
+    if result['insufficient_reasons']:return result
     baseline=complete[:200];bh=sum(v[0] for m,s,v in baseline)/len(baseline);ba=sum(v[1] for m,s,v in baseline)/len(baseline)
-    if bh==0 or ba==0:return result
+    if bh==0 or ba==0:
+        result['insufficient_reasons']=[{'code':'zero_league_baseline'}]
+        return result
     shrink=lambda total,n,prior:(total+5*prior)/(n+5)
     expected_home=shrink(sum(v[0] for m,s,v in hs),len(hs),bh)*shrink(sum(v[0] for m,s,v in aws),len(aws),bh)/bh
     expected_away=shrink(sum(v[1] for m,s,v in aws),len(aws),ba)*shrink(sum(v[1] for m,s,v in hs),len(hs),ba)/ba

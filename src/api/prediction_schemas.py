@@ -104,6 +104,7 @@ class Recommendation(BaseModel):
     evidence: dict
     score_components: dict[str,float]
     penalties: dict[str,float]
+    rejection_reasons: list[str] = Field(default_factory=list)
     qualifies: bool
     market_probability: float | None
     bookmaker_count: int
@@ -111,6 +112,7 @@ class Recommendation(BaseModel):
 
 
 class Statistics(BaseModel):
+    market_availability: dict = Field(default_factory=dict)
     match: MatchResponse
     prediction: Prediction
     home_form: TeamStats
@@ -146,6 +148,7 @@ class PredictionCard(BaseModel):
 
 
 class PredictionPage(BaseModel):
+    availability: dict = Field(default_factory=dict)
     items: list[PredictionCard]
     window_hours: int
     generated_at: datetime
@@ -158,6 +161,7 @@ class GlobalPick(BaseModel):
 
 
 class GlobalPicks(BaseModel):
+    availability: dict = Field(default_factory=dict)
     items: list[GlobalPick]
     generated_at: datetime
     evaluated_matches: int

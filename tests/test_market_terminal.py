@@ -145,7 +145,7 @@ async def test_live_values_never_become_final_counts(db):
 
 
 @pytest.mark.skipif(not __import__('os').getenv('TEST_POSTGRES_URL'),reason='TEST_POSTGRES_URL not configured')
-async def test_postgres_scope_migration_and_concurrent_immutable_capture():
+async def test_postgres_scope_migration_and_concurrent_immutable_capture(monkeypatch):
     import os,uuid,asyncio
     from sqlalchemy.schema import CreateSchema,DropSchema
     from sqlalchemy.ext.asyncio import async_sessionmaker
@@ -160,6 +160,12 @@ async def test_postgres_scope_migration_and_concurrent_immutable_capture():
         await db.initialize();await db.initialize()
         async with db.session() as session:await apply_production_scope(session);await session.commit()
         id,_,_,_,_=await seed(db)
+        import src.jobs.worker as worker
+        monkeypatch.setattr(worker,'database',db)
+        rollouts=await asyncio.gather(*(worker.enqueue_stats_rollout() for _ in range(4)))
+        assert all([j.id for j in rows]==[j.id for j in rollouts[0]] for rows in rollouts)
+        async with db.session() as session:
+            assert await session.scalar(select(func.count(ScraperJob.id)).where(ScraperJob.kind=='stats_backfill'))==8
         pick=rank_candidate(candidate('goals','goal_environment',.68,'over_2_5'))
         async def publish():
             async with db.session() as session:
