@@ -82,7 +82,7 @@
             }
           }
         } else {
-          line(chosen,'  └ Doğrulanmış Oran',vo?.message || 'Bu market için doğrulanmış oran yok');
+          line(chosen,'  └ Doğrulanmış Oran',vo?.message || 'Oran henüz doğrulanmadı');
         }
       }
       box.append(chosen);
@@ -131,7 +131,7 @@
       recOdds.append(node('h5','Seçilen Tahminlerin Oranları','font-bold text-primary'));
       for(const rec of data.recommendations){
         const vo=rec.verified_odds;
-        line(recOdds,rec.label,vo&&vo.has_odds?`En iyi: ${num(vo.best_price)} (${vo.best_bookmaker}) • Değer: ${vo.best_value>=0?'+':''}${(100*vo.best_value).toFixed(1)} puan`:(vo?.message || 'Bu market için doğrulanmış oran yok'));
+        line(recOdds,rec.label,vo&&vo.has_odds?`En iyi: ${num(vo.best_price)} (${vo.best_bookmaker}) • Değer: ${vo.best_value>=0?'+':''}${(100*vo.best_value).toFixed(1)} puan`:(vo?.message || 'Oran henüz doğrulanmadı'));
       }
       market.append(recOdds);
     }
@@ -173,7 +173,7 @@
         row.append(node('span',`${rec.label}: ${num(vo.best_price)} (${vo.best_bookmaker}) • Değer: ${vo.best_value>=0?'+':''}${(100*vo.best_value).toFixed(1)} puan`,'font-semibold'));
         oddsWrap.append(row);
       } else {
-        oddsWrap.append(node('div',`${rec.label}: ${vo?.message || 'Bu market için doğrulanmış oran yok'}`,'text-outline text-body-sm'));
+        oddsWrap.append(node('div',`${rec.label}: ${vo?.message || 'Oran henüz doğrulanmadı'}`,'text-outline text-body-sm'));
       }
     }
     element.append(oddsWrap);
