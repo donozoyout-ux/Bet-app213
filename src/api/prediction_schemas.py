@@ -165,7 +165,8 @@ class PredictionPage(BaseModel):
     availability: dict = Field(default_factory=dict)
     items: list[PredictionCard]
     window_hours: int
-    generated_at: datetime
+    generated_at: datetime | None
+    cache: dict = Field(default_factory=dict)
 
 
 class GlobalPick(BaseModel):
@@ -177,5 +178,6 @@ class GlobalPick(BaseModel):
 class GlobalPicks(BaseModel):
     availability: dict = Field(default_factory=dict)
     items: list[GlobalPick]
-    generated_at: datetime
+    generated_at: datetime | None
+    cache: dict = Field(default_factory=dict)
     evaluated_matches: int

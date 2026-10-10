@@ -76,7 +76,11 @@ async def test_board_batches_selects_independent_of_match_count(api, db, monkeyp
             round=2,home_team_id=teams[0],away_team_id=teams[1],status='scheduled',
             kickoff_at=NOW+timedelta(days=2),raw={}) for i in range(25)])
         await session.commit()
+    from src.analytics.board_cache import refresh_one
+    await refresh_one(db, now=NOW, force_league=league)
+
     queries = []
+
     def count(conn,cursor,statement,parameters,context,executemany):
         if statement.lstrip().upper().startswith('SELECT'):queries.append(statement)
     event.listen(db.engine.sync_engine, 'before_cursor_execute', count)

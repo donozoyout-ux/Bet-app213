@@ -10,7 +10,7 @@ from datetime import timedelta, timezone
 from sqlalchemy import select, or_, case
 from sqlalchemy.orm import aliased
 
-from src.models import Match, League, Team, MatchStatistics, utcnow
+from src.models import Match, League, Team, MatchStatistics, CollectorRetry, utcnow
 from src.match_views import LIVE_STATUSES, day_bounds, DISPLAY_TIMEZONE
 from zoneinfo import ZoneInfo
 from src.scrapers.goaloo.live import fetch_live
@@ -24,6 +24,31 @@ log=logging.getLogger('scraper.live')
 
 def aware(value):
     return value.replace(tzinfo=timezone.utc) if value and value.tzinfo is None else value
+
+
+async def should_skip_retry(session, key, now):
+    retry = await session.get(CollectorRetry, key)
+    if retry and aware(retry.next_attempt_at) > now:
+        return True
+    return False
+
+
+async def record_retry_failure(session, key, reason, now, base_delay=30, max_delay=1800):
+    retry = await session.get(CollectorRetry, key)
+    if not retry:
+        retry = CollectorRetry(key=key, failures=0, next_attempt_at=now, reason=reason[:80])
+        session.add(retry)
+    retry.failures += 1
+    delay = min(max_delay, base_delay * (2 ** min(retry.failures - 1, 6)))
+    retry.next_attempt_at = now + timedelta(seconds=delay)
+    retry.reason = reason[:80]
+
+
+async def record_retry_success(session, key):
+    retry = await session.get(CollectorRetry, key)
+    if retry:
+        await session.delete(retry)
+
 
 
 class PriorityUpdater:
@@ -68,6 +93,10 @@ class PriorityUpdater:
         deadline=time.monotonic()+20
         for match,league,home_id,away_id in rows:
             if time.monotonic()>=deadline:break
+            retry_key = f'live:{match.external_match_id}'
+            async with self.db.session() as session:
+                if await should_skip_retry(session, retry_key, now):
+                    continue
             try:
                 async with asyncio.timeout(8):
                     observation,source=await fetch_live(client,match.external_match_id,league,home_id,away_id)
@@ -75,6 +104,7 @@ class PriorityUpdater:
                     current=await session.get(Match,match.id)
                     if not await session.scalar(select(League.enabled).where(League.id==current.league_id)):continue
                     accepted=await store_live(session,current,observation,utcnow())
+                    await record_retry_success(session, retry_key)
                     await session.commit()
                 if accepted:
                     # Score survives a changed/missing statistics table.
@@ -94,6 +124,7 @@ class PriorityUpdater:
                 async with self.db.session() as session:
                     current=await session.get(Match,match.id)
                     current.live_checked_at=utcnow()
+                    await record_retry_failure(session, retry_key, type(exc).__name__, utcnow(), base_delay=30, max_delay=1800)
                     await session.commit()
 
     async def recent_statistics(self,client):
@@ -116,6 +147,10 @@ class PriorityUpdater:
                 match=await session.scalar(select(Match).where(Match.league_id==league.id,Match.status=='finished',
                     Match.kickoff_at>=now-timedelta(days=90),~observed).order_by(Match.kickoff_at.desc(),Match.id.desc()).limit(1))
             if not match:continue
+            stats_key = f'stats:{match.external_match_id}'
+            async with self.db.session() as session:
+                if await should_skip_retry(session, stats_key, now):
+                    continue
             self.league_cursor=(index+1)%len(leagues)
             try:
                 async with asyncio.timeout(8):
@@ -123,11 +158,16 @@ class PriorityUpdater:
                 async with self.db.session() as session:
                     if not await session.scalar(select(League.enabled).where(League.id==league.id)):return
                     await store_statistics(session,await session.get(Match,match.id),stats)
+                    await record_retry_success(session, stats_key)
                     await session.commit()
                 log.info('[STATS] recent league=%s match_id=%s',league.external_id,match.external_match_id)
             except (SourceError,TimeoutError) as exc:
                 log.warning('[STATS] recent deferred league=%s error=%s',league.external_id,type(exc).__name__)
+                async with self.db.session() as session:
+                    await record_retry_failure(session, stats_key, type(exc).__name__, utcnow(), base_delay=60, max_delay=3600)
+                    await session.commit()
             return
+
 
 
 async def priority_cycle(db,client):
@@ -136,3 +176,13 @@ async def priority_cycle(db,client):
     if settings.app_env!='production' and os.getenv('BETAPP_PROCESS_ROLE')!='scraper':return
     if not hasattr(db,'priority_updater'):db.priority_updater=PriorityUpdater(db)
     await db.priority_updater.tick(client)
+    if memory_constrained():return
+    if time.monotonic()<getattr(db,'next_prediction_refresh',0):return
+    db.next_prediction_refresh=time.monotonic()+10
+    try:
+        from src.analytics.board_cache import refresh_one
+        await refresh_one(db)
+    except asyncio.CancelledError:raise
+    except Exception as exc:
+        db.next_prediction_refresh=time.monotonic()+60
+        log.warning('[PREDICTIONS] refresh deferred error=%s',type(exc).__name__)

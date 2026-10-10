@@ -80,6 +80,8 @@ async def seed(db):
             session.add(Odds1X2(match_id=target.id,bookmaker_id=book.id,opening_home=2,opening_draw=3,opening_away=4,
                                latest_home=2,latest_draw=3,latest_away=4,raw={'r':{'u':999}},updated_at=NOW-timedelta(minutes=1)))
         await session.commit()
+        from src.analytics.board_cache import refresh_one
+        await refresh_one(db, now=NOW, force_league=league.id)
         return target.id, league.id, season.id, ids, [row.id for row in history]
 
 
@@ -161,6 +163,8 @@ async def test_predictions_nearest_window_league_date_and_insufficient(api,db,mo
             session.add(Match(external_match_id=777000+index,league_id=league,season_id=season,round=2,kickoff_at=NOW+timedelta(hours=hours),
                               home_team_id=ids[2],away_team_id=ids[3],status='scheduled',raw={},created_at=NOW,updated_at=NOW))
         await session.commit()
+    from src.analytics.board_cache import refresh_one
+    await refresh_one(db, now=NOW, force_league=league)
     page=(await api.get('/api/predictions?limit=8')).json()
     assert page['window_hours']==168 and len(page['items'])==1
     dates=[row['match']['kickoff_at'] for row in page['items']]
@@ -188,12 +192,14 @@ async def test_cache_reuses_calculation_without_mutation(api,db,monkeypatch):
     import src.analytics.service as service
     monkeypatch.setattr(routes,'utcnow',lambda:NOW)
     match_id,_,_,_,_=await seed(db)
+    service._cache.clear()
     original=service.predict;calls=[]
     def count(*args,**kwargs):calls.append(1);return original(*args,**kwargs)
     monkeypatch.setattr(service,'predict',count)
     await api.get(f'/api/matches/{match_id}/statistics')
     await api.get(f'/api/matches/{match_id}/statistics')
     assert len(calls)==1
+
 
 
 def test_national_confidence_cannot_be_high():
