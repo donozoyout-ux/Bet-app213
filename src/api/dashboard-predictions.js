@@ -68,7 +68,25 @@
     box.append(node('h3','Maç İstatistikleri','font-headline-md text-headline-md font-bold text-primary'));
     box.append(node('p',`${m.home_team} / ${m.away_team} • ${m.league} • ${m.season} • ${m.round_label || m.round} • ${date(m.kickoff_at)}`,'stats-meta'));
     if(['summary','predictions'].includes(state.tab) && !data.recommendations?.length)box.append(node('p','Yetersiz veri'));
-    if(['summary','predictions'].includes(state.tab) && data.recommendations?.length){const chosen=node('section','','stats-block');chosen.append(node('h4','Seçilen Güçlü Tahminler','font-bold text-primary'));for(const rec of data.recommendations)line(chosen,rec.label,`${pct(rec.probability)} • ${confidence[rec.confidence]} Güven • ${rec.sample_size} maç`);box.append(chosen);}
+    if(['summary','predictions'].includes(state.tab) && data.recommendations?.length){
+      const chosen=node('section','','stats-block');chosen.append(node('h4','Seçilen Güçlü Tahminler','font-bold text-primary'));
+      for(const rec of data.recommendations){
+        line(chosen,rec.label,`${pct(rec.probability)} • ${confidence[rec.confidence]} Güven • ${rec.sample_size} maç`);
+        const vo=rec.verified_odds;
+        if(vo && vo.has_odds){
+          line(chosen,'  └ En İyi Oran / Değer',`${num(vo.best_price)} (${vo.best_bookmaker}) • Değer: ${vo.best_value>=0?'+':''}${(100*vo.best_value).toFixed(1)} puan • İma: %${(100*vo.best_implied_probability).toFixed(1)}`);
+          for(const bName of ['Crown','Bet365','Sbobet']){
+            const b=vo.bookmakers?.[bName];
+            if(b && b.current_odds){
+              line(chosen,`    • ${bName}`,`Açılış: ${num(b.opening_odds)} / ${vo.stage==='closing'?'Kapanış':'Güncel'}: ${num(b.current_odds)} • Değer: ${b.value>=0?'+':''}${(100*b.value).toFixed(1)} puan`);
+            }
+          }
+        } else {
+          line(chosen,'  └ Doğrulanmış Oran',vo?.message || 'Bu market için doğrulanmış oran yok');
+        }
+      }
+      box.append(chosen);
+    }
     if(['predictions','goals'].includes(state.tab)){
     const model=node('section','','stats-block');model.append(node('h4','İstatistiksel Tahmin','font-bold text-primary'));
     if(p.status!=='ok')model.append(node('p','Yetersiz veri','font-bold'));
@@ -107,7 +125,17 @@
     const consensus=data.bookmaker_consensus;
     line(market,'Piyasa ortak olasılığı',consensus ? `${pct(consensus.home)} / ${pct(consensus.draw)} / ${pct(consensus.away)}` : 'Yetersiz veri');
     const difference=p.model_market_difference;
-    line(market,'Model / Piyasa Farkı (puan)',difference ? ['home','draw','away'].map(key=>`${difference[key]>=0?'+':''}${(100*difference[key]).toFixed(1)}`).join(' / ') : '—');box.append(market);}
+    line(market,'Model / Piyasa Farkı (puan)',difference ? ['home','draw','away'].map(key=>`${difference[key]>=0?'+':''}${(100*difference[key]).toFixed(1)}`).join(' / ') : '—');
+    if(data.recommendations?.length){
+      const recOdds=node('div','','mt-3');
+      recOdds.append(node('h5','Seçilen Tahminlerin Oranları','font-bold text-primary'));
+      for(const rec of data.recommendations){
+        const vo=rec.verified_odds;
+        line(recOdds,rec.label,vo&&vo.has_odds?`En iyi: ${num(vo.best_price)} (${vo.best_bookmaker}) • Değer: ${vo.best_value>=0?'+':''}${(100*vo.best_value).toFixed(1)} puan`:(vo?.message || 'Bu market için doğrulanmış oran yok'));
+      }
+      market.append(recOdds);
+    }
+    box.append(market);}
     if(['summary','predictions'].includes(state.tab)){
     const explanation=node('details','','stats-block');explanation.append(node('summary','Model ve güven kuralları','font-bold'));
     explanation.append(node('p','Poisson gol modeli; venue oranları aynı yarışmanın ortalamalarına ağırlık 5 ile yaklaştırılır. En az 20 yarışma maçı, her takım için 5 ve her venue için 3 maç gerekir. Beklenen Gol ölçülmüş şut bazlı bir metrik değildir.'));
@@ -137,6 +165,19 @@
     element.append(node('p',`${confidence[recs[0].confidence]} Güven • Örnek: ${recs[0].sample_size} maç`,'text-outline text-body-sm'));
     if(recs.length>1){for(const rec of recs.slice(1,3))element.append(node('p',`${rec.label} ${pct(rec.probability)} • ${confidence[rec.confidence]} Güven`));}
 
+    const oddsWrap=node('div','','prediction-odds');
+    for(const rec of recs.slice(0,3)){
+      const vo=rec.verified_odds;
+      if(vo && vo.has_odds){
+        const row=node('div','','odds-line text-body-sm');
+        row.append(node('span',`${rec.label}: ${num(vo.best_price)} (${vo.best_bookmaker}) • Değer: ${vo.best_value>=0?'+':''}${(100*vo.best_value).toFixed(1)} puan`,'font-semibold'));
+        oddsWrap.append(row);
+      } else {
+        oddsWrap.append(node('div',`${rec.label}: ${vo?.message || 'Bu market için doğrulanmış oran yok'}`,'text-outline text-body-sm'));
+      }
+    }
+    element.append(oddsWrap);
+
     const open=()=>{if(globalThis.BetAppDashboard?.selectMatch)globalThis.BetAppDashboard.selectMatch(m.id,true);else select(m.id,true);};
     const button=node('button','Analizi aç →','prediction-open');button.type='button';button.onclick=event=>{event.stopPropagation();open();};element.append(button);
     element.onclick=open;element.onkeydown=event=>{if(event.target===element && ['Enter',' '].includes(event.key)){event.preventDefault();open();}};
@@ -149,7 +190,14 @@
     const query=new URLSearchParams({limit:state.view==='best'?'20':'8',market:state.market});if(league)query.set('league',league);if(dateFilter)query.set('date',dateFilter);
     try {const page=await api(`/api/predictions${state.view==='best'?'/best':''}?${query}`);if(generation!==state.generation)return;box.replaceChildren();let shown=0;
       if(state.view==='best'){
-        const list=node('ol','','prediction-global-list');for(const [index,item] of page.items.entries()){if(state.confidence && item.recommendation.confidence!==state.confidence)continue;const row=node('li');const button=node('button',`${index+1}. ${item.match.home_team} / ${item.match.away_team} — ${item.recommendation.label} ${pct(item.recommendation.probability)} • ${confidence[item.recommendation.confidence]} Güven`,'prediction-global-button');button.type='button';button.onclick=()=>globalThis.BetAppDashboard?.selectMatch ? globalThis.BetAppDashboard.selectMatch(item.match.id,true) : select(item.match.id,true);row.append(button);list.append(row);shown++;}box.append(list);
+        const list=node('ol','','prediction-global-list');for(const [index,item] of page.items.entries()){
+          if(state.confidence && item.recommendation.confidence!==state.confidence)continue;
+          const row=node('li');
+          const vo=item.recommendation.verified_odds;
+          const oddsTxt=vo && vo.has_odds ? ` • Oran: ${num(vo.best_price)} (${vo.best_bookmaker})` : ' • Doğrulanmış oran yok';
+          const button=node('button',`${index+1}. ${item.match.home_team} / ${item.match.away_team} — ${item.recommendation.label} ${pct(item.recommendation.probability)} • ${confidence[item.recommendation.confidence]} Güven${oddsTxt}`,'prediction-global-button');
+          button.type='button';button.onclick=()=>globalThis.BetAppDashboard?.selectMatch ? globalThis.BetAppDashboard.selectMatch(item.match.id,true) : select(item.match.id,true);row.append(button);list.append(row);shown++;
+        }box.append(list);
       }else{for(const item of page.items){if(item.recommendations?.length && (!state.confidence || item.recommendations.some(r=>r.confidence===state.confidence))){box.append(card({...item,recommendations:item.recommendations.filter(r=>!state.confidence || r.confidence===state.confidence)}));shown++;}}}
       if(!shown)box.append(node('p','Bu filtrede eşikleri geçen tahmin bulunmuyor.'));const note=$('prediction-window');if(note)note.textContent=`${state.view==='best'?'En güçlü seçilmiş tahminler • Önümüzdeki 7 gün':'Önümüzdeki '+(page.window_hours===72?'72 saat':'7 gün')} • ${date(page.generated_at)}`;}
     catch(_){if(generation!==state.generation)return;box.replaceChildren();box.append(node('p','Veri hazırlanıyor • Bağlantı bekleniyor'));}
