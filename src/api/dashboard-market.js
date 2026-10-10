@@ -3,7 +3,7 @@
 'use strict';
 const $=id=>document.getElementById(id),value=id=>$(id)?.value || '';
 const node=(tag,text='',cls='')=>{const el=document.createElement(tag);el.textContent=text;el.className=cls;return el;};
-const write=(id,text)=>{if($(id))$(id).textContent=text;},pct=v=>v==null?'—':'%'+(100*v).toFixed(1);
+const write=(id,text)=>{if($(id))$(id).textContent=text;},pct=v=>v==null?'—':'%'+(100*v).toFixed(1),num=v=>v==null?'—':Number(v).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});
 const date=v=>v?new Date(v).toLocaleString('tr-TR',{timeZone:'Europe/Istanbul',dateStyle:'medium',timeStyle:'short'}):'Veri bekleniyor';
 const today=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Istanbul',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 const families={all:'Tümü',result:'Sonuç',double_chance:'Çifte Şans',goals:'Gol',first_half_goals:'1. Yarı Gol',second_half_goals:'2. Yarı Gol',btts:'KG',asian_handicap:'Handikap',corners:'Korner',cards:'Sarı + Kırmızı',yellow_cards:'Sarı Kart',red_cards:'Kırmızı Kart'};
