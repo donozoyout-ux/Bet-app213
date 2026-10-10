@@ -3,6 +3,7 @@ import asyncio
 import logging
 import time
 from datetime import datetime, timedelta, timezone
+import httpx
 from sqlalchemy import select, text, func, delete, case, or_
 from src.config import settings
 from src.match_views import LIVE_STATUSES
@@ -40,25 +41,43 @@ def missing_statistics_query(league_id, start_year=2024):
 
 
 def missing_market_odds_query(league_id, start_year=2024):
-    """Find matches missing verified period-specific market odds (HT OU / Corner OU).
+    """Find matches missing verified period-specific market odds (HT OU or Corner OU).
 
-    Excludes matches that already have MarketOdds rows or were recently checked with no_odds.
+    Independent check: a match needs backfill if it lacks either HT goals or corners,
+    unless both markets are complete or the match was checked within the controlled 7-day cooldown.
     """
-    has_odds = select(MarketOdds.match_id).where(MarketOdds.match_id == Match.id).exists()
-    has_checked_job = select(JobItem.match_id).join(
+    has_ht = select(MarketOdds.match_id).where(
+        MarketOdds.match_id == Match.id,
+        MarketOdds.market == 'first_half_goals',
+        MarketOdds.period == 'first_half',
+    ).exists()
+    has_corners = select(MarketOdds.match_id).where(
+        MarketOdds.match_id == Match.id,
+        MarketOdds.market == 'corners',
+        MarketOdds.period == 'full_time',
+    ).exists()
+    complete_odds = has_ht & has_corners
+
+    recent_check = select(JobItem.match_id).join(
         ScraperJob, ScraperJob.id == JobItem.job_id
     ).where(
         JobItem.match_id == Match.id,
         ScraperJob.kind.in_(['market_backfill', 'market_odds']),
         JobItem.status.in_(['completed', 'no_odds']),
+        or_(
+            ScraperJob.finished_at > utcnow() - timedelta(days=7),
+            ScraperJob.created_at > utcnow() - timedelta(days=7),
+        ),
     ).exists()
-    observed = has_odds | has_checked_job
+
+    observed = complete_odds | recent_check
     return select(Match).where(
         Match.league_id == league_id,
         Match.status.notin_(['cancelled', 'postponed', 'abandoned', 'pending']),
         Match.kickoff_at >= datetime(start_year, 1, 1, tzinfo=timezone.utc),
         ~observed,
     )
+
 
 
 async def league_enabled(session, job):
@@ -285,28 +304,39 @@ async def run_job(job_id):
     log.info('[WORKER] job started id=%s', job_id)
     async with database.session() as session:
         job = await session.get(ScraperJob, job_id)
-        if not await league_enabled(session, job):return
+        if not await league_enabled(session, job):
+            return
         job.status, job.started_at, job.finished_at = 'running', job.started_at or utcnow(), None
         await session.commit()
     try:
         async with GoalooClient() as client:
-            await priority_cycle(database,client)
+            await priority_cycle(database, client)
             await discover(job_id, client)
-            async with database.session() as session:
-                item_ids = list(await session.scalars(select(JobItem.id).where(JobItem.job_id == job_id, JobItem.status.in_(['queued', 'running'])).order_by(JobItem.id)))
-            for item_id in item_ids:
-                await wait_for_capacity()
-                await priority_cycle(database,client)
+            CHUNK_SIZE = 25
+            while True:
                 async with database.session() as session:
-                    job = await session.get(ScraperJob, job_id)
-                    if job.kind!='update' and await session.scalar(select(ScraperJob.id).join(League).where(
-                        League.enabled.is_(True),ScraperJob.kind=='update',ScraperJob.status=='queued').limit(1)):
-                        return  # Keep running checkpoint; priority update runs next.
-                    if not await league_enabled(session, job):
-                        job.status = 'queued'
-                        await session.commit()
-                        return
-                await process_item(job_id, item_id, client)
+                    item_ids = list(await session.scalars(
+                        select(JobItem.id).where(
+                            JobItem.job_id == job_id,
+                            JobItem.status.in_(['queued', 'running']),
+                        ).order_by(JobItem.id).limit(CHUNK_SIZE)
+                    ))
+                if not item_ids:
+                    break
+                for item_id in item_ids:
+                    await wait_for_capacity()
+                    await priority_cycle(database, client)
+                    async with database.session() as session:
+                        job = await session.get(ScraperJob, job_id)
+                        if job.kind != 'update' and await session.scalar(select(ScraperJob.id).join(League).where(
+                            League.enabled.is_(True), ScraperJob.kind == 'update', ScraperJob.status == 'queued'
+                        ).limit(1)):
+                            return  # Keep running checkpoint; priority update runs next.
+                        if not await league_enabled(session, job):
+                            job.status = 'queued'
+                            await session.commit()
+                            return
+                    await process_item(job_id, item_id, client)
         async with database.session() as session:
             job = await session.get(ScraperJob, job_id)
             if not await league_enabled(session, job):
@@ -317,12 +347,14 @@ async def run_job(job_id):
             job.status = 'partial' if job.failed_matches else 'completed'
             job.finished_at = utcnow()
             await session.commit()
-            log.info('[WORKER] job completed id=%s status=%s processed=%s failed=%s', job.id, job.status, job.processed_matches, job.failed_matches)
+            log.info('[WORKER] job completed id=%s status=%s processed=%s failed=%s no_odds=%s',
+                     job.id, job.status, job.processed_matches, job.failed_matches, getattr(job, 'no_odds_matches', 0))
         try:
             from src.analytics.performance import capture_upcoming
-            async with database.session() as session:await capture_upcoming(session,job.league_id)
+            async with database.session() as session:
+                await capture_upcoming(session, job.league_id)
         except Exception as exc:
-            log.warning('[PREDICTIONS] capture deferred: %s',type(exc).__name__)
+            log.warning('[PREDICTIONS] capture deferred: %s', type(exc).__name__)
     except asyncio.CancelledError:
         # Job stays running; the next lock-owning worker resumes persisted items.
         raise
@@ -348,51 +380,94 @@ async def process_item(job_id, item_id, client):
             item.status = 'running'
             await session.commit()
             log.info('[MATCH] match_id=%s season=%s round=%s', external_id, season.season_name, match.round)
-            league=await session.get(League,match.league_id)
+            league = await session.get(League, match.league_id)
             # expire_on_commit=False keeps the loaded metadata usable while releasing
             # the connection before potentially slow HTTP retries.
             await session.commit()
-            if job.kind=='stats_backfill':
-                data=await fetch_statistics(client,external_id,league.external_id)
-                await store_statistics(session,match,data)
+            if job.kind == 'stats_backfill':
+                data = await fetch_statistics(client, external_id, league.external_id)
+                await store_statistics(session, match, data)
                 item.status = 'completed'
                 item.error = None
             elif job.kind in ('market_backfill', 'market_odds'):
-                errors=[]
-                odds_count=0
-                try:
-                    ht_odds = await fetch_halftime_odds(client, external_id, final)
-                    ht_ou = {bk: m.get('ou', {}) for bk, m in ht_odds.items() if 'ou' in m and m.get('ou', {}).get('latest_line') is not None}
-                    if ht_ou:
-                        odds_count += await store_market_odds(session, match, ht_ou, market='first_half_goals', period='first_half')
-                except SourceError as exc:
-                    log.warning('[MARKET_ODDS] half-time odds unavailable match_id=%s: %s', external_id, exc)
+                odds_count = 0
+                transient_errors = []
 
-                try:
-                    corner_odds = await fetch_corner_odds(client, external_id, half_time=False, final=final)
-                    corner_valid = {bk: data for bk, data in corner_odds.items() if data.get('latest_line') is not None}
-                    if corner_valid:
-                        odds_count += await store_market_odds(session, match, corner_valid, market='corners', period='full_time')
-                except SourceError as exc:
-                    log.warning('[MARKET_ODDS] corner odds unavailable match_id=%s: %s', external_id, exc)
+                # Independent check: only fetch HT goals if not already stored or if not final
+                has_ht = await session.scalar(
+                    select(MarketOdds.id).where(
+                        MarketOdds.match_id == match.id,
+                        MarketOdds.market == 'first_half_goals',
+                        MarketOdds.period == 'first_half',
+                    ).limit(1)
+                )
+                if not has_ht or not final:
+                    try:
+                        ht_odds = await fetch_halftime_odds(client, external_id, final)
+                        ht_ou = {
+                            bk: m.get('ou', {})
+                            for bk, m in ht_odds.items()
+                            if 'ou' in m and m.get('ou', {}).get('latest_line') is not None
+                        }
+                        if ht_ou:
+                            odds_count += await store_market_odds(
+                                session, match, ht_ou, market='first_half_goals', period='first_half'
+                            )
+                    except (SourceError, httpx.HTTPError, TimeoutError, asyncio.TimeoutError) as exc:
+                        log.warning('[MARKET_ODDS] half-time odds transient failure match_id=%s: %s', external_id, exc)
+                        transient_errors.append(f'HT odds: {type(exc).__name__}: {str(exc)[:150]}')
+                    except Exception as exc:
+                        log.warning('[MARKET_ODDS] half-time odds error match_id=%s: %s', external_id, exc)
+                        transient_errors.append(f'HT odds: {type(exc).__name__}: {str(exc)[:150]}')
+
+                # Independent check: only fetch corner odds if not already stored or if not final
+                has_corners = await session.scalar(
+                    select(MarketOdds.id).where(
+                        MarketOdds.match_id == match.id,
+                        MarketOdds.market == 'corners',
+                        MarketOdds.period == 'full_time',
+                    ).limit(1)
+                )
+                if not has_corners or not final:
+                    try:
+                        corner_odds = await fetch_corner_odds(client, external_id, half_time=False, final=final)
+                        corner_valid = {
+                            bk: data
+                            for bk, data in corner_odds.items()
+                            if data.get('latest_line') is not None
+                        }
+                        if corner_valid:
+                            odds_count += await store_market_odds(
+                                session, match, corner_valid, market='corners', period='full_time'
+                            )
+                    except (SourceError, httpx.HTTPError, TimeoutError, asyncio.TimeoutError) as exc:
+                        log.warning('[MARKET_ODDS] corner odds transient failure match_id=%s: %s', external_id, exc)
+                        transient_errors.append(f'Corner odds: {type(exc).__name__}: {str(exc)[:150]}')
+                    except Exception as exc:
+                        log.warning('[MARKET_ODDS] corner odds error match_id=%s: %s', external_id, exc)
+                        transient_errors.append(f'Corner odds: {type(exc).__name__}: {str(exc)[:150]}')
 
                 await session.commit()
-                if odds_count > 0:
+                if transient_errors:
+                    item.status = 'failed'
+                    item.error = ('; '.join(transient_errors) + f' match_id={external_id}')[:500]
+                elif odds_count > 0 or has_ht or has_corners:
                     item.status = 'completed'
                     item.error = None
                 else:
                     item.status = 'no_odds'
                     item.error = 'No verified half-time or corner odds in source'
             else:
-                errors=[]
+                errors = []
                 try:
                     odds = await fetch_odds(client, external_id, final)
                     await store_odds(session, match, odds, final)
                     await session.commit()  # A later source failure cannot roll back valid odds.
                     ok = complete_odds(odds, final)
-                    if not ok:errors.append('Incomplete bookmaker markets')
+                    if not ok:
+                        errors.append('Incomplete bookmaker markets')
                 except SourceError as exc:
-                    ok=False
+                    ok = False
                     errors.append(str(exc))
                 # Extended markets from verified Goaloo endpoints
                 try:
@@ -410,13 +485,13 @@ async def process_item(job_id, item_id, client):
                         await session.commit()
                 except SourceError as exc:
                     log.warning('[MARKET_ODDS] corner odds unavailable match_id=%s: %s', external_id, exc)
-                if match.status=='finished' or match.status in LIVE_STATUSES:
+                if match.status == 'finished' or match.status in LIVE_STATUSES:
                     try:
-                        data=await fetch_statistics(client,external_id,league.external_id)
-                        await store_statistics(session,match,data)
+                        data = await fetch_statistics(client, external_id, league.external_id)
+                        await store_statistics(session, match, data)
                         await session.commit()
                     except SourceError:
-                        log.warning('[STATISTICS] source unavailable match_id=%s; dedicated stats job will retry',external_id)
+                        log.warning('[STATISTICS] source unavailable match_id=%s; dedicated stats job will retry', external_id)
                 if settings.save_snapshots:
                     bookmakers = (await session.scalars(select(Bookmaker))).all()
                     await session.commit()
@@ -426,10 +501,10 @@ async def process_item(job_id, item_id, client):
                             await store_history(session, match.id, bookmaker.id, history)
                             await session.commit()
                         except SourceError as exc:
-                            ok=False
-                            errors.append('History: '+str(exc))
+                            ok = False
+                            errors.append('History: ' + str(exc))
                 item.status = 'completed' if ok else 'failed'
-                item.error = None if ok else ('; '.join(errors)+f' match_id={external_id}')[:500]
+                item.error = None if ok else ('; '.join(errors) + f' match_id={external_id}')[:500]
             await session.flush()
             await update_counts(session, job)
             if item.status == 'failed':
@@ -449,6 +524,7 @@ async def process_item(job_id, item_id, client):
             await session.flush()
             await update_counts(session, job)
             await session.commit()
+
 
 
 async def update_counts(session, job):
@@ -555,18 +631,25 @@ async def enqueue_stats_rollout(automatic=False):
         return jobs
 
 
-async def enqueue_market_odds_rollout(automatic=False):
-    """Progressive, resumable market odds backfill for the 8 production leagues.
+async def enqueue_market_odds_rollout(automatic=False, pilot=None):
+    """Progressive, resumable market odds backfill.
 
-    Queues or resumes one durable job per enabled production league, starting from 2024.
+    If pilot is True (or default for automatic reconciliation when pilot mode is enabled),
+    only the configured pilot league (default external_id=36) is enqueued.
+    The 8-league rollout runs only when pilot is False or explicitly requested.
     Runs serially with low memory footprint, suitable for Render free tier.
     """
     from src.scrapers.goaloo.competitions import PRODUCTION_LEAGUE_IDS
+    if pilot is None:
+        pilot = settings.market_odds_pilot_enabled if automatic else False
+
+    target_league_ids = [settings.market_odds_pilot_league] if pilot else PRODUCTION_LEAGUE_IDS
+
     async with database.session() as session:
         if session.bind.dialect.name == 'postgresql':
             await session.execute(text('SELECT pg_advisory_xact_lock(213003)'))
         jobs = []
-        for priority, external_id in enumerate(PRODUCTION_LEAGUE_IDS, 1):
+        for priority, external_id in enumerate(target_league_ids, 1):
             league = await session.scalar(select(League).where(League.enabled.is_(True), League.external_id == external_id))
             if not league:
                 continue
@@ -599,3 +682,4 @@ async def enqueue_market_odds_rollout(automatic=False):
             jobs.append(job)
         await session.commit()
         return jobs
+
