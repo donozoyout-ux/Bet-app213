@@ -42,7 +42,31 @@ function card(item){const m=item.match,recs=(item.recommendations || []).slice(0
 }
 function renderCards(id,items,message){const box=$(id);if(!box)return;box.replaceChildren();for(const item of items){const el=card(item);if(el)box.append(el);}if(!box.children.length)empty(id,message || 'Modelin kalite eşiklerini geçen yaklaşan maç tahmini bulunmuyor.');done(id);}
 function groupPicks(items){const grouped=new Map();for(const item of items){if(!grouped.has(item.match.id))grouped.set(item.match.id,{match:item.match,recommendations:[]});grouped.get(item.match.id).recommendations.push(item.recommendation);}return [...grouped.values()];}
-async function home(){loading('prediction-cards');return request('home','/api/predictions?limit=6',p=>{renderCards('prediction-cards',p.items,availabilityMessage(p.availability));const cache=p.cache||{};const staleText=cache.stale?' · Önceden hesaplanmış (güncelleme bekleniyor)':'';write('home-prediction-note',`Önümüzdeki ${p.window_hours===72?'72 saat':'7 gün'} · ${date(p.generated_at)}${staleText}`);},e=>empty('prediction-cards',errorText(e),null,()=>home()));}
+function yesterday(){
+  loading('yesterday-winners');
+  return request('yesterday','/api/predictions/yesterday-winners',data=>{
+    const box=$('yesterday-winners');if(!box)return;
+    box.replaceChildren();
+    for(const pick of data.items || []){
+      const el=node('article','','prediction-card');
+      const meta=node('div','','card-meta');
+      meta.append(node('span',pick.league,'league-label'),node('time',date(pick.kickoff_at)));
+      el.append(meta);
+      el.append(node('h3',pick.home_team+' — '+pick.away_team,'card-teams'));
+      el.append(node('p','✓ Kazandı · '+pick.label,'pick-line'));
+      el.append(node('p','Maç sonucu: '+(pick.ft_home==null?'—':pick.ft_home)+' - '+(pick.ft_away==null?'—':pick.ft_away),'pick-meta'));
+      el.tabIndex=0;el.setAttribute('role','button');
+      el.onclick=()=>globalThis.BetAppDashboard?.selectMatch(pick.match_id);
+      el.onkeydown=e=>{if(['Enter',' '].includes(e.key)){e.preventDefault();el.onclick();}};
+      box.append(el);
+    }
+    if(!box.children.length)empty('yesterday-winners','Dün maç öncesinde kaydedilip kazandığı doğrulanan tahmin bulunmuyor.');
+    done('yesterday-winners');
+    write('yesterday-winners-note',data.date+' · '+data.total_won+' kazanan seçim · '+data.settled+' sonuçlanmış seçim · Yalnızca önceden kaydedilmiş tahminler');
+  },e=>empty('yesterday-winners',errorText(e),null,()=>yesterday()));
+}
+let homeRetries=0;
+async function home(){loading('prediction-cards');return request('home','/api/predictions?limit=6',p=>{homeRetries=0;renderCards('prediction-cards',p.items,availabilityMessage(p.availability));const cache=p.cache||{};const staleText=cache.stale?' · Önceden hesaplanmış (güncelleme bekleniyor)':'';write('home-prediction-note',`Önümüzdeki ${p.window_hours===72?'72 saat':'7 gün'} · ${date(p.generated_at)}${staleText}`);},e=>{empty('prediction-cards',errorText(e),null,()=>home());if(homeRetries<2 && state.page==='home'){homeRetries++;setTimeout(()=>{if(state.page==='home')home();},homeRetries*3500);}});}
 function renderPicks(items){const box=$('market-picks');if(!box)return;box.replaceChildren();for(const item of items){const m=item.match,r=item.recommendation,row=node('tr'),fixture=cell(row,'');fixture.append(node('strong',`${m.home_team} — ${m.away_team}`),node('small',`${m.league} · ${date(m.kickoff_at)}`));const market=cell(row,'');market.append(node('strong',r.label),node('small',families[r.market]));cell(row,'').append(node('strong',pct(r.probability),'probability'));const vo=r.verified_odds;const oddsCell=cell(row,'');if(vo && vo.has_odds){oddsCell.append(node('strong',`${num(vo.best_price)} (${vo.best_bookmaker})`));const bks=vo.bookmakers || {};const parts=[];for(const bName of ['Crown','Bet365','Sbobet']){const b=bks[bName];if(b && b.current_odds)parts.push(`${bName}: ${num(b.current_odds)}`);}if(parts.length)oddsCell.append(node('small',parts.join(' · ')));}else{oddsCell.append(node('small',vo?.message || 'Bu market için doğrulanmış oran yok','muted'));}const valCell=cell(row,'');if(vo && vo.has_odds && vo.best_value!=null){const v=vo.best_value;valCell.append(node('strong',`${v>=0?'+':''}${(100*v).toFixed(1)}%`,v>=0?'positive-value':'negative-value'));valCell.append(node('small',`İma: ${pct(vo.best_implied_probability)}`));}else{valCell.append(node('span','—','muted'));}cell(row,confidences[r.confidence]);const q=r.evidence || {};cell(row,`${r.sample_size} maç · Güven endeksi ${pct(r.reliability)}${q.home_sample!=null?` · Takım örneği ${q.home_sample}/${q.away_sample}`:''}`);openRow(row,m.id);box.append(row);}done('market-picks');}
 async function refresh(){if(state.page!=='predictions')return;loading('market-picks',7);const q=new URLSearchParams({limit:'20',offset:String(state.offset),market:value('pred-market') || 'all',sort:value('market-sort') || 'ranking',min_probability:String(Math.max(0,Math.min(100,Number(value('min-probability') || 0)))/100)});for(const [id,key] of [['pred-date','date'],['pred-league','league'],['prediction-confidence','confidence'],['pred-team','team'],['pred-bookmaker','bookmaker']])if(value(id))q.set(key,value(id));return request('picks','/api/predictions/best?'+q,p=>{renderPicks(p.items);if(!p.items.length)empty('market-picks',availabilityMessage(p.availability),7);const cache=p.cache||{};const staleText=cache.stale?' (Önceden hesaplanmış · Güncelleme kuyrukta)':'';write('prediction-window',`${date(p.generated_at)}${staleText}`);write('market-board-note',`${p.items.length} seçilmiş tahmin · ${p.evaluated_matches} maç değerlendirildi`);if($('market-previous'))$('market-previous').disabled=state.offset===0;if($('market-next'))$('market-next').disabled=p.items.length<20;},e=>{empty('market-picks',errorText(e),7,()=>refresh());write('market-board-note','Veri bekleniyor');});}
 
