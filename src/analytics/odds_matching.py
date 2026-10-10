@@ -187,7 +187,7 @@ def match_odds_for_candidate(
                 continue
 
             row_match_id = getattr(row, 'match_id', None)
-            if row_match_id is not None and row_match_id != match_id:
+            if row_match_id is None or row_match_id != match_id:
                 continue
 
             updated_at = getattr(row, 'updated_at', None)
@@ -227,7 +227,7 @@ def match_odds_for_candidate(
                 continue
 
             row_match_id = getattr(row, 'match_id', None)
-            if row_match_id is not None and row_match_id != match_id:
+            if row_match_id is None or row_match_id != match_id:
                 continue
 
             updated_at = getattr(row, 'updated_at', None)
@@ -282,7 +282,7 @@ def match_odds_for_candidate(
                 continue
 
             row_match_id = getattr(row, 'match_id', None)
-            if row_match_id is not None and row_match_id != match_id:
+            if row_match_id is None or row_match_id != match_id:
                 continue
 
             updated_at = getattr(row, 'updated_at', None)
@@ -335,48 +335,52 @@ def match_odds_for_candidate(
                 continue
 
             row_match_id = getattr(row, 'match_id', None)
-            if row_match_id is not None and row_match_id != match_id:
+            if row_match_id is None or row_match_id != match_id:
                 continue
 
             updated_at = getattr(row, 'updated_at', None)
             if cutoff and updated_at and _aware(updated_at) > _aware(cutoff):
                 continue
 
-            # Market validation: ensure market tags match and prevent cross-contamination
+            # Market and period validation: mandatory explicit market tag, strict period, and strict cards isolation
             row_market = getattr(row, 'market', None) or getattr(row, 'market_family', None)
-            if family in ('first_half_goals', 'second_half_goals'):
-                if row_market is not None:
-                    if row_market in ('corners', 'cards', 'yellow_cards', 'red_cards', 'result', 'asian_handicap'):
-                        continue
-                    if family == 'first_half_goals' and row_market == 'second_half_goals':
-                        continue
-                    if family == 'second_half_goals' and row_market == 'first_half_goals':
-                        continue
-            elif family == 'corners':
-                if row_market is not None and row_market != 'corners':
-                    continue
-            elif family in ('cards', 'yellow_cards'):
-                if row_market is not None and row_market not in ('cards', 'yellow_cards'):
-                    continue
-            elif family == 'red_cards':
-                if row_market is not None and row_market != 'red_cards':
-                    continue
+            if not row_market:
+                continue
 
-            # Period validation: strictly match period and prevent full-time substitution
             row_period = getattr(row, 'period', None)
-            if period == 'first_half':
-                if row_period is not None and row_period not in ('first_half', '1h', 'ht'):
+
+            if family == 'first_half_goals':
+                if row_market != 'first_half_goals':
                     continue
-                if row_period is None and row_market not in ('first_half_goals', 'first_half'):
+                if row_period not in ('first_half', '1h', 'ht'):
                     continue
-            elif period == 'second_half':
-                if row_period is not None and row_period not in ('second_half', '2h'):
+            elif family == 'second_half_goals':
+                if row_market != 'second_half_goals':
                     continue
-                if row_period is None and row_market not in ('second_half_goals', 'second_half'):
+                if row_period not in ('second_half', '2h'):
                     continue
-            elif period == 'full_time':
+            elif family == 'corners':
+                if row_market != 'corners':
+                    continue
                 if row_period is not None and row_period not in ('full_time', 'ft'):
                     continue
+            elif family == 'cards':
+                if row_market != 'cards':
+                    continue
+                if row_period is not None and row_period not in ('full_time', 'ft'):
+                    continue
+            elif family == 'yellow_cards':
+                if row_market != 'yellow_cards':
+                    continue
+                if row_period is not None and row_period not in ('full_time', 'ft'):
+                    continue
+            elif family == 'red_cards':
+                if row_market != 'red_cards':
+                    continue
+                if row_period is not None and row_period not in ('full_time', 'ft'):
+                    continue
+            else:
+                continue
 
             op_line = getattr(row, 'opening_line', None)
             lat_line = getattr(row, 'latest_line', None)
