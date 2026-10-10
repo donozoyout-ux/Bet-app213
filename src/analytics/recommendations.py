@@ -87,8 +87,10 @@ def build_candidates(result,market_support=None):
         ('first_half_goals','1. Yarı Gol',['0_5','1_5','2_5']),
         ('second_half_goals','2. Yarı Gol',['0_5','1_5','2_5']),
         ('corners','Korner',['7_5','8_5','9_5','10_5','11_5']),
-        ('cards','Kart',['2_5','3_5','4_5','5_5','6_5']),
-        ('yellow_cards','Sarı Kart',['2_5','3_5','4_5','5_5','6_5']),
+        # Supported suggested card lines are deliberately conservative. Additional
+        # statistical thresholds may exist, but are not presented as bettable markets.
+        ('cards','Toplam Kart (Sarı + Kırmızı)',['2_5','3_5','4_5']),
+        ('yellow_cards','Sarı Kart',['2_5','3_5','4_5']),
         ('red_cards','Kırmızı Kart',['0_5','1_5','2_5'])]:
         values=extra.get(metric);cp=values.get('prediction') if values else None
         if not cp or cp['status']!='ok':continue
