@@ -39,7 +39,7 @@ def parse_market_and_selection(market: str, selection: str) -> tuple[str, str, f
     """Parse candidate market and selection into (family, side, line, period).
 
     Returns:
-        family: 'result' | 'goals' | 'asian_handicap' | 'first_half_goals' | 'second_half_goals' | other
+        family: 'result' | 'goals' | 'asian_handicap' | 'first_half_goals' | 'second_half_goals' | 'corners' | 'cards' | other
         side: 'home' | 'draw' | 'away' | 'over' | 'under' | ''
         line: float or None
         period: 'full_time' | 'first_half' | 'second_half'
@@ -78,6 +78,12 @@ def parse_market_and_selection(market: str, selection: str) -> tuple[str, str, f
         side = parts[0] if parts else ''
         line = float(parts[1].replace('_', '.')) if len(parts) > 1 else None
         return ('second_half_goals', side, line, 'second_half')
+    elif market in ('corners', 'cards'):
+        # selection like 'over_9_5' or 'under_4_5'
+        parts = selection.split('_', 1)
+        side = parts[0] if parts else ''
+        line = float(parts[1].replace('_', '.')) if len(parts) > 1 else None
+        return (market, side, line, 'full_time')
     else:
         return (market, selection, None, 'full_time')
 
@@ -142,8 +148,8 @@ def match_odds_for_candidate(
                 'message': NO_ODDS_MESSAGE,
             }
 
-    # If market has no supported bookmaker odds table (e.g. btts, double_chance, corners, cards)
-    if family not in ('result', 'goals', 'asian_handicap'):
+    # If market has no supported bookmaker odds table (e.g. btts, double_chance)
+    if family not in ('result', 'goals', 'asian_handicap', 'corners', 'cards'):
         return {
             'has_odds': False,
             'period': period,
@@ -249,6 +255,55 @@ def match_odds_for_candidate(
     elif family == 'asian_handicap':
         # exact handicap line required
         rows = asian_handicap_rows or []
+        for item in rows:
+            row, bookmaker_name = _unpack_row(item)
+            if bookmaker_name not in SUPPORTED_BOOKMAKERS:
+                continue
+
+            updated_at = getattr(row, 'updated_at', None)
+            if cutoff and updated_at and _aware(updated_at) > _aware(cutoff):
+                continue
+
+            op_line = getattr(row, 'opening_line', None)
+            lat_line = getattr(row, 'latest_line', None)
+            cl_line = getattr(row, 'closing_line', None)
+
+            opening = None
+            if op_line is not None and line is not None and abs(op_line - line) < 1e-4:
+                opening = _safe_float(getattr(row, f'opening_{side}', None))
+
+            latest = None
+            if lat_line is not None and line is not None and abs(lat_line - line) < 1e-4:
+                latest = _safe_float(getattr(row, f'latest_{side}', None))
+
+            closing = None
+            if cl_line is not None and line is not None and abs(cl_line - line) < 1e-4:
+                closing = _safe_float(getattr(row, f'closing_{side}', None))
+
+            if opening is None and latest is None and closing is None:
+                continue
+
+            current = closing if (is_closing and closing is not None) else (latest if latest is not None else opening)
+            implied = round(1.0 / current, 4) if current else None
+            val = round(probability * current - 1.0, 4) if (current and probability is not None) else None
+
+            entry = {
+                'bookmaker': bookmaker_name,
+                'opening_odds': opening,
+                'latest_odds': latest,
+                'closing_odds': closing,
+                'current_odds': current,
+                'implied_probability': implied,
+                'value': val,
+                'observed_at': updated_at.isoformat() if hasattr(updated_at, 'isoformat') else str(updated_at) if updated_at else None,
+                'line': line,
+            }
+            bookmakers_data[bookmaker_name] = entry
+            if current:
+                valid_prices.append((bookmaker_name, current, updated_at))
+
+    elif family in ('corners', 'cards'):
+        rows = period_odds_rows or []
         for item in rows:
             row, bookmaker_name = _unpack_row(item)
             if bookmaker_name not in SUPPORTED_BOOKMAKERS:

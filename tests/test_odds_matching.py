@@ -187,3 +187,34 @@ def test_enrich_recommendations():
 
     assert candidates[2]['verified_odds']['has_odds'] is False
     assert candidates[2]['verified_odds']['message'] == NO_ODDS_MESSAGE
+
+
+def test_corners_and_cards_odds_matching():
+    candidate_corner = {'market': 'corners', 'selection': 'over_9_5', 'probability': 0.58}
+    corner_rows = [
+        (MockAsianTotals(9.5, 1.85, 1.95, 9.5, 1.92, 1.88), 'Bet365'),
+        (MockAsianTotals(9.5, 1.80, 2.00, 10.5, 2.10, 1.75), 'Crown'),
+    ]
+    res = match_odds_for_candidate(candidate_corner, match_id=1, match_status='scheduled', period_odds_rows=corner_rows)
+    assert res['has_odds'] is True
+    assert res['best_price'] == 1.92
+    assert res['best_bookmaker'] == 'Bet365'
+    assert res['bookmakers']['Crown']['current_odds'] == 1.80  # fallback to opening line 9.5 since latest line is 10.5
+
+    # Line mismatch
+    candidate_mismatch = {'market': 'corners', 'selection': 'over_11_5', 'probability': 0.40}
+    res_mis = match_odds_for_candidate(candidate_mismatch, match_id=1, match_status='scheduled', period_odds_rows=corner_rows)
+    assert res_mis['has_odds'] is False
+    assert res_mis['best_price'] is None
+    assert res_mis['message'] == NO_ODDS_MESSAGE
+
+    # Cards matching
+    candidate_cards = {'market': 'cards', 'selection': 'under_3_5', 'probability': 0.62}
+    cards_rows = [
+        (MockAsianTotals(3.5, 2.10, 1.72, 3.5, 2.05, 1.75), 'Sbobet'),
+    ]
+    res_card = match_odds_for_candidate(candidate_cards, match_id=1, match_status='scheduled', period_odds_rows=cards_rows)
+    assert res_card['has_odds'] is True
+    assert res_card['best_price'] == 1.75
+    assert res_card['best_bookmaker'] == 'Sbobet'
+
