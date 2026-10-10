@@ -58,6 +58,20 @@ class Prediction(BaseModel):
     over_3_5_cards_probability: float | None = None
     over_4_5_cards_probability: float | None = None
     over_5_5_cards_probability: float | None = None
+    first_half_goals_status: str = 'insufficient_data'
+    expected_home_first_half_goals: float | None = None
+    expected_away_first_half_goals: float | None = None
+    expected_total_first_half_goals: float | None = None
+    over_0_5_first_half_goals_probability: float | None = None
+    over_1_5_first_half_goals_probability: float | None = None
+    over_2_5_first_half_goals_probability: float | None = None
+    second_half_goals_status: str = 'insufficient_data'
+    expected_home_second_half_goals: float | None = None
+    expected_away_second_half_goals: float | None = None
+    expected_total_second_half_goals: float | None = None
+    over_0_5_second_half_goals_probability: float | None = None
+    over_1_5_second_half_goals_probability: float | None = None
+    over_2_5_second_half_goals_probability: float | None = None
 
 
 class FormMatch(BaseModel):

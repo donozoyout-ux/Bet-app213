@@ -196,7 +196,7 @@ async def matches(league: str | None = None, season: str | None = None,
 async def predictions(league: str | None = None, date: Date | None = None,
                       limit: int = Query(default=8, ge=1, le=20),
                       confidence: Literal['high','medium','low'] | None=None, min_probability: float=Query(default=0,ge=0,le=1),
-                      market: Literal['all','result','goals','btts','corners','cards','yellow_cards','red_cards','asian_handicap','double_chance']='all', session=Depends(session_dependency)):
+                      market: Literal['all','result','goals','btts','corners','cards','yellow_cards','red_cards','asian_handicap','double_chance','first_half_goals','second_half_goals']='all', session=Depends(session_dependency)):
     calculated,now,evaluated=await calculate_predictions(session,league,date)
     calculated=[{**item,'recommendations':[r for r in item['recommendations'] if market_matches([r],market) and (not confidence or r['confidence']==confidence) and r['probability']>=min_probability]} for item in calculated]
     calculated=[item for item in calculated if item['recommendations']]
@@ -246,7 +246,7 @@ async def uncached_predictions(session,league,date,team=None,now=None,publish=Tr
 
 @router.get('/predictions/best',response_model=GlobalPicks)
 async def global_predictions(league: str | None=None,date: Date | None=None,team: str | None=None,sort: Literal['ranking','kickoff','probability']='ranking',limit: int=Query(default=20,ge=1,le=100),offset: int=Query(default=0,ge=0),
-                             market: Literal['all','result','goals','btts','corners','cards','yellow_cards','red_cards','asian_handicap','double_chance']='all',confidence: Literal['high','medium','low'] | None=None,min_probability: float=Query(default=0,ge=0,le=1),session=Depends(session_dependency)):
+                             market: Literal['all','result','goals','btts','corners','cards','yellow_cards','red_cards','asian_handicap','double_chance','first_half_goals','second_half_goals']='all',confidence: Literal['high','medium','low'] | None=None,min_probability: float=Query(default=0,ge=0,le=1),session=Depends(session_dependency)):
     matches,now,evaluated=await calculate_predictions(session,league,date,team)
     picks=[{'match':item['match'],'recommendation':r,'as_of':item['as_of']} for item in matches for r in item['recommendations'] if market_matches([r],market) and (not confidence or r['confidence']==confidence) and r['probability']>=min_probability]
     picks.sort(key=lambda item:(-item['recommendation']['score'],-item['recommendation']['reliability'],item['match']['kickoff_at'],item['match']['id'],item['recommendation']['id']))
@@ -361,7 +361,7 @@ async def scrape_match(match_id: int, session=Depends(session_dependency)):
 
 
 @router.get('/market-performance')
-async def market_performance(league: str | None=None,market: Literal['all','result','goals','btts','corners','cards','yellow_cards','red_cards','asian_handicap','double_chance']='all',exact_market: str | None=None,date_from: Date | None=None,date_to: Date | None=None,confidence: Literal['high','medium','low'] | None=None,limit: int=Query(default=50,ge=1,le=100),offset: int=Query(default=0,ge=0),session=Depends(session_dependency)):
+async def market_performance(league: str | None=None,market: Literal['all','result','goals','btts','corners','cards','yellow_cards','red_cards','asian_handicap','double_chance','first_half_goals','second_half_goals']='all',exact_market: str | None=None,date_from: Date | None=None,date_to: Date | None=None,confidence: Literal['high','medium','low'] | None=None,limit: int=Query(default=50,ge=1,le=100),offset: int=Query(default=0,ge=0),session=Depends(session_dependency)):
     if date_from and date_to and date_from>date_to:raise HTTPException(400,'Invalid date range')
     from src.analytics.performance import performance
     start=day_bounds(date_from,DISPLAY_TIMEZONE)[0] if date_from else None

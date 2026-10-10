@@ -73,8 +73,8 @@ async def test_arctic_navigation_filters_analysis_and_responsive_layout(api,db,m
             await expect(page.locator('#analysis-dialog')).to_be_visible()
             await expect(page.locator('#detail-title')).to_have_text('Test team 0 vs Test team 1')
             assert '?match='+str(target) in page.url
-            await expect(page.locator('[data-analysis-tab]')).to_have_count(8)
-            for tab in ['summary','predictions','goals','corners','cards','handicap','odds','form']:
+            await expect(page.locator('[data-analysis-tab]')).to_have_count(10)
+            for tab in ['summary','predictions','goals','first_half_goals','second_half_goals','corners','cards','handicap','odds','form']:
                 await page.locator(f'[data-analysis-tab="{tab}"]').click()
                 await expect(page.locator(f'[data-analysis-tab="{tab}"]')).to_have_attribute('aria-selected','true')
             await page.locator('[data-analysis-tab="summary"]').focus();await page.keyboard.press('ArrowRight')

@@ -16,7 +16,7 @@ async def capture(session, match, picks, now):
         from sqlalchemy.dialects.postgresql import insert
     else:
         from sqlalchemy.dialects.sqlite import insert
-    result=await session.execute(insert(PredictionSnapshot).values(match_id=match.id,league_id=match.league_id,captured_at=now,model_version='quality-poisson-v2-cards',picks=picks).on_conflict_do_nothing(index_elements=['match_id']))
+    result=await session.execute(insert(PredictionSnapshot).values(match_id=match.id,league_id=match.league_id,captured_at=now,model_version='quality-poisson-v3-half-goals',picks=picks).on_conflict_do_nothing(index_elements=['match_id']))
     if known is not None:known.add(match.id)
     return result.rowcount > 0
 
@@ -25,7 +25,7 @@ async def capture_many(session, observations, now):
     """Publish a board atomically without an INSERT round trip per match."""
     known = session.info.get('captured_matches', set())
     records = [dict(match_id=m.id, league_id=m.league_id, captured_at=now,
-                    model_version='quality-poisson-v2-cards', picks=picks)
+                    model_version='quality-poisson-v3-half-goals', picks=picks)
                for m,picks in observations if m.id not in known and picks and
                m.status=='scheduled' and m.kickoff_at and aware(m.kickoff_at)>now]
     if not records:
@@ -47,10 +47,19 @@ def settle(match, stats, pick):
         if market in {'yellow_cards','red_cards'}:fields=['home_'+market,'away_'+market]
         if not stats or not stats.is_final or any(getattr(stats,f) is None for f in fields):return 'awaiting_data',None
         total=sum(getattr(stats,f) for f in fields)
+    elif market in {'first_half_goals','second_half_goals'}:
+        if match.ht_home is None or match.ht_away is None or match.ft_home is None or match.ft_away is None:
+            return 'awaiting_data',None
+        if match.ht_home < 0 or match.ht_away < 0 or match.ft_home < 0 or match.ft_away < 0 or match.ft_home < match.ht_home or match.ft_away < match.ht_away:
+            return 'void',None
+        if market == 'first_half_goals':
+            total = match.ht_home + match.ht_away
+        else:
+            total = (match.ft_home - match.ht_home) + (match.ft_away - match.ht_away)
     else:
         if match.ft_home is None or match.ft_away is None:return 'awaiting_data',None
         home,away=match.ft_home,match.ft_away;total=home+away
-    if market in {'goals','corners','cards','yellow_cards','red_cards'}:
+    if market in {'goals','corners','cards','yellow_cards','red_cards','first_half_goals','second_half_goals'}:
         direction,a,b=selection.split('_');line=float(a+'.'+b);won=total>line if direction=='over' else total<line;actual=total
     elif market=='btts':won=(home>0 and away>0)==(selection=='yes');actual=f'{home}-{away}'
     elif market=='result':won={'home':home>away,'draw':home==away,'away':home<away}[selection];actual=f'{home}-{away}'

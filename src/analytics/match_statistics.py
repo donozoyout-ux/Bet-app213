@@ -116,6 +116,19 @@ async def additional_statistics(session,match,cutoff):
         prediction=count_prediction(rows,match.home_team_id,match.away_team_id,metric,basis)
         if match.kickoff_at is None:prediction.update(status='insufficient_data',expected_home=None,expected_away=None,expected_total=None,over_probabilities={})
         result[market]={**sides,'prediction':prediction}
+    from src.analytics.half_goals import half_goal_summary, half_goal_prediction
+    for market,half in [('first_half_goals','first'),('second_half_goals','second')]:
+        sides={}
+        for label,team in [('home',match.home_team_id),('away',match.away_team_id)]:
+            own=[r for r in rows if team in (r[0].home_team_id,r[0].away_team_id)]
+            sides[label]={'last_5':half_goal_summary(own[:5],team,half),'last_10':half_goal_summary(own[:10],team,half),
+                          'season':half_goal_summary([r for r in own if r[0].season_id==match.season_id],team,half),
+                          'home_split':half_goal_summary([r for r in own if r[0].home_team_id==team],team,half),
+                          'away_split':half_goal_summary([r for r in own if r[0].away_team_id==team],team,half)}
+            for split in ['home_split','away_split']:sides[label][split]['status']='ok' if sides[label][split]['sample_size']>=3 else 'insufficient_data'
+        prediction=half_goal_prediction(rows,match.home_team_id,match.away_team_id,half)
+        if match.kickoff_at is None:prediction.update(status='insufficient_data',expected_home=None,expected_away=None,expected_total=None,over_probabilities={},under_probabilities={})
+        result[market]={**sides,'prediction':prediction}
     observed_cache=session.info.get('board_statistics',{})
     observed=observed_cache[match.id] if match.id in observed_cache else await session.get(MatchStatistics,match.id)
     result['observed_match_statistics']={key:getattr(observed,key) for key in STAT_FIELDS} if observed and observed.collection_status=='available' else None
