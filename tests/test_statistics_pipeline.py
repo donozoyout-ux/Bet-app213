@@ -14,7 +14,7 @@ from tests.test_match_statistics import captured
 async def test_qualified_count_markets_reach_both_prediction_apis(api, db, monkeypatch):
     import src.api.routes as routes
     monkeypatch.setattr(routes, 'utcnow', lambda: NOW)
-    target, _, _, _, history = await seed(db)
+    target, league, _, _, history = await seed(db)
     async with db.session() as session:
         for id in history:
             # Synthetic regression data with complete published counts; not production validation.
@@ -22,6 +22,8 @@ async def test_qualified_count_markets_reach_both_prediction_apis(api, db, monke
                 home_corners=2, away_corners=2, home_yellow_cards=1, away_yellow_cards=1,
                 home_red_cards=0, away_red_cards=0, updated_at=NOW-timedelta(days=1), raw={}))
         await session.commit()
+    from src.analytics.board_cache import refresh_one
+    await refresh_one(db, now=NOW, force_league=league)
     data=(await api.get(f'/api/matches/{target}/statistics')).json()
     assert {'corners','cards'} <= {r['market'] for r in data['recommendations']}
     assert len(data['recommendations']) <= 3
@@ -35,7 +37,10 @@ async def test_qualified_count_markets_reach_both_prediction_apis(api, db, monke
     async with db.session() as session:
         for row in (await session.scalars(select(MatchStatistics))).all():row.home_red_cards=None
         await session.commit()
+    await refresh_one(db, now=NOW, force_league=league)
+
     page=(await api.get('/api/predictions?market=cards')).json()
+
     assert page['items']==[] and page['availability']['status']=='insufficient_data'
     detail=page['availability']['markets']['cards']['matches'][0]
     assert detail['model']['league_sample_size']==0

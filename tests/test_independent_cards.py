@@ -80,19 +80,24 @@ def test_independent_markets_qualify_only_with_strong_evidence(basis,market):
     assert all('league_samples' in c['rejection_reasons'] for c in ranked)
 
 
-async def seed_cards(db,n=80):
+async def seed_cards(db,n=80,refresh=True):
     target,league,season,teams,history=await seed(db)
     async with db.session() as session:
         for id in history[:n]:
             session.add(MatchStatistics(match_id=id,is_final=True,home_yellow_cards=1,away_yellow_cards=1,
                 home_red_cards=None,away_red_cards=None,updated_at=NOW-timedelta(days=1),raw={}))
         await session.commit()
+    if refresh:
+        from src.analytics.board_cache import refresh_one
+        await refresh_one(db, now=NOW, force_league=league)
     return target,history
 
 
+
 async def verify_persistent_analytics(db):
-    target,history=await seed_cards(db)
+    target,history=await seed_cards(db,refresh=False)
     async with db.session() as session:
+
         from src.api.routes import match_query, match_response
         query,_,_=match_query()
         row=(await session.execute(query.where(Match.id==target))).first()
@@ -112,12 +117,17 @@ async def verify_persistent_analytics(db):
         # A pre-existing published combined pick is immutable even after adding yellow models.
         match=await session.get(Match,target)
         old=[{'market':'cards','selection':'over_4_5','label':'4.5 Kart Üst'}]
-        session.add(PredictionSnapshot(match_id=target,league_id=match.league_id,captured_at=NOW,
-            model_version='quality-poisson-v1',picks=old))
+        existing=await session.get(PredictionSnapshot,target)
+        if existing:
+            existing.picks=old;existing.model_version='quality-poisson-v1'
+        else:
+            session.add(PredictionSnapshot(match_id=target,league_id=match.league_id,captured_at=NOW,
+                model_version='quality-poisson-v1',picks=old))
         await session.commit()
         assert not await capture(session,match,selected,NOW)
         saved=await session.get(PredictionSnapshot,target)
         assert saved.picks==old and saved.model_version=='quality-poisson-v1'
+
         stored=await session.get(MatchStatistics,history[0])
         assert stored.home_red_cards is stored.away_red_cards is None
 

@@ -12,11 +12,19 @@ jobs:
   ping:
     runs-on: ubuntu-latest
     timeout-minutes: 2
+    env:
+      BETAPP_URL: ${{ vars.BETAPP_URL }}
     steps:
       - name: Ping Bet App
         run: |
-          set -e
-          echo "Pinging https://bet-app213.onrender.com/health"
-          curl --fail --silent --show-error             --max-time 30             --retry 2             --retry-delay 5             https://bet-app213.onrender.com/health
+          set -euo pipefail
+          TARGET_URL="${BETAPP_URL:-https://bet-app213.onrender.com}/health"
+          echo "Pinging $TARGET_URL"
+          curl --fail --silent --show-error \
+            --max-time 30 \
+            --retry 2 \
+            --retry-delay 5 \
+            "$TARGET_URL"
           echo
           echo "Keepalive OK"
+

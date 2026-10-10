@@ -204,20 +204,17 @@ async def predictions(league: str | None = None, date: Date | None = None,
     primary = [item for item in calculated if aware(item['match']['kickoff_at']) <= now + timedelta(hours=72)]
     enough=len(primary)>=min(5,limit)
     chosen=calculated if date or not enough else primary
-    return {'availability':summarize_availability(session.info.get('count_availability',[]),market,len(chosen)), 'items':chosen[:limit],'window_hours':72 if enough and not date else 168,'generated_at':now}
+    return {'availability':summarize_availability(session.info.get('count_availability',[]),market,len(chosen)), 'items':chosen[:limit],'window_hours':72 if enough and not date else 168,'generated_at':session.info['prediction_snapshot']['generated_at'],'cache':session.info['prediction_snapshot']}
 
 
 async def calculate_predictions(session,league,date,team=None):
-    async def compute():
-        result = await uncached_predictions(session, league, date, team)
-        return result, session.info.get('count_availability', [])
-    result, availability = await prediction_cache.get(session.bind, (league, date, team), compute)
-    session.info['count_availability'] = availability
-    return result
+    from src.analytics.board_cache import read_board
+    async with asyncio.timeout(4):
+        return await read_board(session,league,date,team,utcnow())
 
 
-async def uncached_predictions(session,league,date,team=None):
-    now = utcnow()
+async def uncached_predictions(session,league,date,team=None,now=None,publish=True):
+    now = now or utcnow()
     query, home, away = match_query()
     query = query.where(League.enabled.is_(True), Match.status == 'scheduled', Match.kickoff_at > now,
                         Match.kickoff_at <= now + timedelta(days=7))
@@ -242,7 +239,8 @@ async def uncached_predictions(session,league,date,team=None):
             item['match_id']=row[0].id;calculated.append(item)
             observations.append((row[0],result['recommendations']))
     from src.analytics.performance import capture_many
-    if await capture_many(session,observations,utcnow()):await session.commit()
+    session.info['board_observations']=observations
+    if publish and await capture_many(session,observations,utcnow()):await session.commit()
     return calculated,now,len(rows)
 
 
@@ -254,7 +252,7 @@ async def global_predictions(league: str | None=None,date: Date | None=None,team
     picks.sort(key=lambda item:(-item['recommendation']['score'],-item['recommendation']['reliability'],item['match']['kickoff_at'],item['match']['id'],item['recommendation']['id']))
     if sort=='kickoff':picks.sort(key=lambda item:(item['match']['kickoff_at'],item['match']['id']))
     elif sort=='probability':picks.sort(key=lambda item:-item['recommendation']['probability'])
-    return {'availability':summarize_availability(session.info.get('count_availability',[]),market,len(picks)), 'items':picks[offset:offset+limit],'generated_at':now,'evaluated_matches':evaluated}
+    return {'availability':summarize_availability(session.info.get('count_availability',[]),market,len(picks)), 'items':picks[offset:offset+limit],'generated_at':session.info['prediction_snapshot']['generated_at'],'cache':session.info['prediction_snapshot'],'evaluated_matches':evaluated}
 
 
 @router.get('/matches/{match_id}/statistics', response_model=Statistics)

@@ -19,7 +19,10 @@ async def test_arctic_navigation_filters_analysis_and_responsive_layout(api,db,m
         for id in history:session.add(MatchStatistics(match_id=id,is_final=True,home_corners=2,away_corners=2,
             home_yellow_cards=1,away_yellow_cards=1,home_red_cards=0,away_red_cards=0,updated_at=NOW-timedelta(days=1),raw={}))
         await session.commit();second_id=second.id
+    from src.analytics.board_cache import refresh_one
+    await refresh_one(db, now=NOW, force_league=league)
     async with async_playwright() as p:
+
         browser=await p.chromium.launch()
         page=await browser.new_page(viewport={'width':width,'height':900},reduced_motion='reduce')
         errors=[];page.on('pageerror',lambda e:errors.append(str(e)))

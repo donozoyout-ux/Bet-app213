@@ -9,13 +9,16 @@ async def test_browser_count_markets_coverage_dialog_and_failed_request(api,db,m
     from playwright.async_api import async_playwright, expect
     import src.api.routes as routes
     monkeypatch.setattr(routes,'utcnow',lambda:NOW)
-    target,_,_,_,history=await seed(db)
+    target,league,_,_,history=await seed(db)
     async with db.session() as session:
         for id in history:
             session.add(MatchStatistics(match_id=id,is_final=True,home_corners=2,away_corners=2,
                 home_yellow_cards=1,away_yellow_cards=1,home_red_cards=0,away_red_cards=0,
                 updated_at=NOW-timedelta(days=1),raw={}))
         await session.commit()
+    from src.analytics.board_cache import refresh_one
+    await refresh_one(db, now=NOW, force_league=league)
+
     async with async_playwright() as p:
         browser=await p.chromium.launch()
         page=await browser.new_page(viewport={'width':1280,'height':900})

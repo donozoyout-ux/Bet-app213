@@ -247,3 +247,23 @@ class PredictionSnapshot(Base):
     captured_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
     model_version: Mapped[str] = mapped_column(String(40), default='quality-poisson-v1')
     picks: Mapped[list] = mapped_column(JSON)
+
+
+class PredictionBoard(Base):
+    """Replaceable league cache; immutable published picks remain separate."""
+    __tablename__ = 'prediction_boards'
+    league_id: Mapped[int] = mapped_column(ForeignKey('leagues.id'), primary_key=True)
+    model_version: Mapped[str] = mapped_column(String(60))
+    generated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    source_revision: Mapped[str] = mapped_column(String(64))
+    payload: Mapped[dict] = mapped_column(JSON)
+
+
+class CollectorRetry(Base):
+    """Source cooldown survives scraper and free-instance restarts."""
+    __tablename__ = 'collector_retries'
+    key: Mapped[str] = mapped_column(String(80), primary_key=True)
+    failures: Mapped[int] = mapped_column(default=0)
+    next_attempt_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    reason: Mapped[str] = mapped_column(String(80))
