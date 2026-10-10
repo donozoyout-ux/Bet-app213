@@ -45,6 +45,26 @@ Raw source values retain original signs and format. Split lines are averaged:
 1.53/4.85/5.60, prematch 1.66/4.20/4.90, in-play 1.02/15/66 demonstrates why
 the in-play values cannot be used as closing.
 
+## Half-time and extended markets (verified 2026-10-10)
+
+`https://www.goaloo.com/ajax/soccerajax?type=14&t=1&id={match}&h=1&s=-1`
+- **Half-time 1X2 + AH + OU**: Returns `Data.mixodds` with the same schema as full-time.
+- Verified on live match 2590898: Crown (cid 3), Bet365 (cid 8), and Sbobet (cid 31) are present.
+- Bet365 half-time OU line was 1.25 (opening: 0.85 HK / 1.85 dec over, 1.0 HK / 2.0 dec under).
+- Saved as `market_odds` with `market='first_half_goals'`, `period='first_half'`.
+
+`https://www.goaloo.com/ajax/soccerajax?type=14&t=4&id={match}&h=0&s=-1&ex=1`
+- **Corner OU (Full-time)**: Returns `Data.oddsList`.
+- Contains `cid`, `cn`, `type`, and `odds` (`f/l/r` with `u/g/d`).
+- `type=1` represents corner handicap; `type=2` represents corner Over/Under (Asian totals).
+- Verified on live match 2590898: Bet365 (cid 8) and Crown (cid 3, labeled `cn='Sb'`) are present. Sbobet does **not** provide corner odds on Goaloo.
+- Line format: integer or split total lines (e.g., 11.5). Decimal conversion: HK price + 1.
+- Saved as `market_odds` with `market='corners'`, `period='full_time'`.
+
+### Markets NOT available on Goaloo
+- **Card / booking odds**: Exhaustively tested across `type=14, t=1..7` and all endpoint variants. Goaloo does NOT provide booking/card betting odds. As per constraints, NO card odds scraper is written and card markets remain without fabricated odds.
+- **Second-half standalone OU**: Goaloo provides half-time (`h=1`, 1H) and full-time (`h=0`, FT). No standalone second-half market exists in the verified API.
+
 ## Optional snapshots
 
 `type=14&t=20&id={match}&cid={bookmaker}&h=0&r1=0&r2=0&r3=0` supplies `Data.ah`,

@@ -129,3 +129,99 @@ async def test_http_retry_and_provider_application_error(monkeypatch):
     async with GoalooClient(httpx.MockTransport(rejection)) as client:
         with pytest.raises(SourceError):
             await client.get('https://www.goaloo.com/ajax')
+
+
+def test_parse_corner_odds_verified_fixture():
+    from src.scrapers.goaloo.corner_odds import parse_corner_odds
+    payload = fixture('goaloo_corner_odds.json')
+    odds = parse_corner_odds(payload, final=False)
+    assert set(odds.keys()) == {'Bet365', 'Crown'}
+    bet365 = odds['Bet365']
+    assert bet365['opening_line'] == 12.0
+    assert bet365['opening_over'] == 2.025
+    assert bet365['opening_under'] == 1.775
+    assert bet365['latest_line'] == 11.5
+    assert bet365['latest_over'] == 2.0
+    assert bet365['latest_under'] == 1.8
+    assert bet365['closing_line'] is None
+
+    crown = odds['Crown']
+    assert crown['opening_line'] == 11.5
+    assert crown['opening_over'] == 1.95
+    assert crown['opening_under'] == 1.85
+    assert crown['latest_line'] == 11.5
+    assert crown['latest_over'] == 1.91
+    assert crown['latest_under'] == 1.89
+
+    # Final=True populates closing prices from latest
+    final_odds = parse_corner_odds(payload, final=True)
+    assert final_odds['Bet365']['closing_line'] == 11.5
+    assert final_odds['Bet365']['closing_over'] == 2.0
+    assert final_odds['Bet365']['closing_under'] == 1.8
+
+
+def test_parse_corner_odds_schema_validation():
+    from src.scrapers.goaloo.corner_odds import parse_corner_odds
+    with pytest.raises(SourceError, match='schema changed'):
+        parse_corner_odds({'Data': {}})
+    with pytest.raises(SourceError, match='not a list'):
+        parse_corner_odds({'Data': {'oddsList': 'invalid'}})
+    with pytest.raises(SourceError, match='mismatch'):
+        parse_corner_odds({'Data': {'oddsList': [{'cid': 8, 'cn': 'Crown', 'type': 2, 'odds': {}}]}})
+
+
+def test_parse_halftime_odds_verified_fixture():
+    from src.scrapers.goaloo.odds import parse_odds
+    payload = fixture('goaloo_halftime_odds.json')
+    odds = parse_odds(payload, final=False)
+    assert set(odds.keys()) == {'Bet365', 'Sbobet', 'Crown'}
+
+    # Half-time OU: all 3 bookmakers offer verified half-time OU lines
+    b365_ou = odds['Bet365']['ou']
+    assert b365_ou['opening_line'] == 1.25
+    assert b365_ou['opening_over'] == 1.85
+    assert b365_ou['opening_under'] == 2.0
+    assert b365_ou['latest_line'] == 1.25
+    assert b365_ou['latest_over'] == 2.03
+    assert b365_ou['latest_under'] == 1.83
+
+    sbobet_ou = odds['Sbobet']['ou']
+    assert sbobet_ou['opening_line'] == 1.25
+    assert sbobet_ou['opening_over'] == 1.83
+    assert sbobet_ou['opening_under'] == 2.05
+    assert sbobet_ou['latest_line'] == 1.25
+    assert sbobet_ou['latest_over'] == 2.13
+    assert sbobet_ou['latest_under'] == 1.78
+
+    crown_ou = odds['Crown']['ou']
+    assert crown_ou['opening_line'] == 1.25
+    assert crown_ou['opening_over'] == 1.79
+    assert crown_ou['opening_under'] == 2.07
+    assert crown_ou['latest_line'] == 1.25
+    assert crown_ou['latest_over'] == 2.08
+    assert crown_ou['latest_under'] == 1.8
+
+
+async def test_fetch_corner_and_halftime_odds():
+    from src.scrapers.goaloo.corner_odds import fetch_corner_odds
+    from src.scrapers.goaloo.odds import fetch_halftime_odds
+
+    def handler(request):
+        params = dict(httpx.QueryParams(request.url.query))
+        assert params.get('type') == '14'
+        if params.get('t') == '4' and params.get('ex') == '1':
+            return httpx.Response(200, json=fixture('goaloo_corner_odds.json'))
+        elif params.get('t') == '1' and params.get('h') == '1':
+            return httpx.Response(200, json=fixture('goaloo_halftime_odds.json'))
+        return httpx.Response(404)
+
+    async with GoalooClient(httpx.MockTransport(handler)) as client:
+        corner = await fetch_corner_odds(client, 2590898)
+        assert 'Bet365' in corner
+        assert 'Crown' in corner
+
+        ht = await fetch_halftime_odds(client, 2590898)
+        assert 'Bet365' in ht
+        assert 'Sbobet' in ht
+        assert 'Crown' in ht
+

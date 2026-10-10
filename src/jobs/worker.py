@@ -13,8 +13,9 @@ from src.scrapers.goaloo.seasons import discover_seasons, season_data
 from src.scrapers.goaloo.rounds import discover_rounds
 from src.scrapers.goaloo.matches import parse_matches
 from src.scrapers.goaloo.details import fetch_match_details
-from src.scrapers.goaloo.odds import fetch_odds, complete_odds, fetch_history
-from .storage import store_match, store_odds, store_history, get_or_create
+from src.scrapers.goaloo.odds import fetch_odds, complete_odds, fetch_history, fetch_halftime_odds
+from src.scrapers.goaloo.corner_odds import fetch_corner_odds
+from .storage import store_match, store_odds, store_market_odds, store_history, get_or_create
 from .storage import store_statistics
 from src.models import MatchStatistics
 from src.scrapers.goaloo.statistics import fetch_statistics
@@ -332,6 +333,22 @@ async def process_item(job_id, item_id, client):
                 except SourceError as exc:
                     ok=False
                     errors.append(str(exc))
+                # Extended markets from verified Goaloo endpoints
+                try:
+                    ht_odds = await fetch_halftime_odds(client, external_id, final)
+                    ht_ou = {bk: m.get('ou', {}) for bk, m in ht_odds.items() if 'ou' in m}
+                    if ht_ou:
+                        await store_market_odds(session, match, ht_ou, market='first_half_goals', period='first_half')
+                        await session.commit()
+                except SourceError as exc:
+                    log.warning('[MARKET_ODDS] half-time odds unavailable match_id=%s: %s', external_id, exc)
+                try:
+                    corner_odds = await fetch_corner_odds(client, external_id, half_time=False, final=final)
+                    if corner_odds:
+                        await store_market_odds(session, match, corner_odds, market='corners', period='full_time')
+                        await session.commit()
+                except SourceError as exc:
+                    log.warning('[MARKET_ODDS] corner odds unavailable match_id=%s: %s', external_id, exc)
                 if match.status=='finished' or match.status in LIVE_STATUSES:
                     try:
                         data=await fetch_statistics(client,external_id,league.external_id)

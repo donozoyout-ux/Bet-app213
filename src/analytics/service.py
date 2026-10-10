@@ -4,7 +4,7 @@ from datetime import timedelta
 import time
 from sqlalchemy import select, func, or_, event, true
 from sqlalchemy.orm import aliased, Session, defer
-from src.models import Match, League, Team, Bookmaker, Odds1X2, MatchStatistics, AsianHandicap, AsianTotals
+from src.models import Match, League, Team, Bookmaker, Odds1X2, MatchStatistics, AsianHandicap, AsianTotals, MarketOdds
 from src.jobs.worker import aware
 from .predictions import Result, predict, implied_probabilities, team_stats, handicap_probability
 from src.match_views import LIVE_STATUSES
@@ -17,7 +17,7 @@ _cache = OrderedDict()
 
 @event.listens_for(Session, 'before_flush')
 def mark_model_changes(session, flush_context, instances):
-    if any(isinstance(obj, (Match, League, Team, Odds1X2, MatchStatistics, AsianHandicap, AsianTotals))
+    if any(isinstance(obj, (Match, League, Team, Odds1X2, MatchStatistics, AsianHandicap, AsianTotals, MarketOdds))
            for obj in session.new | session.dirty | session.deleted):
         session.info['model_changed'] = True
 
@@ -38,7 +38,8 @@ async def revision(session):
     base = select(func.count(Match.id), func.max(Match.updated_at), func.max(Match.last_scraped_at)).subquery()
     source, columns = base, list(base.c)
     for model, pk in [(Odds1X2, Odds1X2.id), (MatchStatistics, MatchStatistics.match_id),
-                      (AsianHandicap, AsianHandicap.id), (AsianTotals, AsianTotals.id)]:
+                      (AsianHandicap, AsianHandicap.id), (AsianTotals, AsianTotals.id),
+                      (MarketOdds, MarketOdds.id)]:
         aggregate = select(func.count(pk), func.max(model.updated_at)).subquery()
         source = source.join(aggregate, true())
         columns.extend(aggregate.c)
@@ -46,10 +47,10 @@ async def revision(session):
 
 
 async def prefetch_markets(session, matches):
-    """Three queries for the entire board, rather than three for every match."""
+    """Prefetch verified markets for the entire board."""
     ids = [m.id for m in matches]
     cache = session.info.setdefault('board_markets', {})
-    for model in (Odds1X2, AsianHandicap, AsianTotals):
+    for model in (Odds1X2, AsianHandicap, AsianTotals, MarketOdds):
         grouped = {id: [] for id in ids}
         if ids:
             rows = await session.execute(select(model, Bookmaker.name).options(defer(model.raw)).join(Bookmaker).where(
@@ -145,6 +146,7 @@ async def statistics(session, match, context, now, data_revision=None):
     asian_candidates={};paired_support={}
     asian_totals_rows = await market_rows(session, AsianTotals, match.id)
     asian_handicap_rows = await market_rows(session, AsianHandicap, match.id)
+    market_odds_rows = await market_rows(session, MarketOdds, match.id)
     if prediction['status']=='ok':
         for model,metric,rows in [(AsianTotals,'goals',asian_totals_rows),(AsianHandicap,'asian_handicap',asian_handicap_rows)]:
             price_rows=[row for row in rows if aware(row[0].updated_at)<=cutoff]
@@ -181,8 +183,8 @@ async def statistics(session, match, context, now, data_revision=None):
     candidates=build_candidates(result,support)
     result['candidates'],result['recommendations']=select_recommendations(candidates)
     from src.analytics.odds_matching import enrich_recommendations_with_odds
-    enrich_recommendations_with_odds(result['candidates'], match.id, match.status, markets, asian_totals_rows, asian_handicap_rows, cutoff=cutoff)
-    enrich_recommendations_with_odds(result['recommendations'], match.id, match.status, markets, asian_totals_rows, asian_handicap_rows, cutoff=cutoff)
+    enrich_recommendations_with_odds(result['candidates'], match.id, match.status, markets, asian_totals_rows, asian_handicap_rows, period_odds_rows=market_odds_rows, cutoff=cutoff)
+    enrich_recommendations_with_odds(result['recommendations'], match.id, match.status, markets, asian_totals_rows, asian_handicap_rows, period_odds_rows=market_odds_rows, cutoff=cutoff)
     result['market_availability']=count_market_availability(result)
     result['strongest_prediction']=result['recommendations'][0]['id'] if result['recommendations'] else None
     _cache[key] = (time.monotonic(), result)

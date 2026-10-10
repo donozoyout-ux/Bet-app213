@@ -28,8 +28,19 @@ async def test_postgres_init_storage_and_exclusive_worker_lock(monkeypatch):
             league = await session.scalar(select(League).where(League.external_id==36))
             match = await store_match(session,league.id,'2024-2025',next(parse_matches(fixture('goaloo_league.json'),1)))
             await store_odds(session,match,parse_odds(fixture('goaloo_odds.json'),True),True)
+            from src.jobs.storage import store_market_odds
+            from src.scrapers.goaloo.corner_odds import parse_corner_odds
+            from src.models import MarketOdds
+            corner_odds = parse_corner_odds(fixture('goaloo_corner_odds.json'), True)
+            await store_market_odds(session, match, corner_odds, 'corners', 'full_time')
+            ht_odds = parse_odds(fixture('goaloo_halftime_odds.json'), True)
+            ht_ou = {bk: m.get('ou', {}) for bk, m in ht_odds.items() if 'ou' in m}
+            await store_market_odds(session, match, ht_ou, 'first_half_goals', 'first_half')
             await session.commit()
             assert match.odds_complete
+            market_rows = list(await session.scalars(select(MarketOdds).where(MarketOdds.match_id == match.id)))
+            assert len(market_rows) == 5  # 2 corner + 3 HT OU
+
         async with db.engine.connect() as first, db.engine.connect() as second:
             assert await first.scalar(text('SELECT pg_try_advisory_lock(213002)'))
             assert not await second.scalar(text('SELECT pg_try_advisory_lock(213002)'))
