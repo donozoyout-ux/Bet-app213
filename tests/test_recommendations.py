@@ -90,3 +90,17 @@ async def test_presentation_sort_and_pick_pagination(api,db,monkeypatch):
     assert (await api.get('/api/predictions/best?limit=1&offset=1')).json()['items']==picks[1:2]
     assert (await api.get('/api/matches?sort=unsupported')).status_code==422
     assert (await api.get('/api/predictions/best?offset=-1')).status_code==422
+
+
+def test_card_recommendations_only_supported_lines():
+    prediction={'status':'insufficient_data'}
+    values={}
+    for market in ('cards','yellow_cards'):
+        form={'sample_size':10,'matches_considered':10,'total_avg':3.2}
+        values[market]={'prediction':{'status':'ok','home_sample_size':10,'away_sample_size':10,'home_split_sample_size':8,'away_split_sample_size':8,'league_sample_size':100,'sample_size':20,'basis':'yellow_only','over_probabilities':{str(x):.4 for x in (2.5,3.5,4.5,5.5,6.5)}},'home':{'last_5':form,'last_10':form,'season':form},'away':{'last_5':form,'last_10':form,'season':form}}
+    result={'prediction':prediction,'additional_statistics':values,'match':{'competition_type':'club'}}
+    candidates=build_candidates(result)
+    card_candidates=[c for c in candidates if c['market'] in ('cards','yellow_cards')]
+    assert len(card_candidates)==12
+    assert all(c['selection'].endswith(('_2_5','_3_5','_4_5')) for c in card_candidates)
+    assert all(not c['selection'].endswith(('_5_5','_6_5')) for c in card_candidates)
