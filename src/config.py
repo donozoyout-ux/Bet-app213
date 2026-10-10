@@ -20,7 +20,9 @@ class Settings:
     save_snapshots: bool = os.getenv('GOALOO_SAVE_SNAPSHOTS', 'false').lower() == 'true'
     market_odds_pilot_enabled: bool = os.getenv('MARKET_ODDS_PILOT_ENABLED', 'true').lower() == 'true'
     market_odds_pilot_league: int = int(os.getenv('MARKET_ODDS_PILOT_LEAGUE', '36'))
+    market_odds_pilot_max_matches: int = int(os.getenv('MARKET_ODDS_PILOT_MAX_MATCHES', '10'))
 
 
 settings = Settings()
+
 

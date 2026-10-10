@@ -4,8 +4,9 @@ import logging
 import time
 from datetime import datetime, timedelta, timezone
 import httpx
-from sqlalchemy import select, text, func, delete, case, or_
+from sqlalchemy import select, text, func, delete, case, or_, and_
 from src.config import settings
+
 from src.match_views import LIVE_STATUSES
 from src.db import database
 from src.models import League, Season, Match, Bookmaker, ScraperJob, JobItem, ScraperIssue, MarketOdds, utcnow
@@ -43,20 +44,33 @@ def missing_statistics_query(league_id, start_year=2024):
 def missing_market_odds_query(league_id, start_year=2024):
     """Find matches missing verified period-specific market odds (HT OU or Corner OU).
 
-    Independent check: a match needs backfill if it lacks either HT goals or corners,
-    unless both markets are complete or the match was checked within the controlled 7-day cooldown.
+    Independent check: a match needs backfill if it lacks meaningful stored odds/lines
+    for either first_half_goals or corners, unless both markets have verified lines
+    or the match was checked within the controlled 7-day cooldown.
     """
-    has_ht = select(MarketOdds.match_id).where(
+    has_meaningful_ht = select(MarketOdds.match_id).where(
         MarketOdds.match_id == Match.id,
         MarketOdds.market == 'first_half_goals',
         MarketOdds.period == 'first_half',
+        or_(
+            MarketOdds.latest_line.is_not(None),
+            MarketOdds.closing_line.is_not(None),
+            MarketOdds.opening_line.is_not(None),
+        ),
     ).exists()
-    has_corners = select(MarketOdds.match_id).where(
+
+    has_meaningful_corners = select(MarketOdds.match_id).where(
         MarketOdds.match_id == Match.id,
         MarketOdds.market == 'corners',
         MarketOdds.period == 'full_time',
+        or_(
+            MarketOdds.latest_line.is_not(None),
+            MarketOdds.closing_line.is_not(None),
+            MarketOdds.opening_line.is_not(None),
+        ),
     ).exists()
-    complete_odds = has_ht & has_corners
+
+    complete_odds = has_meaningful_ht & has_meaningful_corners
 
     recent_check = select(JobItem.match_id).join(
         ScraperJob, ScraperJob.id == JobItem.job_id
@@ -77,6 +91,7 @@ def missing_market_odds_query(league_id, start_year=2024):
         Match.kickoff_at >= datetime(start_year, 1, 1, tzinfo=timezone.utc),
         ~observed,
     )
+
 
 
 
@@ -215,25 +230,81 @@ async def discover(job_id, client):
         if job.discovery_complete:
             return
         if kind == 'stats_backfill':
-            query=select(Match).where(Match.league_id==league_id)
-            if job.match_id:query=query.where(Match.id==job.match_id)
-            else:query=missing_statistics_query(league_id,start_year)
-            for match in (await session.scalars(query.order_by(Match.kickoff_at.desc(),Match.id.desc()))).all():
-                await get_or_create(session,JobItem,{'job_id':job.id,'match_id':match.id})
-            await session.flush()
-            job.total_matches=await session.scalar(select(func.count(JobItem.id)).where(JobItem.job_id==job.id))
-            job.discovery_complete=True
+            if job.match_id:
+                await get_or_create(session, JobItem, {'job_id': job.id, 'match_id': job.match_id})
+                job.total_matches = 1
+                job.discovery_complete = True
+                await session.commit()
+                return
+            DISCOVERY_BATCH_SIZE = 50
+            last_kickoff = None
+            last_id = None
+            total_discovered = await session.scalar(select(func.count(JobItem.id)).where(JobItem.job_id == job.id)) or 0
+            while True:
+                query = missing_statistics_query(league_id, start_year)
+                if last_kickoff is not None and last_id is not None:
+                    query = query.where(
+                        or_(
+                            Match.kickoff_at < last_kickoff,
+                            and_(Match.kickoff_at == last_kickoff, Match.id < last_id),
+                        )
+                    )
+                matches = (await session.scalars(
+                    query.order_by(Match.kickoff_at.desc(), Match.id.desc()).limit(DISCOVERY_BATCH_SIZE)
+                )).all()
+                if not matches:
+                    break
+                for match in matches:
+                    await get_or_create(session, JobItem, {'job_id': job.id, 'match_id': match.id})
+                    last_kickoff, last_id = match.kickoff_at, match.id
+                    total_discovered += 1
+                job.total_matches = total_discovered
+                await session.commit()
+                if len(matches) < DISCOVERY_BATCH_SIZE:
+                    break
+            job.total_matches = await session.scalar(select(func.count(JobItem.id)).where(JobItem.job_id == job.id))
+            job.discovery_complete = True
             await session.commit()
             return
         if kind in ('market_backfill', 'market_odds'):
-            query=select(Match).where(Match.league_id==league_id)
-            if job.match_id:query=query.where(Match.id==job.match_id)
-            else:query=missing_market_odds_query(league_id,start_year)
-            for match in (await session.scalars(query.order_by(Match.kickoff_at.desc(),Match.id.desc()))).all():
-                await get_or_create(session,JobItem,{'job_id':job.id,'match_id':match.id})
-            await session.flush()
-            job.total_matches=await session.scalar(select(func.count(JobItem.id)).where(JobItem.job_id==job.id))
-            job.discovery_complete=True
+            if job.match_id:
+                await get_or_create(session, JobItem, {'job_id': job.id, 'match_id': job.match_id})
+                job.total_matches = 1
+                job.discovery_complete = True
+                await session.commit()
+                return
+            pilot_cap = settings.market_odds_pilot_max_matches if settings.market_odds_pilot_enabled else None
+            DISCOVERY_BATCH_SIZE = 50
+            last_kickoff = None
+            last_id = None
+            total_discovered = await session.scalar(select(func.count(JobItem.id)).where(JobItem.job_id == job.id)) or 0
+            while True:
+                if pilot_cap is not None and total_discovered >= pilot_cap:
+                    break
+                query = missing_market_odds_query(league_id, start_year)
+                if last_kickoff is not None and last_id is not None:
+                    query = query.where(
+                        or_(
+                            Match.kickoff_at < last_kickoff,
+                            and_(Match.kickoff_at == last_kickoff, Match.id < last_id),
+                        )
+                    )
+                batch_limit = min(DISCOVERY_BATCH_SIZE, pilot_cap - total_discovered) if pilot_cap else DISCOVERY_BATCH_SIZE
+                matches = (await session.scalars(
+                    query.order_by(Match.kickoff_at.desc(), Match.id.desc()).limit(batch_limit)
+                )).all()
+                if not matches:
+                    break
+                for match in matches:
+                    await get_or_create(session, JobItem, {'job_id': job.id, 'match_id': match.id})
+                    last_kickoff, last_id = match.kickoff_at, match.id
+                    total_discovered += 1
+                job.total_matches = total_discovered
+                await session.commit()
+                if len(matches) < batch_limit:
+                    break
+            job.total_matches = await session.scalar(select(func.count(JobItem.id)).where(JobItem.job_id == job.id))
+            job.discovery_complete = True
             await session.commit()
             return
         if kind == 'match':
@@ -392,22 +463,33 @@ async def process_item(job_id, item_id, client):
             elif job.kind in ('market_backfill', 'market_odds'):
                 odds_count = 0
                 transient_errors = []
+                ht_response_verified = False
+                corner_response_verified = False
 
-                # Independent check: only fetch HT goals if not already stored or if not final
+                # Independent check: only fetch HT goals if not already stored with meaningful line
                 has_ht = await session.scalar(
                     select(MarketOdds.id).where(
                         MarketOdds.match_id == match.id,
                         MarketOdds.market == 'first_half_goals',
                         MarketOdds.period == 'first_half',
+                        or_(
+                            MarketOdds.latest_line.is_not(None),
+                            MarketOdds.closing_line.is_not(None),
+                        ),
                     ).limit(1)
                 )
                 if not has_ht or not final:
                     try:
                         ht_odds = await fetch_halftime_odds(client, external_id, final)
+                        ht_response_verified = True
                         ht_ou = {
                             bk: m.get('ou', {})
                             for bk, m in ht_odds.items()
-                            if 'ou' in m and m.get('ou', {}).get('latest_line') is not None
+                            if 'ou' in m and (
+                                m.get('ou', {}).get('latest_line') is not None or
+                                m.get('ou', {}).get('opening_line') is not None or
+                                m.get('ou', {}).get('closing_line') is not None
+                            )
                         }
                         if ht_ou:
                             odds_count += await store_market_odds(
@@ -419,22 +501,33 @@ async def process_item(job_id, item_id, client):
                     except Exception as exc:
                         log.warning('[MARKET_ODDS] half-time odds error match_id=%s: %s', external_id, exc)
                         transient_errors.append(f'HT odds: {type(exc).__name__}: {str(exc)[:150]}')
+                else:
+                    ht_response_verified = True
 
-                # Independent check: only fetch corner odds if not already stored or if not final
+                # Independent check: only fetch corner odds if not already stored with meaningful line
                 has_corners = await session.scalar(
                     select(MarketOdds.id).where(
                         MarketOdds.match_id == match.id,
                         MarketOdds.market == 'corners',
                         MarketOdds.period == 'full_time',
+                        or_(
+                            MarketOdds.latest_line.is_not(None),
+                            MarketOdds.closing_line.is_not(None),
+                        ),
                     ).limit(1)
                 )
                 if not has_corners or not final:
                     try:
                         corner_odds = await fetch_corner_odds(client, external_id, half_time=False, final=final)
+                        corner_response_verified = True
                         corner_valid = {
                             bk: data
                             for bk, data in corner_odds.items()
-                            if data.get('latest_line') is not None
+                            if (
+                                data.get('latest_line') is not None or
+                                data.get('opening_line') is not None or
+                                data.get('closing_line') is not None
+                            )
                         }
                         if corner_valid:
                             odds_count += await store_market_odds(
@@ -446,6 +539,8 @@ async def process_item(job_id, item_id, client):
                     except Exception as exc:
                         log.warning('[MARKET_ODDS] corner odds error match_id=%s: %s', external_id, exc)
                         transient_errors.append(f'Corner odds: {type(exc).__name__}: {str(exc)[:150]}')
+                else:
+                    corner_response_verified = True
 
                 await session.commit()
                 if transient_errors:
@@ -454,9 +549,12 @@ async def process_item(job_id, item_id, client):
                 elif odds_count > 0 or has_ht or has_corners:
                     item.status = 'completed'
                     item.error = None
-                else:
+                elif ht_response_verified and corner_response_verified:
                     item.status = 'no_odds'
                     item.error = 'No verified half-time or corner odds in source'
+                else:
+                    item.status = 'failed'
+                    item.error = f'Unverified market responses match_id={external_id}'
             else:
                 errors = []
                 try:
