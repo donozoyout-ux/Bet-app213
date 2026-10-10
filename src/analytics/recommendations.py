@@ -77,7 +77,7 @@ def build_candidates(result,market_support=None):
                   'completeness':min(p['home_sample_size'],p['away_sample_size'])/10,
                   'confidence':p['confidence'],'competition_type':result['match']['competition_type']}
         for selection,label in [('home','Ev Sahibi'),('draw','Beraberlik'),('away','Deplasman')]:add('result',selection,label,p[selection+'_probability'],'outcome',evidence)
-        for selection,label,probability in [('1x','1X',p['home_probability']+p['draw_probability']),('x2','X2',p['draw_probability']+p['away_probability']),('12','12',p['home_probability']+p['away_probability'])]:add('double_chance',selection,label,probability,'outcome',evidence)
+        for selection,label,probability in [('1x','Çifte Şans 1X — Ev Sahibi veya Beraberlik',p['home_probability']+p['draw_probability']),('x2','Çifte Şans X2 — Beraberlik veya Deplasman',p['draw_probability']+p['away_probability']),('12','Çifte Şans 12 — Beraberlik Olmaz',p['home_probability']+p['away_probability'])]:add('double_chance',selection,label,probability,'outcome',evidence)
         for line in ['1_5','2_5','3_5']:
             for direction,label in [('over','Üst'),('under','Alt')]:add('goals',direction+'_'+line,line.replace('_','.')+' Gol '+label,p.get(direction+'_'+line.replace('_','')+'_probability'),'goal_environment',evidence)
         add('btts','yes','KG Var',p['btts_probability'],'goal_environment',evidence)
