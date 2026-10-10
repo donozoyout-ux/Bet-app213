@@ -14,7 +14,7 @@ sandbox.BetAppUI.navigate('predictions');await settle();const body=elements.get(
 if(mode==='race'){elements.get('pred-market').value='cards';await sandbox.BetAppMarket.refresh();releaseFirst();await settle();assert(!body.text().includes('Arsenal'));return;}
 if(mode==='empty'){assert(body.text().includes('nitelikli tahmin yok'));return;}
 if(mode==='failed-board'){assert(body.text().includes('PostgreSQL'));sandbox.BetAppUI.navigate('performance');await settle();assert(elements.get('performance-picks').text().includes('kaydedilmiş tahmin yok'));return;}
-assert(body.children.length===all.length);body.children[0].onkeydown({key:'Enter',preventDefault(){}});assert.equal(clicked.at(-1),all[0].match.id);
+assert(body.children.length===all.length);assert.equal(body.children[0].children.length, 7);body.children[0].onkeydown({key:'Enter',preventDefault(){}});assert.equal(clicked.at(-1),all[0].match.id);
 elements.get('pred-market').value='corners';await sandbox.BetAppMarket.refresh();assert(body.text().includes('nitelikli tahmin yok'));
 sandbox.BetAppUI.navigate('performance');await settle();assert.equal(elements.get('daily-summary').children.length,5);
 sandbox.BetAppUI.navigate('markets');await settle();assert(elements.get('stats-league-coverage').text().includes('API'));}

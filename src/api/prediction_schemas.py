@@ -118,6 +118,31 @@ class BookmakerStats(BaseModel):
     implied_probabilities: dict[str,float] | None
 
 
+class BookmakerVerifiedOdds(BaseModel):
+    bookmaker: str
+    opening_odds: float | None = None
+    latest_odds: float | None = None
+    closing_odds: float | None = None
+    current_odds: float | None = None
+    implied_probability: float | None = None
+    value: float | None = None
+    observed_at: datetime | str | None = None
+    line: float | None = None
+
+
+class VerifiedOdds(BaseModel):
+    has_odds: bool = False
+    period: str = 'full_time'
+    stage: str = 'latest'
+    bookmakers: dict[str, BookmakerVerifiedOdds] = Field(default_factory=dict)
+    best_price: float | None = None
+    best_bookmaker: str | None = None
+    best_implied_probability: float | None = None
+    best_value: float | None = None
+    observed_at: datetime | str | None = None
+    message: str | None = None
+
+
 class Recommendation(BaseModel):
     id: str
     market: str
@@ -137,6 +162,7 @@ class Recommendation(BaseModel):
     market_probability: float | None
     bookmaker_count: int
     model_market_difference: float | None
+    verified_odds: VerifiedOdds | None = None
 
 
 class Statistics(BaseModel):

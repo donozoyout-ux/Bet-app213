@@ -229,3 +229,48 @@ async def test_national_prediction_and_h2h_not_required(api,db,monkeypatch):
     assert data['prediction']['status']=='ok'
     assert data['prediction']['confidence']!='high'
     assert data['h2h']==[] and not data['h2h_summary']['sufficient']
+
+
+async def test_verified_odds_in_recommendations_and_statistics(api,db,monkeypatch):
+    import src.api.routes as routes
+    monkeypatch.setattr(routes,'utcnow',lambda:NOW)
+    match_id,_,_,_,_=await seed(db)
+    response=await api.get(f'/api/matches/{match_id}/statistics')
+    assert response.status_code==200
+    data=response.json()
+    assert 'recommendations' in data
+    for rec in data['recommendations']:
+        assert 'verified_odds' in rec
+        vo = rec['verified_odds']
+        if rec['market'] == 'result':
+            assert vo['has_odds'] is True
+            assert vo['period'] == 'full_time'
+            assert vo['best_price'] == 2.0
+            assert vo['best_value'] is not None
+            assert 'Crown' in vo['bookmakers'] or 'Bet365' in vo['bookmakers'] or 'Sbobet' in vo['bookmakers']
+        elif rec['market'] in ('first_half_goals', 'second_half_goals'):
+            assert vo['has_odds'] is False
+            assert vo['message'] == 'Bu market için doğrulanmış oran yok'
+
+
+async def test_predictions_best_sorting_and_bookmaker_filtering(api,db,monkeypatch):
+    import src.api.routes as routes
+    monkeypatch.setattr(routes,'utcnow',lambda:NOW)
+    match_id,_,_,_,_=await seed(db)
+    # Test sort by odds
+    resp_odds = await api.get('/api/predictions/best?sort=odds')
+    assert resp_odds.status_code == 200
+    items_odds = resp_odds.json()['items']
+    assert len(items_odds) > 0
+    assert 'verified_odds' in items_odds[0]['recommendation']
+
+    # Test sort by value
+    resp_val = await api.get('/api/predictions/best?sort=value')
+    assert resp_val.status_code == 200
+
+    # Test filter by bookmaker
+    resp_bk = await api.get('/api/predictions/best?bookmaker=Bet365')
+    assert resp_bk.status_code == 200
+    for item in resp_bk.json()['items']:
+        vo = item['recommendation']['verified_odds']
+        assert vo['bookmakers'].get('Bet365', {}).get('current_odds') is not None

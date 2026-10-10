@@ -14,3 +14,11 @@
 .mobile-search{display:none}@media(max-width:600px){.mobile-search{display:block}.header-tools .search-label.search-open{display:block;position:absolute;top:100%;left:18px;right:18px;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow)}.search-label.search-open input{width:100%;font-size:16px;min-height:44px}}
 
 .card-analysis-tabs{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}.card-analysis-tabs button{padding:8px 12px;border:1px solid #cbd5e1;border-radius:8px;background:white;color:#334155}.card-analysis-tabs button[aria-selected="true"]{background:#dbeafe;color:#1e40af;border-color:#60a5fa}.card-analysis-tabs button:focus-visible{outline:2px solid #2563eb;outline-offset:2px}
+
+.odds-badge{color:var(--success);font-size:11px;font-weight:650;background:#e8f7f0;padding:4px 8px;border-radius:6px;display:inline-block}
+.odds-missing-badge{color:var(--muted);font-size:11px;font-weight:500;background:#f1f5f9;padding:4px 8px;border-radius:6px;display:inline-block}
+.positive-value{color:var(--success);font-weight:700}
+.negative-value{color:var(--muted);font-weight:600}
+.prediction-odds{margin:12px 0 8px;display:flex;flex-direction:column;gap:6px;border-top:1px dashed var(--border);padding-top:10px}
+.prediction-odds .odds-line{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:var(--text)}
+.prediction-odds .odds-missing{color:var(--muted);font-size:11px}

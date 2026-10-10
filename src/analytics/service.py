@@ -143,9 +143,11 @@ async def statistics(session, match, context, now, data_revision=None):
         stability.append(min(agree(five['avg_goals_for'],ten['avg_goals_for']),agree(five['avg_goals_against'],ten['avg_goals_against'])))
         season_agreement.append(min(agree(five['avg_goals_for'],season_stats['avg_goals_for']),agree(five['avg_goals_against'],season_stats['avg_goals_against'])) if season_stats['sample_size']>=5 else .5)
     asian_candidates={};paired_support={}
+    asian_totals_rows = await market_rows(session, AsianTotals, match.id)
+    asian_handicap_rows = await market_rows(session, AsianHandicap, match.id)
     if prediction['status']=='ok':
-        for model,metric in [(AsianTotals,'goals'),(AsianHandicap,'asian_handicap')]:
-            price_rows=[row for row in await market_rows(session,model,match.id) if aware(row[0].updated_at)<=cutoff]
+        for model,metric,rows in [(AsianTotals,'goals',asian_totals_rows),(AsianHandicap,'asian_handicap',asian_handicap_rows)]:
+            price_rows=[row for row in rows if aware(row[0].updated_at)<=cutoff]
             for row,name in price_rows:
                 stage='closing' if match.status=='finished' else 'latest'
                 line=getattr(row,stage+'_line')
@@ -178,6 +180,9 @@ async def statistics(session, match, context, now, data_revision=None):
     result['asian_handicap_candidates']=list(asian_candidates.values())
     candidates=build_candidates(result,support)
     result['candidates'],result['recommendations']=select_recommendations(candidates)
+    from src.analytics.odds_matching import enrich_recommendations_with_odds
+    enrich_recommendations_with_odds(result['candidates'], match.id, match.status, markets, asian_totals_rows, asian_handicap_rows, cutoff=cutoff)
+    enrich_recommendations_with_odds(result['recommendations'], match.id, match.status, markets, asian_totals_rows, asian_handicap_rows, cutoff=cutoff)
     result['market_availability']=count_market_availability(result)
     result['strongest_prediction']=result['recommendations'][0]['id'] if result['recommendations'] else None
     _cache[key] = (time.monotonic(), result)

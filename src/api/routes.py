@@ -245,13 +245,33 @@ async def uncached_predictions(session,league,date,team=None,now=None,publish=Tr
 
 
 @router.get('/predictions/best',response_model=GlobalPicks)
-async def global_predictions(league: str | None=None,date: Date | None=None,team: str | None=None,sort: Literal['ranking','kickoff','probability']='ranking',limit: int=Query(default=20,ge=1,le=100),offset: int=Query(default=0,ge=0),
+async def global_predictions(league: str | None=None,date: Date | None=None,team: str | None=None,sort: Literal['ranking','kickoff','probability','odds','value']='ranking',bookmaker: Literal['all','Crown','Bet365','Sbobet'] | None=None,limit: int=Query(default=20,ge=1,le=100),offset: int=Query(default=0,ge=0),
                              market: Literal['all','result','goals','btts','corners','cards','yellow_cards','red_cards','asian_handicap','double_chance','first_half_goals','second_half_goals']='all',confidence: Literal['high','medium','low'] | None=None,min_probability: float=Query(default=0,ge=0,le=1),session=Depends(session_dependency)):
     matches,now,evaluated=await calculate_predictions(session,league,date,team)
     picks=[{'match':item['match'],'recommendation':r,'as_of':item['as_of']} for item in matches for r in item['recommendations'] if market_matches([r],market) and (not confidence or r['confidence']==confidence) and r['probability']>=min_probability]
+    def _vo(r):
+        return r.get('verified_odds') if isinstance(r, dict) else getattr(r, 'verified_odds', None)
+    def _odds_val(r, field, bk=None):
+        vo = _vo(r)
+        if not vo: return None
+        if isinstance(vo, dict):
+            if bk and bk != 'all': return vo.get('bookmakers', {}).get(bk, {}).get(field)
+            return vo.get(field)
+        if bk and bk != 'all':
+            b = getattr(vo, 'bookmakers', {}).get(bk)
+            return getattr(b, field, None) if b else None
+        return getattr(vo, field, None)
+    if bookmaker and bookmaker != 'all':
+        picks = [p for p in picks if _odds_val(p['recommendation'], 'current_odds', bookmaker) is not None]
     picks.sort(key=lambda item:(-item['recommendation']['score'],-item['recommendation']['reliability'],item['match']['kickoff_at'],item['match']['id'],item['recommendation']['id']))
     if sort=='kickoff':picks.sort(key=lambda item:(item['match']['kickoff_at'],item['match']['id']))
     elif sort=='probability':picks.sort(key=lambda item:-item['recommendation']['probability'])
+    elif sort=='odds':
+        field = 'current_odds' if bookmaker and bookmaker != 'all' else 'best_price'
+        picks.sort(key=lambda item:(-(_odds_val(item['recommendation'], field, bookmaker) or 0), -item['recommendation']['probability']))
+    elif sort=='value':
+        field = 'value' if bookmaker and bookmaker != 'all' else 'best_value'
+        picks.sort(key=lambda item:(-(_odds_val(item['recommendation'], field, bookmaker) if _odds_val(item['recommendation'], field, bookmaker) is not None else -999), -item['recommendation']['probability']))
     return {'availability':summarize_availability(session.info.get('count_availability',[]),market,len(picks)), 'items':picks[offset:offset+limit],'generated_at':session.info['prediction_snapshot']['generated_at'],'cache':session.info['prediction_snapshot'],'evaluated_matches':evaluated}
 
 
