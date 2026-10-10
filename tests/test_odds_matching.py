@@ -10,7 +10,7 @@ from src.analytics.odds_matching import (
 
 
 class MockOdds1X2:
-    def __init__(self, op_h, op_d, op_a, lat_h, lat_d, lat_a, cl_h=None, cl_d=None, cl_a=None, updated_at=None):
+    def __init__(self, op_h, op_d, op_a, lat_h, lat_d, lat_a, cl_h=None, cl_d=None, cl_a=None, updated_at=None, match_id=None):
         self.opening_home = op_h
         self.opening_draw = op_d
         self.opening_away = op_a
@@ -21,10 +21,11 @@ class MockOdds1X2:
         self.closing_draw = cl_d
         self.closing_away = cl_a
         self.updated_at = updated_at or datetime(2026, 10, 10, 10, 0, tzinfo=timezone.utc)
+        self.match_id = match_id
 
 
 class MockAsianTotals:
-    def __init__(self, op_line, op_o, op_u, lat_line, lat_o, lat_u, cl_line=None, cl_o=None, cl_u=None, updated_at=None):
+    def __init__(self, op_line, op_o, op_u, lat_line, lat_o, lat_u, cl_line=None, cl_o=None, cl_u=None, updated_at=None, match_id=None, market=None, period=None):
         self.opening_line = op_line
         self.opening_over = op_o
         self.opening_under = op_u
@@ -35,10 +36,13 @@ class MockAsianTotals:
         self.closing_over = cl_o
         self.closing_under = cl_u
         self.updated_at = updated_at or datetime(2026, 10, 10, 10, 0, tzinfo=timezone.utc)
+        self.match_id = match_id
+        self.market = market
+        self.period = period
 
 
 class MockAsianHandicap:
-    def __init__(self, op_line, op_h, op_a, lat_line, lat_h, lat_a, cl_line=None, cl_h=None, cl_a=None, updated_at=None):
+    def __init__(self, op_line, op_h, op_a, lat_line, lat_h, lat_a, cl_line=None, cl_h=None, cl_a=None, updated_at=None, match_id=None):
         self.opening_line = op_line
         self.opening_home = op_h
         self.opening_away = op_a
@@ -49,6 +53,7 @@ class MockAsianHandicap:
         self.closing_home = cl_h
         self.closing_away = cl_a
         self.updated_at = updated_at or datetime(2026, 10, 10, 10, 0, tzinfo=timezone.utc)
+        self.match_id = match_id
 
 
 def test_parse_market_and_selection():
@@ -217,4 +222,117 @@ def test_corners_and_cards_odds_matching():
     assert res_card['has_odds'] is True
     assert res_card['best_price'] == 1.75
     assert res_card['best_bookmaker'] == 'Sbobet'
+
+
+def test_period_odds_first_half_and_second_half_matching():
+    # Valid first-half matching
+    cand_1h = {'market': 'first_half_goals', 'selection': 'over_1_5', 'probability': 0.65}
+    rows_1h = [
+        (MockAsianTotals(1.5, 2.10, 1.70, 1.5, 2.15, 1.68, period='first_half', market='goals'), 'Bet365'),
+    ]
+    res_1h = match_odds_for_candidate(cand_1h, match_id=1, match_status='scheduled', period_odds_rows=rows_1h)
+    assert res_1h['has_odds'] is True
+    assert res_1h['period'] == 'first_half'
+    assert res_1h['best_price'] == 2.15
+    assert res_1h['best_bookmaker'] == 'Bet365'
+
+    # Valid second-half matching
+    cand_2h = {'market': 'second_half_goals', 'selection': 'over_0_5', 'probability': 0.75}
+    rows_2h = [
+        (MockAsianTotals(0.5, 1.40, 2.80, 0.5, 1.42, 2.75, period='second_half', market='goals'), 'Crown'),
+    ]
+    res_2h = match_odds_for_candidate(cand_2h, match_id=1, match_status='scheduled', period_odds_rows=rows_2h)
+    assert res_2h['has_odds'] is True
+    assert res_2h['period'] == 'second_half'
+    assert res_2h['best_price'] == 1.42
+
+    # First half MUST NEVER match second half rows
+    res_cross_1 = match_odds_for_candidate(cand_1h, match_id=1, match_status='scheduled', period_odds_rows=rows_2h)
+    assert res_cross_1['has_odds'] is False
+    assert res_cross_1['message'] == NO_ODDS_MESSAGE
+
+    # Second half MUST NEVER match first half rows
+    res_cross_2 = match_odds_for_candidate(cand_2h, match_id=1, match_status='scheduled', period_odds_rows=rows_1h)
+    assert res_cross_2['has_odds'] is False
+    assert res_cross_2['message'] == NO_ODDS_MESSAGE
+
+    # Half goals MUST NEVER match full-time period rows
+    rows_ft = [
+        (MockAsianTotals(1.5, 1.25, 3.80, 1.5, 1.28, 3.60, period='full_time', market='goals'), 'Bet365'),
+    ]
+    res_ft_cross = match_odds_for_candidate(cand_1h, match_id=1, match_status='scheduled', period_odds_rows=rows_ft)
+    assert res_ft_cross['has_odds'] is False
+    assert res_ft_cross['message'] == NO_ODDS_MESSAGE
+
+
+def test_market_isolation_corners_cards_goals():
+    cand_corners = {'market': 'corners', 'selection': 'over_9_5', 'probability': 0.60}
+    cand_cards = {'market': 'cards', 'selection': 'over_3_5', 'probability': 0.55}
+    cand_yellow = {'market': 'yellow_cards', 'selection': 'under_4_5', 'probability': 0.62}
+
+    rows_corners = [(MockAsianTotals(9.5, 1.90, 1.90, 9.5, 1.95, 1.85, market='corners'), 'Bet365')]
+    rows_cards = [(MockAsianTotals(3.5, 1.80, 2.00, 3.5, 1.85, 1.95, market='cards'), 'Sbobet')]
+    rows_yellow = [(MockAsianTotals(4.5, 2.10, 1.75, 4.5, 2.05, 1.78, market='yellow_cards'), 'Crown')]
+    rows_red = [(MockAsianTotals(0.5, 4.50, 1.20, 0.5, 4.20, 1.22, market='red_cards'), 'Crown')]
+    rows_goals = [(MockAsianTotals(2.5, 1.90, 1.90, 2.5, 1.90, 1.90, market='goals'), 'Bet365')]
+
+    # Corners candidate rejects cards, yellow_cards, red_cards, goals
+    assert match_odds_for_candidate(cand_corners, 1, 'scheduled', period_odds_rows=rows_cards)['has_odds'] is False
+    assert match_odds_for_candidate(cand_corners, 1, 'scheduled', period_odds_rows=rows_yellow)['has_odds'] is False
+    assert match_odds_for_candidate(cand_corners, 1, 'scheduled', period_odds_rows=rows_goals)['has_odds'] is False
+
+    # Cards candidate rejects corners, red_cards, goals
+    assert match_odds_for_candidate(cand_cards, 1, 'scheduled', period_odds_rows=rows_corners)['has_odds'] is False
+    assert match_odds_for_candidate(cand_cards, 1, 'scheduled', period_odds_rows=rows_red)['has_odds'] is False
+    assert match_odds_for_candidate(cand_cards, 1, 'scheduled', period_odds_rows=rows_goals)['has_odds'] is False
+
+    # Yellow cards candidate matches yellow_cards rows, rejects red_cards and corners
+    assert match_odds_for_candidate(cand_yellow, 1, 'scheduled', period_odds_rows=rows_yellow)['has_odds'] is True
+    assert match_odds_for_candidate(cand_yellow, 1, 'scheduled', period_odds_rows=rows_red)['has_odds'] is False
+    assert match_odds_for_candidate(cand_yellow, 1, 'scheduled', period_odds_rows=rows_corners)['has_odds'] is False
+
+
+def test_match_id_validation_rejects_mismatch():
+    target_match_id = 42
+
+    cand_res = {'market': 'result', 'selection': 'home', 'probability': 0.60}
+    # Match ID 999 does not match 42
+    rows_1x2_wrong = [(MockOdds1X2(1.9, 3.4, 4.0, 1.9, 3.4, 4.0, match_id=999), 'Bet365')]
+    rows_1x2_right = [(MockOdds1X2(1.9, 3.4, 4.0, 1.9, 3.4, 4.0, match_id=42), 'Bet365')]
+    assert match_odds_for_candidate(cand_res, target_match_id, 'scheduled', odds_1x2_rows=rows_1x2_wrong)['has_odds'] is False
+    assert match_odds_for_candidate(cand_res, target_match_id, 'scheduled', odds_1x2_rows=rows_1x2_right)['has_odds'] is True
+
+    cand_goals = {'market': 'goals', 'selection': 'over_2_5', 'probability': 0.55}
+    rows_totals_wrong = [(MockAsianTotals(2.5, 1.9, 1.9, 2.5, 1.9, 1.9, match_id=999), 'Crown')]
+    rows_totals_right = [(MockAsianTotals(2.5, 1.9, 1.9, 2.5, 1.9, 1.9, match_id=42), 'Crown')]
+    assert match_odds_for_candidate(cand_goals, target_match_id, 'scheduled', asian_totals_rows=rows_totals_wrong)['has_odds'] is False
+    assert match_odds_for_candidate(cand_goals, target_match_id, 'scheduled', asian_totals_rows=rows_totals_right)['has_odds'] is True
+
+    cand_corners = {'market': 'corners', 'selection': 'over_9_5', 'probability': 0.58}
+    rows_corners_wrong = [(MockAsianTotals(9.5, 1.9, 1.9, 9.5, 1.9, 1.9, match_id=999, market='corners'), 'Sbobet')]
+    rows_corners_right = [(MockAsianTotals(9.5, 1.9, 1.9, 9.5, 1.9, 1.9, match_id=42, market='corners'), 'Sbobet')]
+    assert match_odds_for_candidate(cand_corners, target_match_id, 'scheduled', period_odds_rows=rows_corners_wrong)['has_odds'] is False
+    assert match_odds_for_candidate(cand_corners, target_match_id, 'scheduled', period_odds_rows=rows_corners_right)['has_odds'] is True
+
+
+def test_period_odds_stale_cutoff_and_unsupported_bookmaker():
+    cand_1h = {'market': 'first_half_goals', 'selection': 'over_1_5', 'probability': 0.65}
+
+    # Unsupported bookmaker (e.g. Unibet, 1xBet)
+    unsupported_rows = [
+        (MockAsianTotals(1.5, 2.10, 1.70, 1.5, 2.15, 1.68, period='first_half', market='goals'), 'Unibet'),
+    ]
+    res_unsupp = match_odds_for_candidate(cand_1h, 1, 'scheduled', period_odds_rows=unsupported_rows)
+    assert res_unsupp['has_odds'] is False
+    assert res_unsupp['message'] == NO_ODDS_MESSAGE
+
+    # Stale timestamp beyond cutoff
+    stale_time = datetime(2026, 10, 10, 14, 0, tzinfo=timezone.utc)
+    cutoff = datetime(2026, 10, 10, 12, 0, tzinfo=timezone.utc)
+    stale_rows = [
+        (MockAsianTotals(1.5, 2.10, 1.70, 1.5, 2.15, 1.68, period='first_half', market='goals', updated_at=stale_time), 'Bet365'),
+    ]
+    res_stale = match_odds_for_candidate(cand_1h, 1, 'scheduled', period_odds_rows=stale_rows, cutoff=cutoff)
+    assert res_stale['has_odds'] is False
+    assert res_stale['message'] == NO_ODDS_MESSAGE
 

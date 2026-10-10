@@ -78,7 +78,7 @@ def parse_market_and_selection(market: str, selection: str) -> tuple[str, str, f
         side = parts[0] if parts else ''
         line = float(parts[1].replace('_', '.')) if len(parts) > 1 else None
         return ('second_half_goals', side, line, 'second_half')
-    elif market in ('corners', 'cards'):
+    elif market in ('corners', 'cards', 'yellow_cards', 'red_cards'):
         # selection like 'over_9_5' or 'under_4_5'
         parts = selection.split('_', 1)
         side = parts[0] if parts else ''
@@ -86,6 +86,19 @@ def parse_market_and_selection(market: str, selection: str) -> tuple[str, str, f
         return (market, side, line, 'full_time')
     else:
         return (market, selection, None, 'full_time')
+
+
+SUPPORTED_FAMILIES = (
+    'result',
+    'goals',
+    'asian_handicap',
+    'first_half_goals',
+    'second_half_goals',
+    'corners',
+    'cards',
+    'yellow_cards',
+    'red_cards',
+)
 
 
 def _is_valid_odds(val: Any) -> bool:
@@ -149,7 +162,7 @@ def match_odds_for_candidate(
             }
 
     # If market has no supported bookmaker odds table (e.g. btts, double_chance)
-    if family not in ('result', 'goals', 'asian_handicap', 'corners', 'cards'):
+    if family not in SUPPORTED_FAMILIES:
         return {
             'has_odds': False,
             'period': period,
@@ -171,6 +184,10 @@ def match_odds_for_candidate(
         for item in rows:
             row, bookmaker_name = _unpack_row(item)
             if bookmaker_name not in SUPPORTED_BOOKMAKERS:
+                continue
+
+            row_match_id = getattr(row, 'match_id', None)
+            if row_match_id is not None and row_match_id != match_id:
                 continue
 
             updated_at = getattr(row, 'updated_at', None)
@@ -207,6 +224,10 @@ def match_odds_for_candidate(
         for item in rows:
             row, bookmaker_name = _unpack_row(item)
             if bookmaker_name not in SUPPORTED_BOOKMAKERS:
+                continue
+
+            row_match_id = getattr(row, 'match_id', None)
+            if row_match_id is not None and row_match_id != match_id:
                 continue
 
             updated_at = getattr(row, 'updated_at', None)
@@ -260,6 +281,10 @@ def match_odds_for_candidate(
             if bookmaker_name not in SUPPORTED_BOOKMAKERS:
                 continue
 
+            row_match_id = getattr(row, 'match_id', None)
+            if row_match_id is not None and row_match_id != match_id:
+                continue
+
             updated_at = getattr(row, 'updated_at', None)
             if cutoff and updated_at and _aware(updated_at) > _aware(cutoff):
                 continue
@@ -302,16 +327,56 @@ def match_odds_for_candidate(
             if current:
                 valid_prices.append((bookmaker_name, current, updated_at))
 
-    elif family in ('corners', 'cards'):
+    elif family in ('first_half_goals', 'second_half_goals', 'corners', 'cards', 'yellow_cards', 'red_cards'):
         rows = period_odds_rows or []
         for item in rows:
             row, bookmaker_name = _unpack_row(item)
             if bookmaker_name not in SUPPORTED_BOOKMAKERS:
                 continue
 
+            row_match_id = getattr(row, 'match_id', None)
+            if row_match_id is not None and row_match_id != match_id:
+                continue
+
             updated_at = getattr(row, 'updated_at', None)
             if cutoff and updated_at and _aware(updated_at) > _aware(cutoff):
                 continue
+
+            # Market validation: ensure market tags match and prevent cross-contamination
+            row_market = getattr(row, 'market', None) or getattr(row, 'market_family', None)
+            if family in ('first_half_goals', 'second_half_goals'):
+                if row_market is not None:
+                    if row_market in ('corners', 'cards', 'yellow_cards', 'red_cards', 'result', 'asian_handicap'):
+                        continue
+                    if family == 'first_half_goals' and row_market == 'second_half_goals':
+                        continue
+                    if family == 'second_half_goals' and row_market == 'first_half_goals':
+                        continue
+            elif family == 'corners':
+                if row_market is not None and row_market != 'corners':
+                    continue
+            elif family in ('cards', 'yellow_cards'):
+                if row_market is not None and row_market not in ('cards', 'yellow_cards'):
+                    continue
+            elif family == 'red_cards':
+                if row_market is not None and row_market != 'red_cards':
+                    continue
+
+            # Period validation: strictly match period and prevent full-time substitution
+            row_period = getattr(row, 'period', None)
+            if period == 'first_half':
+                if row_period is not None and row_period not in ('first_half', '1h', 'ht'):
+                    continue
+                if row_period is None and row_market not in ('first_half_goals', 'first_half'):
+                    continue
+            elif period == 'second_half':
+                if row_period is not None and row_period not in ('second_half', '2h'):
+                    continue
+                if row_period is None and row_market not in ('second_half_goals', 'second_half'):
+                    continue
+            elif period == 'full_time':
+                if row_period is not None and row_period not in ('full_time', 'ft'):
+                    continue
 
             op_line = getattr(row, 'opening_line', None)
             lat_line = getattr(row, 'latest_line', None)
