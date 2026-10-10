@@ -15,7 +15,7 @@ async function scenario(mode){
   const ids=new Map(['prediction-cards','prediction-window','statistics-detail','analysis-dialog','analysis-close','analysis-panel','match-detail','prediction-confidence'].map(id=>[id,new Element()]));
   if(mode==='missing'){ids.delete('prediction-cards');ids.delete('statistics-detail');}
   const calls=[],clicked=[];let releaseFirst;
-  const tabs=['predictions','form','goals','corners','cards','odds','h2h'].map(key=>{const el=new Element();el.dataset={analysisTab:key};return el;});
+  const tabs=['predictions','form','goals','first_half_goals','second_half_goals','corners','cards','odds','h2h'].map(key=>{const el=new Element();el.dataset={analysisTab:key};return el;});
   const filter=new Element();filter.dataset={predictionMarket:'cards'};const view=new Element();view.value='best';ids.set('prediction-view',view);
   const sandbox={console,URLSearchParams,AbortSignal,document:{getElementById:id=>ids.get(id)||null,createElement:()=>new Element(),querySelectorAll:selector=>selector==='[data-analysis-tab]'?tabs:[filter]},
     fetch:async path=>{
@@ -73,7 +73,7 @@ async function scenario(mode){
   assert(!box.hidden && box.scrolled);
   assert(ids.get('analysis-dialog').open);
   assert(box.text().includes('Seçilen Güçlü Tahminler'));
-  for(const [key,words] of [['form',['Son 5','Son 10']],['goals',['Beklenen Gol']],['h2h',['H2H']],['odds',['Crown','Bet365','Sbobet','Model / Piyasa']],['corners',['KORNERLER','Yetersiz veri']],['cards',['KARTLAR','Yetersiz veri']]]){tabs.find(tab=>tab.dataset.analysisTab===key).onclick();for(const word of words)assert(box.text().includes(word));assert(box.text().includes(recorded.statistics.match.home_team));}
+  for(const [key,words] of [['form',['Son 5','Son 10']],['goals',['Beklenen Gol']],['first_half_goals',['1. YARI GOLLER','Yetersiz veri']],['second_half_goals',['2. YARI GOLLER','Yetersiz veri']],['h2h',['H2H']],['odds',['Crown','Bet365','Sbobet','Model / Piyasa']],['corners',['KORNERLER','Yetersiz veri']],['cards',['KARTLAR','Yetersiz veri']]]){tabs.find(tab=>tab.dataset.analysisTab===key).onclick();for(const word of words)assert(box.text().includes(word));assert(box.text().includes(recorded.statistics.match.home_team));}
   if(mode==='card-categories'){
     const all=(el)=>[el,...el.children.flatMap(all)];
     assert(box.text().includes('2.00 / 3.00'));

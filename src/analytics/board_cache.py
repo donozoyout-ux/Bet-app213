@@ -11,7 +11,7 @@ from src.models import League, Match, PredictionBoard, utcnow
 from src.jobs.worker import aware
 from src.match_views import day_bounds, DISPLAY_TIMEZONE
 
-MODEL_VERSION='quality-poisson-v2-cards-board-v1'
+MODEL_VERSION='quality-poisson-v3-half-goals-board-v1'
 TTL=timedelta(minutes=10)
 REFRESH_LOCK=213006
 log=logging.getLogger(__name__)
