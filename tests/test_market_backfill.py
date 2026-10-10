@@ -2,23 +2,24 @@ import pytest
 from datetime import datetime, timezone, timedelta
 from sqlalchemy import select, func
 
-from src.models import Match, League, Season, Bookmaker, ScraperJob, JobItem, MarketOdds, utcnow
+from src.models import Match, League, Season, Bookmaker, ScraperJob, JobItem, MarketOdds, Team, utcnow
 from src.jobs.worker import (
     enqueue,
     run_job,
+    discover,
     missing_market_odds_query,
     enqueue_market_odds_rollout,
 )
 from src.scrapers.goaloo.odds import parse_odds
 from src.scrapers.goaloo.corner_odds import parse_corner_odds
-from src.scrapers.goaloo.client import SourceError
+from src.scrapers.goaloo.client import SourceError, GoalooClient
 from .test_goaloo import fixture
 
 
-async def setup_test_match(session, external_match_id=2996166, league_ext_id=36):
+async def setup_test_match(session, external_match_id=2996166, league_ext_id=16, league_name='Holland Eredivisie', league_country='Netherlands'):
     league = await session.scalar(select(League).where(League.external_id == league_ext_id))
     if not league:
-        league = League(external_id=league_ext_id, name='Premier League', country='England', enabled=True)
+        league = League(external_id=league_ext_id, name=league_name, country=league_country, enabled=True)
         session.add(league)
         await session.flush()
     season = await session.scalar(select(Season).where(Season.league_id == league.id, Season.season_name == '2024-2025'))
@@ -34,7 +35,6 @@ async def setup_test_match(session, external_match_id=2996166, league_ext_id=36)
 
     match = await session.scalar(select(Match).where(Match.external_match_id == external_match_id))
     if not match:
-        from src.models import Team
         h_team = await session.scalar(select(Team).where(Team.external_id == 101))
         if not h_team:
             h_team = Team(external_id=101, name='Home Team')
@@ -75,25 +75,35 @@ async def test_pilot_mode_rollout_controls(db, monkeypatch):
                 session.add(League(external_id=ext_id, name=f'League {ext_id}', country='Test', enabled=True))
         await session.commit()
 
-    # Pilot mode enqueues only the pilot league (e.g. 36)
+    # Pilot mode enqueues only the pilot league (default 36)
     pilot_jobs = await enqueue_market_odds_rollout(pilot=True)
     assert len(pilot_jobs) == 1
     async with db.session() as session:
         league = await session.get(League, pilot_jobs[0].league_id)
         assert league.external_id == 36
 
-    # Full rollout enqueues all enabled leagues
+    # Full rollout enqueues all 8 enabled leagues
     full_jobs = await enqueue_market_odds_rollout(pilot=False)
     assert len(full_jobs) == len(PRODUCTION_LEAGUE_IDS)
 
 
-async def test_match_2996166_pilot_fixture_backfill(db, monkeypatch):
+async def test_match_2996166_real_league_identity_and_fixture_backfill(db, monkeypatch):
+    """Verify match 2996166 with its actual Holland Eredivisie (external_id 16) identity."""
     import src.jobs.worker as worker
     monkeypatch.setattr(worker, 'database', db)
 
     async with db.session() as session:
-        match, league = await setup_test_match(session, external_match_id=2996166, league_ext_id=36)
+        match, league = await setup_test_match(
+            session,
+            external_match_id=2996166,
+            league_ext_id=16,
+            league_name='Holland Eredivisie',
+            league_country='Netherlands',
+        )
         await session.commit()
+
+    assert league.external_id == 16
+    assert league.name == 'Holland Eredivisie'
 
     # Mock Goaloo scrapers with verified fixtures for match 2996166
     async def mock_ht(client, ext_id, final=False):
@@ -107,7 +117,7 @@ async def test_match_2996166_pilot_fixture_backfill(db, monkeypatch):
     monkeypatch.setattr(worker, 'fetch_halftime_odds', mock_ht)
     monkeypatch.setattr(worker, 'fetch_corner_odds', mock_corners)
 
-    job = await enqueue('market_backfill', league_external_id=36, match_id=match.id)
+    job = await enqueue('market_backfill', league_external_id=16, match_id=match.id)
     await run_job(job.id)
 
     async with db.session() as session:
@@ -117,7 +127,7 @@ async def test_match_2996166_pilot_fixture_backfill(db, monkeypatch):
         assert stored_job.failed_matches == 0
         assert stored_job.no_odds_matches == 0
 
-        # Verify HT goals odds saved
+        # Verify HT goals odds saved for Bet365, Crown, Sbobet
         ht_rows = (await session.scalars(
             select(MarketOdds).where(
                 MarketOdds.match_id == match.id,
@@ -125,10 +135,9 @@ async def test_match_2996166_pilot_fixture_backfill(db, monkeypatch):
                 MarketOdds.period == 'first_half',
             )
         )).all()
-        # Bet365, Crown, Sbobet all provide HT OU in fixture
         assert len(ht_rows) == 3
 
-        # Verify Corner odds saved
+        # Verify Corner odds saved for Bet365 (Crown/Sbobet not in this fixture)
         corner_rows = (await session.scalars(
             select(MarketOdds).where(
                 MarketOdds.match_id == match.id,
@@ -136,10 +145,67 @@ async def test_match_2996166_pilot_fixture_backfill(db, monkeypatch):
                 MarketOdds.period == 'full_time',
             )
         )).all()
-        # Bet365 provides Corner OU in fixture; Crown/Sbobet not in this fixture
         assert len(corner_rows) == 1
         assert corner_rows[0].latest_line == 10.0
         assert corner_rows[0].latest_over == 1.85
+        assert corner_rows[0].latest_under == 1.95
+
+
+async def test_paginated_discovery_and_pilot_match_cap(db, monkeypatch):
+    """Verify keyset paginated discovery and strict pilot match cap."""
+    import src.jobs.worker as worker
+    monkeypatch.setattr(worker, 'database', db)
+
+    async with db.session() as session:
+        for i in range(1, 26):
+            await setup_test_match(
+                session,
+                external_match_id=3100000 + i,
+                league_ext_id=36,
+                league_name='Premier League',
+                league_country='England',
+            )
+        await session.commit()
+
+    # In pilot mode: discovery must cap items to pilot max (e.g. 10)
+    job = await enqueue('market_backfill', league_external_id=36)
+    async with GoalooClient() as client:
+        await discover(job.id, client)
+
+    async with db.session() as session:
+        job_db = await session.get(ScraperJob, job.id)
+        assert job_db.discovery_complete is True
+        assert job_db.total_matches == 10
+        item_count = await session.scalar(select(func.count(JobItem.id)).where(JobItem.job_id == job.id))
+        assert item_count == 10
+
+
+async def test_meaningful_odds_data_requirement(db, monkeypatch):
+    """Verify market completeness requires meaningful lines/prices, not empty placeholder rows."""
+    import src.jobs.worker as worker
+    monkeypatch.setattr(worker, 'database', db)
+
+    async with db.session() as session:
+        match, league = await setup_test_match(session, external_match_id=2996170, league_ext_id=36)
+        b365 = await session.scalar(select(Bookmaker).where(Bookmaker.name == 'Bet365'))
+        # Row with all NULL lines is NOT meaningful
+        corrupted_row = MarketOdds(
+            match_id=match.id,
+            bookmaker_id=b365.id,
+            market='first_half_goals',
+            period='first_half',
+            opening_line=None,
+            latest_line=None,
+            closing_line=None,
+            raw={},
+        )
+        session.add(corrupted_row)
+        await session.commit()
+
+    # The match must still be discovered because the row lacks meaningful lines!
+    async with db.session() as session:
+        missing = (await session.scalars(missing_market_odds_query(league.id))).all()
+        assert match.id in [m.id for m in missing]
 
 
 async def test_independent_market_discovery_and_partial_odds(db, monkeypatch):
@@ -149,7 +215,7 @@ async def test_independent_market_discovery_and_partial_odds(db, monkeypatch):
     async with db.session() as session:
         match, league = await setup_test_match(session, external_match_id=2996167, league_ext_id=36)
         b365 = await session.scalar(select(Bookmaker).where(Bookmaker.name == 'Bet365'))
-        # Store ONLY HT goals
+        # Store verified HT goals with valid line
         mo = MarketOdds(
             match_id=match.id,
             bookmaker_id=b365.id,
@@ -194,7 +260,6 @@ async def test_independent_market_discovery_and_partial_odds(db, monkeypatch):
             )
         )).all()
         assert len(corner_rows) == 1
-
 
 
 async def test_transient_error_is_marked_failed_not_no_odds(db, monkeypatch):
@@ -287,8 +352,12 @@ async def test_real_no_odds_handling_and_cooldown_retry(db, monkeypatch):
 
 
 async def test_chunked_job_execution_with_recovery(db, monkeypatch):
+    import dataclasses
     import src.jobs.worker as worker
     monkeypatch.setattr(worker, 'database', db)
+
+    # Disable pilot limit to test 30-match chunking with frozen settings replacement
+    monkeypatch.setattr(worker, 'settings', dataclasses.replace(worker.settings, market_odds_pilot_enabled=False))
 
     match_ids = []
     async with db.session() as session:
@@ -296,6 +365,7 @@ async def test_chunked_job_execution_with_recovery(db, monkeypatch):
             m, league = await setup_test_match(session, external_match_id=3000000 + i, league_ext_id=36)
             match_ids.append(m.id)
         await session.commit()
+
 
     processed_calls = []
     async def mock_ht(client, ext_id, final=False):
@@ -318,4 +388,3 @@ async def test_chunked_job_execution_with_recovery(db, monkeypatch):
         assert stored_job.status == 'completed'
         assert stored_job.processed_matches == 30
         assert stored_job.failed_matches == 0
-
