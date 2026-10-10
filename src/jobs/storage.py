@@ -86,6 +86,7 @@ async def store_market_odds(session, match, odds_by_bookmaker, market, period):
     odds_by_bookmaker is {bookmaker_name: data_dict}
     where data_dict contains opening/latest/closing line/over/under and raw.
     """
+    count = 0
     for name, data in odds_by_bookmaker.items():
         if not data:
             continue
@@ -115,11 +116,13 @@ async def store_market_odds(session, match, odds_by_bookmaker, market, period):
         if 'raw' in data:
             row.raw = data['raw']
         row.updated_at = utcnow()
+        count += 1
         log.info(
             '[MARKET_ODDS] bookmaker=%s market=%s period=%s match_id=%s saved',
             name, market, period, match.external_match_id,
         )
     match.last_scraped_at = utcnow()
+    return count
 
 
 async def store_history(session, match_id, bookmaker_id, history):
