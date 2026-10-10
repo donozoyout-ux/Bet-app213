@@ -18,6 +18,9 @@ class Settings:
     retries: int = max(1, int(os.getenv('GOALOO_RETRIES', '3')))
     concurrency: int = max(1, min(8, int(os.getenv('GOALOO_CONCURRENCY', '2'))))
     save_snapshots: bool = os.getenv('GOALOO_SAVE_SNAPSHOTS', 'false').lower() == 'true'
+    market_odds_pilot_enabled: bool = os.getenv('MARKET_ODDS_PILOT_ENABLED', 'true').lower() == 'true'
+    market_odds_pilot_league: int = int(os.getenv('MARKET_ODDS_PILOT_LEAGUE', '36'))
 
 
 settings = Settings()
+
