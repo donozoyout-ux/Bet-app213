@@ -7,7 +7,7 @@ from sqlalchemy import select, text, func, delete, case, or_
 from src.config import settings
 from src.match_views import LIVE_STATUSES
 from src.db import database
-from src.models import League, Season, Match, Bookmaker, ScraperJob, JobItem, ScraperIssue, utcnow
+from src.models import League, Season, Match, Bookmaker, ScraperJob, JobItem, ScraperIssue, MarketOdds, utcnow
 from src.scrapers.goaloo.client import GoalooClient, SourceError
 from src.scrapers.goaloo.seasons import discover_seasons, season_data
 from src.scrapers.goaloo.rounds import discover_rounds
@@ -37,6 +37,28 @@ def missing_statistics_query(league_id, start_year=2024):
         or_(MatchStatistics.updated_at > utcnow()-timedelta(days=7), complete)).exists()
     return select(Match).where(Match.league_id == league_id, Match.status == 'finished',
         Match.kickoff_at >= datetime(start_year, 1, 1, tzinfo=timezone.utc), ~observed)
+
+
+def missing_market_odds_query(league_id, start_year=2024):
+    """Find matches missing verified period-specific market odds (HT OU / Corner OU).
+
+    Excludes matches that already have MarketOdds rows or were recently checked with no_odds.
+    """
+    has_odds = select(MarketOdds.match_id).where(MarketOdds.match_id == Match.id).exists()
+    has_checked_job = select(JobItem.match_id).join(
+        ScraperJob, ScraperJob.id == JobItem.job_id
+    ).where(
+        JobItem.match_id == Match.id,
+        ScraperJob.kind.in_(['market_backfill', 'market_odds']),
+        JobItem.status.in_(['completed', 'no_odds']),
+    ).exists()
+    observed = has_odds | has_checked_job
+    return select(Match).where(
+        Match.league_id == league_id,
+        Match.status.notin_(['cancelled', 'postponed', 'abandoned', 'pending']),
+        Match.kickoff_at >= datetime(start_year, 1, 1, tzinfo=timezone.utc),
+        ~observed,
+    )
 
 
 async def league_enabled(session, job):
@@ -79,7 +101,8 @@ async def enqueue(kind, league_external_id=36, start_year=2024, match_id=None, r
             job.failed_matches = 0
         else:
             query=select(ScraperJob).where(ScraperJob.league_id == league.id, ScraperJob.status.in_(['queued', 'running']))
-            if kind=='update':query=query.where(ScraperJob.kind=='update')
+            if kind in ('update', 'stats_backfill', 'market_backfill', 'market_odds'):
+                query=query.where(ScraperJob.kind==kind)
             active = await session.scalar(query)
             if active:
                 raise ValueError(f'League already has an active job: {active.id}')
@@ -176,6 +199,17 @@ async def discover(job_id, client):
             query=select(Match).where(Match.league_id==league_id)
             if job.match_id:query=query.where(Match.id==job.match_id)
             else:query=missing_statistics_query(league_id,start_year)
+            for match in (await session.scalars(query.order_by(Match.kickoff_at.desc(),Match.id.desc()))).all():
+                await get_or_create(session,JobItem,{'job_id':job.id,'match_id':match.id})
+            await session.flush()
+            job.total_matches=await session.scalar(select(func.count(JobItem.id)).where(JobItem.job_id==job.id))
+            job.discovery_complete=True
+            await session.commit()
+            return
+        if kind in ('market_backfill', 'market_odds'):
+            query=select(Match).where(Match.league_id==league_id)
+            if job.match_id:query=query.where(Match.id==job.match_id)
+            else:query=missing_market_odds_query(league_id,start_year)
             for match in (await session.scalars(query.order_by(Match.kickoff_at.desc(),Match.id.desc()))).all():
                 await get_or_create(session,JobItem,{'job_id':job.id,'match_id':match.id})
             await session.flush()
@@ -321,7 +355,34 @@ async def process_item(job_id, item_id, client):
             if job.kind=='stats_backfill':
                 data=await fetch_statistics(client,external_id,league.external_id)
                 await store_statistics(session,match,data)
-                ok=True  # Valid unavailable statistics are persisted, never fabricated.
+                item.status = 'completed'
+                item.error = None
+            elif job.kind in ('market_backfill', 'market_odds'):
+                errors=[]
+                odds_count=0
+                try:
+                    ht_odds = await fetch_halftime_odds(client, external_id, final)
+                    ht_ou = {bk: m.get('ou', {}) for bk, m in ht_odds.items() if 'ou' in m and m.get('ou', {}).get('latest_line') is not None}
+                    if ht_ou:
+                        odds_count += await store_market_odds(session, match, ht_ou, market='first_half_goals', period='first_half')
+                except SourceError as exc:
+                    log.warning('[MARKET_ODDS] half-time odds unavailable match_id=%s: %s', external_id, exc)
+
+                try:
+                    corner_odds = await fetch_corner_odds(client, external_id, half_time=False, final=final)
+                    corner_valid = {bk: data for bk, data in corner_odds.items() if data.get('latest_line') is not None}
+                    if corner_valid:
+                        odds_count += await store_market_odds(session, match, corner_valid, market='corners', period='full_time')
+                except SourceError as exc:
+                    log.warning('[MARKET_ODDS] corner odds unavailable match_id=%s: %s', external_id, exc)
+
+                await session.commit()
+                if odds_count > 0:
+                    item.status = 'completed'
+                    item.error = None
+                else:
+                    item.status = 'no_odds'
+                    item.error = 'No verified half-time or corner odds in source'
             else:
                 errors=[]
                 try:
@@ -367,11 +428,11 @@ async def process_item(job_id, item_id, client):
                         except SourceError as exc:
                             ok=False
                             errors.append('History: '+str(exc))
-            item.status = 'completed' if ok else 'failed'
-            item.error = None if ok else ('; '.join(errors)+f' match_id={external_id}')[:500]
+                item.status = 'completed' if ok else 'failed'
+                item.error = None if ok else ('; '.join(errors)+f' match_id={external_id}')[:500]
             await session.flush()
             await update_counts(session, job)
-            if not ok:
+            if item.status == 'failed':
                 job.last_error = item.error
             await session.commit()
             log.info('[JOB] job_id=%s processed=%s/%s failed=%s', job.id, job.processed_matches, job.total_matches, job.failed_matches)
@@ -393,6 +454,7 @@ async def process_item(job_id, item_id, client):
 async def update_counts(session, job):
     counts = dict((await session.execute(select(JobItem.status, func.count(JobItem.id)).where(JobItem.job_id == job.id).group_by(JobItem.status))).all())
     job.processed_matches = counts.get('completed', 0)
+    job.no_odds_matches = counts.get('no_odds', 0)
     issues = await session.scalar(select(func.count(ScraperIssue.id)).where(ScraperIssue.job_id == job.id))
     job.failed_matches = counts.get('failed', 0) + issues
 
@@ -400,6 +462,7 @@ async def update_counts(session, job):
 async def work(once=False):
     initialization_checked = False
     stats_queue_checked = float('-inf')
+    market_queue_checked = float('-inf')
     while True:
         try:
             await wait_for_capacity()
@@ -409,9 +472,14 @@ async def work(once=False):
                 await enqueue_initial_backfill(database)
                 await enqueue_catalog_backfills(database)
                 initialization_checked = True
-            if settings.auto_backfill_on_empty and database.engine.dialect.name == 'postgresql' and time.monotonic()-stats_queue_checked >= 60:
-                await enqueue_stats_rollout(automatic=True)
-                stats_queue_checked=time.monotonic()
+            if settings.auto_backfill_on_empty and database.engine.dialect.name == 'postgresql':
+                now_mono = time.monotonic()
+                if now_mono - stats_queue_checked >= 60:
+                    await enqueue_stats_rollout(automatic=True)
+                    stats_queue_checked = now_mono
+                if now_mono - market_queue_checked >= 60:
+                    await enqueue_market_odds_rollout(automatic=True)
+                    market_queue_checked = now_mono
             async with database.engine.connect() as lock:
                 postgres = lock.dialect.name == 'postgresql'
                 acquired = not postgres or await lock.scalar(text('SELECT pg_try_advisory_lock(:id)'), {'id': LOCK_ID})
@@ -481,6 +549,52 @@ async def enqueue_stats_rollout(automatic=False):
             # A stats job may wait behind an odds job. The single global worker
             # lock serializes both; odds jobs never stand in for statistics jobs.
             job=ScraperJob(kind='stats_backfill',league_id=league.id,start_year=2024,priority=priority)
+            session.add(job)
+            jobs.append(job)
+        await session.commit()
+        return jobs
+
+
+async def enqueue_market_odds_rollout(automatic=False):
+    """Progressive, resumable market odds backfill for the 8 production leagues.
+
+    Queues or resumes one durable job per enabled production league, starting from 2024.
+    Runs serially with low memory footprint, suitable for Render free tier.
+    """
+    from src.scrapers.goaloo.competitions import PRODUCTION_LEAGUE_IDS
+    async with database.session() as session:
+        if session.bind.dialect.name == 'postgresql':
+            await session.execute(text('SELECT pg_advisory_xact_lock(213003)'))
+        jobs = []
+        for priority, external_id in enumerate(PRODUCTION_LEAGUE_IDS, 1):
+            league = await session.scalar(select(League).where(League.enabled.is_(True), League.external_id == external_id))
+            if not league:
+                continue
+            previous = await session.scalar(select(ScraperJob).where(
+                ScraperJob.league_id == league.id,
+                ScraperJob.kind.in_(['market_backfill', 'market_odds']),
+                ScraperJob.match_id.is_(None),
+            ).order_by(ScraperJob.id.desc()).limit(1))
+            if previous and previous.status in {'queued', 'running'}:
+                jobs.append(previous)
+                continue
+            if previous and previous.status in {'partial', 'failed'}:
+                if automatic and previous.finished_at and aware(previous.finished_at) > utcnow() - timedelta(days=1):
+                    jobs.append(previous)
+                    continue
+                for item in (await session.scalars(select(JobItem).where(
+                    JobItem.job_id == previous.id,
+                    JobItem.status.notin_(['completed', 'no_odds']),
+                ))).all():
+                    item.status, item.error = 'queued', None
+                previous.status, previous.finished_at, previous.last_error = 'queued', None, None
+                previous.failed_matches = 0
+                jobs.append(previous)
+                continue
+            if previous and not await session.scalar(missing_market_odds_query(league.id).with_only_columns(Match.id).limit(1)):
+                jobs.append(previous)
+                continue
+            job = ScraperJob(kind='market_backfill', league_id=league.id, start_year=2024, priority=priority + 20)
             session.add(job)
             jobs.append(job)
         await session.commit()

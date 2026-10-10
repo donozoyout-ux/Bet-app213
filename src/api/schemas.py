@@ -44,6 +44,7 @@ class JobResponse(ORMResponse):
     total_matches: int
     processed_matches: int
     failed_matches: int
+    no_odds_matches: int = 0
     started_at: datetime | None
     finished_at: datetime | None
     last_error: str | None

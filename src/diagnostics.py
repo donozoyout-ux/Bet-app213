@@ -48,7 +48,7 @@ async def database_summary(db, verify_schema=False):
             League.enabled.is_(True),ScraperJob.kind=='stats_backfill',ScraperJob.status.in_(['running','queued']))
             .order_by(ScraperJob.priority,ScraperJob.id))).all()
         serialize=lambda job,name:dict(id=job.id,league_id=job.league_id,league=name,status=job.status,
-            processed=job.processed_matches,total=job.total_matches,failed=job.failed_matches)
+            processed=job.processed_matches,total=job.total_matches,failed=job.failed_matches,no_odds=getattr(job,'no_odds_matches',0))
         result['active_stats_backfill']=next((serialize(j,n) for j,n in stats_jobs if j.status=='running'),None)
         result['queued_stats_backfills']=[serialize(j,n) for j,n in stats_jobs if j.status=='queued']
         coverage = result['stats_coverage_by_league']
@@ -58,19 +58,20 @@ async def database_summary(db, verify_schema=False):
         result['matches_with_corners']=sum(r['matches_with_corners'] for r in coverage)
         result['matches_with_cards']=sum(r['matches_with_cards'] for r in coverage)
         result['matches_with_referee']=await session.scalar(select(func.count(Match.id)).join(League).where(League.enabled.is_(True),Match.referee_id.is_not(None)))
-        running=await session.scalar(select(ScraperJob).join(League).where(League.enabled.is_(True),ScraperJob.kind.in_(['backfill','stats_backfill']),ScraperJob.status=='running').limit(1))
-        result['active_backfill']=dict(id=running.id,kind=running.kind,processed=running.processed_matches,total=running.total_matches,failed=running.failed_matches) if running else None
+        running=await session.scalar(select(ScraperJob).join(League).where(League.enabled.is_(True),ScraperJob.kind.in_(['backfill','stats_backfill','market_backfill']),ScraperJob.status=='running').limit(1))
+        result['active_backfill']=dict(id=running.id,kind=running.kind,processed=running.processed_matches,total=running.total_matches,failed=running.failed_matches,no_odds=getattr(running,'no_odds_matches',0)) if running else None
         result['league_count'] = await session.scalar(select(func.count(League.id)))
         result['enabled_competitions'] = len(coverage)
         complete = select(ScraperJob.league_id).where(ScraperJob.kind == 'backfill', ScraperJob.status == 'completed').distinct()
         result['completed_competitions'] = await session.scalar(select(func.count(League.id)).where(League.enabled.is_(True), League.id.in_(complete)))
-        result['active_backfill_competition'] = await session.scalar(select(League.name).join(ScraperJob).where(League.enabled.is_(True),ScraperJob.kind.in_(['backfill','stats_backfill']), ScraperJob.status == 'running').limit(1))
-        result['queued_backfills'] = await session.scalar(select(func.count(ScraperJob.id)).join(League).where(League.enabled.is_(True), ScraperJob.kind.in_(['backfill','stats_backfill']), ScraperJob.status == 'queued'))
+        result['active_backfill_competition'] = await session.scalar(select(League.name).join(ScraperJob).where(League.enabled.is_(True),ScraperJob.kind.in_(['backfill','stats_backfill','market_backfill']), ScraperJob.status == 'running').limit(1))
+        result['queued_backfills'] = await session.scalar(select(func.count(ScraperJob.id)).join(League).where(League.enabled.is_(True), ScraperJob.kind.in_(['backfill','stats_backfill','market_backfill']), ScraperJob.status == 'queued'))
         result['total_matches'] = await session.scalar(select(func.count(Match.id)))
-        result['total_odds'] = await session.scalar(select(sum(select(func.count(model.id)).scalar_subquery() for model in (Odds1X2, AsianHandicap, AsianTotals))))
+        from src.models import MarketOdds
+        result['total_odds'] = await session.scalar(select(sum(select(func.count(model.id)).scalar_subquery() for model in (Odds1X2, AsianHandicap, AsianTotals, MarketOdds))))
         job = await session.scalar(select(ScraperJob).join(League).where(League.enabled.is_(True)).order_by(ScraperJob.id.desc()).limit(1))
         result['latest_job_status'] = job.status if job else None
         result['latest_job'] = {'id': job.id, 'kind': job.kind, 'status': job.status,
                                 'processed': job.processed_matches, 'total': job.total_matches,
-                                'failed': job.failed_matches} if job else None
+                                'failed': job.failed_matches, 'no_odds': getattr(job, 'no_odds_matches', 0)} if job else None
         return result
