@@ -38,6 +38,8 @@ Desktop.ini
 !.env.example
 *.db
 *.sqlite
+scratch/
+
 *.sqlite3
 .pytest_cache/
 .venv/

@@ -197,6 +197,31 @@ class OddsSnapshot(Base):
     raw: Mapped[dict] = mapped_column(JSON)
 
 
+class MarketOdds(OddsBase, Base):
+    """Period- and market-tagged odds from verified Goaloo endpoints.
+
+    Covers half-time goals OU (t=1,h=1), corner OU (t=4), and any future
+    verified market that is not in the legacy 1x2/AH/OU full-time tables.
+    Each row is uniquely identified by match + bookmaker + market + period.
+    """
+    __tablename__ = 'market_odds'
+    __table_args__ = (
+        UniqueConstraint('match_id', 'bookmaker_id', 'market', 'period'),
+        Index('ix_market_odds_match_market', 'match_id', 'market'),
+    )
+    market: Mapped[str] = mapped_column(String(30))
+    period: Mapped[str] = mapped_column(String(20))
+    opening_line: Mapped[float | None]
+    opening_over: Mapped[float | None]
+    opening_under: Mapped[float | None]
+    closing_line: Mapped[float | None]
+    closing_over: Mapped[float | None]
+    closing_under: Mapped[float | None]
+    latest_line: Mapped[float | None]
+    latest_over: Mapped[float | None]
+    latest_under: Mapped[float | None]
+
+
 class ScraperJob(Base):
     __tablename__ = 'scraper_jobs'
     id: Mapped[int] = mapped_column(primary_key=True)

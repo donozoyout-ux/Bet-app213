@@ -2,10 +2,11 @@ import logging
 import hashlib
 from datetime import timedelta, timezone
 from sqlalchemy import select
-from src.models import Team, Season, Match, Bookmaker, Odds1X2, AsianHandicap, AsianTotals, OddsSnapshot, utcnow
+from src.models import Team, Season, Match, Bookmaker, Odds1X2, AsianHandicap, AsianTotals, MarketOdds, OddsSnapshot, utcnow
 from src.models import MatchStatistics, MatchEvent, Referee
 from sqlalchemy import delete
 from src.scrapers.goaloo.odds import complete_odds
+
 
 log = logging.getLogger('scraper')
 
@@ -77,6 +78,48 @@ async def store_odds(session, match, odds, final):
             log.info('[ODDS] bookmaker=%s market=%s match_id=%s saved', name, key, match.external_match_id)
     match.last_scraped_at = utcnow()
     match.odds_complete = final and complete_odds(odds, final=True)
+
+
+async def store_market_odds(session, match, odds_by_bookmaker, market, period):
+    """Store period- and market-tagged odds into market_odds table.
+
+    odds_by_bookmaker is {bookmaker_name: data_dict}
+    where data_dict contains opening/latest/closing line/over/under and raw.
+    """
+    for name, data in odds_by_bookmaker.items():
+        if not data:
+            continue
+        bookmaker = await session.scalar(select(Bookmaker).where(Bookmaker.name == name))
+        if not bookmaker:
+            continue
+        row = await get_or_create(
+            session,
+            MarketOdds,
+            {
+                'match_id': match.id,
+                'bookmaker_id': bookmaker.id,
+                'market': market,
+                'period': period,
+            },
+            {'raw': data.get('raw', {})},
+        )
+        for field in (
+            'opening_line', 'opening_over', 'opening_under',
+            'latest_line', 'latest_over', 'latest_under',
+            'closing_line', 'closing_over', 'closing_under',
+        ):
+            value = data.get(field)
+            if value is not None:
+                # Missing source fields never erase previously verified opening/closing values.
+                setattr(row, field, value)
+        if 'raw' in data:
+            row.raw = data['raw']
+        row.updated_at = utcnow()
+        log.info(
+            '[MARKET_ODDS] bookmaker=%s market=%s period=%s match_id=%s saved',
+            name, market, period, match.external_match_id,
+        )
+    match.last_scraped_at = utcnow()
 
 
 async def store_history(session, match_id, bookmaker_id, history):

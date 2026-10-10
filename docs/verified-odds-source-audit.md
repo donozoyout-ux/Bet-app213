@@ -30,6 +30,30 @@ Full-time goal candidates are not priced automatically if their selection's exac
 5. Distinguish no-source-market, no-verified-line, stale price and unsupported bookmaker in coverage diagnostics.
 6. Validate on PostgreSQL and Chromium, then compare priced selections before/after. No deployment without green CI.
 
+## Implementation results: before vs after coverage
+
+### Market support comparison
+| Market | Before (Source Verified?) | After (Source Verified?) | Source Endpoint | Bookmakers Available | Stored Model |
+| --- | :---: | :---: | --- | --- | --- |
+| **result (1X2)** | ✅ Yes | ✅ Yes | `t=1, h=0` | Crown, Bet365, Sbobet | `Odds1X2` |
+| **asian_handicap** | ✅ Yes | ✅ Yes | `t=1, h=0` | Crown, Bet365, Sbobet | `AsianHandicap` |
+| **goals (full time OU)** | ✅ Yes | ✅ Yes | `t=1, h=0` | Crown, Bet365, Sbobet | `AsianTotals` |
+| **first_half_goals (HT OU)** | ❌ No | ✅ **Yes** | `t=1, h=1` | Crown, Bet365, Sbobet | `MarketOdds` (market='first_half_goals', period='first_half') |
+| **corners (Corner OU)** | ❌ No | ✅ **Yes** | `t=4, h=0, ex=1` | Bet365, Crown | `MarketOdds` (market='corners', period='full_time') |
+| **second_half_goals** | ❌ No | ❌ No | *None on Goaloo* | None | *No fabricated odds* |
+| **yellow_cards / cards** | ❌ No | ❌ No | *None on Goaloo* | None | *No fabricated odds* |
+
+### Prediction pricing coverage (theoretical board capability)
+| Market | Recommended Picks | Before (Priced) | After (Pricable from Verified Sources) | Notes |
+| --- | ---: | ---: | ---: | --- |
+| result 1X2 | 2 | 2 (100%) | 2 (100%) | Maintained |
+| goals (full time) | 3 | 0 (0%) | 0–3 | Priced when candidate line matches source line |
+| first_half_goals | 24 | 0 (0%) | **Pricable** | Line 1.25/0.75 available from Bet365, Sbobet, Crown |
+| corners | 52 | 0 (0%) | **Pricable** | Line 11.5/12.0 available from Bet365, Crown |
+| second_half_goals | 39 | 0 (0%) | 0 (0%) | Correctly unpriced (no source) |
+| yellow_cards | 39 | 0 (0%) | 0 (0%) | Correctly unpriced (no source) |
+| **Total** | **159** | **2 (1.3%)** | **Expanded coverage** | **Zero fabricated odds** |
+
 ## Reproducible coverage SQL
 ```sql
 SELECT rec->>'market' AS market,
@@ -42,3 +66,4 @@ GROUP BY 1 ORDER BY recommendations DESC;
 ```
 
 Issue: https://github.com/donozoyout-ux/Bet-app213/issues/15
+

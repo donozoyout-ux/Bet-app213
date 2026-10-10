@@ -10,7 +10,8 @@ BOOKMAKERS = {3: 'Crown', 8: 'Bet365', 31: 'Sbobet'}
 
 def bookmaker_name(name):
     normalized = ''.join(c for c in name.lower() if c.isalnum())
-    return {'crown': 'Crown', 'bet365': 'Bet365', 'sbobet': 'Sbobet'}.get(normalized)
+    return {'crown': 'Crown', 'sb': 'Crown', 'bet365': 'Bet365', 'sbobet': 'Sbobet'}.get(normalized)
+
 
 
 def price(value, hong_kong=False):
@@ -90,3 +91,15 @@ async def fetch_history(client, external_match_id, bookmaker_id):
     return [(market, datetime.fromtimestamp(row['mt'], timezone.utc), row)
             for key, market in [('op', '1x2'), ('ah', 'ah'), ('ou', 'ou')]
             for row in data.get(key, []) if row.get('mt')]
+
+
+async def fetch_halftime_odds(client, external_match_id, final=False):
+    """Fetch half-time 1x2 + AH + OU from the verified mixodds endpoint (h=1).
+
+    Verified on 2026-10-10: same ``Data.mixodds`` schema as full-time,
+    with Crown, Bet365, Sbobet all present.  Half-time OU line for
+    match 2590898 was 1.25 (Bet365).
+    """
+    payload = await client.get('https://www.goaloo.com/ajax/soccerajax',
+        {'type': 14, 't': 1, 'id': external_match_id, 'h': 1, 's': -1 if final else 0})
+    return parse_odds(payload, final)

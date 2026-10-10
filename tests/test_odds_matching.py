@@ -385,3 +385,82 @@ def test_missing_market_and_card_types_isolation():
     assert match_odds_for_candidate(cand_1h, 1, 'scheduled', period_odds_rows=rows_1h_exact)['has_odds'] is True
 
 
+def test_real_market_odds_instance_matching():
+    """Verify that actual MarketOdds model rows match first_half_goals and corners."""
+    from src.models import MarketOdds
+
+    now = datetime(2026, 10, 10, 12, 0, tzinfo=timezone.utc)
+    ht_b365 = MarketOdds(
+        match_id=100, bookmaker_id=2, market='first_half_goals', period='first_half',
+        opening_line=1.25, opening_over=1.85, opening_under=2.0,
+        latest_line=1.25, latest_over=2.03, latest_under=1.83,
+        updated_at=now, raw={},
+    )
+    ht_crown = MarketOdds(
+        match_id=100, bookmaker_id=1, market='first_half_goals', period='first_half',
+        opening_line=1.25, opening_over=1.79, opening_under=2.07,
+        latest_line=1.25, latest_over=2.08, latest_under=1.80,
+        updated_at=now, raw={},
+    )
+    corners_b365 = MarketOdds(
+        match_id=100, bookmaker_id=2, market='corners', period='full_time',
+        opening_line=12.0, opening_over=2.025, opening_under=1.775,
+        latest_line=11.5, latest_over=2.0, latest_under=1.8,
+        updated_at=now, raw={},
+    )
+    corners_crown = MarketOdds(
+        match_id=100, bookmaker_id=1, market='corners', period='full_time',
+        opening_line=11.5, opening_over=1.95, opening_under=1.85,
+        latest_line=11.5, latest_over=1.91, latest_under=1.89,
+        updated_at=now, raw={},
+    )
+
+    all_period_rows = [
+        (ht_b365, 'Bet365'),
+        (ht_crown, 'Crown'),
+        (corners_b365, 'Bet365'),
+        (corners_crown, 'Crown'),
+    ]
+
+    # 1. Half-time over 1.25 goals matches Crown (2.08) and Bet365 (2.03), best is Crown
+    cand_ht_over = {'id': 'over_1_25_first_half_goals', 'market': 'first_half_goals', 'selection': 'over_1_25', 'probability': 0.55}
+    res_ht = match_odds_for_candidate(cand_ht_over, 100, 'scheduled', period_odds_rows=all_period_rows)
+    assert res_ht['has_odds'] is True
+    assert res_ht['best_bookmaker'] == 'Crown'
+    assert res_ht['best_price'] == 2.08
+    assert res_ht['bookmakers']['Crown']['current_odds'] == 2.08
+    assert res_ht['bookmakers']['Bet365']['current_odds'] == 2.03
+
+    # 2. Half-time under 1.25 goals matches Bet365 (1.83) vs Crown (1.80), best is Bet365
+    cand_ht_under = {'id': 'under_1_25_first_half_goals', 'market': 'first_half_goals', 'selection': 'under_1_25', 'probability': 0.50}
+    res_ht_under = match_odds_for_candidate(cand_ht_under, 100, 'scheduled', period_odds_rows=all_period_rows)
+    assert res_ht_under['has_odds'] is True
+    assert res_ht_under['best_bookmaker'] == 'Bet365'
+    assert res_ht_under['best_price'] == 1.83
+
+    # 3. Half-time line mismatch (over 0.5) has no matching odds
+    cand_ht_nomatch = {'id': 'over_0_5_first_half_goals', 'market': 'first_half_goals', 'selection': 'over_0_5', 'probability': 0.80}
+    res_ht_nomatch = match_odds_for_candidate(cand_ht_nomatch, 100, 'scheduled', period_odds_rows=all_period_rows)
+    assert res_ht_nomatch['has_odds'] is False
+    assert res_ht_nomatch['message'] == NO_ODDS_MESSAGE
+
+    # 4. Corners over 11.5 matches Bet365 (2.0) vs Crown (1.91), best is Bet365
+    cand_corners_over = {'id': 'over_11_5_corners', 'market': 'corners', 'selection': 'over_11_5', 'probability': 0.52}
+    res_corners = match_odds_for_candidate(cand_corners_over, 100, 'scheduled', period_odds_rows=all_period_rows)
+    assert res_corners['has_odds'] is True
+    assert res_corners['best_bookmaker'] == 'Bet365'
+    assert res_corners['best_price'] == 2.0
+
+    # 5. Corners line mismatch (over 9.5) has no matching odds
+    cand_corners_nomatch = {'id': 'over_9_5_corners', 'market': 'corners', 'selection': 'over_9_5', 'probability': 0.65}
+    res_corners_nomatch = match_odds_for_candidate(cand_corners_nomatch, 100, 'scheduled', period_odds_rows=all_period_rows)
+    assert res_corners_nomatch['has_odds'] is False
+
+    # 6. Unverified card markets (cards, yellow_cards) strictly reject and never fabricate odds
+    cand_yellow = {'id': 'over_3_5_yellow_cards', 'market': 'yellow_cards', 'selection': 'over_3_5', 'probability': 0.60}
+    res_yellow = match_odds_for_candidate(cand_yellow, 100, 'scheduled', period_odds_rows=all_period_rows)
+    assert res_yellow['has_odds'] is False
+    assert res_yellow['message'] == NO_ODDS_MESSAGE
+
+
+
