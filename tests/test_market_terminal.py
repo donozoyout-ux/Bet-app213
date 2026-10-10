@@ -166,6 +166,12 @@ async def test_postgres_scope_migration_and_concurrent_immutable_capture(monkeyp
         assert all([j.id for j in rows]==[j.id for j in rollouts[0]] for rows in rollouts)
         async with db.session() as session:
             assert await session.scalar(select(func.count(ScraperJob.id)).where(ScraperJob.kind=='stats_backfill'))==8
+        # seed() warms the new durable board and captures prematch picks.
+        # Reset that fixture's ledger here to exercise concurrent first publication.
+        from sqlalchemy import delete
+        async with db.session() as session:
+            await session.execute(delete(PredictionSnapshot).where(PredictionSnapshot.match_id == id))
+            await session.commit()
         pick=rank_candidate(candidate('goals','goal_environment',.68,'over_2_5'))
         async def publish():
             async with db.session() as session:
