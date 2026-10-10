@@ -380,6 +380,58 @@ async def scrape_match(match_id: int, session=Depends(session_dependency)):
     return await submit('match', JobRequest(league_id=league.external_id), session, match_id)
 
 
+@router.get('/predictions/yesterday-winners')
+async def yesterday_winners(session=Depends(session_dependency)):
+    """Yesterday's actual winning picks published strictly before kickoff (Istanbul day)."""
+    from src.models import PredictionSnapshot
+    from src.analytics.performance import settle
+    from sqlalchemy.orm import defer
+    from datetime import datetime
+    istanbul = ZoneInfo('Europe/Istanbul')
+    yesterday = datetime.now(istanbul).date() - timedelta(days=1)
+    start, end = day_bounds(yesterday, DISPLAY_TIMEZONE)
+    home_team = aliased(Team)
+    away_team = aliased(Team)
+    query = (
+        select(Match, PredictionSnapshot, MatchStatistics, home_team.name, away_team.name, League.name)
+        .join(PredictionSnapshot, PredictionSnapshot.match_id == Match.id)
+        .outerjoin(MatchStatistics, MatchStatistics.match_id == Match.id)
+        .join(home_team, home_team.id == Match.home_team_id)
+        .join(away_team, away_team.id == Match.away_team_id)
+        .join(League, League.id == Match.league_id)
+        .options(defer(Match.raw), defer(MatchStatistics.raw))
+        .where(League.enabled.is_(True), Match.status == 'finished',
+               Match.kickoff_at >= start, Match.kickoff_at < end,
+               PredictionSnapshot.captured_at < Match.kickoff_at)
+        .order_by(Match.kickoff_at.desc(), Match.id.desc())
+        .limit(150)
+    )
+    rows = (await session.execute(query)).all()
+    won = []
+    saved = 0
+    settled = 0
+    for match, snapshot, stats, home_name, away_name, league_name in rows:
+        for pick in snapshot.picks or []:
+            saved += 1
+            try:
+                outcome, actual = settle(match, stats, pick)
+            except (KeyError, ValueError, TypeError):
+                continue
+            if outcome in ('won', 'lost'):
+                settled += 1
+            if outcome != 'won':
+                continue
+            won.append({'match_id': match.id, 'league': league_name, 'home_team': home_name,
+                        'away_team': away_name, 'kickoff_at': match.kickoff_at,
+                        'ft_home': match.ft_home, 'ft_away': match.ft_away,
+                        'label': pick.get('label'), 'market': pick.get('market'),
+                        'probability': pick.get('probability'), 'actual': actual,
+                        'captured_at': snapshot.captured_at})
+    return {'date': yesterday.isoformat(), 'items': won[:6],
+            'total_won': len(won), 'saved': saved, 'settled': settled,
+            'basis': 'immutable_prematch_snapshots'}
+
+
 @router.get('/market-performance')
 async def market_performance(league: str | None=None,market: Literal['all','result','goals','btts','corners','cards','yellow_cards','red_cards','asian_handicap','double_chance','first_half_goals','second_half_goals']='all',exact_market: str | None=None,date_from: Date | None=None,date_to: Date | None=None,confidence: Literal['high','medium','low'] | None=None,limit: int=Query(default=50,ge=1,le=100),offset: int=Query(default=0,ge=0),session=Depends(session_dependency)):
     if date_from and date_to and date_from>date_to:raise HTTPException(400,'Invalid date range')
