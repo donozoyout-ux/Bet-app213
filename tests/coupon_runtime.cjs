@@ -11,6 +11,7 @@ class Element{
 const all=e=>[e,...e.children.flatMap(all)];
 async function scenario(mode){
  const ids=new Map(['coupon-selected','coupon-total','coupon-copy','coupon-clear','coupon-reload','coupon-note','coupon-candidates','coupon-bookmaker'].map(id=>[id,new Element()]));ids.get('coupon-bookmaker').value='Bet365';
+ if(mode==='automatic')for(const id of ['coupon-automatic','coupon-save','coupon-saved-note','coupon-history','coupon-history-refresh','coupon-telegram','telegram-status','telegram-schedule'])ids.set(id,new Element());
  const now=Date.now(),stamp=new Date(now-60000).toISOString(),expiry=new Date(now+60000).toISOString();
  const items=Array.from({length:6},(_,index)=>{
   const id=Math.floor(index/2)+1,selection=index%2?'under_3_5':'over_1_5';
@@ -24,11 +25,23 @@ async function scenario(mode){
   items[4].recommendation.verified_odds.has_odds=false;
   items[5].recommendation.verified_odds.match_id=999;
  }
- let copied='',release,calls=[];
- const sandbox={console,Date,Map,Number,AbortSignal,navigator:{clipboard:{writeText:async value=>{if(mode==='copy-denied')throw Error('denied');copied=value;}}},document:{getElementById:id=>ids.get(id),createElement:tag=>new Element(tag),querySelectorAll:()=>all(ids.get('coupon-candidates')).filter(e=>e.type==='checkbox')},fetch:async(path,options)=>{
+ let copied='',release,calls=[],versions=new Map(),manualRevision=0;
+ const saved=(selected,kind='automatic',revision=1)=>({id:kind+'-'+revision,revision,kind,created_at:stamp,combined_odds:selected.reduce((p,i)=>p*i.quote.price,1),items:selected});
+ const asSaved=item=>({...structuredClone(item),quote:{eligible:true,bookmaker:'Bet365',price:item.recommendation.verified_odds.bookmakers.Bet365.current_odds,observed_at:stamp,expires_at:expiry},status:'pending'});
+ const sandbox={console,Date,Map,Number,AbortSignal,crypto:{randomUUID:()=> '12345678-1234-1234-1234-123456789012'},navigator:{clipboard:{writeText:async value=>{if(mode==='copy-denied')throw Error('denied');copied=value;}}},document:{getElementById:id=>ids.get(id),createElement:tag=>new Element(tag),querySelectorAll:()=>all(ids.get('coupon-candidates')).filter(e=>e.type==='checkbox')},fetch:async(path,options)=>{
   calls.push(path);
   if(mode==='request-failed')throw Error('timeout');
   if(path.startsWith('/api/predictions'))return {ok:true,json:async()=>({items,generated_at:stamp,cache:{stale:false}})};
+  if(path==='/api/telegram/status')return {ok:true,json:async()=>({configured:false,today:[]})};
+  if(path.startsWith('/api/coupons?'))return {ok:true,json:async()=>({items:[...versions.values()].map(v=>({...v,selections:v.items.length}))})};
+  if(path==='/api/coupons/automatic'){
+   const data=saved(items.filter((_,index)=>index%2===0).map(asSaved));versions.set(data.id,data);return {ok:true,json:async()=>structuredClone(data)};
+  }
+  if(path.startsWith('/api/coupons')){
+   if(!options.method)return {ok:true,json:async()=>structuredClone(versions.get(path.split('/').at(-1)))};
+   assert(options.headers['X-Coupon-Key']);const selected=JSON.parse(options.body).selections.map(s=>asSaved(items.find(i=>i.match.id===s.match_id && i.recommendation.id===s.recommendation_id)));
+   const data=saved(selected,'manual',++manualRevision);versions.set(data.id,data);return {ok:true,json:async()=>structuredClone(data)};
+  }
   const request=JSON.parse(options.body);
   if(mode==='clear-race' && path==='/api/coupon/quote')await new Promise(resolve=>{release=resolve;});
   const values=request.selections.map(s=>{
@@ -42,17 +55,25 @@ async function scenario(mode){
  const inputs=()=>sandbox.document.querySelectorAll();
  if(mode==='request-failed'){assert(ids.get('coupon-note').text().includes('Bağlantı'));assert.equal(ids.get('coupon-candidates').attrs['aria-busy'],'false');return;}
  assert.equal(inputs().length,6);
+ if(mode==='automatic'){
+  await ids.get('coupon-automatic').onclick();assert(ids.get('coupon-total').text().includes('5,83'));
+  assert.equal(ids.get('coupon-selected').children.length,3);
+  ids.get('coupon-selected').children[0].children.at(-1).onclick();assert.equal(ids.get('coupon-selected').children.length,2);assert(ids.get('coupon-telegram').disabled);
+  await ids.get('coupon-save').onclick();assert(ids.get('coupon-saved-note').text().includes('Sürüm 1'));
+  ids.get('coupon-selected').children[0].children.at(-1).onclick();await ids.get('coupon-save').onclick();assert(ids.get('coupon-saved-note').text().includes('Sürüm 2'));
+  assert.equal(versions.get('automatic-1').items.length,3);await ids.get('coupon-automatic').onclick();assert.equal(ids.get('coupon-selected').children.length,3);return;
+ }
  if(mode==='invalid'){assert(inputs().every(e=>e.disabled));return;}
  inputs()[0].checked=true;const pending=inputs()[0].onchange();
  if(mode==='clear-race'){ids.get('coupon-clear').onclick();release();await pending;assert(ids.get('coupon-selected').text().includes('Henüz'));return;}
  await pending;
  if(mode==='server-rejected'){assert(ids.get('coupon-selected').text().includes('Henüz'));assert(ids.get('coupon-note').text().includes('bayat'));return;}
  assert(inputs()[1].disabled);inputs()[3].checked=true;await inputs()[3].onchange();
- assert(ids.get('coupon-total').text().includes('3,96'));assert(inputs()[4].disabled);
+ assert(ids.get('coupon-total').text().includes('3,96'));assert(!inputs()[4].disabled); // No fixed distinct-match limit.
  await ids.get('coupon-copy').onclick();
  if(mode==='copy-denied'){assert(!copied);assert(ids.get('coupon-note').text().includes('Kopyalanamadı'));return;}
  assert(copied.includes('Bet365') && copied.includes('3,96') && copied.includes('Gözlem'));
  ids.get('coupon-clear').onclick();assert(ids.get('coupon-selected').text().includes('Henüz'));assert(ids.get('coupon-copy').disabled);
  assert(calls.includes('/api/coupon/quote') && calls.includes('/api/coupon/status'));
 }
-(async()=>{const modes=['populated','invalid','request-failed','server-rejected','copy-denied','clear-race'];for(const mode of modes)await scenario(mode);console.log(`coupon runtime: ${modes.length} scenarios passed`);})().catch(e=>{console.error(e);process.exitCode=1;});
+(async()=>{const modes=['populated','invalid','request-failed','server-rejected','copy-denied','clear-race','automatic'];for(const mode of modes)await scenario(mode);console.log(`coupon runtime: ${modes.length} scenarios passed`);})().catch(e=>{console.error(e);process.exitCode=1;});

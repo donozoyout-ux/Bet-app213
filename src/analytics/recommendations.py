@@ -11,6 +11,12 @@ RELIABILITY_MIN=.70
 SCORE_MIN=.74
 
 
+def qualified_record(rec):
+    """Reuse the strong gate when consuming cached recommendations."""
+    values=[rec.get('probability',0),rec.get('reliability',0),rec.get('score',0)]
+    return rec.get('qualifies') is True and all(isinstance(v,(int,float)) and math.isfinite(v) for v in values) and values[0]>=PROBABILITY_MIN and values[1]>=RELIABILITY_MIN and values[2]>=SCORE_MIN
+
+
 def clamp(value):return max(0,min(1,value))
 
 
