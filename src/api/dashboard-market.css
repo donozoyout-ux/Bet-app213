@@ -60,3 +60,51 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible{o
 .data-table,.table-scroll{border-color:#31523f}
 table tr{border-color:#2c4737}
 @media(max-width:700px){#coupon-section .section-heading{padding:16px}#coupon-selected{grid-template-columns:1fr}}
+
+
+/* Midnight emerald audit: eliminate legacy light surfaces across all dashboard views. */
+:root{
+  --app-bg:#070d0b;--surface:#111d17;--primary:#4ee797;--text:#eaf7ef;
+  --muted:#a5bcaf;--border:#2c4837;--primary-soft:#173d29;
+  --success:#51e69c;--danger:#ff7986;--warning:#e9be69;
+  --shadow:0 8px 24px #0005;color-scheme:dark;
+}
+html,body{background:#070d0b;color:var(--text)}
+body{background:radial-gradient(ellipse at 75% -10%,#143526 0%,transparent 46%),#070d0b}
+.terminal-header{background:#0d1812;border-bottom-color:#274532}
+.brand-mark{color:#092115}.brand-mark span{color:#063c21}
+.primary-button,.analysis-tabs [aria-selected=true]{color:#061c0e}
+.primary-button:hover{background:#73f2ad;color:#071d10}
+.search-label input,input,select,textarea,button{background:#122219;color:var(--text);border-color:var(--border)}
+input::placeholder,textarea::placeholder{color:#91a99b}
+input:focus,select:focus,textarea:focus{border-color:var(--primary)}
+button:hover{background:#1c3d2a;color:#eafff1}
+.desktop-nav a[aria-current=page]{background:#18422c;color:#7af4ad}
+.prediction-card:hover{border-color:#489b69;box-shadow:0 12px 35px #0008}
+.pick-primary{background:#163a28;border-color:#315e43}
+.other-pick,.stats-line,.data-table td{border-bottom-color:#294333}
+.insight-note,.coverage-link,.empty-state,.data-table th,.stats-block,#match-detail,.analysis-loading{background:#111f18;color:var(--text);border-color:var(--border)}
+.market-tabs{background:#101f17}
+.market-tabs [aria-selected=true]{background:#24583b;color:#b3ffd2;box-shadow:none}
+.table-scroll,.data-table{background:#101c15;color:var(--text)}
+.data-table th{background:#18291e}
+.data-table tbody tr:nth-child(even){background:#142219}
+.data-table tbody tr:hover{background:#1a3a28}
+.empty-state{border-style:dashed;color:var(--muted)}
+.skeleton{background:#21372a;color:#b1d0bc}
+#analysis-dialog{background:#0b1710;color:var(--text);box-shadow:0 25px 110px #000b}
+#analysis-dialog::backdrop{background:#000b}
+.analysis-close,.skip-link{background:#193626;color:#effff5}
+.stats-block,.analysis-loading{box-shadow:none}
+.pending{color:#f5cc83}
+.selected-match{background:#1c4a30!important}
+:where(input[type="date"],input[type="datetime-local"],input[type="time"]){color-scheme:dark}
+:where(button,input,select,textarea):disabled{opacity:.6}
+:where(.bg-white,.bg-surface-container-lowest,.bg-surface,.bg-surface-container,.bg-surface-container-low,.bg-surface-container-high){background-color:#14251b!important}
+:where(.text-on-surface,.text-on-surface-variant){color:#eaf7ef!important}
+:where(.text-outline){color:#a5bcaf!important}
+:where(.border-outline-variant){border-color:#31513e!important}
+@media(max-width:700px){
+  .terminal-header,.bottom-nav{background:#0d1812}
+  .home-summary article,.prediction-card,.summary-card{background:#112018}
+}
