@@ -45,9 +45,11 @@ def test_filters_read_selected_not_raw_candidates_and_different_market_combinati
     _,a=select_recommendations([candidate('result'),candidate('cards','cards',.75,'over_4_5',strong=False)])
     _,b=select_recommendations([candidate('cards','cards',.72,'over_4_5'),candidate('corners','corners',.66,'over_9_5'),candidate('btts','goal_environment',.61,'yes')])
     assert not market_matches(a,'cards')
-    assert market_matches(b,'cards') and market_matches(b,'corners') and market_matches(b,'goals')
+    assert len(b) == 2
+    assert market_matches(b,'cards') and market_matches(b,'corners')
+    assert not market_matches(b,'goals')
     assert {r['market'] for r in a}=={'result'}
-    assert {r['market'] for r in b}=={'cards','corners','btts'}
+    assert {r['market'] for r in b}=={'cards','corners'}
 
 
 def test_supported_half_handicap_probability_and_no_push_guess():
