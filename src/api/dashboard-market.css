@@ -22,3 +22,41 @@
 .prediction-odds{margin:12px 0 8px;display:flex;flex-direction:column;gap:6px;border-top:1px dashed var(--border);padding-top:10px}
 .prediction-odds .odds-line{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:var(--text)}
 .prediction-odds .odds-missing{color:var(--muted);font-size:11px}
+
+
+/* BetApp213 midnight / emerald visual system */
+:root{--app-bg:#070d0b;--surface:#111c17;--primary:#42df91;--text:#edf9f1;--muted:#99b9a7;--border:#294639;--primary-soft:#17382a;--success:#50e9a0;--danger:#ff7180;--warning:#ffc66a;--shadow:0 12px 34px #00000045;color-scheme:dark}
+body{background:radial-gradient(ellipse 65% 25% at 50% 0%,#113f2b 0%,#070d0b 75%) fixed;color:var(--text)}
+.terminal-header{background:#0b1612f5;backdrop-filter:blur(14px);border-bottom-color:#24543c}
+.brand-mark{color:#07110b}.brand-mark span{color:#062d18}.brand-number{color:#5af9a7}
+.desktop-nav a[aria-current=page],.bottom-nav a[aria-current=page]{background:#204834;color:#68ffaf}
+.search-label input,input,select,textarea{background:#0c1a13;color:var(--text);border-color:#31523e}
+input::placeholder{color:#839c8d}
+button{background:#15271d;border-color:#355542;color:var(--text)}
+button:hover{background:#1c3b2b;border-color:var(--primary)}
+button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid #64ffae;outline-offset:3px}
+.primary-button,#coupon-automatic,#coupon-save{background:#36d784;color:#052413;border:1px solid #59f6a3;font-weight:800;box-shadow:0 8px 24px #16a95b22}
+.primary-button:hover,#coupon-automatic:hover,#coupon-save:hover{background:#65f7ad;color:#052413}
+.home-summary article,.prediction-card{background:#111e17;border-color:#2b4b39}
+.prediction-card:hover{border-color:#56e89a;box-shadow:0 14px 36px #0008}
+.pick-primary,.metric-icon{background:#173626;border-color:#305c41}
+.pick-primary .pick-line strong{color:#71ffb5}
+.card-teams small{color:#90ab99}
+#coupon-section{max-width:990px;margin:0 auto}
+#coupon-section .section-heading{flex-wrap:wrap;gap:18px;border:1px solid #31533f;padding:24px;border-radius:18px;background:linear-gradient(125deg,#193a29,#102017 80%)}
+#coupon-title{font-size:clamp(28px,4vw,40px)}
+#coupon-draft-title{color:#67f4a6}
+#coupon-selected{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:12px;margin:16px 0}
+#coupon-selected>div{background:#13271d;border:1px solid #355f46;border-left:4px solid #4bec98;border-radius:14px;padding:18px;box-shadow:0 8px 22px #0003}
+#coupon-selected>div p:first-child{font-weight:800;font-size:16px;color:#effff5}
+#coupon-selected>div p{margin:5px 0;line-height:1.5}
+#coupon-total{font-size:16px;color:#76fdb6;font-weight:750;margin:14px 0}
+#coupon-edit-panel{background:#0e2017;border:1px solid #315842;border-radius:14px;margin:24px 0;padding:16px}
+#coupon-edit-panel summary{cursor:pointer;font-weight:750;color:#6cf3a7;padding:5px 0}
+#coupon-edit-panel[open] summary{margin-bottom:15px}
+#coupon-edit-panel label{display:inline-block;margin:8px 12px 12px 0;color:var(--muted)}
+#coupon-edit-panel .table-scroll{margin-top:16px}
+#coupon-note{margin:16px 0;color:#b1dbc0}
+.data-table,.table-scroll{border-color:#31523f}
+table tr{border-color:#2c4737}
+@media(max-width:700px){#coupon-section .section-heading{padding:16px}#coupon-selected{grid-template-columns:1fr}}
