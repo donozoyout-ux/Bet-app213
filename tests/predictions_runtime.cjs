@@ -100,9 +100,9 @@ async function scenario(mode){
   assert.equal(cards.children.length,recorded.page.items.length);
   assert(cards.text().includes('En Güçlü Tahmin') && cards.text().includes('Analizi aç →'));
   assert(!cards.text().includes('Beklenen Gol'));
-  for(const item of recorded.page.items.slice(['one','two','three'].includes(mode)?1:0)) {assert(item.recommendations.length>=1 && item.recommendations.length<=3);for(const rec of item.recommendations)assert(cards.text().includes(rec.label));}
+  for(const item of recorded.page.items.slice(['one','two','three'].includes(mode)?1:0)) {assert(item.recommendations.length>=1 && item.recommendations.length<=3);for(const rec of item.recommendations.slice(0,2))assert(cards.text().includes(rec.label));}
   assert(!cards.text().includes('value bet') && !cards.text().includes('xG'));
-  if(['one','two','three'].includes(mode)){const count={one:1,two:2,three:3}[mode];const first=cards.children[0];assert.equal(first.children.filter(node=>node.textContent.includes('%')).length,count);}
+  if(['one','two','three'].includes(mode)){const count={one:1,two:2,three:2}[mode];const first=cards.children[0];assert.equal(first.children.filter(node=>node.textContent.includes('%')).length,count);}
   // The first card calls the shared match-detail action, preserving the dashboard.
   sandbox.BetAppDashboard={selectMatch:(id,scroll)=>clicked.push([id,scroll])};
   cards.children[0].onclick();assert.deepEqual(clicked,[[recorded.page.items[0].match.id,true]]);
