@@ -24,6 +24,9 @@ def test_database_independent_boot(monkeypatch):
         assert client.get('/health').json()['status'] == 'ok'
         assert client.get('/').status_code == 200
         assert client.get('/dashboard.js').status_code == 200
+        coupon=client.get('/dashboard-coupon.js')
+        assert coupon.status_code==200 and 'javascript' in coupon.headers['content-type']
+        assert 'BetAppCoupon' in coupon.text
         assert client.get('/api/status').json()['database'] == 'unconfigured'
         assert client.get('/api/matches').status_code == 503
 
