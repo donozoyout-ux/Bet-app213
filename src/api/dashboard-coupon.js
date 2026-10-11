@@ -11,6 +11,9 @@ const text=(id,value)=>{if($(id))$(id).textContent=value;};
 const node=(tag,value='')=>{const e=document.createElement(tag);e.textContent=value;return e;};
 const td=(row,value)=>{const e=node('td',value);row.append(e);return e;};
 const key=i=>i.match.id+':'+i.recommendation.id;
+const kickoff=i=>Date.parse(i?.match?.kickoff_at);
+const inWeek=i=>{const t=kickoff(i),now=Date.now();return Number.isFinite(t)&&t>now&&t<=now+7*24*60*60*1000&&i?.match?.status==='scheduled';};
+const byKickoff=(a,b)=>kickoff(a)-kickoff(b)||String(a?.match?.id).localeCompare(String(b?.match?.id))||String(a?.recommendation?.id).localeCompare(String(b?.recommendation?.id));
 const book=()=>$('coupon-bookmaker')?.value || 'Bet365';
 let busy=false,adding=false,copying=false,candidates=[],draftGeneration=0,pendingPick=null,saved=null,ownerKey=null,dirty=false,sharing=false,historyOffset=0;
 function valid(item){
@@ -44,7 +47,7 @@ function draw(){
  let total=1,logTotal=0,complete=selected.size>0;
  if(saved)text('coupon-saved-note',`Kayıt: ${date(saved.created_at)} · Sürüm ${saved.revision} · ${saved.kind==='automatic'?'Otomatik':'Düzenlenmiş'}`);
  if(!selected.size)box.append(node('p','Henüz seçim yapılmadı.'));
- for(const [id,item] of selected){
+ for(const [id,item] of [...selected.entries()].sort((a,b)=>byKickoff(a[1],b[1]))){
   const q=item.quote,r=item.recommendation,m=item.match;
   const started=m.status!=='scheduled' || Date.parse(m.kickoff_at)<=Date.now(),fresh=q?.eligible && Date.parse(q.expires_at)>Date.now();
   if(!fresh && !started)complete=false;
@@ -77,8 +80,8 @@ async function add(item,checked){
 function render(items){
  const box=$('coupon-candidates');if(!box)return;box.replaceChildren();
  const perMatch=new Map();candidates=[];
- for(const item of items){
-  if(!item.recommendation?.qualifies || (perMatch.get(item.match.id)||0)>=2)continue;
+ for(const item of items.filter(inWeek).sort(byKickoff)){
+  if(!item.recommendation?.qualifies || (perMatch.get(item.match.id)||0)>=1)continue;
   perMatch.set(item.match.id,(perMatch.get(item.match.id)||0)+1);candidates.push(item);
   const r=item.recommendation,m=item.match,v=r.verified_odds,row=node('tr');
   const cb=node('input');cb.type='checkbox';cb.dataset.couponPick=key(item);cb.onchange=()=>add(item,cb.checked);cb.setAttribute('aria-label',`${m.home_team} ${m.away_team} ${r.label} taslağa ekle`);td(row,'').append(cb);
@@ -88,7 +91,8 @@ function render(items){
   if(!valid(item))prices.append(node('p','Seçilen bookmaker için güncel doğrulanmış fiyat gerekli.'));
   box.append(row);
  }
- if(!candidates.length){const row=node('tr');td(row,'Güçlü tahmin bekleniyor. Sahte oran üretilmez.').colSpan=6;box.append(row);}
+ if(!candidates.length){const row=node('tr');td(row,'Önümüzdeki 7 günde uygun, güçlü ve doğrulanmış tahmin bulunamadı.').colSpan=6;box.append(row);}
+ text('coupon-window-count',`${candidates.length} uygun maç · Başlama saatine göre yakın → uzak · En fazla 7 gün`);
  draw();
 }
 async function updateSelected(){
@@ -113,7 +117,7 @@ async function refresh(){
   // Opening Kuponum should show the generated shortlist, not an unchecked fixture table.
   // Keep manual edits and saved versions intact across navigation/refresh.
   if(!saved && !dirty && selected.size===0 && $('coupon-automatic'))await generate();
-  else text('coupon-note',`${candidates.length} güçlü tahmin · Analiz: ${date(data.generated_at)}${data.cache?.stale?' · Analiz bayat':''} · Seçili kupon korunuyor`);
+  else text('coupon-note',`${candidates.length} yakın tarihli uygun maç · Analiz: ${date(data.generated_at)}${data.cache?.stale?' · Analiz bayat':''} · Seçili kupon korunuyor`);
  }catch(_){const box=$('coupon-candidates');if(box){box.replaceChildren();const row=node('tr');td(row,'Fiyat listesi alınamadı. Oranları Yenile ile yeniden deneyin.').colSpan=6;box.append(row);}text('coupon-note','Bağlantı bekleniyor. Yeniden deneyin.');}
  finally{await updateSelected();history();management();busy=false;$('coupon-candidates')?.setAttribute('aria-busy','false');}
 }
