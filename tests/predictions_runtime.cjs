@@ -114,7 +114,8 @@ async function scenario(mode){
   if(mode==='verified-odds'){
     assert(cards.text().includes('1.50 (Bet365)'));
     for(const [index,item] of recorded.page.items.entries()){
-      const missing=item.recommendations.slice(0,2).filter(r=>!r.verified_odds?.has_odds).length;
+      // This scenario supplies a real quote for the first recommendation of card 0.
+      const missing=index===0 ? Math.min(item.recommendations.length,2)-1 : item.recommendations.slice(0,2).filter(r=>!r.verified_odds?.has_odds).length;
       if(missing){
         const label=`${missing} tahmin için oran bekleniyor`;
         assert(cards.children[index].text().includes(label));
