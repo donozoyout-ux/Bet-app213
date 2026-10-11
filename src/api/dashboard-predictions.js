@@ -70,7 +70,7 @@
     if(['summary','predictions'].includes(state.tab) && !data.recommendations?.length)box.append(node('p','Yetersiz veri'));
     if(['summary','predictions'].includes(state.tab) && data.recommendations?.length){
       const chosen=node('section','','stats-block');chosen.append(node('h4','Seçilen Güçlü Tahminler','font-bold text-primary'));
-      for(const rec of data.recommendations){
+      for(const rec of data.recommendations.slice(0,2)){
         line(chosen,rec.label,`${pct(rec.probability)} • ${confidence[rec.confidence]} Güven • ${rec.sample_size} maç`);
         const vo=rec.verified_odds;
         if(vo && vo.has_odds){
@@ -129,7 +129,7 @@
     if(data.recommendations?.length){
       const recOdds=node('div','','mt-3');
       recOdds.append(node('h5','Seçilen Tahminlerin Oranları','font-bold text-primary'));
-      for(const rec of data.recommendations){
+      for(const rec of data.recommendations.slice(0,2)){
         const vo=rec.verified_odds;
         line(recOdds,rec.label,vo&&vo.has_odds?`En iyi: ${num(vo.best_price)} (${vo.best_bookmaker}) • Değer: ${vo.best_value>=0?'+':''}${(100*vo.best_value).toFixed(1)} puan`:(vo?.message || 'Oran henüz doğrulanmadı'));
       }
@@ -140,7 +140,7 @@
     const explanation=node('details','','stats-block');explanation.append(node('summary','Model ve güven kuralları','font-bold'));
     explanation.append(node('p','Poisson gol modeli; venue oranları aynı yarışmanın ortalamalarına ağırlık 5 ile yaklaştırılır. En az 20 yarışma maçı, her takım için 5 ve her venue için 3 maç gerekir. Beklenen Gol ölçülmüş şut bazlı bir metrik değildir.'));
     explanation.append(node('p','Orta güven: takım 8, venue 5, yarışma 50 maç; son 5/10 gol oranları farkı en fazla 0.5 ve piyasa farkı en fazla 15 puan. Yüksek: takım 10, venue 8, yarışma 100, en az 2 bookmaker ve en fazla 10 puan fark. Milli takımlarda yüksek güven verilmez. Güven düzeyi örnek ve tutarlılık kurallarını ifade eder; doğruluk olasılığı değildir.'));
-    explanation.append(node('p','Seçim: olasılık en az %60, veri güvenilirliği en az 0.70, skor en az 0.74; takım 8, venue 5, yarışma 50 ve veri tamlığı %60. Sonuç/çifte şans/handikap aynı gruptadır; gol toplamları ve KG aynı gruptadır. Her gruptan en fazla bir, maç başına en fazla üç tahmin seçilir. Tüm hesaplar API aday listesinde korunur.'));
+    explanation.append(node('p','Seçim: olasılık en az %60, veri güvenilirliği en az 0.70, skor en az 0.74; takım 8, venue 5, yarışma 50 ve veri tamlığı %60. Sonuç/çifte şans/handikap aynı gruptadır; gol toplamları ve KG aynı gruptadır. Her gruptan en fazla bir, maç başına en fazla iki tahmin seçilir. Tüm hesaplar API aday listesinde korunur.'));
     explanation.append(node('p','En fazla son 200 yarışma sonucu ve üç yıllık dönemdeki son 2000 kayıt incelenir. Beklenen Gol 0–8 aralığında sınırlandırılır. Ev/deplasman, kaynakta belirtilen takım tarafıdır; gerçek stad veya tarafsız saha bilgisi modellenmez.'));
     if(data.historical)explanation.append(node('p','Geçmiş maçta yalnızca başlama zamanından önce kaydedilmiş sonuçlar kullanılır. Sonradan toplanmış arşiv sonuçları ve fiyatları tahmine katılmaz; bu yüzden örnek yetersiz kalabilir.'));
     box.append(explanation);}
@@ -157,16 +157,16 @@
     catch(_){if(generation!==state.detailGeneration)return;if(box){box.replaceChildren();box.append(node('p','Veri hazırlanıyor • Bağlantı bekleniyor'));}}
   }
   function card(item){
-    const m=item.match,recs=item.recommendations,element=node('article','','prediction-card');
+    const m=item.match,recs=item.recommendations.slice(0,2),element=node('article','','prediction-card');
     element.tabIndex=0;element.setAttribute('aria-label',`${m.home_team} / ${m.away_team}, istatistikleri gör`);
     element.append(node('p',`${m.league} • ${date(m.kickoff_at)}`,'text-outline text-body-sm'),node('h2',`${m.home_team} / ${m.away_team}`,'font-headline-md text-headline-md font-bold'));
     element.append(node('p','En Güçlü Tahmin','font-bold text-primary'));
     element.append(node('p',`${recs[0].label} ${pct(recs[0].probability)}`,'prediction-main'));
     element.append(node('p',`${confidence[recs[0].confidence]} Güven • Örnek: ${recs[0].sample_size} maç`,'text-outline text-body-sm'));
-    if(recs.length>1){for(const rec of recs.slice(1,3))element.append(node('p',`${rec.label} ${pct(rec.probability)} • ${confidence[rec.confidence]} Güven`));}
+    if(recs.length>1){for(const rec of recs.slice(1,2))element.append(node('p',`${rec.label} ${pct(rec.probability)} • ${confidence[rec.confidence]} Güven`));}
 
     const oddsWrap=node('div','','prediction-odds');
-    for(const rec of recs.slice(0,3)){
+    for(const rec of recs.slice(0,2)){
       const vo=rec.verified_odds;
       if(vo && vo.has_odds){
         const row=node('div','','odds-line text-body-sm');
