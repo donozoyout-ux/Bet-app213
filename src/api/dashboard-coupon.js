@@ -109,7 +109,11 @@ async function refresh(){
  if(busy)return;busy=true;text('coupon-note','Oranlar kontrol ediliyor…');$('coupon-candidates')?.setAttribute('aria-busy','true');
  try{
   let items=[],offset=0,data;do{data=await api('/api/predictions/best?limit=100&offset='+offset+'&market=all&sort=ranking');items.push(...(data.items || []));offset+=100;}while(data.items?.length===100);
-  render(items);text('coupon-note',`${candidates.length} güçlü tahmin · Analiz: ${date(data.generated_at)}${data.cache?.stale?' · Analiz bayat':''} · Her maçtan en fazla 1 seçim; toplam maç sınırı yok`);
+  render(items);
+  // Opening Kuponum should show the generated shortlist, not an unchecked fixture table.
+  // Keep manual edits and saved versions intact across navigation/refresh.
+  if(!saved && !dirty && selected.size===0 && $('coupon-automatic'))await generate();
+  else text('coupon-note',`${candidates.length} güçlü tahmin · Analiz: ${date(data.generated_at)}${data.cache?.stale?' · Analiz bayat':''} · Seçili kupon korunuyor`);
  }catch(_){const box=$('coupon-candidates');if(box){box.replaceChildren();const row=node('tr');td(row,'Fiyat listesi alınamadı. Oranları Yenile ile yeniden deneyin.').colSpan=6;box.append(row);}text('coupon-note','Bağlantı bekleniyor. Yeniden deneyin.');}
  finally{await updateSelected();history();management();busy=false;$('coupon-candidates')?.setAttribute('aria-busy','false');}
 }
