@@ -236,11 +236,22 @@ from src.models import SavedCoupon
 
 
 @router.post('/coupons/automatic')
-async def automatic_coupon(strategy: Literal['balanced','cautious','value']='balanced', max_matches: int=Query(default=4,ge=1,le=100),session=Depends(session_dependency)):
+async def automatic_coupon(strategy: Literal['balanced','cautious','value']='balanced', max_matches: int=Query(default=4,ge=1,le=4),session=Depends(session_dependency)):
     async with asyncio.timeout(10):
         row=await automatic(session,utcnow(),strategy=strategy,max_matches=max_matches)
         await session.commit()
-        return await coupon_detail(session,row) if row else {'items':[],'status':'no_eligible_selections'}
+        if row:return await coupon_detail(session,row)
+        diagnostics=session.info.get('coupon_diagnostics',{});cache=session.info.get('prediction_snapshot',{});daily=diagnostics.get('daily',{})
+        reason='analysis_unavailable' if cache.get('stale') else 'no_today_candidates' if not daily.get('selections') else 'quality_rejected' if daily.get('quality_rejected')==daily.get('selections') else 'price_rejected'
+        messages={'analysis_unavailable':'Güncel analiz hazırlanıyor; kalite şartları korunuyor.','no_today_candidates':'Bugün henüz başlamamış uygun maç bulunamadı.','quality_rejected':'Bugünkü seçimler %70 olasılık, %80 güvenilirlik ve %80 kalite şartlarını karşılamıyor.','price_rejected':'Kaliteli seçimler için güncel ve tam eşleşen oran bekleniyor.'}
+        return {'items':[],'status':'no_eligible_selections','reason':reason,'message':messages[reason],'diagnostics':diagnostics,'cache':cache}
+
+
+@router.get('/odds-coverage')
+async def odds_coverage(session=Depends(session_dependency)):
+    from src.analytics.odds_diagnostics import report
+    records,now,_=await calculate_predictions(session,None,None)
+    return {**report(records,now),'cache':session.info['prediction_snapshot']}
 
 
 @router.post('/coupons')

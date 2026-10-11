@@ -3,8 +3,9 @@
 The existing prediction quality gates and maximum of two strong recommendations
 per fixture remain in effect. Automatic generation consumes fresh precomputed
 league boards, refreshes the exact database quotes in batches, and chooses at most
-one qualified selection per upcoming fixture. There is no fixed fixture-count cap.
-The source horizon is the existing seven-day prediction board and enabled leagues.
+one qualified selection per upcoming fixture, up to four different fixtures on
+the current Istanbul calendar date. Manual editing uses the existing seven-day
+prediction board and enabled leagues.
 Only Crown, Bet365 and Sbobet quotes with the exact fixture/market/period/line and
 a verified unexpired price qualify. Empty results are not saved or sent.
 
@@ -23,7 +24,8 @@ existing version. Concurrent edits of a superseded version return HTTP 409.
 
 The UI can generate, add/remove suitable selections, save, load paginated history,
 copy and view settlement from stored scores/final statistics. The earlier two-match
-draft cap is removed. Each match still contributes at most one coupon selection.
+manual draft cap is removed. The daily automatic shortlist has a four-match cap.
+Each match still contributes at most one coupon selection.
 Browser-owned manual history uses a cryptographically random browser key, stored
 locally; only its hash is kept server-side. This is anonymous browser ownership,
 not a cross-device login account. Clearing browser storage loses access to that
@@ -101,8 +103,8 @@ instead of splitting into extra automatic messages. See the official
 
 ## Validation
 
-Synthetic histories through real SQLite/PostgreSQL tables exercise unlimited
-fixtures, stale/weak rejection, immutable edits, both time windows, daily limits,
+Synthetic histories through real SQLite/PostgreSQL tables exercise the daily
+four-match cap, stale/weak rejection, immutable edits, both time windows, daily limits,
 simultaneous claims, new database connections after restart, interrupted sends,
 HTTP failures and secret redaction. All Telegram tests inject MockTransport;
 test fixtures mask inherited real credentials, including subprocess environments.
@@ -112,4 +114,17 @@ is part of implementation validation.
 
 ## Daily shortlist and controls
 
-The default automatic coupon is **balanced, up to four different matches**, for the current `Europe/Istanbul` calendar date. It never pads weak or unpriced selections to reach the target. Candidates remain subject to the existing prediction quality and verified current-price checks. Each fixture contributes at most one selection. The UI offers optional targets of 2, 3, 4, 5, 6, 8 or 10 matches and balanced/cautious/value ranking. The daily filter runs before creating the immutable saved automatic coupon. Manual additions and removals are unaffected. Telegram's 12:00 and 18:00 scheduler also uses the default daily four-match balanced shortlist and retains durable at-most-once sending and 15-minute odds freshness validation.
+The default automatic coupon is **balanced, up to four different matches**, for the current `Europe/Istanbul` calendar date. It never pads weak or unpriced selections to reach the target. Candidates require .70 probability, .80 reliability, .80 quality and exact fresh prices. Each fixture contributes at most one selection. The UI offers optional targets of 2, 3 or 4 matches and balanced/cautious/value ranking. The daily filter runs before creating the immutable saved automatic coupon. Manual additions and removals are unaffected. Telegram's 12:00 and 18:00 scheduler also uses the default daily four-match balanced shortlist and retains durable at-most-once sending and 15-minute odds freshness validation.
+
+The browser stores manual draft edits across reloads. The candidate list offers
+both independent recommendations per fixture; missing/unverified prices are
+hidden unless explicitly requested. Fresh priced alternatives are preferred
+without lowering evidence thresholds. Empty automatic responses include the
+analysis/day/quality/price reason and `/api/odds-coverage` exposes measured market
+coverage. The worker refreshes relevant upcoming quotes separately from historical
+backfill and backs off failures by fixture/market in PostgreSQL.
+
+Refreshing a quote can create a new saved version, but does not authorize sending
+the same match/selection set twice on the same local day. This duplicate check
+also covers uncertain deliveries. The ledger still commits before network I/O.
+See `critical-repair-audit.md` for measured coverage and saved-prediction metrics.

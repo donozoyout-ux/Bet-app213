@@ -134,6 +134,7 @@ class BookmakerVerifiedOdds(BaseModel):
 
 
 class VerifiedOdds(BaseModel):
+    reason: str | None = None
     match_id: int | None = None
     market: str | None = None
     selection: str | None = None

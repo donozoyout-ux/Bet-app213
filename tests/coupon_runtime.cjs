@@ -2,7 +2,7 @@
 const vm=require('node:vm'),fs=require('node:fs'),assert=require('node:assert/strict');
 const source=fs.readFileSync('src/api/dashboard-coupon.js','utf8');
 class Element{
- constructor(tag='div'){this.tag=tag;this.children=[];this.textContent='';this.dataset={};this.attrs={};this.value='';}
+ constructor(tag='div'){this.tag=tag;this.children=[];this.textContent='';this.dataset={};this.attrs={};this.value='';this.classList={toggle(){}};}
  append(...children){this.children.push(...children);}
  replaceChildren(){this.children=[];this.textContent='';}
  setAttribute(key,value){this.attrs[key]=value;}
@@ -10,7 +10,7 @@ class Element{
 }
 const all=e=>[e,...e.children.flatMap(all)];
 async function scenario(mode){
- const ids=new Map(['coupon-selected','coupon-total','coupon-copy','coupon-clear','coupon-reload','coupon-note','coupon-candidates','coupon-bookmaker'].map(id=>[id,new Element()]));ids.get('coupon-bookmaker').value='Bet365';
+ const ids=new Map(['coupon-selected','coupon-total','coupon-copy','coupon-clear','coupon-reload','coupon-note','coupon-candidates','coupon-bookmaker','coupon-show-unpriced'].map(id=>[id,new Element()]));ids.get('coupon-bookmaker').value='Bet365';
  if(mode==='automatic')for(const id of ['coupon-automatic','coupon-save','coupon-saved-note','coupon-history','coupon-history-refresh','coupon-telegram','telegram-status','telegram-schedule'])ids.set(id,new Element());
  const now=Date.now(),stamp=new Date(now-60000).toISOString(),expiry=new Date(now+60000).toISOString();
  const items=Array.from({length:6},(_,index)=>{
@@ -55,6 +55,11 @@ async function scenario(mode){
  vm.runInNewContext(source,sandbox);await sandbox.BetAppCoupon.refresh();
  const inputs=()=>sandbox.document.querySelectorAll();
  if(mode==='request-failed'){assert(ids.get('coupon-note').text().includes('Bağlantı'));assert.equal(ids.get('coupon-candidates').attrs['aria-busy'],'false');return;}
+ if(mode==='invalid'){
+  assert.equal(inputs().length,0); // Unverified prices are hidden by default.
+  ids.get('coupon-show-unpriced').checked=true;ids.get('coupon-show-unpriced').onchange();
+  assert.equal(inputs().length,6);assert(inputs().every(e=>e.disabled));return;
+ }
  assert.equal(inputs().length,6);
  if(mode==='automatic'){
   // Navigating to Kuponum must populate qualified selections without any click.
@@ -67,7 +72,6 @@ async function scenario(mode){
   ids.get('coupon-selected').children[0].children.at(-1).onclick();await ids.get('coupon-save').onclick();assert(ids.get('coupon-saved-note').text().includes('Sürüm 2'));
   assert.equal(versions.get('automatic-1').items.length,3);await ids.get('coupon-automatic').onclick();assert.equal(ids.get('coupon-selected').children.length,3);return;
  }
- if(mode==='invalid'){assert(inputs().every(e=>e.disabled));return;}
  inputs()[0].checked=true;const pending=inputs()[0].onchange();
  if(mode==='clear-race'){ids.get('coupon-clear').onclick();release();await pending;assert(ids.get('coupon-selected').text().includes('Henüz'));return;}
  await pending;

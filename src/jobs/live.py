@@ -10,7 +10,7 @@ from datetime import timedelta, timezone
 from sqlalchemy import select, or_, case
 from sqlalchemy.orm import aliased
 
-from src.models import Match, League, Team, MatchStatistics, CollectorRetry, utcnow
+from src.models import Match, League, Team, MatchStatistics, CollectorRetry, PredictionBoard, utcnow
 from src.match_views import LIVE_STATUSES, day_bounds, DISPLAY_TIMEZONE
 from zoneinfo import ZoneInfo
 from src.scrapers.goaloo.live import fetch_live
@@ -57,10 +57,17 @@ class PriorityUpdater:
         self.next_tick=0
         self.next_recent=0
         self.league_cursor=0
+        self.next_quotes=0
 
     async def tick(self, client):
         if time.monotonic()<self.next_tick or memory_constrained():return
         self.next_tick=time.monotonic()+5
+        if time.monotonic()>=self.next_quotes:
+            self.next_quotes=time.monotonic()+5
+            try:
+                async with asyncio.timeout(10):await self.upcoming_quotes(client)
+            except asyncio.CancelledError:raise
+            except Exception as exc:log.warning('[ODDS] upcoming deferred error=%s',type(exc).__name__)
         try:
             async with asyncio.timeout(25):
                 await self.live_cycle(client)
@@ -73,6 +80,54 @@ class PriorityUpdater:
         except Exception as exc:
             # A source outage must not turn an unrelated historical job into failed.
             log.warning('[LIVE] priority cycle deferred error=%s',type(exc).__name__)
+
+    async def upcoming_quotes(self,client):
+        """Refresh one due priced market ahead of historical backfill, with durable backoff."""
+        from src.scrapers.goaloo.odds import fetch_odds,fetch_halftime_odds
+        from src.scrapers.goaloo.corner_odds import fetch_corner_odds
+        from .storage import store_odds,store_market_odds
+        now=utcnow();tasks=[]
+        async with self.db.session() as session:
+            matches={m.id:m for m in await session.scalars(select(Match).join(League).where(League.enabled.is_(True),Match.status=='scheduled',Match.kickoff_at>now,Match.kickoff_at<=now+timedelta(days=7)))}
+            retries={r.key:r for r in await session.scalars(select(CollectorRetry).where(CollectorRetry.key.like('quotes:%')))}
+            for board in await session.scalars(select(PredictionBoard).join(League).where(League.enabled.is_(True))):
+                for item in board.payload.get('items',[]):
+                    match=matches.get(item['match']['id'])
+                    if match is None:continue
+                    markets={r['market'] for r in item.get('recommendations',[]) if r.get('qualifies')}
+                    endpoints=set()
+                    if markets & {'result','goals','asian_handicap'}:endpoints.add('full_time')
+                    if 'first_half_goals' in markets:endpoints.add('first_half_goals')
+                    if 'corners' in markets:endpoints.add('corners')
+                    for market in endpoints:
+                        key=f'quotes:{market}:{match.external_match_id}';retry=retries.get(key)
+                        if retry and aware(retry.next_attempt_at)>now:continue
+                        tasks.append((aware(match.kickoff_at),aware(retry.next_attempt_at) if retry else now-timedelta(days=1),key,market,match.id,match.external_match_id))
+        if not tasks:return
+        # Today's candidates are first, then the longest waiting market. Never starve a bookmaker endpoint.
+        today=now.astimezone(ZoneInfo(DISPLAY_TIMEZONE)).date()
+        kickoff,due,key,market,id,external=min(tasks,key=lambda t:(t[0].astimezone(ZoneInfo(DISPLAY_TIMEZONE)).date()!=today,t[1],t[0],t[2]))
+        try:
+            async with asyncio.timeout(8):
+                if market=='full_time':data=await fetch_odds(client,external,False)
+                elif market=='first_half_goals':data={b:v['ou'] for b,v in (await fetch_halftime_odds(client,external,False)).items() if v.get('ou')}
+                else:data=await fetch_corner_odds(client,external,half_time=False,final=False)
+            if not data:raise SourceError('No source prices')
+            async with self.db.session() as session:
+                match=await session.get(Match,id)
+                if match.status!='scheduled' or aware(match.kickoff_at)<=utcnow():return
+                if market=='full_time':await store_odds(session,match,data,False)
+                else:await store_market_odds(session,match,data,market,'first_half' if market=='first_half_goals' else 'full_time')
+                retry=await session.get(CollectorRetry,key)
+                if retry is None:retry=CollectorRetry(key=key);session.add(retry)
+                retry.failures=0;retry.reason='quote_refresh';retry.next_attempt_at=utcnow()+timedelta(minutes=5)
+                await session.commit()
+        except asyncio.CancelledError:raise
+        except Exception as exc:
+            async with self.db.session() as session:
+                await record_retry_failure(session,key,type(exc).__name__,utcnow(),base_delay=60,max_delay=900)
+                await session.commit()
+            log.warning('[ODDS] quote refresh deferred match_id=%s market=%s error=%s',external,market,type(exc).__name__)
 
     async def live_cycle(self, client):
         now=utcnow()

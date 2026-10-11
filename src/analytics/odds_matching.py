@@ -137,7 +137,7 @@ def price_matches_line(row, stage, side, target):
     return observed_line is not None and target is not None and abs(observed_line-target)<1e-4
 
 
-def match_odds_for_candidate(
+def _match_odds_for_candidate(
     candidate: Mapping[str, Any],
     match_id: int,
     match_status: str,
@@ -491,6 +491,31 @@ def match_odds_for_candidate(
             'observed_at': None,
             'message': NO_ODDS_MESSAGE,
         }
+
+
+def match_odds_for_candidate(candidate,match_id,match_status,odds_1x2_rows=None,asian_totals_rows=None,asian_handicap_rows=None,period_odds_rows=None,cutoff=None):
+    result=_match_odds_for_candidate(candidate,match_id,match_status,odds_1x2_rows,asian_totals_rows,asian_handicap_rows,period_odds_rows,cutoff)
+    family,side,line,period=parse_market_and_selection(candidate.get('market',''),candidate.get('selection',''))
+    if result.get('coupon_eligible'):reason=None
+    elif result['has_odds']:
+        reason='match_not_scheduled' if match_status!='scheduled' else 'odds_'+result.get('freshness','unknown')
+    elif family not in ('result','goals','asian_handicap','first_half_goals','corners'):
+        reason='source_market_unavailable'
+    else:
+        rows={'result':odds_1x2_rows,'goals':asian_totals_rows,'asian_handicap':asian_handicap_rows}.get(family,period_odds_rows) or []
+        exact=[];supported=[]
+        for item in rows:
+            row,book=_unpack_row(item)
+            if getattr(row,'match_id',None)!=match_id:continue
+            if family in ('first_half_goals','corners') and (getattr(row,'market',None)!=family or getattr(row,'period',None)!=period):continue
+            exact.append(row)
+            if book in SUPPORTED_BOOKMAKERS:supported.append(row)
+        if not exact:reason='no_source_rows'
+        elif not supported:reason='unsupported_bookmaker'
+        elif line is not None and not any(price_matches_line(row,result['stage'],side,line) for row in supported):reason='line_mismatch'
+        elif cutoff and any(price_observed_at(row,result['stage']+'_'+side) and price_observed_at(row,result['stage']+'_'+side)>_aware(cutoff) for row in supported):reason='observed_after_cutoff'
+        else:reason='missing_stage_price'
+    return {**result,'reason':reason}
 
 
 def enrich_recommendations_with_odds(

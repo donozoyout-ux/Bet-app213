@@ -184,10 +184,9 @@ async def statistics(session, match, context, now, data_revision=None):
     result['ranking_evidence']={'goal_stability':min(stability),'goal_season_agreement':min(season_agreement)}
     result['asian_handicap_candidates']=list(asian_candidates.values())
     candidates=build_candidates(result,support)
-    result['candidates'],result['recommendations']=select_recommendations(candidates)
     from src.analytics.odds_matching import enrich_recommendations_with_odds
-    enrich_recommendations_with_odds(result['candidates'], match.id, match.status, markets, asian_totals_rows, asian_handicap_rows, period_odds_rows=market_odds_rows, cutoff=cutoff)
-    enrich_recommendations_with_odds(result['recommendations'], match.id, match.status, markets, asian_totals_rows, asian_handicap_rows, period_odds_rows=market_odds_rows, cutoff=cutoff)
+    enrich_recommendations_with_odds(candidates, match.id, match.status, markets, asian_totals_rows, asian_handicap_rows, period_odds_rows=market_odds_rows, cutoff=cutoff)
+    result['candidates'],result['recommendations']=select_recommendations(candidates)
     result['market_availability']=count_market_availability(result)
     result['strongest_prediction']=result['recommendations'][0]['id'] if result['recommendations'] else None
     _cache[key] = (time.monotonic(), result)

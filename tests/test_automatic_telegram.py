@@ -12,7 +12,7 @@ from sqlalchemy import select,func
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.schema import CreateSchema,DropSchema
 from src.db import Database
-from src.models import SavedCoupon,TelegramDelivery,PredictionBoard,MarketOdds,Match
+from src.models import SavedCoupon,TelegramDelivery,PredictionBoard,MarketOdds,Match,CollectorRetry
 from src.analytics.saved_coupons import automatic,save_manual,detail
 from src.analytics.coupon import DraftRequest
 from src.jobs.telegram import dispatch,prepare,window,message,status
@@ -125,6 +125,18 @@ async def verify_scheduling(db):
     again=await dispatch(db,noon+timedelta(minutes=5),transport=transport)
     assert again['status']=='sent' and len(calls)==1
     evening=NOW.replace(hour=15);await freshen(db,evening)
+    # A refreshed timestamp alone must not resend the noon selections.
+    assert (await dispatch(db,evening,transport=transport))['status']=='duplicate_selections'
+    assert len(calls)==1
+    async with db.session() as session:
+        board=await session.scalar(select(PredictionBoard));data=deepcopy(board.payload)
+        for item in data['items']:
+            for rec in item['recommendations']:
+                if rec['market']=='first_half_goals':rec['qualifies']=False
+        board.payload=data
+        retry=await session.get(CollectorRetry,'telegram:'+window(evening))
+        retry.next_attempt_at=evening
+        await session.commit()
     assert (await dispatch(db,evening,transport=transport))['status']=='sent'
     assert (await dispatch(db,evening+timedelta(hours=1),transport=transport))['status']=='sent'
     assert len(calls)==2
@@ -264,12 +276,12 @@ async def test_postgres_concurrency_restart_and_immutable_versions(configured):
         finally:await restarted.close()
         # Concurrent fresh manual claims on PostgreSQL are serialized without HTTP transactions.
         async with db.session() as session:
-            old=await session.scalar(select(SavedCoupon));copy=SavedCoupon(id=str(uuid.uuid4()),root_id=str(uuid.uuid4()),revision=1,kind='manual',owner_hash=None,created_at=NOW,payload=old.payload);session.add(copy);await session.commit();id=copy.id
+            old=await session.scalar(select(SavedCoupon).join(TelegramDelivery,TelegramDelivery.coupon_id==SavedCoupon.id).where(TelegramDelivery.status=='sent').order_by(TelegramDelivery.started_at.desc()).limit(1));copy=SavedCoupon(id=str(uuid.uuid4()),root_id=str(uuid.uuid4()),revision=1,kind='manual',owner_hash=None,created_at=NOW,payload=old.payload);session.add(copy);await session.commit();id=copy.id
         await freshen(db,NOW)
         calls=[]
         async def send(req):calls.append(req);await asyncio.sleep(.05);return httpx.Response(200,json={'ok':True,'result':{'message_id':7}})
-        await asyncio.gather(*[dispatch(db,NOW,coupon_id=id,transport=httpx.MockTransport(send)) for _ in range(4)])
-        assert len(calls)==1
+        results=await asyncio.gather(*[dispatch(db,NOW,coupon_id=id,transport=httpx.MockTransport(send)) for _ in range(4)])
+        assert len(calls)==1,results
     finally:
         async with db.engine.begin() as conn:await conn.execute(DropSchema(schema,cascade=True,if_exists=True))
         await db.close()
@@ -280,7 +292,8 @@ def test_daily_balanced_four_and_no_forced_filler():
         return {'match':{'id':id,'kickoff_at':kickoff},'recommendation':{'score':score,'reliability':score,'probability':prob},'quote':{'price':price}}
     today=(NOW+timedelta(hours=5)).isoformat()
     tomorrow=(NOW+timedelta(days=1)).isoformat()
-    records=[entry(i,today,score=.70+i*.01) for i in range(6)]
+    # All ranking fixtures meet the strict gate; weak records are tested separately.
+    records=[entry(i,today,score=.80+i*.01) for i in range(6)]
     records.append(entry(99,tomorrow,score=.99))
     picks=daily_candidates(records,NOW)
     assert len(picks)==4
@@ -290,3 +303,7 @@ def test_daily_balanced_four_and_no_forced_filler():
     assert daily_candidates([entry(7,tomorrow)],NOW)==[]
     assert len(daily_candidates(records,NOW,strategy='cautious',max_matches=3))==3
     assert len(daily_candidates(records,NOW,strategy='value',max_matches=3))==3
+    assert daily_candidates([entry(7,today,score=.79)],NOW)==[]
+    assert daily_candidates([entry(7,today,prob=.69)],NOW)==[]
+    assert daily_candidates([entry(7,today,score=float('nan'))],NOW)==[]
+    assert daily_candidates([entry(7,today,price=1)],NOW)==[]

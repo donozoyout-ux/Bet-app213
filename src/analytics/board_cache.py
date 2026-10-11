@@ -11,7 +11,7 @@ from src.models import League, Match, PredictionBoard, utcnow
 from src.jobs.worker import aware
 from src.match_views import day_bounds, DISPLAY_TIMEZONE
 
-MODEL_VERSION='quality-poisson-v3-card-lines-two-picks-v3'
+MODEL_VERSION='quality-poisson-v3-exact-priced-two-picks-v4'
 TTL=timedelta(minutes=10)
 REFRESH_LOCK=213006
 log=logging.getLogger(__name__)
@@ -74,7 +74,7 @@ async def read_board(session,league,date,team,now):
     for id,board in rows:
         if board is None or board.model_version!=MODEL_VERSION:missing.append(id);continue
         times.append(aware(board.generated_at));revisions[str(id)]=board.source_revision
-        expired=aware(board.expires_at)<=now
+        expired=aware(board.expires_at)<=now or aware(board.generated_at)>now
         if expired:stale.append(id)
         evaluated+=board.payload['evaluated']
         for item in board.payload['items']:

@@ -1,0 +1,671 @@
+{
+  "performance": {
+    "snapshots": 102,
+    "markets": {
+      "result": {
+        "total": 14,
+        "settled": 13,
+        "won": 9,
+        "lost": 4,
+        "pending": 1,
+        "awaiting_data": 0,
+        "void": 0,
+        "last_10": [
+          "won",
+          "won",
+          "lost",
+          "lost",
+          "won",
+          "lost",
+          "won",
+          "won",
+          "won",
+          "won"
+        ],
+        "calibrated_samples": 13,
+        "calibration": [
+          {
+            "lower": 0.6,
+            "upper": 0.7,
+            "samples": 9,
+            "observed_rate": 0.6666666666666666,
+            "mean_probability": 0.6390943649893907
+          },
+          {
+            "lower": 0.7,
+            "upper": 0.8,
+            "samples": 4,
+            "observed_rate": 0.75,
+            "mean_probability": 0.7408105874083362
+          }
+        ],
+        "priced_samples": 0,
+        "profit": 0,
+        "success_rate": 0.6923076923076923,
+        "average_reliability": 0.9075610171304668,
+        "average_sample_size": 30.071428571428573,
+        "mean_probability": 0.6703916641952201,
+        "brier_score": 0.21121970197374004,
+        "roi": null
+      },
+      "goals": {
+        "total": 58,
+        "settled": 43,
+        "won": 38,
+        "lost": 5,
+        "pending": 15,
+        "awaiting_data": 0,
+        "void": 0,
+        "last_10": [
+          "won",
+          "won",
+          "lost",
+          "won",
+          "won",
+          "won",
+          "won",
+          "won",
+          "won",
+          "won"
+        ],
+        "calibrated_samples": 43,
+        "calibration": [
+          {
+            "lower": 0.7,
+            "upper": 0.8,
+            "samples": 19,
+            "observed_rate": 0.8947368421052632,
+            "mean_probability": 0.7720759346817924
+          },
+          {
+            "lower": 0.8,
+            "upper": 0.9,
+            "samples": 22,
+            "observed_rate": 0.8636363636363636,
+            "mean_probability": 0.8359938167506775
+          },
+          {
+            "lower": 0.9,
+            "upper": 1.0,
+            "samples": 2,
+            "observed_rate": 1.0,
+            "mean_probability": 0.9117509038451097
+          }
+        ],
+        "priced_samples": 0,
+        "profit": 0,
+        "success_rate": 0.8837209302325582,
+        "average_reliability": 0.8707012008025431,
+        "average_sample_size": 30.03448275862069,
+        "mean_probability": 0.811274617096725,
+        "brier_score": 0.11049999437351088,
+        "roi": null
+      },
+      "double_chance": {
+        "total": 36,
+        "settled": 28,
+        "won": 21,
+        "lost": 7,
+        "pending": 8,
+        "awaiting_data": 0,
+        "void": 0,
+        "last_10": [
+          "won",
+          "won",
+          "won",
+          "won",
+          "won",
+          "won",
+          "lost",
+          "won",
+          "won",
+          "won"
+        ],
+        "calibrated_samples": 28,
+        "calibration": [
+          {
+            "lower": 0.7,
+            "upper": 0.8,
+            "samples": 25,
+            "observed_rate": 0.76,
+            "mean_probability": 0.7530444098099253
+          },
+          {
+            "lower": 0.8,
+            "upper": 0.9,
+            "samples": 3,
+            "observed_rate": 0.6666666666666666,
+            "mean_probability": 0.8103847637559225
+          }
+        ],
+        "priced_samples": 0,
+        "profit": 0,
+        "success_rate": 0.75,
+        "average_reliability": 0.9208058747714529,
+        "average_sample_size": 30.166666666666668,
+        "mean_probability": 0.7591880191612821,
+        "brier_score": 0.18790734110124,
+        "roi": null
+      },
+      "asian_handicap": {
+        "total": 2,
+        "settled": 2,
+        "won": 1,
+        "lost": 1,
+        "pending": 0,
+        "awaiting_data": 0,
+        "void": 0,
+        "last_10": [
+          "won",
+          "lost"
+        ],
+        "calibrated_samples": 2,
+        "calibration": [
+          {
+            "lower": 0.6,
+            "upper": 0.7,
+            "samples": 1,
+            "observed_rate": 0.0,
+            "mean_probability": 0.6575152963592094
+          },
+          {
+            "lower": 0.8,
+            "upper": 0.9,
+            "samples": 1,
+            "observed_rate": 1.0,
+            "mean_probability": 0.8510947225874187
+          }
+        ],
+        "priced_samples": 0,
+        "profit": 0,
+        "success_rate": 0.5,
+        "average_reliability": 0.8553109543669175,
+        "average_sample_size": 29.5,
+        "mean_probability": 0.754305009473314,
+        "brier_score": 0.22724957329382836,
+        "roi": null
+      },
+      "corners": {
+        "total": 47,
+        "settled": 5,
+        "won": 4,
+        "lost": 1,
+        "pending": 41,
+        "awaiting_data": 0,
+        "void": 1,
+        "last_10": [
+          "void",
+          "lost",
+          "won",
+          "pending",
+          "won",
+          "won",
+          "won",
+          "pending",
+          "pending",
+          "pending"
+        ],
+        "calibrated_samples": 5,
+        "calibration": [
+          {
+            "lower": 0.7,
+            "upper": 0.8,
+            "samples": 3,
+            "observed_rate": 1.0,
+            "mean_probability": 0.7854883151260967
+          },
+          {
+            "lower": 0.8,
+            "upper": 0.9,
+            "samples": 2,
+            "observed_rate": 0.5,
+            "mean_probability": 0.8741850375311008
+          }
+        ],
+        "priced_samples": 0,
+        "profit": 0,
+        "success_rate": 0.8,
+        "average_reliability": 0.9065862723347644,
+        "average_sample_size": 28.829787234042552,
+        "mean_probability": 0.8209670040880983,
+        "brier_score": 0.1916073685552287,
+        "roi": null
+      },
+      "yellow_cards": {
+        "total": 32,
+        "settled": 3,
+        "won": 3,
+        "lost": 0,
+        "pending": 29,
+        "awaiting_data": 0,
+        "void": 0,
+        "last_10": [
+          "won",
+          "won",
+          "won",
+          "pending",
+          "pending",
+          "pending",
+          "pending",
+          "pending",
+          "pending",
+          "pending"
+        ],
+        "calibrated_samples": 3,
+        "calibration": [
+          {
+            "lower": 0.8,
+            "upper": 0.9,
+            "samples": 2,
+            "observed_rate": 1.0,
+            "mean_probability": 0.8486959518004442
+          },
+          {
+            "lower": 0.9,
+            "upper": 1.0,
+            "samples": 1,
+            "observed_rate": 1.0,
+            "mean_probability": 0.9072183280857531
+          }
+        ],
+        "priced_samples": 0,
+        "profit": 0,
+        "success_rate": 1.0,
+        "average_reliability": 0.8922315448065222,
+        "average_sample_size": 29.40625,
+        "mean_probability": 0.8682034105622138,
+        "brier_score": 0.01816773077390692,
+        "roi": null
+      },
+      "first_half_goals": {
+        "total": 10,
+        "settled": 0,
+        "won": 0,
+        "lost": 0,
+        "pending": 10,
+        "awaiting_data": 0,
+        "void": 0,
+        "last_10": [
+          "pending",
+          "pending",
+          "pending",
+          "pending",
+          "pending",
+          "pending",
+          "pending",
+          "pending",
+          "pending",
+          "pending"
+        ],
+        "probability_sum": 0,
+        "brier_sum": 0,
+        "calibrated_samples": 0,
+        "calibration": [],
+        "priced_samples": 0,
+        "profit": 0,
+        "success_rate": null,
+        "average_reliability": 0.8905146842321763,
+        "average_sample_size": 28.7,
+        "mean_probability": null,
+        "brier_score": null,
+        "roi": null
+      },
+      "second_half_goals": {
+        "total": 23,
+        "settled": 0,
+        "won": 0,
+        "lost": 0,
+        "pending": 23,
+        "awaiting_data": 0,
+        "void": 0,
+        "last_10": [
+          "pending",
+          "pending",
+          "pending",
+          "pending",
+          "pending",
+          "pending",
+          "pending",
+          "pending",
+          "pending",
+          "pending"
+        ],
+        "probability_sum": 0,
+        "brier_sum": 0,
+        "calibrated_samples": 0,
+        "calibration": [],
+        "priced_samples": 0,
+        "profit": 0,
+        "success_rate": null,
+        "average_reliability": 0.8976129057519937,
+        "average_sample_size": 29.17391304347826,
+        "mean_probability": null,
+        "brier_score": null,
+        "roi": null
+      }
+    },
+    "threshold_comparison": {
+      "all_saved": {
+        "total": 222,
+        "settled": 94,
+        "won": 76,
+        "lost": 18,
+        "pending": 127,
+        "awaiting_data": 0,
+        "void": 1,
+        "last_10": [
+          "won",
+          "won",
+          "won",
+          "won",
+          "won",
+          "lost",
+          "lost",
+          "won",
+          "won",
+          "won"
+        ],
+        "calibrated_samples": 94,
+        "calibration": [
+          {
+            "lower": 0.6,
+            "upper": 0.7,
+            "samples": 10,
+            "observed_rate": 0.6,
+            "mean_probability": 0.6409364581263726
+          },
+          {
+            "lower": 0.7,
+            "upper": 0.8,
+            "samples": 51,
+            "observed_rate": 0.8235294117647058,
+            "mean_probability": 0.7610835352787024
+          },
+          {
+            "lower": 0.8,
+            "upper": 0.9,
+            "samples": 30,
+            "observed_rate": 0.8333333333333334,
+            "mean_probability": 0.8373291653677726
+          },
+          {
+            "lower": 0.9,
+            "upper": 1.0,
+            "samples": 3,
+            "observed_rate": 1.0,
+            "mean_probability": 0.9102400452586575
+          }
+        ],
+        "priced_samples": 0,
+        "profit": 0,
+        "success_rate": 0.8085106382978723,
+        "average_reliability": 0.8953935369145966,
+        "average_sample_size": 29.55855855855856,
+        "mean_probability": 0.7773959572051777,
+        "brier_score": 0.15133830442808333,
+        "roi": null
+      },
+      "probability_70": {
+        "total": 211,
+        "settled": 84,
+        "won": 70,
+        "lost": 14,
+        "pending": 126,
+        "awaiting_data": 0,
+        "void": 1,
+        "last_10": [
+          "won",
+          "won",
+          "won",
+          "won",
+          "lost",
+          "won",
+          "won",
+          "won",
+          "won",
+          "won"
+        ],
+        "calibrated_samples": 84,
+        "calibration": [
+          {
+            "lower": 0.7,
+            "upper": 0.8,
+            "samples": 51,
+            "observed_rate": 0.8235294117647058,
+            "mean_probability": 0.7610835352787024
+          },
+          {
+            "lower": 0.8,
+            "upper": 0.9,
+            "samples": 30,
+            "observed_rate": 0.8333333333333334,
+            "mean_probability": 0.8373291653677726
+          },
+          {
+            "lower": 0.9,
+            "upper": 1.0,
+            "samples": 3,
+            "observed_rate": 1.0,
+            "mean_probability": 0.9102400452586575
+          }
+        ],
+        "priced_samples": 0,
+        "profit": 0,
+        "success_rate": 0.8333333333333334,
+        "average_reliability": 0.8946099244108452,
+        "average_sample_size": 29.545023696682463,
+        "mean_probability": 0.7936411356669405,
+        "brier_score": 0.1409405038947335,
+        "roi": null
+      },
+      "reliability_80": {
+        "total": 221,
+        "settled": 93,
+        "won": 76,
+        "lost": 17,
+        "pending": 127,
+        "awaiting_data": 0,
+        "void": 1,
+        "last_10": [
+          "won",
+          "won",
+          "won",
+          "won",
+          "won",
+          "lost",
+          "lost",
+          "won",
+          "won",
+          "won"
+        ],
+        "calibrated_samples": 93,
+        "calibration": [
+          {
+            "lower": 0.6,
+            "upper": 0.7,
+            "samples": 10,
+            "observed_rate": 0.6,
+            "mean_probability": 0.6409364581263726
+          },
+          {
+            "lower": 0.7,
+            "upper": 0.8,
+            "samples": 51,
+            "observed_rate": 0.8235294117647058,
+            "mean_probability": 0.7610835352787024
+          },
+          {
+            "lower": 0.8,
+            "upper": 0.9,
+            "samples": 29,
+            "observed_rate": 0.8620689655172413,
+            "mean_probability": 0.835394177230443
+          },
+          {
+            "lower": 0.9,
+            "upper": 1.0,
+            "samples": 3,
+            "observed_rate": 1.0,
+            "mean_probability": 0.9102400452586575
+          }
+        ],
+        "priced_samples": 0,
+        "profit": 0,
+        "success_rate": 0.8172043010752689,
+        "average_reliability": 0.8958841670105258,
+        "average_sample_size": 29.58823529411765,
+        "mean_probability": 0.7761481307089932,
+        "brier_score": 0.14438235219710482,
+        "roi": null
+      },
+      "quality_80": {
+        "total": 216,
+        "settled": 88,
+        "won": 73,
+        "lost": 15,
+        "pending": 127,
+        "awaiting_data": 0,
+        "void": 1,
+        "last_10": [
+          "won",
+          "won",
+          "won",
+          "won",
+          "won",
+          "lost",
+          "lost",
+          "won",
+          "won",
+          "won"
+        ],
+        "calibrated_samples": 88,
+        "calibration": [
+          {
+            "lower": 0.6,
+            "upper": 0.7,
+            "samples": 10,
+            "observed_rate": 0.6,
+            "mean_probability": 0.6409364581263726
+          },
+          {
+            "lower": 0.7,
+            "upper": 0.8,
+            "samples": 46,
+            "observed_rate": 0.8478260869565217,
+            "mean_probability": 0.7628543257632101
+          },
+          {
+            "lower": 0.8,
+            "upper": 0.9,
+            "samples": 29,
+            "observed_rate": 0.8620689655172413,
+            "mean_probability": 0.835394177230443
+          },
+          {
+            "lower": 0.9,
+            "upper": 1.0,
+            "samples": 3,
+            "observed_rate": 1.0,
+            "mean_probability": 0.9102400452586575
+          }
+        ],
+        "priced_samples": 0,
+        "profit": 0,
+        "success_rate": 0.8295454545454546,
+        "average_reliability": 0.8961882723605449,
+        "average_sample_size": 29.564814814814813,
+        "mean_probability": 0.7779297141117071,
+        "brier_score": 0.13868073944722112,
+        "roi": null
+      },
+      "combined_70_80_80": {
+        "total": 205,
+        "settled": 78,
+        "won": 67,
+        "lost": 11,
+        "pending": 126,
+        "awaiting_data": 0,
+        "void": 1,
+        "last_10": [
+          "won",
+          "won",
+          "won",
+          "won",
+          "lost",
+          "won",
+          "won",
+          "won",
+          "won",
+          "won"
+        ],
+        "calibrated_samples": 78,
+        "calibration": [
+          {
+            "lower": 0.7,
+            "upper": 0.8,
+            "samples": 46,
+            "observed_rate": 0.8478260869565217,
+            "mean_probability": 0.7628543257632101
+          },
+          {
+            "lower": 0.8,
+            "upper": 0.9,
+            "samples": 29,
+            "observed_rate": 0.8620689655172413,
+            "mean_probability": 0.835394177230443
+          },
+          {
+            "lower": 0.9,
+            "upper": 1.0,
+            "samples": 3,
+            "observed_rate": 1.0,
+            "mean_probability": 0.9102400452586575
+          }
+        ],
+        "priced_samples": 0,
+        "profit": 0,
+        "success_rate": 0.8589743589743589,
+        "average_reliability": 0.8954243691976854,
+        "average_sample_size": 29.55121951219512,
+        "mean_probability": 0.795492952058545,
+        "brier_score": 0.12586034336247748,
+        "roi": null
+      }
+    },
+    "basis": "immutable_prematch_snapshots_only"
+  },
+  "odds_coverage": {
+    "checked_at": "2026-10-11T19:55:34.085395+00:00",
+    "markets": {
+      "corners": {
+        "selections": 42,
+        "no_source_rows": 38,
+        "line_mismatch": 4
+      },
+      "first_half_goals": {
+        "selections": 15,
+        "line_mismatch": 15
+      },
+      "goals": {
+        "selections": 3,
+        "line_mismatch": 3
+      },
+      "result": {
+        "selections": 2,
+        "matched_prices": 2,
+        "odds_stale": 2
+      },
+      "second_half_goals": {
+        "selections": 30,
+        "source_market_unavailable": 30
+      },
+      "yellow_cards": {
+        "selections": 10,
+        "source_market_unavailable": 10
+      }
+    },
+    "daily": {},
+    "basis": "current_database_exact_quotes",
+    "max_age_seconds": 900
+  }
+}
