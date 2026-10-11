@@ -49,7 +49,7 @@ def select_recommendations(candidates):
     for candidate in ranked:
         if not candidate['qualifies'] or candidate['correlation_group'] in groups:continue
         selected.append(candidate);groups.add(candidate['correlation_group'])
-        if len(selected)==3:break
+        if len(selected)==2:break
     return ranked,selected
 
 
