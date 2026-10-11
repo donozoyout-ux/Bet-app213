@@ -57,6 +57,9 @@ async function scenario(mode){
  if(mode==='request-failed'){assert(ids.get('coupon-note').text().includes('Bağlantı'));assert.equal(ids.get('coupon-candidates').attrs['aria-busy'],'false');return;}
  assert.equal(inputs().length,6);
  if(mode==='automatic'){
+  // Navigating to Kuponum must populate qualified selections without any click.
+  assert.equal(ids.get('coupon-selected').children.length,3);
+  assert(ids.get('coupon-total').text().includes('5,83'));
   await ids.get('coupon-automatic').onclick();assert(ids.get('coupon-total').text().includes('5,83'));
   assert.equal(ids.get('coupon-selected').children.length,3);
   ids.get('coupon-selected').children[0].children.at(-1).onclick();assert.equal(ids.get('coupon-selected').children.length,2);assert(ids.get('coupon-telegram').disabled);
