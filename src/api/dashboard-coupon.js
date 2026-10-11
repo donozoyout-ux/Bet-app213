@@ -79,20 +79,24 @@ async function add(item,checked){
 }
 function render(items){
  const box=$('coupon-candidates');if(!box)return;box.replaceChildren();
- const perMatch=new Map();candidates=[];
+ const perMatch=new Map();candidates=[];let eligibleCount=0;
  for(const item of items.filter(inWeek).sort(byKickoff)){
   if(!item.recommendation?.qualifies || (perMatch.get(item.match.id)||0)>=1)continue;
   perMatch.set(item.match.id,(perMatch.get(item.match.id)||0)+1);candidates.push(item);
-  const r=item.recommendation,m=item.match,v=r.verified_odds,row=node('tr');
+  const r=item.recommendation,m=item.match,v=r.verified_odds,row=node('tr'),selectable=valid(item);
+  if(selectable)eligibleCount++;
+  row.classList.toggle('coupon-unpriced',!selectable);
   const cb=node('input');cb.type='checkbox';cb.dataset.couponPick=key(item);cb.onchange=()=>add(item,cb.checked);cb.setAttribute('aria-label',`${m.home_team} ${m.away_team} ${r.label} taslağa ekle`);td(row,'').append(cb);
   td(row,`${m.home_team} — ${m.away_team} · ${date(m.kickoff_at)}`);td(row,r.label);
   td(row,`%${(100*r.probability).toFixed(1)}`);td(row,confidence[r.confidence] || '—');
-  const prices=td(row,'');for(const name of ['Crown','Bet365','Sbobet']){const b=v?.bookmakers?.[name];prices.append(node('p',`${name}: ${money(b?.current_odds)} · ${b?.freshness==='fresh'?'Güncel gözlem':b?.current_odds?'Bayat':'Doğrulanmış oran yok'} · ${date(b?.observed_at)}`));}
-  if(!valid(item))prices.append(node('p','Seçilen bookmaker için güncel doğrulanmış fiyat gerekli.'));
+  const prices=td(row,'');const quote=v?.bookmakers?.[book()];
+  if(selectable)prices.append(node('strong',`${book()} · ${money(quote.current_odds)} · Güncel`));
+  else prices.append(node('span','Oran bekleniyor · Henüz seçilemez'));
+  if(!selectable)row.title='Bu tahmin için seçilen bahis şirketinde güncel ve doğrulanmış fiyat yok.';
   box.append(row);
  }
  if(!candidates.length){const row=node('tr');td(row,'Önümüzdeki 7 günde uygun, güçlü ve doğrulanmış tahmin bulunamadı.').colSpan=6;box.append(row);}
- text('coupon-window-count',`${candidates.length} uygun maç · Başlama saatine göre yakın → uzak · En fazla 7 gün`);
+ text('coupon-window-count',`${eligibleCount} seçilebilir / ${candidates.length} tahmin · Yakın tarihten uzağa · En fazla 7 gün. Oranı olmayan tahminler bilgi amaçlı gösterilir.`);
  draw();
 }
 async function updateSelected(){
