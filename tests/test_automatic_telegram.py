@@ -230,6 +230,7 @@ async def test_chromium_automatic_edit_save_history_and_results(api,db,monkeypat
         await expect(page.locator('#coupon-selected button')).to_have_count(3)
         await expect(page.locator('#coupon-telegram')).to_be_disabled()
         # Add a different qualified prediction for the removed fixture.
+        await page.locator('#coupon-edit-panel summary').click()
         available=page.locator('[data-coupon-pick]:enabled:not(:checked)')
         await available.last.check()
         await expect(page.locator('#coupon-selected button')).to_have_count(4)
