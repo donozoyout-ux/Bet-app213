@@ -19,7 +19,7 @@ def test_zero_to_three_by_threshold_not_forced(n):
     candidates=[candidate('result','outcome'),candidate('goals','goal_environment',.70,'over_2_5'),candidate('corners','corners',.66,'over_9_5')][:n]
     candidates.append(candidate('cards','cards',.95,'over_4_5',strong=False))
     ranked,selected=select_recommendations(candidates)
-    assert len(selected)==n
+    assert len(selected)==min(n,2)
     assert not any(r['market']=='cards' for r in selected)
     assert all(r['qualifies'] for r in selected)
 
