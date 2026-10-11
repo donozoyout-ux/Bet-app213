@@ -3,6 +3,8 @@ from copy import deepcopy
 import hashlib
 import json
 import uuid
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 
 from fastapi import HTTPException
 from fastapi.encoders import jsonable_encoder
@@ -16,6 +18,32 @@ from src.analytics.recommendations import qualified_record
 from src.jobs.worker import aware
 
 COUPON_LOCK=213009
+COUPON_TZ=ZoneInfo('Europe/Istanbul')
+DEFAULT_COUPON_MATCHES=4
+
+def daily_candidates(records, now, strategy='balanced', max_matches=DEFAULT_COUPON_MATCHES):
+    """Choose a daily shortlist without loosening the existing quality/price gate."""
+    if strategy not in ('balanced','cautious','value'):
+        raise ValueError('Unsupported coupon strategy')
+    if not isinstance(max_matches,int) or isinstance(max_matches,bool) or not 1 <= max_matches <= 100:
+        raise ValueError('Coupon match target must be 1..100')
+    today=now.astimezone(COUPON_TZ).date()
+    eligible=[]
+    for item in records:
+        kickoff=datetime.fromisoformat(str(item['match']['kickoff_at']).replace('Z','+00:00'))
+        if kickoff.tzinfo is None:kickoff=kickoff.replace(tzinfo=timezone.utc)
+        if kickoff<=now or kickoff.astimezone(COUPON_TZ).date()!=today:continue
+        rec=item['recommendation'];price=item['quote']['price']
+        probability=float(rec['probability']);confidence=float(rec.get('reliability') or 0)
+        value=probability*float(price)-1
+        # Ranking only; no unverified or low-quality entries enter this function.
+        rank={'balanced':(confidence+probability)/2+min(max(value,0),.4)*.1,
+              'cautious':confidence*.65+probability*.35,
+              'value':value*.5+confidence*.5}[strategy]
+        eligible.append((rank,confidence,probability,-kickoff.timestamp(),item))
+    eligible.sort(key=lambda a:(-a[0],-a[1],-a[2],-a[3],a[4]['match']['id']))
+    return [part[4] for part in eligible[:max_matches]]
+
 
 
 async def lock_coupons(session):
@@ -44,7 +72,7 @@ def strong(rec):
     return qualified_record(rec)
 
 
-async def automatic(session,now):
+async def automatic(session,now,strategy='balanced',max_matches=DEFAULT_COUPON_MATCHES):
     records,_,_=await read_board(session,None,None,None,now)
     excluded=set(session.info['prediction_snapshot']['stale_leagues'])
     records=[r for r in records if r['match']['league_id'] not in excluded]
@@ -60,12 +88,13 @@ async def automatic(session,now):
             quote=dict(eligible=True,price=book['current_odds'],bookmaker=book['bookmaker'],observed_at=book['observed_at'],expires_at=book['expires_at'],period=vo['period'],line=vo.get('line'),freshness='fresh')
             items.append(dict(match=record['match'],recommendation=rec,quote=quote,status='pending'))
             break
+    items=daily_candidates(items,now,strategy,max_matches)
     if not items:return None
     await lock_coupons(session)
     digest=fingerprint(items)
     existing=await session.scalar(select(SavedCoupon).where(SavedCoupon.automatic_fingerprint==digest))
     if existing:return existing
-    id=str(uuid.uuid4());row=SavedCoupon(id=id,root_id=id,revision=1,kind='automatic',automatic_fingerprint=digest,owner_hash=None,created_at=now,payload=payload(items))
+    id=str(uuid.uuid4());row=SavedCoupon(id=id,root_id=id,revision=1,kind='automatic',automatic_fingerprint=digest,owner_hash=None,created_at=now,payload={**payload(items),'coupon_date':now.astimezone(COUPON_TZ).date().isoformat(),'strategy':strategy,'target_matches':max_matches})
     session.add(row);await session.flush();return row
 
 
