@@ -69,7 +69,7 @@ async def read_board(session,league,date,team,now):
     if league:query=query.where(League.id==int(league)) if league.isdigit() else query.where(League.name.ilike('%'+league+'%'))
     rows=(await session.execute(query)).all()
     # Current statuses prevent a cached prematch pick appearing after kickoff or completion.
-    eligible=set(await session.scalars(select(Match.id).join(League).where(League.enabled.is_(True),Match.status=='scheduled',Match.kickoff_at>now,Match.kickoff_at<=now+timedelta(days=7))))
+    eligible=dict((await session.execute(select(Match.id,Match.kickoff_at).join(League).where(League.enabled.is_(True),Match.status=='scheduled',Match.kickoff_at>now,Match.kickoff_at<=now+timedelta(days=7)))).all())
     items=[];availability=[];times=[];revisions={};missing=[];stale=[];evaluated=0
     for id,board in rows:
         if board is None or board.model_version!=MODEL_VERSION:missing.append(id);continue
@@ -81,6 +81,8 @@ async def read_board(session,league,date,team,now):
             item={**item,'match':dict(item['match'])}
             m=item['match'];kickoff=datetime.fromisoformat(m['kickoff_at'])
             if m['id'] not in eligible:continue
+            # A rescheduled fixture must await a new board, not retain yesterday's date.
+            if aware(kickoff)!=aware(eligible[m['id']]):continue
             if date:
                 start,end=day_bounds(date,DISPLAY_TIMEZONE)
                 if not start<=kickoff<end:continue

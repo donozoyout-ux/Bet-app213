@@ -110,3 +110,19 @@ async def test_uncertain_noon_is_not_resent_with_new_evening_observations(db,mon
     async with db.session() as session:
         assert len((await session.scalars(select(TelegramDelivery))).all())==1
         assert len((await session.scalars(select(SavedCoupon))).all())==2
+
+
+async def test_rescheduled_database_date_cannot_be_hidden_by_cached_today(db):
+    from tests.test_automatic_telegram import coupon_seed as daily_seed
+    from src.analytics.saved_coupons import automatic
+    from src.analytics.coupon import quote_draft,DraftRequest
+    from tests.test_coupon import request
+    ids=await daily_seed(db)
+    async with db.session() as session:
+        assert await automatic(session,NOW) is not None
+        for id in ids:(await session.get(Match,id)).kickoff_at=NOW+timedelta(days=8)
+        await session.commit()
+        assert await automatic(session,NOW) is None
+        data=await quote_draft(session,DraftRequest(**request(ids)),NOW)
+        assert not data['eligible']
+        assert all(i['reason']=='outside_manual_window' for i in data['items'])

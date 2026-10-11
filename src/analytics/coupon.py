@@ -1,5 +1,6 @@
 """Read-only quote validation and draft settlement; never places or records bets."""
 from copy import deepcopy
+from datetime import timedelta
 from decimal import Decimal,localcontext
 import math
 import re
@@ -59,6 +60,7 @@ async def quote_draft(session, request, now):
         if row is None or not row[1]:continue
         match=row[0]
         if match.status!='scheduled' or not match.kickoff_at or aware(match.kickoff_at)<=now:entry['reason']='match_started';continue
+        if aware(match.kickoff_at)>now+timedelta(days=7):entry['reason']='outside_manual_window';continue
         board=boards.get(match.league_id)
         if board is None or board.model_version!=MODEL_VERSION or aware(board.generated_at)>now or aware(board.expires_at)<=now:entry['reason']='analysis_stale';continue
         record=next((r for r in board.payload['items'] if r['match']['id']==match.id),None)
