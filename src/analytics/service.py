@@ -53,10 +53,11 @@ async def prefetch_markets(session, matches):
     for model in (Odds1X2, AsianHandicap, AsianTotals, MarketOdds):
         grouped = {id: [] for id in ids}
         if ids:
-            rows = await session.execute(select(model, Bookmaker.name).options(defer(model.raw)).join(Bookmaker).where(
+            rows = await session.execute(select(model, Bookmaker.name, model.raw['_field_observed_at'], model.raw['_field_lines']).options(defer(model.raw)).join(Bookmaker).where(
                 model.match_id.in_(ids), Bookmaker.name.in_(['Crown', 'Bet365', 'Sbobet'])))
             for row in rows:
-                grouped[row[0].match_id].append(row)
+                row[0]._matching_meta={'_field_observed_at':row[2] or {},'_field_lines':row[3] or {}}
+                grouped[row[0].match_id].append((row[0],row[1]))
         cache[model] = grouped
     from src.models import MatchEvent, PredictionSnapshot
     stats = (await session.scalars(select(MatchStatistics).options(defer(MatchStatistics.raw)).where(MatchStatistics.match_id.in_(ids)))).all() if ids else []
@@ -74,8 +75,10 @@ async def market_rows(session, model, match_id):
     cached = session.info.get('board_markets', {}).get(model, {})
     if match_id in cached:
         return cached[match_id]
-    return (await session.execute(select(model, Bookmaker.name).options(defer(model.raw)).join(Bookmaker).where(
+    rows=(await session.execute(select(model, Bookmaker.name, model.raw['_field_observed_at'], model.raw['_field_lines']).options(defer(model.raw)).join(Bookmaker).where(
         model.match_id == match_id, Bookmaker.name.in_(['Crown','Bet365','Sbobet'])))).all()
+    for row in rows:row[0]._matching_meta={'_field_observed_at':row[2] or {},'_field_lines':row[3] or {}}
+    return [(row[0],row[1]) for row in rows]
 
 
 async def statistics(session, match, context, now, data_revision=None):

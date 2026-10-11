@@ -64,6 +64,31 @@ async def store_live(session, match, observation, observed_at):
     return True
 
 
+def merge_odds_observations(row, data):
+    """Track each price's observation and line; partial reads cannot freshen old prices."""
+    old_raw=row.raw if isinstance(row.raw,dict) else {}
+    stamps=dict(old_raw.get('_field_observed_at',{}))
+    lines=dict(old_raw.get('_field_lines',{}))
+    now=utcnow().isoformat()
+    for stage in ('opening','latest','closing'):
+        for side in ('home','draw','away','over','under'):
+            field=stage+'_'+side
+            if not hasattr(row,field):continue
+            old=getattr(row,field)
+            if old is not None and row.updated_at is not None:
+                stamps.setdefault(field,row.updated_at.isoformat())
+                if hasattr(row,stage+'_line'):lines.setdefault(field,getattr(row,stage+'_line'))
+            value=data.get(field)
+            if value is not None:
+                # Only accept a newly observed OU/AH price with its observed line.
+                if hasattr(row,stage+'_line') and data.get(stage+'_line') is None:continue
+                setattr(row,field,value);stamps[field]=now
+                if hasattr(row,stage+'_line'):lines[field]=data[stage+'_line']
+        if hasattr(row,stage+'_line') and data.get(stage+'_line') is not None:setattr(row,stage+'_line',data[stage+'_line'])
+    row.raw={**data.get('raw',old_raw),'_field_observed_at':stamps,'_field_lines':lines}
+    row.updated_at=utcnow()
+
+
 async def store_odds(session, match, odds, final):
     for name, markets in odds.items():
         bookmaker = await session.scalar(select(Bookmaker).where(Bookmaker.name == name))
@@ -71,10 +96,7 @@ async def store_odds(session, match, odds, final):
             data = markets.get(key)
             if not data:continue
             row = await get_or_create(session, model, {'match_id': match.id, 'bookmaker_id': bookmaker.id}, {'raw': data['raw']})
-            for field, value in data.items():
-                if field == 'raw' or value is not None:
-                    # Missing source fields never erase previously verified opening/closing values.
-                    setattr(row, field, value)
+            merge_odds_observations(row,data)
             log.info('[ODDS] bookmaker=%s market=%s match_id=%s saved', name, key, match.external_match_id)
     match.last_scraped_at = utcnow()
     match.odds_complete = final and complete_odds(odds, final=True)
@@ -104,18 +126,7 @@ async def store_market_odds(session, match, odds_by_bookmaker, market, period):
             },
             {'raw': data.get('raw', {})},
         )
-        for field in (
-            'opening_line', 'opening_over', 'opening_under',
-            'latest_line', 'latest_over', 'latest_under',
-            'closing_line', 'closing_over', 'closing_under',
-        ):
-            value = data.get(field)
-            if value is not None:
-                # Missing source fields never erase previously verified opening/closing values.
-                setattr(row, field, value)
-        if 'raw' in data:
-            row.raw = data['raw']
-        row.updated_at = utcnow()
+        merge_odds_observations(row,data)
         count += 1
         log.info(
             '[MARKET_ODDS] bookmaker=%s market=%s period=%s match_id=%s saved',

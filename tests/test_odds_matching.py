@@ -25,7 +25,7 @@ class MockOdds1X2:
 
 
 class MockAsianTotals:
-    def __init__(self, op_line, op_o, op_u, lat_line, lat_o, lat_u, cl_line=None, cl_o=None, cl_u=None, updated_at=None, match_id=1, market=None, period=None):
+    def __init__(self, op_line, op_o, op_u, lat_line, lat_o, lat_u, cl_line=None, cl_o=None, cl_u=None, updated_at=None, match_id=1, market=None, period='full_time'):
         self.opening_line = op_line
         self.opening_over = op_o
         self.opening_under = op_u
@@ -106,7 +106,7 @@ def test_exact_goals_matching_and_line_rejection():
     # Crown's latest line is 2.75, which does not match 2.5! But opening was 2.5
     assert res['bookmakers']['Crown']['latest_odds'] is None
     assert res['bookmakers']['Crown']['opening_odds'] == 1.95
-    assert res['bookmakers']['Crown']['current_odds'] == 1.95  # falls back to opening since latest line differs
+    assert res['bookmakers']['Crown']['current_odds'] is None  # opening never substitutes a changed latest line
 
     # Best price between Bet365 (1.92), Sbobet (1.95), Crown (1.95)
     assert res['best_price'] == 1.95
@@ -204,7 +204,7 @@ def test_corners_and_cards_odds_matching():
     assert res['has_odds'] is True
     assert res['best_price'] == 1.92
     assert res['best_bookmaker'] == 'Bet365'
-    assert res['bookmakers']['Crown']['current_odds'] == 1.80  # fallback to opening line 9.5 since latest line is 10.5
+    assert res['bookmakers']['Crown']['current_odds'] is None  # latest line must match
 
     # Line mismatch
     candidate_mismatch = {'market': 'corners', 'selection': 'over_11_5', 'probability': 0.40}

@@ -120,6 +120,9 @@ class BookmakerStats(BaseModel):
 
 class BookmakerVerifiedOdds(BaseModel):
     bookmaker: str
+    freshness: str = 'unknown'
+    coupon_eligible: bool = False
+    expires_at: datetime | None = None
     opening_odds: float | None = None
     latest_odds: float | None = None
     closing_odds: float | None = None
@@ -131,6 +134,13 @@ class BookmakerVerifiedOdds(BaseModel):
 
 
 class VerifiedOdds(BaseModel):
+    match_id: int | None = None
+    market: str | None = None
+    selection: str | None = None
+    line: float | None = None
+    freshness: str = 'unknown'
+    coupon_eligible: bool = False
+    expires_at: datetime | None = None
     has_odds: bool = False
     period: str = 'full_time'
     stage: str = 'latest'

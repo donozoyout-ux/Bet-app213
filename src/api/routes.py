@@ -209,8 +209,26 @@ async def predictions(league: str | None = None, date: Date | None = None,
 
 async def calculate_predictions(session,league,date,team=None):
     from src.analytics.board_cache import read_board
+    from src.analytics.coupon import current_odds
     async with asyncio.timeout(4):
-        return await read_board(session,league,date,team,utcnow())
+        result=await read_board(session,league,date,team,utcnow())
+        items,now,_=result
+        for item in items:item['recommendations']=[dict(r) for r in item['recommendations'][:2]]
+        await current_odds(session,{i['match']['id']:i['recommendations'] for i in items},now)
+        return result
+
+
+from src.analytics.coupon import DraftRequest, quote_draft, settle_draft
+
+
+@router.post('/coupon/quote')
+async def coupon_quote(request: DraftRequest, session=Depends(session_dependency)):
+    async with asyncio.timeout(4):return await quote_draft(session,request,utcnow())
+
+
+@router.post('/coupon/status')
+async def coupon_status(request: DraftRequest, session=Depends(session_dependency)):
+    async with asyncio.timeout(4):return await settle_draft(session,request)
 
 
 async def uncached_predictions(session,league,date,team=None,now=None,publish=True):

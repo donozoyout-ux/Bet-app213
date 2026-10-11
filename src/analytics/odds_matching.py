@@ -11,10 +11,12 @@ Matches odds by:
 - Price stage (opening, latest, closing)
 """
 import math
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Any, Mapping
 
 SUPPORTED_BOOKMAKERS = ('Crown', 'Bet365', 'Sbobet')
+ODDS_MAX_AGE_SECONDS = 900
+
 NO_ODDS_MESSAGE = 'Bu market için doğrulanmış oran yok'
 
 
@@ -117,6 +119,24 @@ def _safe_float(val: Any) -> float | None:
     return None
 
 
+def price_observed_at(row, field):
+    raw=getattr(row,'_matching_meta',None) or vars(row).get('raw',{})
+    stamps=raw.get('_field_observed_at',{}) if isinstance(raw,dict) else {}
+    stamp=stamps.get(field)
+    if stamp:
+        try:return _aware(datetime.fromisoformat(stamp))
+        except (TypeError,ValueError):return None
+    return _aware(getattr(row,'updated_at',None))
+
+
+def price_matches_line(row, stage, side, target):
+    raw=getattr(row,'_matching_meta',None) or vars(row).get('raw',{})
+    lines=raw.get('_field_lines',{}) if isinstance(raw,dict) else {}
+    field=stage+'_'+side
+    observed_line=lines.get(field,getattr(row,stage+'_line',None))
+    return observed_line is not None and target is not None and abs(observed_line-target)<1e-4
+
+
 def match_odds_for_candidate(
     candidate: Mapping[str, Any],
     match_id: int,
@@ -190,7 +210,7 @@ def match_odds_for_candidate(
             if row_match_id is None or row_match_id != match_id:
                 continue
 
-            updated_at = getattr(row, 'updated_at', None)
+            updated_at = price_observed_at(row, stage+'_'+side)
             if cutoff and updated_at and _aware(updated_at) > _aware(cutoff):
                 continue
 
@@ -199,7 +219,7 @@ def match_odds_for_candidate(
             closing = _safe_float(getattr(row, f'closing_{side}', None))
 
             # Current price for the active stage
-            current = closing if (is_closing and closing is not None) else (latest if latest is not None else opening)
+            current = closing if is_closing else latest
 
             implied = round(1.0 / current, 4) if current else None
             val = round(probability * current - 1.0, 4) if (current and probability is not None) else None
@@ -230,7 +250,7 @@ def match_odds_for_candidate(
             if row_match_id is None or row_match_id != match_id:
                 continue
 
-            updated_at = getattr(row, 'updated_at', None)
+            updated_at = price_observed_at(row, stage+'_'+side)
             if cutoff and updated_at and _aware(updated_at) > _aware(cutoff):
                 continue
 
@@ -239,22 +259,22 @@ def match_odds_for_candidate(
             cl_line = getattr(row, 'closing_line', None)
 
             opening = None
-            if op_line is not None and line is not None and abs(op_line - line) < 1e-4:
+            if op_line is not None and line is not None and abs(op_line - line) < 1e-4 and price_matches_line(row,'opening',side,line):
                 opening = _safe_float(getattr(row, f'opening_{side}', None))
 
             latest = None
-            if lat_line is not None and line is not None and abs(lat_line - line) < 1e-4:
+            if lat_line is not None and line is not None and abs(lat_line - line) < 1e-4 and price_matches_line(row,'latest',side,line):
                 latest = _safe_float(getattr(row, f'latest_{side}', None))
 
             closing = None
-            if cl_line is not None and line is not None and abs(cl_line - line) < 1e-4:
+            if cl_line is not None and line is not None and abs(cl_line - line) < 1e-4 and price_matches_line(row,'closing',side,line):
                 closing = _safe_float(getattr(row, f'closing_{side}', None))
 
             # If none of the lines matched the target line, this row does not provide odds for this market
             if opening is None and latest is None and closing is None:
                 continue
 
-            current = closing if (is_closing and closing is not None) else (latest if latest is not None else opening)
+            current = closing if is_closing else latest
             implied = round(1.0 / current, 4) if current else None
             val = round(probability * current - 1.0, 4) if (current and probability is not None) else None
 
@@ -285,7 +305,7 @@ def match_odds_for_candidate(
             if row_match_id is None or row_match_id != match_id:
                 continue
 
-            updated_at = getattr(row, 'updated_at', None)
+            updated_at = price_observed_at(row, stage+'_'+side)
             if cutoff and updated_at and _aware(updated_at) > _aware(cutoff):
                 continue
 
@@ -294,21 +314,21 @@ def match_odds_for_candidate(
             cl_line = getattr(row, 'closing_line', None)
 
             opening = None
-            if op_line is not None and line is not None and abs(op_line - line) < 1e-4:
+            if op_line is not None and line is not None and abs(op_line - line) < 1e-4 and price_matches_line(row,'opening',side,line):
                 opening = _safe_float(getattr(row, f'opening_{side}', None))
 
             latest = None
-            if lat_line is not None and line is not None and abs(lat_line - line) < 1e-4:
+            if lat_line is not None and line is not None and abs(lat_line - line) < 1e-4 and price_matches_line(row,'latest',side,line):
                 latest = _safe_float(getattr(row, f'latest_{side}', None))
 
             closing = None
-            if cl_line is not None and line is not None and abs(cl_line - line) < 1e-4:
+            if cl_line is not None and line is not None and abs(cl_line - line) < 1e-4 and price_matches_line(row,'closing',side,line):
                 closing = _safe_float(getattr(row, f'closing_{side}', None))
 
             if opening is None and latest is None and closing is None:
                 continue
 
-            current = closing if (is_closing and closing is not None) else (latest if latest is not None else opening)
+            current = closing if is_closing else latest
             implied = round(1.0 / current, 4) if current else None
             val = round(probability * current - 1.0, 4) if (current and probability is not None) else None
 
@@ -338,7 +358,7 @@ def match_odds_for_candidate(
             if row_match_id is None or row_match_id != match_id:
                 continue
 
-            updated_at = getattr(row, 'updated_at', None)
+            updated_at = price_observed_at(row, stage+'_'+side)
             if cutoff and updated_at and _aware(updated_at) > _aware(cutoff):
                 continue
 
@@ -362,22 +382,22 @@ def match_odds_for_candidate(
             elif family == 'corners':
                 if row_market != 'corners':
                     continue
-                if row_period is not None and row_period not in ('full_time', 'ft'):
+                if row_period not in ('full_time', 'ft'):
                     continue
             elif family == 'cards':
                 if row_market != 'cards':
                     continue
-                if row_period is not None and row_period not in ('full_time', 'ft'):
+                if row_period not in ('full_time', 'ft'):
                     continue
             elif family == 'yellow_cards':
                 if row_market != 'yellow_cards':
                     continue
-                if row_period is not None and row_period not in ('full_time', 'ft'):
+                if row_period not in ('full_time', 'ft'):
                     continue
             elif family == 'red_cards':
                 if row_market != 'red_cards':
                     continue
-                if row_period is not None and row_period not in ('full_time', 'ft'):
+                if row_period not in ('full_time', 'ft'):
                     continue
             else:
                 continue
@@ -387,21 +407,21 @@ def match_odds_for_candidate(
             cl_line = getattr(row, 'closing_line', None)
 
             opening = None
-            if op_line is not None and line is not None and abs(op_line - line) < 1e-4:
+            if op_line is not None and line is not None and abs(op_line - line) < 1e-4 and price_matches_line(row,'opening',side,line):
                 opening = _safe_float(getattr(row, f'opening_{side}', None))
 
             latest = None
-            if lat_line is not None and line is not None and abs(lat_line - line) < 1e-4:
+            if lat_line is not None and line is not None and abs(lat_line - line) < 1e-4 and price_matches_line(row,'latest',side,line):
                 latest = _safe_float(getattr(row, f'latest_{side}', None))
 
             closing = None
-            if cl_line is not None and line is not None and abs(cl_line - line) < 1e-4:
+            if cl_line is not None and line is not None and abs(cl_line - line) < 1e-4 and price_matches_line(row,'closing',side,line):
                 closing = _safe_float(getattr(row, f'closing_{side}', None))
 
             if opening is None and latest is None and closing is None:
                 continue
 
-            current = closing if (is_closing and closing is not None) else (latest if latest is not None else opening)
+            current = closing if is_closing else latest
             implied = round(1.0 / current, 4) if current else None
             val = round(probability * current - 1.0, 4) if (current and probability is not None) else None
 
@@ -420,21 +440,34 @@ def match_odds_for_candidate(
             if current:
                 valid_prices.append((bookmaker_name, current, updated_at))
 
+    now=_aware(cutoff) if cutoff else datetime.now(timezone.utc)
+    for entry in bookmakers_data.values():
+        stamp=datetime.fromisoformat(entry['observed_at']) if entry['observed_at'] else None
+        stamp=_aware(stamp)
+        age=(now-stamp).total_seconds() if stamp else None
+        fresh=age is not None and 0<=age<=ODDS_MAX_AGE_SECONDS and entry['current_odds'] is not None
+        entry.update(freshness='fresh' if fresh else 'stale' if stamp else 'unknown',
+                     expires_at=(stamp+timedelta(seconds=ODDS_MAX_AGE_SECONDS)).isoformat() if stamp else None,
+                     coupon_eligible=fresh and match_status=='scheduled')
+    # Prefer a fresh verified quote over a higher obsolete price.
+    valid_prices.sort(key=lambda x:(not bookmakers_data[x[0]]['coupon_eligible'],-x[1]))
     # Evaluate best verified price
     if valid_prices:
         # Sort by price descending
-        valid_prices.sort(key=lambda x: -x[1])
-        best_bk, best_p, _ = valid_prices[0]
+        best_bk, best_p, best_stamp = valid_prices[0]
         best_implied = round(1.0 / best_p, 4)
         best_val = round(probability * best_p - 1.0, 4) if probability is not None else None
 
         # Find latest observed_at
         stamps = [p[2] for p in valid_prices if p[2] is not None]
-        latest_stamp = max(stamps) if stamps else None
+        latest_stamp = best_stamp
         latest_stamp_str = latest_stamp.isoformat() if hasattr(latest_stamp, 'isoformat') else str(latest_stamp) if latest_stamp else None
 
         return {
             'has_odds': True,
+            'match_id':match_id,'market':family,'selection':selection,'line':line,
+            'freshness':bookmakers_data[best_bk]['freshness'],'coupon_eligible':bookmakers_data[best_bk]['coupon_eligible'],
+            'expires_at':bookmakers_data[best_bk]['expires_at'],
             'period': period,
             'stage': stage,
             'bookmakers': bookmakers_data,
