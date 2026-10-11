@@ -236,9 +236,9 @@ from src.models import SavedCoupon
 
 
 @router.post('/coupons/automatic')
-async def automatic_coupon(session=Depends(session_dependency)):
+async def automatic_coupon(strategy: Literal['balanced','cautious','value']='balanced', max_matches: int=Query(default=4,ge=1,le=100),session=Depends(session_dependency)):
     async with asyncio.timeout(10):
-        row=await automatic(session,utcnow())
+        row=await automatic(session,utcnow(),strategy=strategy,max_matches=max_matches)
         await session.commit()
         return await coupon_detail(session,row) if row else {'items':[],'status':'no_eligible_selections'}
 
