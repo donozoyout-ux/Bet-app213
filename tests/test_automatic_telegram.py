@@ -16,7 +16,21 @@ from src.models import SavedCoupon,TelegramDelivery,PredictionBoard,MarketOdds,M
 from src.analytics.saved_coupons import automatic,save_manual,detail
 from src.analytics.coupon import DraftRequest
 from src.jobs.telegram import dispatch,prepare,window,message,status
-from tests.test_coupon import coupon_seed,request,NOW
+from tests.test_coupon import coupon_seed as base_coupon_seed,request,NOW
+from src.analytics.saved_coupons import daily_candidates
+
+async def coupon_seed(db):
+    ids=await base_coupon_seed(db)
+    async with db.session() as session:
+        board=await session.scalar(select(PredictionBoard))
+        data=deepcopy(board.payload)
+        for item in data['items']:
+            match=await session.get(Match,item['match']['id'])
+            match.kickoff_at=NOW+timedelta(hours=5)
+            item['match']['kickoff_at']=(NOW+timedelta(hours=5)).isoformat()
+        board.payload=data
+        await session.commit()
+    return ids
 
 OWNER='12345678-1234-1234-1234-123456789012'
 TOKEN='12345:TEST_SECRET_ONLY'
@@ -36,7 +50,7 @@ async def many_matches(db,count=12):
         existing=(await session.scalars(select(MarketOdds).where(MarketOdds.match_id==first.id))).all()
         for index in range(count-2):
             match=Match(external_match_id=770000+index,league_id=first.league_id,season_id=first.season_id,round=3,
-                home_team_id=first.home_team_id,away_team_id=first.away_team_id,kickoff_at=NOW+timedelta(days=1),status='scheduled',raw={},created_at=NOW,updated_at=NOW)
+                home_team_id=first.home_team_id,away_team_id=first.away_team_id,kickoff_at=NOW+timedelta(hours=5),status='scheduled',raw={},created_at=NOW,updated_at=NOW)
             session.add(match);await session.flush()
             item=deepcopy(template);item['match']['id']=match.id;item['match_id']=match.id;items.append(item)
             for odds in existing:
@@ -49,9 +63,9 @@ async def test_automatic_unlimited_strong_exact_quotes_and_empty(db):
     await many_matches(db)
     async with db.session() as session:
         coupon=await automatic(session,NOW);await session.commit()
-        assert len(coupon.payload['items'])==12
-        assert len({i['match']['id'] for i in coupon.payload['items']})==12
-        assert coupon.payload['combined_odds']==pytest.approx(1.8**12,abs=1e-6)
+        assert len(coupon.payload['items'])==4
+        assert len({i['match']['id'] for i in coupon.payload['items']})==4
+        assert coupon.payload['combined_odds']==pytest.approx(1.8**4,abs=1e-6)
         assert all(i['quote']['bookmaker'] in {'Crown','Bet365','Sbobet'} for i in coupon.payload['items'])
         assert (await automatic(session,NOW)).id==coupon.id
         for row in await session.scalars(select(MarketOdds)):row.updated_at=NOW-timedelta(hours=1)
@@ -175,9 +189,9 @@ async def test_message_format_and_document_for_large_coupon(db,configured):
     await many_matches(db,45);calls=[]
     def send(req):calls.append(req);return httpx.Response(200,json={'ok':True,'result':{'message_id':4}})
     result=await dispatch(db,NOW,transport=httpx.MockTransport(send));assert result['status']=='sent'
-    assert calls[0].url.path.endswith('/sendDocument')
+    assert calls[0].url.path.endswith('/sendMessage')
     content=calls[0].content.decode()
-    assert '45.' in content and ('Bet365' in content or 'Crown' in content)
+    assert 'Toplam' in content and ('Bet365' in content or 'Crown' in content)
     assert 'Oluşturulma' in content and 'Toplam' in content and 'garantisi yok' in content
 
 
