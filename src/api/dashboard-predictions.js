@@ -166,6 +166,7 @@
     if(recs.length>1){for(const rec of recs.slice(1,2))element.append(node('p',`${rec.label} ${pct(rec.probability)} • ${confidence[rec.confidence]} Güven`));}
 
     const oddsWrap=node('div','','prediction-odds');
+    let awaitingPrices=0;
     for(const rec of recs.slice(0,2)){
       const vo=rec.verified_odds;
       if(vo && vo.has_odds){
@@ -173,9 +174,10 @@
         row.append(node('span',`${rec.label}: ${num(vo.best_price)} (${vo.best_bookmaker}) • Değer: ${vo.best_value>=0?'+':''}${(100*vo.best_value).toFixed(1)} puan`,'font-semibold'));
         oddsWrap.append(row);
       } else {
-        oddsWrap.append(node('div',`${rec.label}: ${vo?.message || 'Oran henüz doğrulanmadı'}`,'text-outline text-body-sm'));
+        awaitingPrices++;
       }
     }
+    if(awaitingPrices)oddsWrap.append(node('div',`${awaitingPrices} tahmin için oran bekleniyor`,'text-outline text-body-sm'));
     element.append(oddsWrap);
 
     const open=()=>{if(globalThis.BetAppDashboard?.selectMatch)globalThis.BetAppDashboard.selectMatch(m.id,true);else select(m.id,true);};
@@ -194,7 +196,7 @@
           if(state.confidence && item.recommendation.confidence!==state.confidence)continue;
           const row=node('li');
           const vo=item.recommendation.verified_odds;
-          const oddsTxt=vo && vo.has_odds ? ` • Oran: ${num(vo.best_price)} (${vo.best_bookmaker})` : ' • Doğrulanmış oran yok';
+          const oddsTxt=vo && vo.has_odds ? ` • Oran: ${num(vo.best_price)} (${vo.best_bookmaker})` : ' • Oran bekleniyor';
           const button=node('button',`${index+1}. ${item.match.home_team} / ${item.match.away_team} — ${item.recommendation.label} ${pct(item.recommendation.probability)} • ${confidence[item.recommendation.confidence]} Güven${oddsTxt}`,'prediction-global-button');
           button.type='button';button.onclick=()=>globalThis.BetAppDashboard?.selectMatch ? globalThis.BetAppDashboard.selectMatch(item.match.id,true) : select(item.match.id,true);row.append(button);list.append(row);shown++;
         }box.append(list);
