@@ -48,19 +48,23 @@ def settle(match, stats, pick):
         if not stats or not stats.is_final or any(getattr(stats,f) is None for f in fields):return 'awaiting_data',None
         total=sum(getattr(stats,f) for f in fields)
     elif market in {'first_half_goals','second_half_goals'}:
-        if match.ht_home is None or match.ht_away is None or match.ft_home is None or match.ft_away is None:
+        if match.ht_home is None or match.ht_away is None:
             return 'awaiting_data',None
-        if match.ht_home < 0 or match.ht_away < 0 or match.ft_home < 0 or match.ft_away < 0 or match.ft_home < match.ht_home or match.ft_away < match.ht_away:
+        if match.ht_home < 0 or match.ht_away < 0:
             return 'void',None
         if market == 'first_half_goals':
             total = match.ht_home + match.ht_away
         else:
+            if match.ft_home is None or match.ft_away is None:return 'awaiting_data',None
+            if match.ft_home < match.ht_home or match.ft_away < match.ht_away:return 'void',None
             total = (match.ft_home - match.ht_home) + (match.ft_away - match.ht_away)
     else:
         if match.ft_home is None or match.ft_away is None:return 'awaiting_data',None
         home,away=match.ft_home,match.ft_away;total=home+away
     if market in {'goals','corners','cards','yellow_cards','red_cards','first_half_goals','second_half_goals'}:
-        direction,a,b=selection.split('_');line=float(a+'.'+b);won=total>line if direction=='over' else total<line;actual=total
+        direction,a,b=selection.split('_');line=float(a+'.'+b)
+        if total==line:return 'void',total
+        won=total>line if direction=='over' else total<line;actual=total
     elif market=='btts':won=(home>0 and away>0)==(selection=='yes');actual=f'{home}-{away}'
     elif market=='result':won={'home':home>away,'draw':home==away,'away':home<away}[selection];actual=f'{home}-{away}'
     elif market=='double_chance':won={'1x':home>=away,'x2':home<=away,'12':home!=away}[selection];actual=f'{home}-{away}'

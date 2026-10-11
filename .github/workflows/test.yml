@@ -42,3 +42,4 @@ jobs:
           node tests/dashboard_runtime.cjs
           node tests/predictions_runtime.cjs
           node tests/market_runtime.cjs
+          node tests/coupon_runtime.cjs
