@@ -109,3 +109,7 @@ test fixtures mask inherited real credentials, including subprocess environments
 Chromium and JavaScript runtime tests exercise automatic generation, editing,
 saving/history and source/copy/error controls. No live group send or deployment
 is part of implementation validation.
+
+## Daily shortlist and controls
+
+The default automatic coupon is **balanced, up to four different matches**, for the current `Europe/Istanbul` calendar date. It never pads weak or unpriced selections to reach the target. Candidates remain subject to the existing prediction quality and verified current-price checks. Each fixture contributes at most one selection. The UI offers optional targets of 2, 3, 4, 5, 6, 8 or 10 matches and balanced/cautious/value ranking. The daily filter runs before creating the immutable saved automatic coupon. Manual additions and removals are unaffected. Telegram's 12:00 and 18:00 scheduler also uses the default daily four-match balanced shortlist and retains durable at-most-once sending and 15-minute odds freshness validation.
