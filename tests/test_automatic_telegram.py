@@ -272,3 +272,20 @@ async def test_postgres_concurrency_restart_and_immutable_versions(configured):
     finally:
         async with db.engine.begin() as conn:await conn.execute(DropSchema(schema,cascade=True,if_exists=True))
         await db.close()
+
+
+def test_daily_balanced_four_and_no_forced_filler():
+    def entry(id,kickoff,score=.8,prob=.7,price=1.8):
+        return {'match':{'id':id,'kickoff_at':kickoff},'recommendation':{'score':score,'reliability':score,'probability':prob},'quote':{'price':price}}
+    today=(NOW+timedelta(hours=5)).isoformat()
+    tomorrow=(NOW+timedelta(days=1)).isoformat()
+    records=[entry(i,today,score=.70+i*.01) for i in range(6)]
+    records.append(entry(99,tomorrow,score=.99))
+    picks=daily_candidates(records,NOW)
+    assert len(picks)==4
+    assert {x['match']['id'] for x in picks}=={2,3,4,5}
+    assert all(x['match']['id']!=99 for x in picks)
+    assert len(daily_candidates(records[:2],NOW))==2
+    assert daily_candidates([entry(7,tomorrow)],NOW)==[]
+    assert len(daily_candidates(records,NOW,strategy='cautious',max_matches=3))==3
+    assert len(daily_candidates(records,NOW,strategy='value',max_matches=3))==3
