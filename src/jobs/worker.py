@@ -282,6 +282,10 @@ async def discover(job_id, client):
                 if pilot_cap is not None and total_discovered >= pilot_cap:
                     break
                 query = missing_market_odds_query(league_id, start_year)
+                # Pilot only: choose fixtures with meaningful near-term or historical
+                # availability; distant future fixtures rarely have posted odds.
+                if pilot_cap is not None:
+                    query = query.where(Match.kickoff_at <= utcnow() + timedelta(days=7))
                 if last_kickoff is not None and last_id is not None:
                     query = query.where(
                         or_(
