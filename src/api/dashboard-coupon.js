@@ -137,7 +137,7 @@ function loadCoupon(data){
 }
 async function generate(){
  const button=$('coupon-automatic');if(button)button.disabled=true;
- try{const data=await api('/api/coupons/automatic',{});if(data.items?.length)loadCoupon(data);else text('coupon-note','Güncel, güçlü ve doğrulanmış seçim bulunamadı; mevcut taslak korundu.');historyOffset=0;await history();}
+ try{const strategy=$('coupon-strategy')?.value || 'balanced';const count=$('coupon-target')?.value || '4';const data=await api('/api/coupons/automatic?'+new URLSearchParams({strategy,max_matches:count}),{});if(data.items?.length)loadCoupon(data);else text('coupon-note','Güncel, güçlü ve doğrulanmış seçim bulunamadı; mevcut taslak korundu.');historyOffset=0;await history();}
  catch(_){text('coupon-note','Otomatik kupon oluşturulamadı. Yeniden deneyin.');}
  finally{if(button)button.disabled=false;}
 }
