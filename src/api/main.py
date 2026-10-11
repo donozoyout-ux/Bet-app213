@@ -118,3 +118,8 @@ async def market_script():return FileResponse(Path(__file__).resolve().with_name
 
 @app.get('/dashboard-market.css',include_in_schema=False)
 async def market_styles():return FileResponse(Path(__file__).resolve().with_name('dashboard-market.css'),media_type='text/css')
+
+
+@app.get('/dashboard-coupon.js', include_in_schema=False)
+async def coupon_script():
+    return FileResponse(Path(__file__).resolve().with_name('dashboard-coupon.js'), media_type='application/javascript')
