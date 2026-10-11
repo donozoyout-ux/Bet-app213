@@ -35,6 +35,11 @@ def daily_candidates(records, now, strategy='balanced', max_matches=DEFAULT_COUP
         if kickoff<=now or kickoff.astimezone(COUPON_TZ).date()!=today:continue
         rec=item['recommendation'];price=item['quote']['price']
         probability=float(rec['probability']);confidence=float(rec.get('reliability') or 0)
+        score=float(rec.get('score') or 0)
+        # Automatic tickets use stricter evidence gates than the general predictions board.
+        # These are selection filters, not calibrated guarantees of success.
+        if probability < .70 or confidence < .80 or score < .80:
+            continue
         value=probability*float(price)-1
         # Ranking only; no unverified or low-quality entries enter this function.
         rank={'balanced':(confidence+probability)/2+min(max(value,0),.4)*.1,
