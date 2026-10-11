@@ -80,9 +80,13 @@ async function add(item,checked){
 function render(items){
  const box=$('coupon-candidates');if(!box)return;box.replaceChildren();
  const perMatch=new Map();candidates=[];let eligibleCount=0;
- for(const item of items.filter(inWeek).sort(byKickoff)){
-  if(!item.recommendation?.qualifies || (perMatch.get(item.match.id)||0)>=1)continue;
-  perMatch.set(item.match.id,(perMatch.get(item.match.id)||0)+1);candidates.push(item);
+ // Prefer a genuinely priced prediction within each fixture; ranking alone can hide it.
+ for(const item of items.filter(inWeek).filter(i=>i.recommendation?.qualifies).sort(byKickoff)){
+  const id=item.match.id, prior=perMatch.get(id);
+  if(!prior || (!valid(prior) && valid(item)))perMatch.set(id,item);
+ }
+ for(const item of [...perMatch.values()].sort(byKickoff)){
+  candidates.push(item);
   const r=item.recommendation,m=item.match,v=r.verified_odds,row=node('tr'),selectable=valid(item);
   if(selectable)eligibleCount++;
   row.classList.toggle('coupon-unpriced',!selectable);
