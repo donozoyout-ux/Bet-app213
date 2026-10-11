@@ -3,6 +3,7 @@ from copy import deepcopy
 import hashlib
 import json
 import uuid
+import math
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 
@@ -25,8 +26,8 @@ def daily_candidates(records, now, strategy='balanced', max_matches=DEFAULT_COUP
     """Choose a daily shortlist without loosening the existing quality/price gate."""
     if strategy not in ('balanced','cautious','value'):
         raise ValueError('Unsupported coupon strategy')
-    if not isinstance(max_matches,int) or isinstance(max_matches,bool) or not 1 <= max_matches <= 100:
-        raise ValueError('Coupon match target must be 1..100')
+    if not isinstance(max_matches,int) or isinstance(max_matches,bool) or not 1 <= max_matches <= 4:
+        raise ValueError('Coupon match target must be 1..4')
     today=now.astimezone(COUPON_TZ).date()
     eligible=[]
     for item in records:
@@ -38,7 +39,7 @@ def daily_candidates(records, now, strategy='balanced', max_matches=DEFAULT_COUP
         score=float(rec.get('score') or 0)
         # Automatic tickets use stricter evidence gates than the general predictions board.
         # These are selection filters, not calibrated guarantees of success.
-        if probability < .70 or confidence < .80 or score < .80:
+        if not all(math.isfinite(v) for v in (probability,confidence,score,float(price))) or float(price)<=1 or probability < .70 or confidence < .80 or score < .80:
             continue
         value=probability*float(price)-1
         # Ranking only; no unverified or low-quality entries enter this function.
@@ -47,7 +48,13 @@ def daily_candidates(records, now, strategy='balanced', max_matches=DEFAULT_COUP
               'value':value*.5+confidence*.5}[strategy]
         eligible.append((rank,confidence,probability,-kickoff.timestamp(),item))
     eligible.sort(key=lambda a:(-a[0],-a[1],-a[2],-a[3],a[4]['match']['id']))
-    return [part[4] for part in eligible[:max_matches]]
+    chosen=[];matches=set()
+    for part in eligible:
+        item=part[4];match=item['match']
+        if match['id'] in matches:continue
+        chosen.append(item);matches.add(match['id'])
+        if len(chosen)==max_matches:break
+    return sorted(chosen,key=lambda i:(str(i['match']['kickoff_at']),i['match']['id']))
 
 
 
@@ -78,11 +85,13 @@ def strong(rec):
 
 
 async def automatic(session,now,strategy='balanced',max_matches=DEFAULT_COUPON_MATCHES):
-    records,_,_=await read_board(session,None,None,None,now)
+    records,_,_=await read_board(session,None,now.astimezone(COUPON_TZ).date(),None,now)
     excluded=set(session.info['prediction_snapshot']['stale_leagues'])
     records=[r for r in records if r['match']['league_id'] not in excluded]
     groups={r['match']['id']:[deepcopy(c) for c in r['recommendations'][:2] if strong(c)] for r in records}
     await current_odds(session,groups,now)
+    from src.analytics.odds_diagnostics import report
+    session.info['coupon_diagnostics']=report([{**r,'recommendations':groups[r['match']['id']]} for r in records],now)
     items=[]
     for record in records:
         for rec in sorted(groups[record['match']['id']],key=lambda c:(-c['score'],-c['reliability'],c['id'])):
@@ -91,8 +100,10 @@ async def automatic(session,now,strategy='balanced',max_matches=DEFAULT_COUPON_M
             if not usable:continue
             book=max(usable,key=lambda b:(b['current_odds'],-('Crown','Bet365','Sbobet').index(b['bookmaker'])));vo=rec['verified_odds']
             quote=dict(eligible=True,price=book['current_odds'],bookmaker=book['bookmaker'],observed_at=book['observed_at'],expires_at=book['expires_at'],period=vo['period'],line=vo.get('line'),freshness='fresh')
-            items.append(dict(match=record['match'],recommendation=rec,quote=quote,status='pending'))
-            break
+            candidate=dict(match=record['match'],recommendation=rec,quote=quote,status='pending')
+            if daily_candidates([candidate],now,strategy,1):
+                items.append(candidate)
+                break
     items=daily_candidates(items,now,strategy,max_matches)
     if not items:return None
     await lock_coupons(session)

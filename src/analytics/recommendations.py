@@ -54,7 +54,10 @@ def select_recommendations(candidates):
     selected=[];groups=set()
     for candidate in ranked:
         if not candidate['qualifies'] or candidate['correlation_group'] in groups:continue
-        selected.append(candidate);groups.add(candidate['correlation_group'])
+        # Preserve the strongest independent market groups. Within a group, prefer
+        # a genuinely priced alternative only if it passes every evidence gate.
+        priced=next((c for c in ranked if c['qualifies'] and c['correlation_group']==candidate['correlation_group'] and (c.get('verified_odds') or {}).get('coupon_eligible')),None)
+        selected.append(priced or candidate);groups.add(candidate['correlation_group'])
         if len(selected)==2:break
     return ranked,selected
 

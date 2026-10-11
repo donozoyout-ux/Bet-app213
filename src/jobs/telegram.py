@@ -60,6 +60,11 @@ def message(coupon,items):
     return '\n\n'.join(lines)
 
 
+def selection_signature(coupon):
+    """Observation timestamps or refreshed prices cannot make the same picks a new send."""
+    return sorted((i['match']['id'],i['recommendation']['id']) for i in coupon.payload['items'])
+
+
 async def prepare(db,now,coupon_id=None):
     token,chat,configured=configuration()
     if not configured:return dict(status='disabled')
@@ -84,6 +89,16 @@ async def prepare(db,now,coupon_id=None):
                     if retry is None:retry=CollectorRetry(key=key);session.add(retry)
                     retry.failures=0;retry.reason='no_eligible_selections';retry.next_attempt_at=now+timedelta(minutes=5)
                 await session.commit();return dict(status='no_eligible_selections')
+            if slot:
+                # Different immutable versions can still describe the same coupon.
+                from src.match_views import day_bounds
+                start,end=day_bounds(now.astimezone(TZ).date(),'Europe/Istanbul')
+                previous=await session.scalars(select(SavedCoupon).join(TelegramDelivery,TelegramDelivery.coupon_id==SavedCoupon.id).where(TelegramDelivery.started_at>=start,TelegramDelivery.started_at<end))
+                if any(selection_signature(old)==selection_signature(coupon) for old in previous):
+                    key='telegram:'+slot;retry=await session.get(CollectorRetry,key)
+                    if retry is None:retry=CollectorRetry(key=key);session.add(retry)
+                    retry.failures=0;retry.reason='duplicate_selections';retry.next_attempt_at=now+timedelta(minutes=5)
+                    await session.commit();return dict(status='duplicate_selections')
             existing=await session.scalar(select(TelegramDelivery).where(TelegramDelivery.coupon_id==coupon.id))
             if existing:
                 if slot:

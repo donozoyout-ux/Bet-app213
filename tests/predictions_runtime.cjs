@@ -113,7 +113,15 @@ async function scenario(mode){
   if(mode==='best'){view.onchange();await api.refresh('1','2026-10-10');assert(calls.at(-1).includes('/best?'));assert(cards.text().includes(recorded.page.items[0].recommendations[0].label));cards.children[0].children[0].children[0].onclick();assert.equal(clicked.length,3);return;}
   if(mode==='verified-odds'){
     assert(cards.text().includes('1.50 (Bet365)'));
-    assert(cards.text().includes('Bu market için doğrulanmış oran yok'));
+    for(const [index,item] of recorded.page.items.entries()){
+      // This scenario supplies a real quote for the first recommendation of card 0.
+      const missing=index===0 ? Math.min(item.recommendations.length,2)-1 : item.recommendations.slice(0,2).filter(r=>!r.verified_odds?.has_odds).length;
+      if(missing){
+        const label=`${missing} tahmin için oran bekleniyor`;
+        assert(cards.children[index].text().includes(label));
+        assert.equal(cards.children[index].text().split('oran bekleniyor').length-1,1);
+      }
+    }
     await api.select(recorded.page.items[0].match.id, true);
     const box = ids.get('statistics-detail');
     assert(box.text().includes('En İyi Oran / Değer') && box.text().includes('1.50 (Bet365)'));
