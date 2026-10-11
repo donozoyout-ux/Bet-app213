@@ -34,7 +34,10 @@ def fingerprint(items):
 
 
 def payload(items):
-    return jsonable_encoder(dict(items=items,combined_odds=combined_price([i['quote']['price'] for i in items]),mixed_bookmakers=len({i['quote']['bookmaker'] for i in items})>1))
+    # Keep only coupon-relevant fields, not the entire board's evidence/three-book cache.
+    rec_fields=('id','market','selection','label','probability','confidence','qualifies','score','reliability','sample_size')
+    saved=[{**i,'recommendation':{k:v for k,v in i['recommendation'].items() if k in rec_fields}} for i in items]
+    return jsonable_encoder(dict(items=saved,combined_odds=combined_price([i['quote']['price'] for i in items]),mixed_bookmakers=len({i['quote']['bookmaker'] for i in items})>1))
 
 
 def strong(rec):
@@ -104,7 +107,10 @@ async def detail(session,row):
         id=item['match']['id'];match=matches.get(id)
         outcome,actual=settle(match,stats.get(id),draft_pick(item['recommendation']['id'])) if match else ('awaiting_data',None)
         item.update(status=outcome,actual=actual)
-        if match:item['match']['status']=match.status
+        if match:
+            item['match']['status']=match.status
+            item['match']['score']=f'{match.ft_home}–{match.ft_away}' if match.ft_home is not None and match.ft_away is not None else None
+            item['match']['half_time_score']=f'{match.ht_home}–{match.ht_away}' if match.ht_home is not None and match.ht_away is not None else None
     return result
 
 

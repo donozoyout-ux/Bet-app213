@@ -80,6 +80,10 @@ async def test_versioned_manual_edits_do_not_change_automatic(db):
         assert auto.payload==original and (await automatic(session,NOW)).id==auto.id
         with pytest.raises(Exception) as exc:await save_manual(session,DraftRequest(**request(ids[:1])),OWNER,NOW,base_id=manual.id)
         assert exc.value.status_code==409
+        match=await session.get(Match,ids[0]);match.status='finished';match.ft_home=2;match.ft_away=1;match.ht_home=1;match.ht_away=1
+        await session.commit()
+        result=await detail(session,edited)
+        assert result['items'][0]['match']['score']=='2–1' and result['items'][0]['status']=='won'
 
 
 @pytest.mark.parametrize('hour,minute,expected',[(8,59,None),(9,0,12),(14,59,12),(15,0,18),(20,59,18),(21,0,None)])

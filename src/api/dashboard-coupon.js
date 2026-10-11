@@ -53,6 +53,7 @@ function draw(){
   row.append(node('p',`Model: %${(100*r.probability).toFixed(1)} · Güven: ${confidence[r.confidence] || '—'}`));
   row.append(node('p',`${q?.bookmaker || book()} · ${money(q?.price)} · Gözlem: ${date(q?.observed_at)}${started?' · Taslağa alınan maç öncesi fiyat':fresh?' · Güncel gözlem':' · Bayat / doğrulama bekleniyor'}`));
   row.append(node('p',item.statusError?'Sonuç bağlantısı bekleniyor':outcomes[item.status || 'pending']));
+  if(m.score || m.half_time_score)row.append(node('p',`Maç sonucu: ${m.score || '—'} · İlk yarı: ${m.half_time_score || '—'}`));
   const remove=node('button','Seçimi çıkar');remove.type='button';remove.onclick=()=>{selected.delete(id);dirty=true;draw();};row.append(remove);box.append(row);
  }
  text('coupon-total',complete?`Gözlenen fiyatlardan kombine oran: ${Number.isFinite(total)?money(total):(10**(logTotal-Math.floor(logTotal))).toFixed(4)+'e+'+Math.floor(logTotal)} · Fiyat veya kazanma garantisi değildir`:'Kombine oran: — (güncel doğrulama bekleniyor)');
