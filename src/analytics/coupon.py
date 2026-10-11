@@ -1,5 +1,7 @@
 """Read-only quote validation and draft settlement; never places or records bets."""
 from copy import deepcopy
+from decimal import Decimal,localcontext
+import math
 import re
 
 from pydantic import BaseModel, Field, model_validator
@@ -11,6 +13,7 @@ from src.jobs.worker import aware
 from src.analytics.odds_matching import enrich_recommendations_with_odds
 from src.analytics.board_cache import MODEL_VERSION
 from src.analytics.performance import settle
+from src.analytics.recommendations import qualified_record
 
 
 class DraftSelection(BaseModel):
@@ -20,7 +23,7 @@ class DraftSelection(BaseModel):
 
 
 class DraftRequest(BaseModel):
-    selections: list[DraftSelection] = Field(min_length=1,max_length=2)
+    selections: list[DraftSelection] = Field(min_length=1)
 
     @model_validator(mode='after')
     def different_matches(self):
@@ -46,32 +49,38 @@ async def current_odds(session, groups, now):
 
 
 async def quote_draft(session, request, now):
-    items=[]
+    ids=[c.match_id for c in request.selections]
+    matches={r[0].id:r for r in await session.execute(select(Match,League.enabled).options(defer(Match.raw)).join(League).where(Match.id.in_(ids)))}
+    boards={b.league_id:b for b in await session.scalars(select(PredictionBoard).where(PredictionBoard.league_id.in_({r[0].league_id for r in matches.values()})))}
+    groups={};items=[]
     for choice in request.selections:
-        match=await session.get(Match,choice.match_id)
-        item=dict(match_id=choice.match_id,recommendation_id=choice.recommendation_id,bookmaker=choice.bookmaker,eligible=False,reason='selection_unavailable',price=None,observed_at=None)
-        if match is None or not await session.scalar(select(League.enabled).where(League.id==match.league_id)):items.append(item);continue
-        if match.status!='scheduled' or not match.kickoff_at or aware(match.kickoff_at)<=now:
-            item['reason']='match_started';items.append(item);continue
-        board=await session.get(PredictionBoard,match.league_id)
-        if board is None or board.model_version!=MODEL_VERSION or aware(board.generated_at)>now or aware(board.expires_at)<=now:
-            item['reason']='analysis_stale';items.append(item);continue
+        entry=dict(match_id=choice.match_id,recommendation_id=choice.recommendation_id,bookmaker=choice.bookmaker,eligible=False,reason='selection_unavailable',price=None,observed_at=None)
+        items.append(entry);row=matches.get(choice.match_id)
+        if row is None or not row[1]:continue
+        match=row[0]
+        if match.status!='scheduled' or not match.kickoff_at or aware(match.kickoff_at)<=now:entry['reason']='match_started';continue
+        board=boards.get(match.league_id)
+        if board is None or board.model_version!=MODEL_VERSION or aware(board.generated_at)>now or aware(board.expires_at)<=now:entry['reason']='analysis_stale';continue
         record=next((r for r in board.payload['items'] if r['match']['id']==match.id),None)
-        rec=next((r for r in record['recommendations'][:2] if r['id']==choice.recommendation_id and r.get('qualifies') is True),None) if record else None
-        if rec is None:items.append(item);continue
-        rec=deepcopy(rec)
-        await current_odds(session,{match.id:[rec]},now)
-        vo=rec['verified_odds'];book=vo.get('bookmakers',{}).get(choice.bookmaker,{})
-        item.update(market=rec['market'],selection=rec['selection'],period=vo['period'],line=vo.get('line'),price=book.get('current_odds'),observed_at=book.get('observed_at'),expires_at=book.get('expires_at'),freshness=book.get('freshness','unknown'),probability=rec['probability'],confidence=rec['confidence'],label=rec['label'])
-        item['eligible']=bool(book.get('coupon_eligible'))
-        item['reason']=None if item['eligible'] else 'odds_stale' if book.get('current_odds') else 'no_verified_odds'
-        items.append(item)
-    eligible=all(item['eligible'] for item in items)
-    total=1
-    for item in items:
-        if item['eligible']:total*=item['price']
-    # Quotes from distinct bookmakers are a mathematical draft, not one offered bet.
-    return dict(items=items,eligible=eligible,combined_odds=round(total,6) if eligible else None,mixed_bookmakers=len({i['bookmaker'] for i in items})>1,checked_at=now)
+        rec=next((r for r in record['recommendations'][:2] if r['id']==choice.recommendation_id and qualified_record(r)),None) if record else None
+        if rec:groups[match.id]=[deepcopy(rec)]
+    await current_odds(session,groups,now)
+    for choice,entry in zip(request.selections,items):
+        if choice.match_id not in groups:continue
+        rec=groups[choice.match_id][0];vo=rec['verified_odds'];book=vo.get('bookmakers',{}).get(choice.bookmaker,{})
+        entry.update(market=rec['market'],selection=rec['selection'],period=vo['period'],line=vo.get('line'),price=book.get('current_odds'),observed_at=book.get('observed_at'),expires_at=book.get('expires_at'),freshness=book.get('freshness','unknown'),probability=rec['probability'],confidence=rec['confidence'],label=rec['label'],eligible=bool(book.get('coupon_eligible')))
+        entry['reason']=None if entry['eligible'] else 'odds_stale' if book.get('current_odds') else 'no_verified_odds'
+    eligible=all(i['eligible'] for i in items)
+    return dict(items=items,eligible=eligible,combined_odds=combined_price([i['price'] for i in items]) if eligible else None,mixed_bookmakers=len({i['bookmaker'] for i in items})>1,checked_at=now)
+
+
+def combined_price(prices):
+    with localcontext() as context:
+        context.prec=34
+        total=Decimal(1)
+        for price in prices:total*=Decimal(str(price))
+        value=float(total)
+        return round(value,6) if math.isfinite(value) else str(total.normalize())
 
 
 def draft_pick(id):
@@ -86,11 +95,12 @@ def draft_pick(id):
 
 
 async def settle_draft(session, request):
+    ids=[c.match_id for c in request.selections]
+    matches={m.id:m for m in await session.scalars(select(Match).options(defer(Match.raw)).where(Match.id.in_(ids)))}
+    stats={s.match_id:s for s in await session.scalars(select(MatchStatistics).options(defer(MatchStatistics.raw)).where(MatchStatistics.match_id.in_(ids)))}
     items=[]
     for choice in request.selections:
-        pick=draft_pick(choice.recommendation_id)
-        match=await session.get(Match,choice.match_id)
-        stats=await session.get(MatchStatistics,choice.match_id)
-        outcome,actual=settle(match,stats,pick) if pick and match else ('awaiting_data',None)
+        pick=draft_pick(choice.recommendation_id);match=matches.get(choice.match_id)
+        outcome,actual=settle(match,stats.get(choice.match_id),pick) if pick and match else ('awaiting_data',None)
         items.append(dict(match_id=choice.match_id,recommendation_id=choice.recommendation_id,status=outcome,actual=actual,match_status=match.status if match else None))
     return dict(items=items)

@@ -1,8 +1,16 @@
 import pytest_asyncio
+import pytest
 from httpx import AsyncClient, ASGITransport
 from src.db import Database
 from src.api.main import app
 from src.api.routes import session_dependency
+
+
+@pytest.fixture(autouse=True)
+def no_real_telegram_credentials(monkeypatch):
+    # Empty inherited values also prevent subprocess dotenv loading real credentials.
+    monkeypatch.setenv('TELEGRAM_BOT_TOKEN','')
+    monkeypatch.setenv('TELEGRAM_CHAT_ID','')
 
 
 @pytest_asyncio.fixture

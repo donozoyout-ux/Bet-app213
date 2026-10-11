@@ -293,3 +293,31 @@ class CollectorRetry(Base):
     failures: Mapped[int] = mapped_column(default=0)
     next_attempt_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     reason: Mapped[str] = mapped_column(String(80))
+
+
+class SavedCoupon(Base):
+    """Immutable version; anonymous browser edits fork automatic coupons."""
+    __tablename__ = 'saved_coupons'
+    __table_args__ = (UniqueConstraint('root_id','revision'),)
+    id: Mapped[str] = mapped_column(String(36),primary_key=True)
+    root_id: Mapped[str] = mapped_column(String(36),index=True)
+    revision: Mapped[int]
+    owner_hash: Mapped[str | None] = mapped_column(String(64),index=True)
+    kind: Mapped[str] = mapped_column(String(20))
+    automatic_fingerprint: Mapped[str | None] = mapped_column(String(64),unique=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True),default=utcnow)
+    payload: Mapped[dict] = mapped_column(JSON)
+
+
+class TelegramDelivery(Base):
+    """At most one network attempt per version and automatic window."""
+    __tablename__ = 'telegram_deliveries'
+    id: Mapped[str] = mapped_column(String(36),primary_key=True)
+    coupon_id: Mapped[str] = mapped_column(ForeignKey('saved_coupons.id'),unique=True)
+    slot: Mapped[str | None] = mapped_column(String(40),unique=True)
+    kind: Mapped[str] = mapped_column(String(20))
+    status: Mapped[str] = mapped_column(String(20),index=True)
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    error_code: Mapped[str | None] = mapped_column(String(80))
+    message_id: Mapped[int | None]

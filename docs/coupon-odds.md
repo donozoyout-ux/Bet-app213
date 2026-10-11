@@ -2,12 +2,12 @@
 
 The recommendation engine keeps its existing quality gates and selects at most
 two independent strong recommendations per match. Kuponum allows one selection
-per match and at most two different matches. It is an in-memory informational
-draft; no bet is placed and no coupon record is persisted.
+per match, with no fixed distinct-match limit. It is an in-memory informational
+draft; no bet is placed. Saved versions and Telegram delivery are described in automatic-coupons-telegram.md.
 
 Model probability, model confidence and bookmaker decimal prices are separate
 values. Crown, Bet365 and Sbobet quotes are shown side by side. The user chooses
-one bookmaker for the draft; changing it clears the draft. The combined price
+one bookmaker for new manual selections; existing selections retain their verified source. The combined price
 is the product of the selected quoted prices, rounded for display only.
 
 ## Exact prices and freshness
@@ -33,7 +33,7 @@ No schema migration or historical prediction rewrite is required.
 
 ## Read-only API checks
 
-- `POST /api/coupon/quote` accepts one or two distinct match IDs, recommendation
+- `POST /api/coupon/quote` accepts distinct match IDs without a fixed count cap, recommendation
   IDs and whitelisted bookmakers. It checks the current model-version board,
   board expiry, qualified top-two membership, current kickoff/status and current
   database odds. Missing/stale quotes produce explicit reasons and no combined

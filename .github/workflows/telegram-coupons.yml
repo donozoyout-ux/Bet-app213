@@ -1,0 +1,33 @@
+name: Wake Telegram coupon windows
+on:
+  schedule:
+    # Europe/Istanbul is UTC+3: 12:00 and 18:00 local.
+    - cron: "0 9,15 * * *"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: telegram-coupon-wake
+  cancel-in-progress: false
+jobs:
+  wake:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      BETAPP_URL: ${{ vars.BETAPP_URL }}
+      SCRAPER_API_TOKEN: ${{ secrets.SCRAPER_API_TOKEN }}
+    steps:
+      - name: Wake web service and check durable window
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "$SCRAPER_API_TOKEN" ]; then
+            echo "SCRAPER_API_TOKEN repository secret is required for the wake endpoint."
+            exit 1
+          fi
+          TARGET_URL="${BETAPP_URL:-https://bet-app213.onrender.com}"
+          curl --fail --silent --show-error --max-time 90 --retry 2 --retry-delay 10 "$TARGET_URL/health" >/dev/null
+          # No blind POST retries; PostgreSQL claims make repeated invocations safe.
+          curl --fail --silent --show-error --max-time 40 \
+            -H "Authorization: Bearer $SCRAPER_API_TOKEN" \
+            -H 'Content-Type: application/json' -d '{}' "$TARGET_URL/api/telegram/tick"

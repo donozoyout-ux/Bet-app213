@@ -231,6 +231,63 @@ async def coupon_status(request: DraftRequest, session=Depends(session_dependenc
     async with asyncio.timeout(4):return await settle_draft(session,request)
 
 
+from src.analytics.saved_coupons import automatic,save_manual,accessible,detail as coupon_detail,summary as coupon_summary,owner_hash
+from src.models import SavedCoupon
+
+
+@router.post('/coupons/automatic')
+async def automatic_coupon(session=Depends(session_dependency)):
+    async with asyncio.timeout(10):
+        row=await automatic(session,utcnow())
+        await session.commit()
+        return await coupon_detail(session,row) if row else {'items':[],'status':'no_eligible_selections'}
+
+
+@router.post('/coupons')
+async def create_coupon(request: DraftRequest,x_coupon_key: str | None=Header(default=None),session=Depends(session_dependency)):
+    async with asyncio.timeout(10):
+        row=await save_manual(session,request,x_coupon_key,utcnow());await session.commit();return await coupon_detail(session,row)
+
+
+@router.put('/coupons/{coupon_id}')
+async def edit_coupon(coupon_id: str,request: DraftRequest,x_coupon_key: str | None=Header(default=None),session=Depends(session_dependency)):
+    async with asyncio.timeout(10):
+        row=await save_manual(session,request,x_coupon_key,utcnow(),base_id=coupon_id);await session.commit();return await coupon_detail(session,row)
+
+
+@router.get('/coupons')
+async def coupon_history(x_coupon_key: str | None=Header(default=None),limit: int=Query(default=10,ge=1,le=50),offset: int=Query(default=0,ge=0),session=Depends(session_dependency)):
+    allowed=SavedCoupon.owner_hash.is_(None)
+    if x_coupon_key:allowed=or_(allowed,SavedCoupon.owner_hash==owner_hash(x_coupon_key))
+    query=select(SavedCoupon.id,SavedCoupon.root_id,SavedCoupon.revision,SavedCoupon.kind,SavedCoupon.created_at,func.json_array_length(SavedCoupon.payload['items']).label('selections'),SavedCoupon.payload['combined_odds'].label('combined_odds')).where(allowed).order_by(SavedCoupon.created_at.desc(),SavedCoupon.revision.desc(),SavedCoupon.id).limit(limit).offset(offset)
+    return {'items':[dict(r._mapping) for r in await session.execute(query)],'limit':limit,'offset':offset}
+
+
+@router.get('/coupons/{coupon_id}')
+async def get_coupon(coupon_id: str,x_coupon_key: str | None=Header(default=None),session=Depends(session_dependency)):
+    return await coupon_detail(session,await accessible(session,coupon_id,x_coupon_key))
+
+
+@router.get('/telegram/status')
+async def telegram_status(session=Depends(session_dependency)):
+    from src.jobs.telegram import status
+    return await status(session,utcnow())
+
+
+@router.post('/telegram/tick',dependencies=[Depends(require_scraper_token),Depends(session_dependency)])
+async def telegram_tick():
+    from src.jobs.telegram import dispatch
+    async with asyncio.timeout(25):return await dispatch(database)
+
+
+@router.post('/coupons/{coupon_id}/telegram',dependencies=[Depends(require_scraper_token)])
+async def share_coupon(coupon_id: str,x_coupon_key: str | None=Header(default=None),session=Depends(session_dependency)):
+    await accessible(session,coupon_id,x_coupon_key)
+    await session.rollback()  # Release the HTTP reader before claiming and sending.
+    from src.jobs.telegram import dispatch
+    async with asyncio.timeout(25):return await dispatch(database,coupon_id=coupon_id)
+
+
 async def uncached_predictions(session,league,date,team=None,now=None,publish=True):
     now = now or utcnow()
     query, home, away = match_query()

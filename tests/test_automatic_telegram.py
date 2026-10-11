@@ -1,0 +1,256 @@
+"""No real Telegram calls: stored fixtures and injected HTTP transport only."""
+from copy import deepcopy
+from datetime import timedelta,datetime,timezone
+import asyncio
+import logging
+import os
+import uuid
+
+import httpx
+import pytest
+from sqlalchemy import select,func
+from sqlalchemy.ext.asyncio import async_sessionmaker
+from sqlalchemy.schema import CreateSchema,DropSchema
+from src.db import Database
+from src.models import SavedCoupon,TelegramDelivery,PredictionBoard,MarketOdds,Match
+from src.analytics.saved_coupons import automatic,save_manual,detail
+from src.analytics.coupon import DraftRequest
+from src.jobs.telegram import dispatch,prepare,window,message,status
+from tests.test_coupon import coupon_seed,request,NOW
+
+OWNER='12345678-1234-1234-1234-123456789012'
+TOKEN='12345:TEST_SECRET_ONLY'
+CHAT='-100999999'
+
+
+@pytest.fixture
+def configured(monkeypatch):
+    monkeypatch.setenv('TELEGRAM_BOT_TOKEN',TOKEN);monkeypatch.setenv('TELEGRAM_CHAT_ID',CHAT)
+
+
+async def many_matches(db,count=12):
+    ids=await coupon_seed(db)
+    async with db.session() as session:
+        first=await session.get(Match,ids[0]);board=await session.get(PredictionBoard,first.league_id)
+        items=deepcopy(board.payload['items']);template=items[0]
+        existing=(await session.scalars(select(MarketOdds).where(MarketOdds.match_id==first.id))).all()
+        for index in range(count-2):
+            match=Match(external_match_id=770000+index,league_id=first.league_id,season_id=first.season_id,round=3,
+                home_team_id=first.home_team_id,away_team_id=first.away_team_id,kickoff_at=NOW+timedelta(days=1),status='scheduled',raw={},created_at=NOW,updated_at=NOW)
+            session.add(match);await session.flush()
+            item=deepcopy(template);item['match']['id']=match.id;item['match_id']=match.id;items.append(item)
+            for odds in existing:
+                session.add(MarketOdds(match_id=match.id,bookmaker_id=odds.bookmaker_id,market=odds.market,period=odds.period,latest_line=odds.latest_line,latest_over=odds.latest_over,latest_under=odds.latest_under,updated_at=NOW-timedelta(minutes=1),raw={}))
+        board.payload={**board.payload,'items':items,'evaluated':len(items)};await session.commit()
+    return ids
+
+
+async def test_automatic_unlimited_strong_exact_quotes_and_empty(db):
+    await many_matches(db)
+    async with db.session() as session:
+        coupon=await automatic(session,NOW);await session.commit()
+        assert len(coupon.payload['items'])==12
+        assert len({i['match']['id'] for i in coupon.payload['items']})==12
+        assert coupon.payload['combined_odds']==pytest.approx(1.8**12,abs=1e-6)
+        assert all(i['quote']['bookmaker'] in {'Crown','Bet365','Sbobet'} for i in coupon.payload['items'])
+        assert (await automatic(session,NOW)).id==coupon.id
+        for row in await session.scalars(select(MarketOdds)):row.updated_at=NOW-timedelta(hours=1)
+        await session.commit();assert await automatic(session,NOW) is None
+        for row in await session.scalars(select(MarketOdds)):row.updated_at=NOW
+        board=await session.scalar(select(PredictionBoard))
+        data=deepcopy(board.payload)
+        for item in data['items']:
+            for rec in item['recommendations']:rec['qualifies']=False
+        board.payload=data;await session.commit();assert await automatic(session,NOW) is None
+        for item in data['items']:
+            for rec in item['recommendations']:rec['qualifies']=True;rec['probability']=.1
+        board.payload=deepcopy(data);await session.commit();assert await automatic(session,NOW) is None
+
+
+async def test_versioned_manual_edits_do_not_change_automatic(db):
+    ids=await coupon_seed(db)
+    async with db.session() as session:
+        auto=await automatic(session,NOW);original=deepcopy(auto.payload);await session.commit()
+        manual=await save_manual(session,DraftRequest(**request(ids)),OWNER,NOW);await session.commit()
+        unchanged=await save_manual(session,DraftRequest(**request(ids)),OWNER,NOW,base_id=manual.id)
+        assert unchanged.id==manual.id
+        edited=await save_manual(session,DraftRequest(**request(ids[:1])),OWNER,NOW,base_id=manual.id);await session.commit()
+        assert edited.root_id==manual.root_id and edited.revision==2
+        assert len(edited.payload['items'])==1 and len(manual.payload['items'])==2
+        assert auto.payload==original and (await automatic(session,NOW)).id==auto.id
+        with pytest.raises(Exception) as exc:await save_manual(session,DraftRequest(**request(ids[:1])),OWNER,NOW,base_id=manual.id)
+        assert exc.value.status_code==409
+
+
+@pytest.mark.parametrize('hour,minute,expected',[(8,59,None),(9,0,12),(14,59,12),(15,0,18),(20,59,18),(21,0,None)])
+def test_istanbul_daily_windows(hour,minute,expected):
+    now=datetime(2026,10,8,hour,minute,tzinfo=timezone.utc)
+    slot=window(now)
+    assert (datetime.fromisoformat(slot).hour if slot else None)==expected
+
+
+async def freshen(db,now):
+    async with db.session() as session:
+        for row in await session.scalars(select(MarketOdds)):row.updated_at=now-timedelta(minutes=1)
+        for row in await session.scalars(select(PredictionBoard)):row.generated_at=now;row.expires_at=now+timedelta(minutes=10)
+        await session.commit()
+
+
+async def verify_scheduling(db):
+    await coupon_seed(db);calls=[]
+    def telegram(req):
+        calls.append(req);return httpx.Response(200,json={'ok':True,'result':{'message_id':len(calls)}})
+    transport=httpx.MockTransport(telegram)
+    noon=NOW.replace(hour=9);await freshen(db,noon)
+    first=await dispatch(db,noon,transport=transport);assert first['status']=='sent'
+    # New transactions see the committed ledger, independent of in-memory timers.
+    again=await dispatch(db,noon+timedelta(minutes=5),transport=transport)
+    assert again['status']=='sent' and len(calls)==1
+    evening=NOW.replace(hour=15);await freshen(db,evening)
+    assert (await dispatch(db,evening,transport=transport))['status']=='sent'
+    assert (await dispatch(db,evening+timedelta(hours=1),transport=transport))['status']=='sent'
+    assert len(calls)==2
+    async with db.session() as session:
+        rows=(await session.scalars(select(TelegramDelivery))).all()
+        assert len(rows)==2 and len({r.slot for r in rows})==2
+        safe=await status(session,evening)
+        assert TOKEN not in str(safe) and CHAT not in str(safe)
+        assert safe['automatic_daily_limit']==2
+
+
+async def test_schedule_both_slots_and_restart_ledger(db,configured):
+    await verify_scheduling(db)
+
+
+async def test_simultaneous_senders_and_same_version_manual(db,configured):
+    await coupon_seed(db)
+    async with db.session() as session:
+        auto=await automatic(session,NOW);await session.commit();id=auto.id
+    calls=[]
+    async def send(req):calls.append(req);await asyncio.sleep(.05);return httpx.Response(200,json={'ok':True,'result':{'message_id':5}})
+    results=await asyncio.gather(dispatch(db,NOW,coupon_id=id,transport=httpx.MockTransport(send)),dispatch(db,NOW,coupon_id=id,transport=httpx.MockTransport(send)))
+    assert len(calls)==1 and any(r['status']=='sent' for r in results)
+    assert (await dispatch(db,NOW,coupon_id=id,transport=httpx.MockTransport(send)))['status']=='duplicate_version'
+
+
+@pytest.mark.parametrize('mode,expected',[('timeout','uncertain'),('http500','uncertain'),('malformed','uncertain'),('reject','failed')])
+async def test_telegram_failure_no_blind_retry(db,configured,mode,expected,caplog):
+    await coupon_seed(db);calls=[]
+    def send(req):
+        calls.append(req)
+        if mode=='timeout':raise httpx.ReadTimeout('contains '+TOKEN,request=req)
+        if mode=='http500':return httpx.Response(500,json={'ok':False})
+        if mode=='malformed':return httpx.Response(200,text='bad response '+TOKEN)
+        return httpx.Response(403,json={'ok':False,'description':'secret '+TOKEN})
+    with caplog.at_level(logging.INFO):
+        result=await dispatch(db,NOW,transport=httpx.MockTransport(send))
+        assert result['status']==expected
+        await dispatch(db,NOW+timedelta(minutes=1),transport=httpx.MockTransport(send))
+    assert len(calls)==1 and TOKEN not in caplog.text and TOKEN not in str(result)
+    async with db.session() as session:
+        row=await session.scalar(select(TelegramDelivery));assert row.status==expected and row.error_code
+
+
+async def test_interrupted_sender_not_retried(db,configured):
+    await coupon_seed(db)
+    claim=await prepare(db,NOW);assert claim['status']=='claimed'
+    result=await dispatch(db,NOW+timedelta(minutes=3),transport=httpx.MockTransport(lambda _:pytest.fail('must not send')))
+    assert result['status']=='uncertain'
+
+
+async def test_missing_settings_and_empty_dont_send(db,monkeypatch):
+    monkeypatch.delenv('TELEGRAM_BOT_TOKEN',raising=False);monkeypatch.delenv('TELEGRAM_CHAT_ID',raising=False)
+    assert (await dispatch(db,NOW))['status']=='disabled'
+    monkeypatch.setenv('TELEGRAM_BOT_TOKEN',TOKEN);monkeypatch.setenv('TELEGRAM_CHAT_ID',CHAT)
+    result=await dispatch(db,NOW,transport=httpx.MockTransport(lambda _:pytest.fail('empty coupon')))
+    assert result['status']=='no_eligible_selections'
+    async with db.session() as session:assert await session.scalar(select(func.count(TelegramDelivery.id)))==0
+
+
+async def test_message_format_and_document_for_large_coupon(db,configured):
+    await many_matches(db,45);calls=[]
+    def send(req):calls.append(req);return httpx.Response(200,json={'ok':True,'result':{'message_id':4}})
+    result=await dispatch(db,NOW,transport=httpx.MockTransport(send));assert result['status']=='sent'
+    assert calls[0].url.path.endswith('/sendDocument')
+    content=calls[0].content.decode()
+    assert '45.' in content and ('Bet365' in content or 'Crown' in content)
+    assert 'Oluşturulma' in content and 'Toplam' in content and 'garantisi yok' in content
+
+
+async def test_saved_api_private_owner_and_manual_admin_guard(api,db,monkeypatch,configured):
+    import src.api.routes as routes
+    monkeypatch.setattr(routes,'utcnow',lambda:NOW)
+    ids=await coupon_seed(db)
+    auto=(await api.post('/api/coupons/automatic')).json();assert len(auto['items'])==2
+    data=(await api.post('/api/coupons',json=request(ids),headers={'X-Coupon-Key':OWNER})).json()
+    assert (await api.get('/api/coupons/'+data['id'])).status_code==404
+    assert (await api.get('/api/coupons/'+data['id'],headers={'X-Coupon-Key':OWNER})).status_code==200
+    assert 'owner_hash' not in data
+    assert (await api.post('/api/coupons/'+data['id']+'/telegram')).status_code in (401,503)
+    safe=(await api.get('/api/telegram/status')).json()
+    assert safe['configured'] and TOKEN not in str(safe) and CHAT not in str(safe)
+
+
+async def test_chromium_automatic_edit_save_history_and_results(api,db,monkeypatch):
+    from playwright.async_api import async_playwright,expect
+    import src.api.routes as routes
+    monkeypatch.setattr(routes,'utcnow',lambda:NOW)
+    await many_matches(db,4)
+    async with async_playwright() as p:
+        browser=await p.chromium.launch();page=await browser.new_page(viewport={'width':1280,'height':900})
+        await page.clock.install(time=NOW)
+        errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
+        async def forward(route):
+            headers={k:v for k,v in route.request.headers.items() if k in ('content-type','x-coupon-key','authorization')}
+            response=await api.request(route.request.method,route.request.url.removeprefix('http://test'),content=route.request.post_data,headers=headers)
+            await route.fulfill(status=response.status_code,body=response.content,content_type=response.headers.get('content-type','application/json'))
+        await page.route('http://test/**',forward);await page.goto('http://test/#coupon')
+        await page.locator('#coupon-automatic').click()
+        await expect(page.locator('#coupon-selected button')).to_have_count(4)
+        await expect(page.locator('#coupon-saved-note')).to_contain_text('Otomatik')
+        await page.locator('#coupon-selected button').first.click()
+        await expect(page.locator('#coupon-selected button')).to_have_count(3)
+        await expect(page.locator('#coupon-telegram')).to_be_disabled()
+        # Add a different qualified prediction for the removed fixture.
+        available=page.locator('[data-coupon-pick]:enabled:not(:checked)')
+        await available.last.check()
+        await expect(page.locator('#coupon-selected button')).to_have_count(4)
+        await page.locator('#coupon-save').click()
+        await expect(page.locator('#coupon-note')).to_contain_text('PostgreSQL')
+        await expect(page.locator('#coupon-saved-note')).to_contain_text('Düzenlenmiş')
+        await page.locator('#coupon-selected button').first.click()
+        await page.locator('#coupon-save').click()
+        await expect(page.locator('#coupon-saved-note')).to_contain_text('Sürüm 2')
+        await expect(page.locator('#coupon-history button')).to_have_count(3)
+        await page.locator('#coupon-automatic').click()
+        await expect(page.locator('#coupon-selected button')).to_have_count(4)
+        await page.set_viewport_size({'width':390,'height':844})
+        assert await page.evaluate('document.documentElement.scrollWidth<=innerWidth')
+        assert errors==[]
+        await page.unroute_all(behavior='ignoreErrors');await browser.close()
+
+
+@pytest.mark.skipif(not os.getenv('TEST_POSTGRES_URL'),reason='TEST_POSTGRES_URL is not configured')
+async def test_postgres_concurrency_restart_and_immutable_versions(configured):
+    db=Database(os.environ['TEST_POSTGRES_URL']);schema='telegram_'+uuid.uuid4().hex
+    try:
+        async with db.engine.begin() as conn:await conn.execute(CreateSchema(schema))
+        db.engine=db.engine.execution_options(schema_translate_map={None:schema});db.sessions=async_sessionmaker(db.engine,expire_on_commit=False)
+        await db.initialize();await verify_scheduling(db)
+        restarted=Database(os.environ['TEST_POSTGRES_URL'])
+        restarted.engine=restarted.engine.execution_options(schema_translate_map={None:schema});restarted.sessions=async_sessionmaker(restarted.engine,expire_on_commit=False)
+        try:
+            result=await dispatch(restarted,NOW.replace(hour=15)+timedelta(minutes=5),transport=httpx.MockTransport(lambda _:pytest.fail('restart duplicate')))
+            assert result['status']=='sent'
+        finally:await restarted.close()
+        # Concurrent fresh manual claims on PostgreSQL are serialized without HTTP transactions.
+        async with db.session() as session:
+            old=await session.scalar(select(SavedCoupon));copy=SavedCoupon(id=str(uuid.uuid4()),root_id=str(uuid.uuid4()),revision=1,kind='manual',owner_hash=None,created_at=NOW,payload=old.payload);session.add(copy);await session.commit();id=copy.id
+        await freshen(db,NOW)
+        calls=[]
+        async def send(req):calls.append(req);await asyncio.sleep(.05);return httpx.Response(200,json={'ok':True,'result':{'message_id':7}})
+        await asyncio.gather(*[dispatch(db,NOW,coupon_id=id,transport=httpx.MockTransport(send)) for _ in range(4)])
+        assert len(calls)==1
+    finally:
+        async with db.engine.begin() as conn:await conn.execute(DropSchema(schema,cascade=True,if_exists=True))
+        await db.close()

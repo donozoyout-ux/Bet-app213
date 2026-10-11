@@ -18,6 +18,10 @@ services:
           property: connectionString
       - key: SCRAPER_API_TOKEN
         generateValue: true
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_CHAT_ID
+        sync: false
       - key: SCRAPER_WORKER_ENABLED
         value: "true"
       - key: AUTO_BACKFILL_ON_EMPTY
