@@ -28,13 +28,14 @@ async function scenario(mode){
  let copied='',release,calls=[],versions=new Map(),manualRevision=0;
  const saved=(selected,kind='automatic',revision=1)=>({id:kind+'-'+revision,revision,kind,created_at:stamp,combined_odds:selected.reduce((p,i)=>p*i.quote.price,1),items:selected});
  const asSaved=item=>({...structuredClone(item),quote:{eligible:true,bookmaker:'Bet365',price:item.recommendation.verified_odds.bookmakers.Bet365.current_odds,observed_at:stamp,expires_at:expiry},status:'pending'});
- const sandbox={console,Date,Map,Number,AbortSignal,crypto:{randomUUID:()=> '12345678-1234-1234-1234-123456789012'},navigator:{clipboard:{writeText:async value=>{if(mode==='copy-denied')throw Error('denied');copied=value;}}},document:{getElementById:id=>ids.get(id),createElement:tag=>new Element(tag),querySelectorAll:()=>all(ids.get('coupon-candidates')).filter(e=>e.type==='checkbox')},fetch:async(path,options)=>{
+ const sandbox={console,Date,Map,Number,URLSearchParams,AbortSignal,crypto:{randomUUID:()=> '12345678-1234-1234-1234-123456789012'},navigator:{clipboard:{writeText:async value=>{if(mode==='copy-denied')throw Error('denied');copied=value;}}},document:{getElementById:id=>ids.get(id),createElement:tag=>new Element(tag),querySelectorAll:()=>all(ids.get('coupon-candidates')).filter(e=>e.type==='checkbox')},fetch:async(path,options)=>{
   calls.push(path);
   if(mode==='request-failed')throw Error('timeout');
   if(path.startsWith('/api/predictions'))return {ok:true,json:async()=>({items,generated_at:stamp,cache:{stale:false}})};
   if(path==='/api/telegram/status')return {ok:true,json:async()=>({configured:false,today:[]})};
   if(path.startsWith('/api/coupons?'))return {ok:true,json:async()=>({items:[...versions.values()].map(v=>({...v,selections:v.items.length}))})};
-  if(path==='/api/coupons/automatic'){
+  if(path.startsWith('/api/coupons/automatic?')){
+   assert(path.includes('strategy=balanced') && path.includes('max_matches=4'));
    const data=saved(items.filter((_,index)=>index%2===0).map(asSaved));versions.set(data.id,data);return {ok:true,json:async()=>structuredClone(data)};
   }
   if(path.startsWith('/api/coupons')){
