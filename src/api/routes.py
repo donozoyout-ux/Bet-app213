@@ -76,11 +76,14 @@ async def uncached_status():
     async with database.session() as session:
         await session.execute(text('SELECT 1'))
         total = await session.scalar(select(func.count(Match.id)))
+        from datetime import timedelta
+        new_matches_24h = await session.scalar(select(func.count(Match.id)).where(Match.created_at >= utcnow() - timedelta(hours=24)))
+        latest_new_match_at = await session.scalar(select(func.max(Match.created_at)))
         odds_total = await session.scalar(select(sum(select(func.count(model.id)).scalar_subquery() for model in (Odds1X2, AsianHandicap, AsianTotals))))
         last = await session.scalar(select(func.max(Match.last_scraped_at)))
         stats_last=await session.scalar(select(func.max(MatchStatistics.updated_at)))
         last=max((aware(value) for value in [last,stats_last] if value is not None),default=None)
-    return StatusResponse(database='connected', database_engine=database.engine.dialect.name, total_matches=total, total_odds=odds_total, last_scraped_at=aware(last), app_env=settings.app_env)
+    return StatusResponse(database='connected', database_engine=database.engine.dialect.name, total_matches=total, new_matches_24h=new_matches_24h, latest_new_match_at=latest_new_match_at, total_odds=odds_total, last_scraped_at=aware(last), app_env=settings.app_env)
 
 
 @router.get('/leagues', response_model=list[LeagueResponse])
