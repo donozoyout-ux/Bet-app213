@@ -163,7 +163,10 @@
     try {
       const system=await api('/api/status');
       write('system-db',[system.database_engine,system.database].filter(Boolean).join(' • '));write('hero-status',system.database === 'connected' ? 'Veritabanı bağlı' : 'PostgreSQL kullanılamıyor');write('services-status',system.database === 'connected' ? 'Veritabanı bağlı' : 'Veri bekleniyor');
-      write('total-matches',system.total_matches == null ? empty : system.total_matches);write('data-source','Goaloo');
+      write('total-matches',system.total_matches == null ? empty : system.total_matches);
+      write('new-matches-24h',system.new_matches_24h == null ? empty : system.new_matches_24h);
+      write('latest-new-match',`Son kayıt: ${date(system.latest_new_match_at)}`);
+      write('data-source','Goaloo');
 
       for(const id of ['last-scraped','hero-last','header-last','home-last'])write(id,date(system.last_scraped_at));
       write('system-summary',system.total_odds == null ? 'Veri bekleniyor' : `${system.total_odds} bookmaker piyasa kaydı`);
