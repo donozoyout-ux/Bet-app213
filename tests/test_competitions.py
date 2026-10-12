@@ -179,3 +179,14 @@ async def test_authenticated_all_league_update_queue(api,db,monkeypatch):
     assert first.status_code==second.status_code==202
     assert len(first.json())==30
     assert [job['id'] for job in first.json()]==[job['id'] for job in second.json()]
+
+
+def test_uefa_two_leg_cup_ties_expand_only_real_fixture_rows():
+    """Goaloo pairs aggregate tie metadata with two actual fixture arrays."""
+    from src.scrapers.goaloo.matches import expand_schedule_rows
+    game1=[2592137,103,-1,'2024-07-09 23:30',21328,383,'3-0','1-0']
+    game2=[2592153,103,-1,'2024-07-16 23:59',383,21328,'1-1','1-1']
+    tie=[21328,383,4,1,[game1,game2]]
+    assert list(expand_schedule_rows([tie])) == [game1,game2]
+    assert list(expand_schedule_rows([game1])) == [game1]
+    assert list(expand_schedule_rows([tie,game1])) == [game1,game2,game1]
