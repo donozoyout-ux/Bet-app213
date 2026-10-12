@@ -19,6 +19,22 @@ def schedule_score(value, status):
     return parse_score(value)
 
 
+def expand_schedule_rows(rows):
+    """Goaloo cup knockout ties may nest first and second legs in a tie row.
+
+    The outer row contains team IDs and aggregate metadata rather than a
+    match ID. Only expand a verified list of fixture rows; leave ordinary
+    league/cup rows unchanged for the existing strict parser.
+    """
+    for row in rows:
+        if (isinstance(row, list) and len(row) > 4
+                and isinstance(row[4], list) and row[4]
+                and all(isinstance(child, list) for child in row[4])):
+            yield from row[4]
+        else:
+            yield row
+
+
 def parse_matches(payload, round_number, errors=None):
     """Schedule timestamps are UTC+8, as verified by league.js timeFromE8()."""
     try:
@@ -27,7 +43,7 @@ def parse_matches(payload, round_number, errors=None):
         rows = section['rows']
     except (KeyError, TypeError, IndexError) as exc:
         raise SourceError('League match schema changed') from exc
-    for row in rows:
+    for row in expand_schedule_rows(rows):
         try:
             if int(row[0]) <= 0 or int(row[4]) <= 0 or int(row[5]) <= 0:
                 raise ValueError('Unresolved fixture participants')
