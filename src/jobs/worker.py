@@ -656,6 +656,8 @@ async def work(once=False):
                 # Validate the three European cup schedules against the source before
                 # they are enabled or any historical backfill is queued.
                 try:
+                    if not settings.auto_backfill_on_empty:
+                        raise ValueError('UEFA onboarding is disabled with automatic backfill')
                     from src.scrapers.goaloo.competitions import verify_uefa_competitions, upsert_competitions
                     async with GoalooClient() as uefa_client:
                         verified_uefa = await verify_uefa_competitions(uefa_client)
