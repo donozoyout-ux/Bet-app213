@@ -184,14 +184,48 @@ async def discover_competitions(client=None):
 
 
 async def verify_uefa_competitions(client):
-    """Verify UEFA identity and source schedules before activating new tournaments."""
-    catalog = parse_catalog(await client.get_text(CATALOG_URL))
+    """Verify UEFA cup identities using source schedules if catalog is blocked."""
+    try:
+        catalog = parse_catalog(await client.get_text(CATALOG_URL))
+    except SourceError:
+        # Goaloo sometimes responds 406 on its header catalog from Render.
+        # Never trust IDs alone: verify both the competition name and fixtures.
+        catalog = None
+
     targets = []
+    markers = {103: 'champions league', 113: 'europa league',
+               2187: 'conference league'}
     for offset, (external_id, title) in enumerate(UEFA_COMPETITIONS.items(), 20):
-        items = [item for item in catalog if item['external_id'] == external_id]
-        if len(items) != 1 or items[0]['schedule_format'] != 'cup':
-            raise SourceError(f'UEFA competition identity not verified: {external_id}')
-        item = items[0]
+        item = None
+        if catalog is not None:
+            items = [entry for entry in catalog if entry['external_id'] == external_id]
+            if len(items) != 1:
+                raise SourceError(f'UEFA competition ID absent or ambiguous: {external_id}')
+            item = items[0]
+        else:
+            seasons = await discover_seasons(client, external_id, 2024)
+            if not seasons:
+                raise SourceError(f'No UEFA seasons for competition {external_id}')
+            for fmt in ('cup', 'league'):
+                try:
+                    payload = await season_data(client, external_id, seasons[-1], fmt)
+                except SourceError:
+                    continue
+                info = payload.get('LeagueInfo', [])
+                if not isinstance(info, list) or len(info) < 4 or str(info[0]) != str(external_id):
+                    continue
+                full_name = normalize_name(str(info[1]))
+                if markers[external_id] not in full_name:
+                    raise SourceError(f'UEFA competition name mismatch: {external_id}')
+                try:
+                    short_name = info[2] if fmt == 'cup' else info[5] if 'SubLeagueInfo' in payload else info[7]
+                except (IndexError, TypeError):
+                    continue
+                item = {'external_id': external_id, 'catalog_name': short_name,
+                        'country': 'Europe', 'schedule_format': fmt}
+                break
+            if item is None:
+                raise SourceError(f'UEFA schedule identity unavailable: {external_id}')
         competition = Competition(**item, competition_type='club', priority=offset)
         await verify_competition(client, competition)
         if not competition.verified:
