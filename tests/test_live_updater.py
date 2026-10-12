@@ -241,9 +241,9 @@ async def test_recent_statistics_rotates_all_eight_leagues_and_reports_progress(
             is_final=True,events_available=False,events=[],referee=None,raw={'match_id':id})
     monkeypatch.setattr(live,'fetch_statistics',stats)
     updater=PriorityUpdater(db)
-    for _ in range(8):await updater.recent_statistics(None)
-    assert calls==list(PRODUCTION_LEAGUE_IDS)
-    for _ in range(8):await updater.recent_statistics(None)
+    for _ in range(len(leagues)):await updater.recent_statistics(None)
+    assert calls==[l.external_id for l in leagues]
+    for _ in range(len(leagues)):await updater.recent_statistics(None)
     assert len(calls)==8  # Partial data gets a cooldown, not a tight retry loop.
     rows=(await api.get('/api/diagnostics')).json()['stats_coverage_by_league']
     assert len(rows)==8 and all(r['matches_with_corners']==1 and r['matches_with_cards']==0 for r in rows)
