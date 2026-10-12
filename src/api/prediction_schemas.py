@@ -177,6 +177,10 @@ class Recommendation(BaseModel):
 
 
 class Statistics(BaseModel):
+    market_engines: dict = Field(default_factory=dict)
+    engine_context: dict = Field(default_factory=dict)
+    engine_registry: dict = Field(default_factory=dict)
+    planned_engines: list[str] = Field(default_factory=list)
     market_availability: dict = Field(default_factory=dict)
     match: MatchResponse
     prediction: Prediction
