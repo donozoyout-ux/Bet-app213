@@ -228,7 +228,26 @@ async def discover(job_id, client):
         kind, start_year, league_id, external_id = job.kind, job.start_year, league.id, league.external_id
         competition_type, schedule_format = league.competition_type, league.schedule_format
         if job.discovery_complete:
-            return
+            # Previous UEFA cup discoveries persisted aggregate tie rows as
+            # ScraperIssues. Replay only those old two-leg errors after the
+            # verified nested-fixture parser update; existing match upserts
+            # and job items are idempotent.
+            if kind == 'backfill' and external_id in (103, 113, 2187):
+                issues = (await session.scalars(select(ScraperIssue).where(
+                    ScraperIssue.job_id == job.id))).all()
+                def is_old_tie(issue):
+                    row = (issue.raw or {}).get('schedule')
+                    return (isinstance(row, list) and len(row) > 4
+                            and isinstance(row[4], list) and row[4]
+                            and all(isinstance(child, list) for child in row[4]))
+                if any(is_old_tie(issue) for issue in issues):
+                    job.discovery_complete = False
+                    await session.commit()
+                    log.info('[UEFA] rediscovering previously rejected two-leg ties job_id=%s', job.id)
+                else:
+                    return
+            else:
+                return
         if kind == 'stats_backfill':
             if job.match_id:
                 await get_or_create(session, JobItem, {'job_id': job.id, 'match_id': job.match_id})
