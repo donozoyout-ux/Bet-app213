@@ -20,22 +20,22 @@ async function api(path,signal){const r=await fetch(path,{signal:signal || Abort
 async function request(key,path,success,failure){const pending=state.controllers.get(key);if(pending && !pending.signal.aborted && pending.path===path)return;pending?.abort();const c=new AbortController();c.path=path;state.controllers.set(key,c);try{const data=await api(path,AbortSignal.any([c.signal,AbortSignal.timeout(15000)]));if(!c.signal.aborted)success(data);}catch(e){if(!c.signal.aborted)failure?.(e);}finally{if(state.controllers.get(key)===c)state.controllers.delete(key);}}
 function openRow(row,id){row.dataset.matchId=String(id);row.tabIndex=0;row.setAttribute('aria-label','Maç analizini aç');row.onclick=()=>globalThis.BetAppDashboard?.selectMatch(id);row.onkeydown=e=>{if(['Enter',' '].includes(e.key)){e.preventDefault();row.onclick();}};}
 function availabilityMessage(a){return ({insufficient_data:'Yetersiz istatistiksel geçmiş. Tam korner veya sarı + kırmızı kart kayıtları bekleniyor.',no_upcoming_matches:'Bu tarih ve lig için yaklaşan maç yok.',filtered_out:'Nitelikli tahminler var; güven veya olasılık filtresi dışında.',no_qualified_recommendations:'Modelin kalite ve sıralama eşiklerini geçen tahmin yok.'})[a?.status] || 'Bu filtrede modelin seçtiği nitelikli tahmin yok.';}
-function card(item){const m=item.match,recs=(item.recommendations || []).slice(0,2);if(!recs.length)return null;const el=node('article','','prediction-card');el.setAttribute('role','button');el.setAttribute('aria-label',`${m.home_team} — ${m.away_team}, analizi aç`);el.tabIndex=0;el.dataset.matchId=String(m.id);
+function card(item){const m=item.match,recs=(item.recommendations || []).slice(0,2);if(!recs.length)return null;const el=node('article','','prediction-card');el.classList.add('home-market-card');el.setAttribute('role','button');el.setAttribute('aria-label',`${m.home_team} — ${m.away_team}, analizi aç`);el.tabIndex=0;el.dataset.matchId=String(m.id);
  const meta=node('div','','card-meta');meta.append(node('span',m.league,'league-label'),node('time',date(m.kickoff_at)));el.append(meta);const teams=node('h3','','card-teams');teams.append(node('span',m.home_team),node('span',m.away_team));el.append(teams);
- const primary=node('div','','pick-primary');primary.append(node('span','EN GÜÇLÜ TAHMİN','eyebrow'));const line=node('div','','pick-line');line.append(node('span',pickLabel(recs[0])),node('strong',pct(recs[0].probability)));primary.append(line);
+ const primary=node('div','','pick-primary');primary.append(node('span','✦ MODELİN ÖNE ÇIKARDIĞI','eyebrow'));const line=node('div','','pick-line');line.append(node('span',pickLabel(recs[0])),node('strong',pct(recs[0].probability)));primary.append(line);
  const vo=recs[0].verified_odds;
  const metaPick=node('div','','pick-meta');
  metaPick.append(node('span',`${recs[0].sample_size} maç örneği`),node('span',`${confidences[recs[0].confidence]} güven`,'confidence-badge'));
  if(vo && vo.has_odds){
    metaPick.append(node('span',`En İyi Oran: ${num(vo.best_price)} (${vo.best_bookmaker}) · Değer: ${vo.best_value>=0?'+':''}${(100*vo.best_value).toFixed(1)}%`,'odds-badge'));
  } else {
-   metaPick.append(node('span','Oran henüz doğrulanmadı','odds-missing-badge'));
+   metaPick.append(node('span','Model tahmini · Oran bekleniyor','odds-missing-badge'));
  }
  primary.append(metaPick);el.append(primary);
  for(const r of recs.slice(1)){
    const rVo=r.verified_odds;
    const row=node('div','','other-pick');
-   const oddsTxt = rVo && rVo.has_odds ? ` · Oran: ${num(rVo.best_price)} (${rVo.best_bookmaker})` : ' · Doğrulanmış oran yok';
+   const oddsTxt = rVo && rVo.has_odds ? ` · Oran: ${num(rVo.best_price)} (${rVo.best_bookmaker})` : ' · Oran bekleniyor';
    row.append(node('span',pickLabel(r)),node('b',`${pct(r.probability)} · ${confidences[r.confidence]}${oddsTxt}`));
    el.append(row);
  }
