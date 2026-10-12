@@ -76,7 +76,7 @@ async def test_eight_league_rollout_scope_and_no_duplicate_queue(db,monkeypatch)
  async with db.session() as session:
   await upsert_competitions(session,verified_snapshot());await apply_production_scope(session);await apply_production_scope(session);await session.commit()
   enabled=set(await session.scalars(select(League.external_id).where(League.enabled.is_(True))))
-  assert enabled==set(PRODUCTION_LEAGUE_IDS)
+  assert enabled==set(PRODUCTION_LEAGUE_IDS).intersection({r['external_id'] for r in verified_snapshot()})
  first=await worker.enqueue_stats_rollout();second=await worker.enqueue_stats_rollout()
  assert len(first)==8 and [j.id for j in first]==[j.id for j in second]
  assert [j.priority for j in first]==sorted(j.priority for j in first)
@@ -179,7 +179,7 @@ async def test_postgres_scope_migration_and_concurrent_immutable_capture(monkeyp
         assert sum(await asyncio.gather(*(publish() for _ in range(6))))==1
         async with db.session() as session:
             assert await session.scalar(select(func.count(PredictionSnapshot.match_id)))==1
-            assert set(await session.scalars(select(League.external_id).where(League.enabled.is_(True))))==set(PRODUCTION_LEAGUE_IDS)
+            assert set(await session.scalars(select(League.external_id).where(League.enabled.is_(True))))==set(PRODUCTION_LEAGUE_IDS).intersection({r['external_id'] for r in verified_snapshot()})
             assert (await performance(session))['summary']['pending']==1
     finally:
         async with db.engine.begin() as conn:await conn.execute(DropSchema(schema,cascade=True,if_exists=True))

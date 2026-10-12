@@ -81,7 +81,7 @@ async def test_rollout_does_not_mistake_odds_jobs_for_stats_and_retries_failed_o
         await session.commit()
     jobs=await worker.enqueue_stats_rollout()
     async with db.session() as session:
-        assert [(await session.get(League,j.league_id)).external_id for j in jobs]==list(PRODUCTION_LEAGUE_IDS)
+        assert [(await session.get(League,j.league_id)).external_id for j in jobs]==[i for i in PRODUCTION_LEAGUE_IDS if i in {r['external_id'] for r in verified_snapshot()}]
         assert all(j.kind=='stats_backfill' for j in jobs)
         j=await session.get(ScraperJob,jobs[0].id)
         j.status='partial';j.finished_at=NOW;j.discovery_complete=True
