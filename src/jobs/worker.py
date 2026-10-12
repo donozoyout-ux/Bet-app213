@@ -321,6 +321,8 @@ async def discover(job_id, client):
             job.total_matches, job.discovery_complete = 1, True
             await session.commit()
             return
+    async with database.session() as audit_session:
+        fixtures_before = await audit_session.scalar(select(func.count(Match.id)).where(Match.league_id == league_id))
     seasons = await discover_seasons(client, external_id, start_year, overlap=True) if competition_type == 'national' else await discover_seasons(client, external_id, start_year)
     if not seasons:
         raise SourceError('No seasons available from the requested year')
@@ -373,6 +375,10 @@ async def discover(job_id, client):
         job = await session.get(ScraperJob, job_id)
         job.discovery_complete = True
         await session.commit()
+    async with database.session() as audit_session:
+        fixtures_after = await audit_session.scalar(select(func.count(Match.id)).where(Match.league_id == league_id))
+    log.info('[DISCOVERY] league=%s kind=%s season_count=%s inserted=%s existing_total=%s',
+             external_id,kind,len(seasons),fixtures_after-fixtures_before,fixtures_after)
 
 
 async def run_job(job_id):
