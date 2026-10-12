@@ -108,3 +108,21 @@ button:hover{background:#1c3d2a;color:#eafff1}
   .terminal-header,.bottom-nav{background:#0d1812}
   .home-summary article,.prediction-card,.summary-card{background:#112018}
 }
+
+/* Energy pass: restrained live-market feel, clear hierarchy, accessible motion. */
+#prediction-cards{gap:18px}
+.home-market-card{position:relative;overflow:hidden;isolation:isolate;border:1px solid #305b43;background:linear-gradient(154deg,#14291d 0%,#0d1b15 65%,#10261b 100%);box-shadow:0 12px 30px #0004;transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease}
+.home-market-card::before{content:"";position:absolute;inset:0 0 auto;height:3px;background:linear-gradient(90deg,#39e69a,#b7ffc9 48%,transparent 90%);opacity:.65}
+.home-market-card::after{content:"";position:absolute;width:160px;height:160px;border-radius:50%;right:-90px;top:-95px;background:#2cf58c16;filter:blur(15px);pointer-events:none}
+.home-market-card:hover,.home-market-card:focus-visible{transform:translateY(-4px);border-color:#66eaa4;box-shadow:0 20px 46px #0008,0 0 0 1px #3cdf8655}
+.home-market-card .card-teams{font-size:clamp(19px,1.45vw,25px);line-height:1.24;letter-spacing:-.025em}
+.home-market-card .card-meta{color:#a3d9b8}
+.home-market-card .pick-primary{background:linear-gradient(135deg,#1c4c33,#143627);border:1px solid #367f56;border-radius:14px;padding:17px}
+.home-market-card .pick-primary .pick-line strong{font-size:clamp(23px,2vw,30px);font-variant-numeric:tabular-nums;color:#6bffae;text-shadow:0 0 20px #3cff8450}
+.home-market-card .pick-primary .eyebrow{color:#88ffbd;letter-spacing:.11em}
+.home-market-card .odds-missing-badge{background:#243a2e;border:1px solid #506555;border-radius:7px;padding:5px 8px;color:#d6e9d9;font-weight:650}
+.home-market-card .other-pick{display:flex;flex-wrap:wrap;align-items:center;gap:8px;justify-content:space-between}
+.home-market-card .other-pick b{color:#b9d8c7;font-weight:600}
+.home-market-card .prediction-open{color:#70ffc0;font-weight:800}
+@media(max-width:700px){#prediction-cards{gap:12px}.home-market-card:hover{transform:none}.home-market-card .pick-primary{padding:14px}}
+@media(prefers-reduced-motion:reduce){.home-market-card{transition:none}.home-market-card:hover{transform:none}}
