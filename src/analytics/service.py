@@ -133,7 +133,8 @@ async def statistics(session, match, context, now, data_revision=None):
     engine_context, extra = PrematchContext.load(match.id, aware(match.kickoff_at), now, history,
         match.home_team_id, match.away_team_id, context['competition_type'], consensus, predictor=predict)
     prediction = dict(engine_context.prediction)
-    engine_reports = configured_registry().run(engine_context)
+    engine_registry = configured_registry()
+    engine_reports = engine_registry.run(engine_context)
     if match.kickoff_at is None:
         prediction = {key: value for key,value in prediction.items() if 'probability' not in key and not key.startswith('expected_')}
         prediction.update(status='insufficient_data', confidence='low', model_market_difference=None)
@@ -190,9 +191,11 @@ async def statistics(session, match, context, now, data_revision=None):
     result['asian_handicap_candidates']=list(asian_candidates.values())
     result['market_engines'] = engine_reports
     result['engine_context'] = dict(match_id=match.id, kickoff_at=engine_context.kickoff_at,
-        observed_at=now, cutoff=cutoff, timezone='Europe/Istanbul')
+        observed_at=now, cutoff=cutoff, timezone='Europe/Istanbul',
+        home_team_id=match.home_team_id, away_team_id=match.away_team_id)
     from .engines import LEGACY_MARKETS, attach_coverage, PLANNED
     result['planned_engines'] = list(PLANNED)
+    result['engine_registry'] = engine_registry.metadata()
     active = {LEGACY_MARKETS[k] for k, report in engine_reports.items() if report['status']=='available'}
     candidates=[c for c in build_candidates(result,support)
                 if c['market'] not in LEGACY_MARKETS.values() or c['market'] in active]

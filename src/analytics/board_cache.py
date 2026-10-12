@@ -3,6 +3,7 @@ import asyncio
 import hashlib
 import json
 import logging
+import os
 from datetime import datetime, timedelta
 
 from fastapi.encoders import jsonable_encoder
@@ -12,6 +13,8 @@ from src.jobs.worker import aware
 from src.match_views import day_bounds, DISPLAY_TIMEZONE
 
 MODEL_VERSION='quality-poisson-v3-specialist-adapters-v1'
+_DISABLED=','.join(sorted(filter(None,os.getenv('DISABLED_MARKET_ENGINES','').split(','))))
+if _DISABLED:MODEL_VERSION+='-flags-'+hashlib.sha256(_DISABLED.encode()).hexdigest()[:12]
 TTL=timedelta(minutes=10)
 REFRESH_LOCK=213006
 log=logging.getLogger(__name__)

@@ -10,6 +10,7 @@ import math
 import os
 import time
 from typing import Mapping, Protocol
+from types import MappingProxyType
 
 from .predictions import Result, predict
 
@@ -20,6 +21,14 @@ PLANNED = ('first_half_result', 'first_half_goals', 'team_goals',
            'HT/FT', 'combo')
 
 
+def _freeze(value):
+    if isinstance(value, dict):
+        return MappingProxyType({k: _freeze(v) for k, v in value.items()})
+    if isinstance(value, list):
+        return tuple(_freeze(v) for v in value)
+    return value
+
+
 @dataclass(frozen=True)
 class PrematchContext:
     match_id: int
@@ -28,6 +37,8 @@ class PrematchContext:
     cutoff: datetime
     history: tuple[Result, ...]
     prediction: Mapping
+    home_team_id: int
+    away_team_id: int
 
     @classmethod
     def load(cls, match_id, kickoff_at, observed_at, history, home_id, away_id,
@@ -43,7 +54,7 @@ class PrematchContext:
             prediction = {k: v for k, v in prediction.items()
                           if 'probability' not in k and not k.startswith('expected_')}
             prediction.update(status='insufficient_data')
-        return cls(match_id, kickoff_at, observed_at, cutoff, rows, prediction), extra
+        return cls(match_id, kickoff_at, observed_at, cutoff, rows, _freeze(prediction), home_id, away_id), extra
 
 
 class MarketEngine(Protocol):
@@ -82,7 +93,7 @@ class DoubleChanceEngine(LegacyAdapter):
 
     def predict(self, context):
         p = context.prediction
-        return {s: sum(p[k + '_probability'] for k in outcomes)
+        return {s: min(1.0, sum(p[k + '_probability'] for k in outcomes))
                 for s, outcomes in [('1x', ('home', 'draw')),
                                     ('x2', ('draw', 'away')), ('12', ('home', 'away'))]}
 
@@ -98,11 +109,24 @@ class EngineRegistry:
                        (ResultEngine(), TotalGoalsEngine(), DoubleChanceEngine(), BothTeamsToScoreEngine()))}
         self.disabled = set(disabled)
 
+    def metadata(self):
+        return {**{k: dict(status='phase_1', required_inputs=list(e.required_inputs),
+                          period='full_time', disabled=k in self.disabled)
+                   for k, e in self.engines.items()},
+                **{k: dict(status='planned', missing_reason='specialist_not_implemented',
+                           settlement='asian_push_quarter_rules_required' if k=='asian_handicap' else None)
+                   for k in PLANNED},
+                'iddaa_three_way_handicap': dict(status='planned',
+                    missing_reason='distinct_three_way_settlement_not_asian_handicap')}
+
     def run(self, context):
         reports = {}
         for market_id, engine in self.engines.items():
             start = time.perf_counter()
             report = dict(market_id=market_id, version=VERSION,
+                          model_version=context.prediction.get('model_version'), period='full_time',
+                          lines=[1.5, 2.5, 3.5] if market_id=='total_goals' else [],
+                          distribution_basis='shared_venue_poisson_score_distribution',
                           required_inputs=list(engine.required_inputs),
                           calibration={'status': 'unvalidated', 'version': None},
                           sample_size=context.prediction.get('sample_size', 0),
@@ -120,6 +144,13 @@ class EngineRegistry:
                     if not values or any(not isinstance(v, (int, float)) or not math.isfinite(v)
                                          or not 0 <= v <= 1 for v in values.values()):
                         raise ValueError('Invalid market probabilities')
+                    groups = (('home', 'draw', 'away'),) if market_id=='result_1x2' else (
+                        ('yes', 'no'),) if market_id=='both_teams_to_score' else (
+                        tuple((f'over_{line}', f'under_{line}') for line in ('1_5','2_5','3_5'))
+                        if market_id=='total_goals' else ())
+                    if any(not math.isclose(sum(values[k] for k in group), 1, abs_tol=1e-9)
+                           for group in groups):
+                        raise ValueError('Unnormalized market distribution')
                     report.update(status='available', probabilities=values)
             except Exception as exc:
                 report['missing_reason'] = 'engine_error:' + type(exc).__name__
@@ -170,7 +201,8 @@ def historical_backtest(fixtures, registry=None):
     registry = registry or EngineRegistry()
     observations = {market: {} for market in registry.engines}
     for context, outcome in fixtures:
-        if outcome.id != context.match_id or outcome.kickoff_at != context.kickoff_at:
+        if (outcome.id != context.match_id or outcome.kickoff_at != context.kickoff_at or
+                (outcome.home_id, outcome.away_id) != (context.home_team_id, context.away_team_id)):
             raise ValueError('Outcome identity does not match snapshot')
         if context.cutoff > outcome.kickoff_at or any(
                 r.id == outcome.id or r.kickoff_at > context.cutoff-timedelta(hours=3)
