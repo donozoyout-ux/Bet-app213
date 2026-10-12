@@ -435,6 +435,10 @@ async def run_job(job_id):
                     ))
                 if not item_ids:
                     break
+                async with database.session() as check_session:
+                    other = await check_session.scalar(select(ScraperJob.id).join(League).where(League.external_id.in_([103,113,2187]), ScraperJob.status == 'queued', ScraperJob.kind == 'backfill').limit(1))
+                if other and job.kind == 'backfill':
+                    return
                 for item_id in item_ids:
                     await wait_for_capacity()
                     await priority_cycle(database, client)
@@ -726,7 +730,7 @@ async def work(once=False):
                     async with GoalooClient() as client:
                         await priority_cycle(database,client)
                     async with database.session() as session:
-                        job_id = await session.scalar(select(ScraperJob.id).join(League).where(League.enabled.is_(True), ScraperJob.status.in_(['running', 'queued'])).order_by(case((ScraperJob.kind == 'update', 0), else_=1),case((ScraperJob.status == 'running', 0), else_=1), ScraperJob.priority, ScraperJob.id).limit(1))
+                        job_id = await session.scalar(select(ScraperJob.id).join(League).where(League.enabled.is_(True), ScraperJob.status.in_(['running', 'queued'])).order_by(case((ScraperJob.kind == 'update', 0), else_=1),case((and_(ScraperJob.kind == 'backfill', ScraperJob.status == 'queued', League.external_id.in_([103,113,2187])), 0), else_=1),case((ScraperJob.status == 'running', 0), else_=1), ScraperJob.priority, ScraperJob.id).limit(1))
                     if job_id:
                         await run_job(job_id)
                 finally:
