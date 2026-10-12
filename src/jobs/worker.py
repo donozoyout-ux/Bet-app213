@@ -776,8 +776,15 @@ async def enqueue_market_odds_rollout(automatic=False, pilot=None):
                 previous.failed_matches = 0
                 jobs.append(previous)
                 continue
-            if previous and not await session.scalar(missing_market_odds_query(league.id).with_only_columns(Match.id).limit(1)):
+            # Backfill retries are not a live quote-refresh loop. A completed zero-work
+            # pass must not create thousands of new jobs while unavailable markets
+            # continue to satisfy the "missing" predicate.
+            if automatic and previous and previous.finished_at and aware(previous.finished_at) > utcnow() - timedelta(days=1):
                 jobs.append(previous)
+                continue
+            if not await session.scalar(missing_market_odds_query(league.id).with_only_columns(Match.id).limit(1)):
+                if previous:
+                    jobs.append(previous)
                 continue
             job = ScraperJob(kind='market_backfill', league_id=league.id, start_year=2024, priority=priority + 20)
             session.add(job)

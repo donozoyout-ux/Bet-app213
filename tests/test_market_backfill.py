@@ -75,16 +75,21 @@ async def test_pilot_mode_rollout_controls(db, monkeypatch):
                 session.add(League(external_id=ext_id, name=f'League {ext_id}', country='Test', enabled=True))
         await session.commit()
 
-    # Pilot mode enqueues only the pilot league (default 36)
+    # An empty catalog must not enqueue zero-work market jobs.
+    pilot_jobs = await enqueue_market_odds_rollout(pilot=True)
+    assert pilot_jobs == []
+    full_jobs = await enqueue_market_odds_rollout(pilot=False)
+    assert full_jobs == []
+
+    # A missing-odds fixture still creates work for its own league.
+    async with db.session() as session:
+        await setup_test_match(session, league_ext_id=36, league_name='English Premier League', league_country='England')
+        await session.commit()
     pilot_jobs = await enqueue_market_odds_rollout(pilot=True)
     assert len(pilot_jobs) == 1
     async with db.session() as session:
         league = await session.get(League, pilot_jobs[0].league_id)
         assert league.external_id == 36
-
-    # Full rollout enqueues all 8 enabled leagues
-    full_jobs = await enqueue_market_odds_rollout(pilot=False)
-    assert len(full_jobs) == len(PRODUCTION_LEAGUE_IDS)
 
 
 async def test_match_2996166_real_league_identity_and_fixture_backfill(db, monkeypatch):
