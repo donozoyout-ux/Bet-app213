@@ -437,7 +437,7 @@ async def run_job(job_id):
                     break
                 async with database.session() as check_session:
                     other = await check_session.scalar(select(ScraperJob.id).join(League).where(League.external_id.in_([103,113,2187]), ScraperJob.status == 'queued', ScraperJob.kind == 'backfill').limit(1))
-                if other:
+                if other and job.kind == 'backfill':
                     return
                 for item_id in item_ids:
                     await wait_for_capacity()
