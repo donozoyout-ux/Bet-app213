@@ -726,7 +726,7 @@ async def work(once=False):
                     async with GoalooClient() as client:
                         await priority_cycle(database,client)
                     async with database.session() as session:
-                        job_id = await session.scalar(select(ScraperJob.id).join(League).where(League.enabled.is_(True), ScraperJob.status.in_(['running', 'queued'])).order_by(case((ScraperJob.kind == 'update', 0), else_=1),case((ScraperJob.status == 'running', 0), else_=1), ScraperJob.priority, ScraperJob.id).limit(1))
+                        job_id = await session.scalar(select(ScraperJob.id).join(League).where(League.enabled.is_(True), ScraperJob.status.in_(['running', 'queued'])).order_by(case((ScraperJob.kind == 'update', 0), else_=1),case((ScraperJob.kind == 'backfill', ScraperJob.status == 'queued', League.external_id.in_([103,113,2187]), 0), else_=1),case((ScraperJob.status == 'running', 0), else_=1), ScraperJob.priority, ScraperJob.id).limit(1))
                     if job_id:
                         await run_job(job_id)
                 finally:
