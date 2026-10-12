@@ -173,7 +173,8 @@ def attach_coverage(reports, candidates):
         rows = [c for c in candidates if c['market'] == LEGACY_MARKETS[market_id]]
         report['coverage'] = dict(selections=len(rows), strong=sum(c.get('qualifies', False) for c in rows),
                                  priced=sum(c['verified_odds']['has_odds'] for c in rows),
-                                 fresh=sum(c['verified_odds'].get('coupon_eligible', False) for c in rows),
+                                 fresh=sum(c['verified_odds'].get('freshness')=='fresh' for c in rows),
+                                 coupon_eligible=sum(c['verified_odds'].get('coupon_eligible', False) for c in rows),
                                  missing_reasons=sorted({c['verified_odds']['reason'] for c in rows
                                                          if c['verified_odds'].get('reason')}))
 

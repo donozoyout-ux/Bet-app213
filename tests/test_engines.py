@@ -108,3 +108,20 @@ async def test_statistics_exposes_engines_and_disabled_candidates(api, db, monke
     assert disabled['market_engines']['double_chance']['missing_reason']=='engine_disabled'
     assert not any(c['market']=='double_chance' for c in disabled['candidates'])
     assert any(c['market']=='result' for c in disabled['candidates'])
+
+
+async def test_coverage_keeps_all_four_markets_after_board_publication(api, db, monkeypatch):
+    from .test_predictions import seed
+    from src.analytics.board_cache import refresh_one
+    import src.api.routes as routes
+    monkeypatch.setattr(routes, 'utcnow', lambda: NOW)
+    match_id, league_id, *_ = await seed(db)
+    await refresh_one(db, now=NOW, force_league=league_id)
+    response = await api.get('/api/odds-coverage')
+    assert response.status_code==200
+    row = next(r for r in response.json()['engine_analysis'] if r['match_id']==match_id)
+    assert len(row['market_engines'])==4
+    for report in row['market_engines'].values():
+        assert report['sample_size']>0
+        assert report['coverage']['priced']>=report['coverage']['fresh']
+        assert 'coupon_eligible' in report['coverage']
