@@ -102,7 +102,7 @@ live price coverage. Most source/line gaps intentionally remain missing.
 Use an isolated database and disable real Telegram credentials. Install
 `requirements-dev.txt` and Chromium. Run `python -m pytest -q -rP` with an
 isolated `TEST_POSTGRES_URL`; run all four `tests/*_runtime.cjs` scripts and
-the JavaScript syntax checks in `.github/workflows/tests.yml`.
+the JavaScript syntax checks in `.github/workflows/test.yml`.
 
 Regenerate prediction boards on staging through the existing worker (new board
 version invalidates the previous payload). Compare the same database snapshot,
