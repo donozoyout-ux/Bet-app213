@@ -1,6 +1,6 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const html=fs.readFileSync('src/api/dashboard.html','utf8'),recorded=JSON.parse(fs.readFileSync('tests/fixtures/predictions_runtime.json','utf8'));
-class Element{constructor(){this.children=[];this.textContent='';this.value='';this.dataset={};this.style={};this.classList={toggle(){}};}append(...nodes){this.children.push(...nodes);}replaceChildren(){this.children=[];this.textContent='';}setAttribute(k,v){this[k]=v;}removeAttribute(k){delete this[k];}focus(){}text(){return [this.textContent,...this.children.map(n=>n.text())].join(' ');}}
+class Element{constructor(){this.children=[];this.textContent='';this.value='';this.dataset={};this.style={};this.classList={toggle(){},add(){},remove(){}};}append(...nodes){this.children.push(...nodes);}replaceChildren(){this.children=[];this.textContent='';}setAttribute(k,v){this[k]=v;}removeAttribute(k){delete this[k];}focus(){}text(){return [this.textContent,...this.children.map(n=>n.text())].join(' ');}}
 async function run(mode){const elements=new Map([...html.matchAll(/\bid="([^"]+)"/g)].map(m=>[m[1],new Element()])),calls=[],clicked=[];let releaseFirst;
 const all=recorded.page.items.flatMap(item=>item.recommendations.map(recommendation=>({match:item.match,recommendation,as_of:item.as_of})));
 if(mode==='populated' && all.length)all[0].recommendation.verified_odds={has_odds:true,best_price:1.75,best_bookmaker:'Bet365',best_value:0.04,bookmakers:{Bet365:{current_odds:1.75}},best_implied_probability:0.5714};
