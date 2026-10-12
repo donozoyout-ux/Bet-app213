@@ -2,7 +2,7 @@
 (() => {
   'use strict';
   const $=id=>document.getElementById(id);
-  const state={generation:0,detailGeneration:0,selected:null,detailData:null,detailLoadedAt:0,market:'all',view:'nearby',league:'',dateFilter:'',tab:'predictions',cardTab:'yellow_cards',confidence:'',filterCache:null};
+  const state={generation:0,detailGeneration:0,selected:null,detailData:null,detailLoadedAt:0,market:'all',view:'nearby',league:'',dateFilter:'',tab:'predictions',cardTab:'yellow_cards',engineTab:'result_1x2',confidence:'',filterCache:null};
   const pct=value=>value == null ? '—' : `%${(100*value).toFixed(1)}`;
   const num=value=>value == null ? '—' : Number(value).toFixed(2);
   const date=value=>value ? new Date(value).toLocaleString('tr-TR',{timeZone:'Europe/Istanbul'}) : 'Veri hazırlanıyor';
@@ -67,6 +67,24 @@
     const m=data.match,p=data.prediction;
     box.append(node('h3','Maç İstatistikleri','font-headline-md text-headline-md font-bold text-primary'));
     box.append(node('p',`${m.home_team} / ${m.away_team} • ${m.league} • ${m.season} • ${m.round_label || m.round} • ${date(m.kickoff_at)}`,'stats-meta'));
+    if(state.tab==='predictions' && data.market_engines){
+      const all=node('section','','stats-block');all.append(node('h4','Tüm Tahmin Seçenekleri'));
+      const entries=Object.entries(data.market_engines),tabs=node('div');tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','Market tahminleri');
+      const buttons=entries.map(([id],index)=>{const b=node('button',id);b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',String(state.engineTab===id));b.tabIndex=state.engineTab===id?0:-1;b.onclick=()=>{state.engineTab=id;renderStatistics(data);};b.onkeydown=e=>{if(!['ArrowRight','ArrowLeft','Home','End'].includes(e.key))return;e.preventDefault();const next=e.key==='Home'?0:e.key==='End'?entries.length-1:(index+(e.key==='ArrowRight'?1:entries.length-1))%entries.length;buttons[next].onclick();};return b;});tabs.append(...buttons);all.append(tabs);
+      for(const [id,engine] of entries){
+        if(id!==state.engineTab)continue;
+        const group=node('details');group.append(node('summary',id+' • '+engine.sample_size+' maç'));
+        if(engine.status!=='available')group.append(node('p',engine.missing_reason || 'Desteklenmiyor'));
+        const family={result_1x2:'result',total_goals:'goals',double_chance:'double_chance',both_teams_to_score:'btts'}[id];
+        for(const priced of [true,false]){
+          group.append(node('h5',priced?'Fiyatlı tahminler':'Fiyatsız tahminler'));
+          for(const rec of (data.candidates || []).filter(c=>c.market===family && Boolean(c.verified_odds?.has_odds)===priced))
+            group.append(node('p',`${rec.label} • ${pct(rec.probability)} • ${rec.qualifies?'Güçlü':'Kalite eşiği altında'} • ${priced?num(rec.verified_odds.best_price):rec.verified_odds?.reason || 'Kaynak oran sunmuyor'}`));
+        }
+        group.append(node('p','Kalibrasyon: '+engine.calibration.status));all.append(group);
+      }
+      box.append(all);
+    }
     if(['summary','predictions'].includes(state.tab) && !data.recommendations?.length)box.append(node('p','Yetersiz veri'));
     if(['summary','predictions'].includes(state.tab) && data.recommendations?.length){
       const chosen=node('section','','stats-block');chosen.append(node('h4','Seçilen Güçlü Tahminler','font-bold text-primary'));

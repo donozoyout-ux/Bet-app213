@@ -56,7 +56,7 @@ async def prefetch_markets(session, matches):
             rows = await session.execute(select(model, Bookmaker.name, model.raw['_field_observed_at'], model.raw['_field_lines']).options(defer(model.raw)).join(Bookmaker).where(
                 model.match_id.in_(ids), Bookmaker.name.in_(['Crown', 'Bet365', 'Sbobet'])))
             for row in rows:
-                row[0]._matching_meta={'_field_observed_at':row[2] or {},'_field_lines':row[3] or {}}
+                row[0]._matching_meta={'_field_observed_at':row[2],'_field_lines':row[3]}
                 grouped[row[0].match_id].append((row[0],row[1]))
         cache[model] = grouped
     from src.models import MatchEvent, PredictionSnapshot
@@ -77,7 +77,7 @@ async def market_rows(session, model, match_id):
         return cached[match_id]
     rows=(await session.execute(select(model, Bookmaker.name, model.raw['_field_observed_at'], model.raw['_field_lines']).options(defer(model.raw)).join(Bookmaker).where(
         model.match_id == match_id, Bookmaker.name.in_(['Crown','Bet365','Sbobet'])))).all()
-    for row in rows:row[0]._matching_meta={'_field_observed_at':row[2] or {},'_field_lines':row[3] or {}}
+    for row in rows:row[0]._matching_meta={'_field_observed_at':row[2],'_field_lines':row[3]}
     return [(row[0],row[1]) for row in rows]
 
 
@@ -87,7 +87,8 @@ async def statistics(session, match, context, now, data_revision=None):
     data_revision = data_revision if data_revision is not None else await revision(session)
     time_key = aware(match.kickoff_at).isoformat() if historical else int(cutoff.timestamp() // CACHE_SECONDS)
     key = (session.bind, match.id, match.league_id, match.home_team_id, match.away_team_id,
-           context['competition_type'], aware(match.kickoff_at), match.status, historical, time_key, data_revision)
+           context['competition_type'], aware(match.kickoff_at), match.status, historical, time_key, data_revision,
+           __import__('os').getenv('DISABLED_MARKET_ENGINES', ''))
     cached = _cache.get(key)
     if cached and time.monotonic() - cached[0] < CACHE_SECONDS:
         _cache.move_to_end(key)
@@ -128,7 +129,11 @@ async def statistics(session, match, context, now, data_revision=None):
     if consensus:
         for field in ['home','draw','away']:support[field+'_result']={'probability':consensus[field],'bookmaker_count':len(valid)}
         for selection,fields in [('1x',['home','draw']),('x2',['draw','away']),('12',['home','away'])]:support[selection+'_double_chance']={'probability':sum(consensus[field] for field in fields),'bookmaker_count':len(valid)}
-    prediction, extra = predict(history, match.home_team_id, match.away_team_id, context['competition_type'], consensus)
+    from .engines import PrematchContext, configured_registry
+    engine_context, extra = PrematchContext.load(match.id, aware(match.kickoff_at), now, history,
+        match.home_team_id, match.away_team_id, context['competition_type'], consensus, predictor=predict)
+    prediction = dict(engine_context.prediction)
+    engine_reports = configured_registry().run(engine_context)
     if match.kickoff_at is None:
         prediction = {key: value for key,value in prediction.items() if 'probability' not in key and not key.startswith('expected_')}
         prediction.update(status='insufficient_data', confidence='low', model_market_difference=None)
@@ -183,10 +188,23 @@ async def statistics(session, match, context, now, data_revision=None):
               'methodology': 'Independent Poisson; venue rates shrunk with weight 5 toward this competition only. Minimum: league 20, each team 5, each venue 3. Results require observation stamps before cutoff and a three-hour completion buffer. No measured xG, event statistics or ML.'}
     result['ranking_evidence']={'goal_stability':min(stability),'goal_season_agreement':min(season_agreement)}
     result['asian_handicap_candidates']=list(asian_candidates.values())
-    candidates=build_candidates(result,support)
+    result['market_engines'] = engine_reports
+    result['engine_context'] = dict(match_id=match.id, kickoff_at=engine_context.kickoff_at,
+        observed_at=now, cutoff=cutoff, timezone='Europe/Istanbul')
+    from .engines import LEGACY_MARKETS, attach_coverage, PLANNED
+    result['planned_engines'] = list(PLANNED)
+    active = {LEGACY_MARKETS[k] for k, report in engine_reports.items() if report['status']=='available'}
+    candidates=[c for c in build_candidates(result,support)
+                if c['market'] not in LEGACY_MARKETS.values() or c['market'] in active]
+    for candidate in candidates:
+        engine_id = next((k for k, v in LEGACY_MARKETS.items() if v == candidate['market']), None)
+        if engine_id:
+            candidate['probability'] = engine_reports[engine_id]['probabilities'][candidate['selection']]
+            candidate['engine_version'] = engine_reports[engine_id]['version']
     from src.analytics.odds_matching import enrich_recommendations_with_odds
     enrich_recommendations_with_odds(candidates, match.id, match.status, markets, asian_totals_rows, asian_handicap_rows, period_odds_rows=market_odds_rows, cutoff=cutoff)
     result['candidates'],result['recommendations']=select_recommendations(candidates)
+    attach_coverage(engine_reports, result['candidates'])
     result['market_availability']=count_market_availability(result)
     result['strongest_prediction']=result['recommendations'][0]['id'] if result['recommendations'] else None
     _cache[key] = (time.monotonic(), result)

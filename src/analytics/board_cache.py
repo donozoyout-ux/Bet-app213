@@ -11,7 +11,7 @@ from src.models import League, Match, PredictionBoard, utcnow
 from src.jobs.worker import aware
 from src.match_views import day_bounds, DISPLAY_TIMEZONE
 
-MODEL_VERSION='quality-poisson-v3-exact-priced-two-picks-v4'
+MODEL_VERSION='quality-poisson-v3-specialist-adapters-v1'
 TTL=timedelta(minutes=10)
 REFRESH_LOCK=213006
 log=logging.getLogger(__name__)
@@ -41,7 +41,7 @@ async def refresh_one(db, now=None, force_league=None):
             if board is None:board=PredictionBoard(league_id=league);session.add(board)
             board.model_version=MODEL_VERSION;board.generated_at=generated;board.expires_at=generated+TTL
             board.source_revision=source
-            board.payload=jsonable_encoder(dict(items=items,availability=session.info.get('count_availability',[]),evaluated=evaluated))
+            board.payload=jsonable_encoder(dict(items=items,availability=session.info.get('count_availability',[]),evaluated=evaluated,engine_analysis=session.info.get('engine_analysis',[])))
             # Publish the immutable picks and board together, after a complete calculation.
             from src.analytics.performance import capture_many
             await capture_many(session,session.info.get('board_observations',[]),now)
@@ -70,7 +70,7 @@ async def read_board(session,league,date,team,now):
     rows=(await session.execute(query)).all()
     # Current statuses prevent a cached prematch pick appearing after kickoff or completion.
     eligible=dict((await session.execute(select(Match.id,Match.kickoff_at).join(League).where(League.enabled.is_(True),Match.status=='scheduled',Match.kickoff_at>now,Match.kickoff_at<=now+timedelta(days=7)))).all())
-    items=[];availability=[];times=[];revisions={};missing=[];stale=[];evaluated=0
+    items=[];availability=[];engine_analysis=[];times=[];revisions={};missing=[];stale=[];evaluated=0
     for id,board in rows:
         if board is None or board.model_version!=MODEL_VERSION:missing.append(id);continue
         times.append(aware(board.generated_at));revisions[str(id)]=board.source_revision
@@ -89,8 +89,10 @@ async def read_board(session,league,date,team,now):
             if team and team.casefold() not in (m['home_team']+' '+m['away_team']).casefold():continue
             m['kickoff_at']=kickoff
             items.append(item)
+        engine_analysis.extend(r for r in board.payload.get('engine_analysis',[]) if r['match_id'] in eligible)
         availability.extend((id,a) for id,a in board.payload['availability'] if id in eligible)
     items.sort(key=lambda i:(i['match']['kickoff_at'],i['match']['id']))
+    session.info['engine_analysis']=engine_analysis
     session.info['count_availability']=availability
     session.info['prediction_snapshot']={
         'status':'warming' if missing and not times else 'partial' if missing else 'stale' if stale else 'fresh',

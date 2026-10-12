@@ -33,6 +33,11 @@ async function scenario(mode){
         const profile=Object.fromEntries(['last_5','last_10','season','home_split','away_split'].map(key=>[key,summary]));
         payload.additional_statistics={yellow_cards:{home:profile,away:profile,prediction:{basis:'yellow_only',status:'insufficient_data',sample_size:2,league_sample_size:2,insufficient_reasons:[{code:'league_sample_size',actual:2,required:20}]}}};
       }
+      if(mode==='engines' && path.includes('/statistics')){
+        payload.market_engines={result_1x2:{status:'available',sample_size:80,calibration:{status:'unvalidated'}}};
+        payload.candidates=[{market:'result',label:'Ev Sahibi',probability:.75,qualifies:true,verified_odds:{has_odds:true,best_price:1.8}},
+          {market:'result',label:'Deplasman',probability:.2,qualifies:false,verified_odds:{has_odds:false,reason:'no_source_rows'}}];
+      }
       if(mode==='verified-odds'){
         if(payload.items?.[0]?.recommendations?.[0]){
           payload.items[0].recommendations[0].verified_odds = {
@@ -141,6 +146,7 @@ async function scenario(mode){
   assert(!box.hidden && box.scrolled);
   assert(ids.get('analysis-dialog').open);
   assert(box.text().includes('Seçilen Güçlü Tahminler'));
+  if(mode==='engines'){tabs[0].onclick();for(const label of ['Tüm Tahmin Seçenekleri','Fiyatlı tahminler','Fiyatsız tahminler','Kalite eşiği altında','unvalidated'])assert(box.text().includes(label));}
   for(const [key,words] of [['form',['Son 5','Son 10']],['goals',['Beklenen Gol']],['first_half_goals',['1. YARI GOLLER','Yetersiz veri']],['second_half_goals',['2. YARI GOLLER','Yetersiz veri']],['h2h',['H2H']],['odds',['Crown','Bet365','Sbobet','Model / Piyasa']],['corners',['KORNERLER','Yetersiz veri']],['cards',['KARTLAR','Yetersiz veri']]]){tabs.find(tab=>tab.dataset.analysisTab===key).onclick();for(const word of words)assert(box.text().includes(word));assert(box.text().includes(recorded.statistics.match.home_team));}
   if(mode==='card-categories'){
     const all=(el)=>[el,...el.children.flatMap(all)];
@@ -162,4 +168,4 @@ async function scenario(mode){
   ids.get('analysis-close').onclick();assert(box.hidden && !box.children.length && !ids.get('analysis-dialog').open);
   await api.select(firstId);ids.get('analysis-dialog').oncancel({preventDefault(){}});assert(!ids.get('analysis-dialog').open);
 }
-(async()=>{const modes=process.argv[2]?[process.argv[2]]:['populated','insufficient','empty','failed','detail-failed','missing','race','filter','best','one','two','three','confidence','pagination','card-categories','verified-odds'];for(const mode of modes)await scenario(mode);console.log(`prediction runtime: ${modes.length} scenarios passed`);})().catch(error=>{console.error(error);process.exitCode=1;});
+(async()=>{const modes=process.argv[2]?[process.argv[2]]:['populated','insufficient','empty','failed','detail-failed','missing','race','filter','best','one','two','three','confidence','pagination','card-categories','verified-odds','engines'];for(const mode of modes)await scenario(mode);console.log(`prediction runtime: ${modes.length} scenarios passed`);})().catch(error=>{console.error(error);process.exitCode=1;});

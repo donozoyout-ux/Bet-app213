@@ -251,7 +251,14 @@ async def automatic_coupon(strategy: Literal['balanced','cautious','value']='bal
 async def odds_coverage(session=Depends(session_dependency)):
     from src.analytics.odds_diagnostics import report
     records,now,_=await calculate_predictions(session,None,None)
-    return {**report(records,now),'cache':session.info['prediction_snapshot']}
+    from copy import deepcopy
+    from src.analytics.coupon import current_odds
+    from src.analytics.engines import attach_coverage
+    analysis=deepcopy(session.info.get('engine_analysis', []))
+    await current_odds(session,{r['match_id']:r['candidates'] for r in analysis},now)
+    for row in analysis:
+        attach_coverage(row['market_engines'],row.pop('candidates'))
+    return {**report(records,now),'cache':session.info['prediction_snapshot'], 'engine_analysis':analysis}
 
 
 @router.post('/coupons')
@@ -316,10 +323,13 @@ async def uncached_predictions(session,league,date,team=None,now=None,publish=Tr
     rev = await prediction_revision(session)
     calculated = [];observations=[]
     session.info['count_availability']=[]
+    session.info['engine_analysis']=[]
     for row in rows:
         await asyncio.sleep(0)  # Allow liveness and short requests between matches.
         result = await compute_statistics(session, row[0], match_response(row), now, rev)
         session.info['count_availability'].append((row[0].id,result['market_availability']))
+        session.info['engine_analysis'].append(dict(match_id=row[0].id,
+            market_engines=result['market_engines'], candidates=[c for c in result['candidates'] if c['market'] in ('result','goals','double_chance','btts')]))
         if result['recommendations']:
             item={key:result[key] for key in ('match','prediction','bookmaker_consensus','as_of','recommendations','strongest_prediction')}
             item['match_id']=row[0].id;calculated.append(item)
