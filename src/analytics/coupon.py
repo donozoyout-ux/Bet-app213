@@ -43,7 +43,7 @@ async def current_odds(session, groups, now):
     for model in (Odds1X2,AsianTotals,AsianHandicap,MarketOdds):
         rows[model]={id:[] for id in ids}
         for row in await session.execute(select(model,Bookmaker.name,model.raw['_field_observed_at'],model.raw['_field_lines']).options(defer(model.raw)).join(Bookmaker).where(model.match_id.in_(ids),Bookmaker.name.in_(['Crown','Bet365','Sbobet']))):
-            row[0]._matching_meta={'_field_observed_at':row[2] or {},'_field_lines':row[3] or {}}
+            row[0]._matching_meta={'_field_observed_at':row[2],'_field_lines':row[3]}
             rows[model][row[0].match_id].append((row[0],row[1]))
     for id,recommendations in groups.items():
         enrich_recommendations_with_odds(recommendations,id,'scheduled',rows[Odds1X2][id],rows[AsianTotals][id],rows[AsianHandicap][id],rows[MarketOdds][id],cutoff=now)

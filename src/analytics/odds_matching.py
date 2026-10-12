@@ -121,19 +121,20 @@ def _safe_float(val: Any) -> float | None:
 
 def price_observed_at(row, field):
     raw=getattr(row,'_matching_meta',None) or vars(row).get('raw',{})
-    stamps=raw.get('_field_observed_at',{}) if isinstance(raw,dict) else {}
-    stamp=stamps.get(field)
+    stamps=raw.get('_field_observed_at') if isinstance(raw,dict) else None
+    stamp=stamps.get(field) if isinstance(stamps,dict) else None
     if stamp:
         try:return _aware(datetime.fromisoformat(stamp))
         except (TypeError,ValueError):return None
+    if isinstance(stamps,dict):return None
     return _aware(getattr(row,'updated_at',None))
 
 
 def price_matches_line(row, stage, side, target):
     raw=getattr(row,'_matching_meta',None) or vars(row).get('raw',{})
-    lines=raw.get('_field_lines',{}) if isinstance(raw,dict) else {}
+    lines=raw.get('_field_lines') if isinstance(raw,dict) else None
     field=stage+'_'+side
-    observed_line=lines.get(field,getattr(row,stage+'_line',None))
+    observed_line=lines.get(field) if isinstance(lines,dict) else getattr(row,stage+'_line',None)
     return observed_line is not None and target is not None and abs(observed_line-target)<1e-4
 
 
