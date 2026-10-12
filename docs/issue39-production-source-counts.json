@@ -1,0 +1,146 @@
+{
+  "basis": "read_only_render_postgresql_production",
+  "note": "Counts use latest_home for result/AH and latest_over for OU; source freshness is not candidate eligibility. Other sides are exposed separately by the new source_rows API.",
+  "rows": [
+    {
+      "bookmaker": "Bet365",
+      "field_observed": 135,
+      "fresh": 4,
+      "fresh_prematch_source_rows": 4,
+      "latest_side_priced": 7416,
+      "market": "asian_handicap",
+      "period": "full_time",
+      "source_rows": 9894
+    },
+    {
+      "bookmaker": "Crown",
+      "field_observed": 133,
+      "fresh": 4,
+      "fresh_prematch_source_rows": 4,
+      "latest_side_priced": 7405,
+      "market": "asian_handicap",
+      "period": "full_time",
+      "source_rows": 9894
+    },
+    {
+      "bookmaker": "Sbobet",
+      "field_observed": 127,
+      "fresh": 4,
+      "fresh_prematch_source_rows": 4,
+      "latest_side_priced": 7399,
+      "market": "asian_handicap",
+      "period": "full_time",
+      "source_rows": 9894
+    },
+    {
+      "bookmaker": "Bet365",
+      "field_observed": 239,
+      "fresh": 2,
+      "fresh_prematch_source_rows": 2,
+      "latest_side_priced": 884,
+      "market": "corners",
+      "period": "full_time",
+      "source_rows": 884
+    },
+    {
+      "bookmaker": "Crown",
+      "field_observed": 225,
+      "fresh": 1,
+      "fresh_prematch_source_rows": 1,
+      "latest_side_priced": 870,
+      "market": "corners",
+      "period": "full_time",
+      "source_rows": 870
+    },
+    {
+      "bookmaker": "Bet365",
+      "field_observed": 285,
+      "fresh": 13,
+      "fresh_prematch_source_rows": 13,
+      "latest_side_priced": 930,
+      "market": "first_half_goals",
+      "period": "first_half",
+      "source_rows": 935
+    },
+    {
+      "bookmaker": "Crown",
+      "field_observed": 298,
+      "fresh": 13,
+      "fresh_prematch_source_rows": 13,
+      "latest_side_priced": 943,
+      "market": "first_half_goals",
+      "period": "first_half",
+      "source_rows": 945
+    },
+    {
+      "bookmaker": "Sbobet",
+      "field_observed": 294,
+      "fresh": 13,
+      "fresh_prematch_source_rows": 13,
+      "latest_side_priced": 939,
+      "market": "first_half_goals",
+      "period": "first_half",
+      "source_rows": 945
+    },
+    {
+      "bookmaker": "Bet365",
+      "field_observed": 135,
+      "fresh": 4,
+      "fresh_prematch_source_rows": 4,
+      "latest_side_priced": 7416,
+      "market": "goals",
+      "period": "full_time",
+      "source_rows": 9894
+    },
+    {
+      "bookmaker": "Crown",
+      "field_observed": 133,
+      "fresh": 4,
+      "fresh_prematch_source_rows": 4,
+      "latest_side_priced": 7406,
+      "market": "goals",
+      "period": "full_time",
+      "source_rows": 9894
+    },
+    {
+      "bookmaker": "Sbobet",
+      "field_observed": 127,
+      "fresh": 4,
+      "fresh_prematch_source_rows": 4,
+      "latest_side_priced": 7399,
+      "market": "goals",
+      "period": "full_time",
+      "source_rows": 9894
+    },
+    {
+      "bookmaker": "Bet365",
+      "field_observed": 135,
+      "fresh": 4,
+      "fresh_prematch_source_rows": 4,
+      "latest_side_priced": 7416,
+      "market": "result",
+      "period": "full_time",
+      "source_rows": 9894
+    },
+    {
+      "bookmaker": "Crown",
+      "field_observed": 133,
+      "fresh": 4,
+      "fresh_prematch_source_rows": 4,
+      "latest_side_priced": 7406,
+      "market": "result",
+      "period": "full_time",
+      "source_rows": 9894
+    },
+    {
+      "bookmaker": "Sbobet",
+      "field_observed": 127,
+      "fresh": 4,
+      "fresh_prematch_source_rows": 4,
+      "latest_side_priced": 7399,
+      "market": "result",
+      "period": "full_time",
+      "source_rows": 9894
+    }
+  ]
+}

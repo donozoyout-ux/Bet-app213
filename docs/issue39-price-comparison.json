@@ -1,0 +1,113 @@
+{
+  "basis": "same_read_only_production_postgresql_snapshot_no_deployment",
+  "captured_at": "2026-10-12T17:49:33.722594+00:00",
+  "baseline": "5224a01",
+  "before": {
+    "totals": {
+      "quality_and_fresh": 2,
+      "priced": 4,
+      "fresh": 4,
+      "selections": 102,
+      "daily_independent_eligible_matches": 0,
+      "daily_coupon_matches": 0
+    },
+    "markets": {
+      "corners": {
+        "selections": 42,
+        "priced": 0,
+        "fresh": 0,
+        "unknown_observation": 0,
+        "no_source_rows": 40,
+        "line_mismatch": 2
+      },
+      "first_half_goals": {
+        "selections": 13,
+        "priced": 2,
+        "fresh": 2,
+        "unknown_observation": 0,
+        "line_mismatch": 11
+      },
+      "goals": {
+        "selections": 2,
+        "priced": 0,
+        "fresh": 0,
+        "unknown_observation": 0,
+        "line_mismatch": 2
+      },
+      "result": {
+        "selections": 2,
+        "priced": 2,
+        "fresh": 2,
+        "unknown_observation": 0
+      },
+      "second_half_goals": {
+        "selections": 32,
+        "priced": 0,
+        "fresh": 0,
+        "unknown_observation": 0,
+        "source_market_unavailable": 32
+      },
+      "yellow_cards": {
+        "selections": 11,
+        "priced": 0,
+        "fresh": 0,
+        "unknown_observation": 0,
+        "source_market_unavailable": 11
+      }
+    }
+  },
+  "after": {
+    "totals": {
+      "quality_and_fresh": 2,
+      "priced": 4,
+      "fresh": 4,
+      "selections": 102,
+      "daily_independent_eligible_matches": 0,
+      "daily_coupon_matches": 0
+    },
+    "markets": {
+      "corners": {
+        "selections": 42,
+        "priced": 0,
+        "fresh": 0,
+        "unknown_observation": 0,
+        "no_source_rows": 40,
+        "line_mismatch": 2
+      },
+      "first_half_goals": {
+        "selections": 13,
+        "priced": 2,
+        "fresh": 2,
+        "unknown_observation": 0,
+        "line_mismatch": 11
+      },
+      "goals": {
+        "selections": 2,
+        "priced": 0,
+        "fresh": 0,
+        "unknown_observation": 0,
+        "line_mismatch": 2
+      },
+      "result": {
+        "selections": 2,
+        "priced": 2,
+        "fresh": 2,
+        "unknown_observation": 0
+      },
+      "second_half_goals": {
+        "selections": 32,
+        "priced": 0,
+        "fresh": 0,
+        "unknown_observation": 0,
+        "source_market_unavailable": 32
+      },
+      "yellow_cards": {
+        "selections": 11,
+        "priced": 0,
+        "fresh": 0,
+        "unknown_observation": 0,
+        "source_market_unavailable": 11
+      }
+    }
+  }
+}

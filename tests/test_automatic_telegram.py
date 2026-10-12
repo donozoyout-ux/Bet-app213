@@ -18,6 +18,7 @@ from src.analytics.coupon import DraftRequest
 from src.jobs.telegram import dispatch,prepare,window,message,status
 from tests.test_coupon import coupon_seed as base_coupon_seed,request,NOW
 from src.analytics.saved_coupons import daily_candidates
+from tests.odds_fixture import observed_prices, move_observations
 
 async def coupon_seed(db):
     ids=await base_coupon_seed(db)
@@ -54,7 +55,7 @@ async def many_matches(db,count=12):
             session.add(match);await session.flush()
             item=deepcopy(template);item['match']['id']=match.id;item['match_id']=match.id;items.append(item)
             for odds in existing:
-                session.add(MarketOdds(match_id=match.id,bookmaker_id=odds.bookmaker_id,market=odds.market,period=odds.period,latest_line=odds.latest_line,latest_over=odds.latest_over,latest_under=odds.latest_under,updated_at=NOW-timedelta(minutes=1),raw={}))
+                session.add(MarketOdds(match_id=match.id,bookmaker_id=odds.bookmaker_id,market=odds.market,period=odds.period,latest_line=odds.latest_line,latest_over=odds.latest_over,latest_under=odds.latest_under,updated_at=NOW-timedelta(minutes=1),raw=observed_prices(NOW-timedelta(minutes=1),'latest_over','latest_under')))
         board.payload={**board.payload,'items':items,'evaluated':len(items)};await session.commit()
     return ids
 
@@ -68,9 +69,9 @@ async def test_automatic_unlimited_strong_exact_quotes_and_empty(db):
         assert coupon.payload['combined_odds']==pytest.approx(1.8**4,abs=1e-6)
         assert all(i['quote']['bookmaker'] in {'Crown','Bet365','Sbobet'} for i in coupon.payload['items'])
         assert (await automatic(session,NOW)).id==coupon.id
-        for row in await session.scalars(select(MarketOdds)):row.updated_at=NOW-timedelta(hours=1)
+        for row in await session.scalars(select(MarketOdds)):move_observations(row,NOW-timedelta(hours=1))
         await session.commit();assert await automatic(session,NOW) is None
-        for row in await session.scalars(select(MarketOdds)):row.updated_at=NOW
+        for row in await session.scalars(select(MarketOdds)):move_observations(row,NOW)
         board=await session.scalar(select(PredictionBoard))
         data=deepcopy(board.payload)
         for item in data['items']:
@@ -109,7 +110,7 @@ def test_istanbul_daily_windows(hour,minute,expected):
 
 async def freshen(db,now):
     async with db.session() as session:
-        for row in await session.scalars(select(MarketOdds)):row.updated_at=now-timedelta(minutes=1)
+        for row in await session.scalars(select(MarketOdds)):move_observations(row,now-timedelta(minutes=1))
         for row in await session.scalars(select(PredictionBoard)):row.generated_at=now;row.expires_at=now+timedelta(minutes=10)
         await session.commit()
 

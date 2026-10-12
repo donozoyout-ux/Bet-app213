@@ -5,6 +5,19 @@ from .schedule import schedule_sections
 
 SOURCE_TIMEZONE = timezone(timedelta(hours=8))
 
+# Goaloo sends localized status annotations in the score slot for these rows.
+# Accept only verified status/token pairs; a malformed actual score still fails.
+SCORE_ANNOTATIONS = {
+    'postponed': {'推迟|推遲|Delay'},
+    'abandoned': {'腰斩|腰斬|Interupt'},
+}
+
+
+def schedule_score(value, status):
+    if value in SCORE_ANNOTATIONS.get(status, set()):
+        return None, None
+    return parse_score(value)
+
 
 def parse_matches(payload, round_number, errors=None):
     """Schedule timestamps are UTC+8, as verified by league.js timeFromE8()."""
@@ -18,11 +31,12 @@ def parse_matches(payload, round_number, errors=None):
         try:
             if int(row[0]) <= 0 or int(row[4]) <= 0 or int(row[5]) <= 0:
                 raise ValueError('Unresolved fixture participants')
-            ht = parse_score(row[7])
-            ft = parse_score(row[6])
+            status = match_status(row[2])
+            ht = schedule_score(row[7], status)
+            ft = schedule_score(row[6], status)
             kickoff = datetime.strptime(row[3], '%Y-%m-%d %H:%M').replace(tzinfo=SOURCE_TIMEZONE).astimezone(timezone.utc) if row[3] else None
             yield {'external_match_id': int(row[0]), 'external_league_id': int(row[1]),
-                   'round': round_number, 'round_label': section['label'], 'stage_key': section['key'], 'kickoff_at': kickoff, 'status': match_status(row[2]),
+                   'round': round_number, 'round_label': section['label'], 'stage_key': section['key'], 'kickoff_at': kickoff, 'status': status,
                    'home_external_id': int(row[4]), 'home_name': teams[int(row[4])],
                    'away_external_id': int(row[5]), 'away_name': teams[int(row[5])],
                    'ht_home': ht[0], 'ht_away': ht[1], 'ft_home': ft[0], 'ft_away': ft[1],

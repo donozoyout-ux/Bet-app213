@@ -63,7 +63,7 @@ def test_field_metadata_does_not_borrow_row_timestamp_or_line():
     row.raw = {'_field_observed_at': {'latest_over': 'invalid'}}
     assert price_observed_at(row, 'latest_over') is None
     row.raw = {}
-    assert price_observed_at(row, 'latest_over') == NOW
+    assert price_observed_at(row, 'latest_over') is None
 
 
 def test_brier_and_calibration_require_actual_outcomes():

@@ -29,7 +29,11 @@ async def store_match(session, league_id, season_name, data):
     values = {k: data[k] for k in keys}
     values.update({k: data[k] for k in ['round_label', 'stage_key'] if k in data})
     values.update(league_id=league_id, season_id=season.id, home_team_id=home.id, away_team_id=away.id)
-    match = await get_or_create(session, Match, {'external_match_id': data['external_match_id']}, values)
+    match = await session.scalar(select(Match).where(Match.external_match_id == data['external_match_id']))
+    added = match is None
+    if added:
+        match = await get_or_create(session, Match, {'external_match_id': data['external_match_id']}, values)
+    changed = False
     # An archive schedule can lag the verified live scoreboard. Do not regress it.
     observed=match.status_observed_at
     if observed and observed.tzinfo is None:observed=observed.replace(tzinfo=timezone.utc)
@@ -42,8 +46,13 @@ async def store_match(session, league_id, season_name, data):
         if protect_score and k in {'status','ft_home','ft_away','ht_home','ht_away'}:
             continue
         if v is not None or k not in {'ht_home','ht_away','ft_home','ft_away'}:
+            previous = getattr(match, k)
+            if k == 'kickoff_at' and previous is not None and v is not None:
+                previous = previous.replace(tzinfo=timezone.utc) if previous.tzinfo is None else previous
+            changed = changed or previous != v
             setattr(match, k, v)
     if match.status=='finished':match.live_minute=None
+    match._discovery_change = 'added' if added else 'updated' if changed else 'unchanged'
     return match
 
 
@@ -75,8 +84,7 @@ def merge_odds_observations(row, data):
             field=stage+'_'+side
             if not hasattr(row,field):continue
             old=getattr(row,field)
-            if old is not None and row.updated_at is not None:
-                stamps.setdefault(field,row.updated_at.isoformat())
+            if old is not None:
                 if hasattr(row,stage+'_line'):lines.setdefault(field,getattr(row,stage+'_line'))
             value=data.get(field)
             if value is not None:

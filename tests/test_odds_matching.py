@@ -22,6 +22,8 @@ class MockOdds1X2:
         self.closing_away = cl_a
         self.updated_at = updated_at or datetime(2026, 10, 10, 10, 0, tzinfo=timezone.utc)
         self.match_id = match_id
+        self.raw = {'_field_observed_at': {f'{stage}_{side}': self.updated_at.isoformat()
+                    for stage in ('opening', 'latest', 'closing') for side in ('home', 'draw', 'away')}}
 
 
 class MockAsianTotals:
@@ -39,6 +41,8 @@ class MockAsianTotals:
         self.match_id = match_id
         self.market = market
         self.period = period
+        self.raw = {'_field_observed_at': {f'{stage}_{side}': self.updated_at.isoformat()
+                    for stage in ('opening', 'latest', 'closing') for side in ('over', 'under')}}
 
 
 class MockAsianHandicap:
@@ -54,6 +58,8 @@ class MockAsianHandicap:
         self.closing_away = cl_a
         self.updated_at = updated_at or datetime(2026, 10, 10, 10, 0, tzinfo=timezone.utc)
         self.match_id = match_id
+        self.raw = {'_field_observed_at': {f'{stage}_{side}': self.updated_at.isoformat()
+                    for stage in ('opening', 'latest', 'closing') for side in ('home', 'away')}}
 
 
 def test_parse_market_and_selection():

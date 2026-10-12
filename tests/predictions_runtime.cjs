@@ -122,11 +122,13 @@ async function scenario(mode){
       // This scenario supplies a real quote for the first recommendation of card 0.
       const missing=index===0 ? Math.min(item.recommendations.length,2)-1 : item.recommendations.slice(0,2).filter(r=>!r.verified_odds?.has_odds).length;
       if(missing){
-        const label=`${missing} tahmin için oran bekleniyor`;
-        assert(cards.children[index].text().includes(label));
-        assert.equal(cards.children[index].text().split('oran bekleniyor').length-1,1);
+        const unpriced=item.recommendations.slice(0,2).filter((r,i)=>!(index===0 && i===0) && !r.verified_odds?.has_odds);
+        for(const rec of unpriced)assert(cards.children[index].text().includes(rec.label+':'));
+        assert(cards.children[index].text().includes('Kaynak oran bulunamadı') || cards.children[index].text().includes('Bu market için doğrulanmış oran yok'));
       }
     }
+    assert(cards.children[0].text().includes('Kaynak: Goaloo'));
+    assert(cards.children[0].text().includes('Gözlem:'));
     await api.select(recorded.page.items[0].match.id, true);
     const box = ids.get('statistics-detail');
     assert(box.text().includes('En İyi Oran / Değer') && box.text().includes('1.50 (Bet365)'));

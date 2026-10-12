@@ -238,6 +238,8 @@ class ScraperJob(Base):
     failed_matches: Mapped[int] = mapped_column(default=0)
     no_odds_matches: Mapped[int] = mapped_column(default=0)
     discovery_complete: Mapped[bool] = mapped_column(default=False)
+    discovery_metrics: Mapped[dict | None] = mapped_column(JSON)
+    discovery_finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     last_error: Mapped[str | None] = mapped_column(String(500))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

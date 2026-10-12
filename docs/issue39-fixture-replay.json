@@ -1,0 +1,166 @@
+{
+  "basis": "isolated_postgresql_replay_of_captured_public_records",
+  "captured_at": "2026-10-12T17:44:30.562862+00:00",
+  "leagues": [
+    {
+      "external_id": 11,
+      "before_unique": 918,
+      "first": {
+        "added": 0,
+        "updated": 0,
+        "unchanged": 918,
+        "discovered": 918,
+        "parse_failed": 0,
+        "unique_matches": 918
+      },
+      "repeat": {
+        "added": 0,
+        "updated": 0,
+        "unchanged": 918,
+        "discovered": 918,
+        "parse_failed": 0,
+        "unique_matches": 918
+      }
+    },
+    {
+      "external_id": 16,
+      "before_unique": 924,
+      "first": {
+        "added": 0,
+        "updated": 0,
+        "unchanged": 924,
+        "discovered": 924,
+        "parse_failed": 0,
+        "unique_matches": 924
+      },
+      "repeat": {
+        "added": 0,
+        "updated": 0,
+        "unchanged": 924,
+        "discovered": 924,
+        "parse_failed": 0,
+        "unique_matches": 924
+      }
+    },
+    {
+      "external_id": 23,
+      "before_unique": 917,
+      "first": {
+        "added": 1,
+        "updated": 0,
+        "unchanged": 917,
+        "discovered": 918,
+        "parse_failed": 0,
+        "unique_matches": 918
+      },
+      "repeat": {
+        "added": 0,
+        "updated": 0,
+        "unchanged": 918,
+        "discovered": 918,
+        "parse_failed": 0,
+        "unique_matches": 918
+      }
+    },
+    {
+      "external_id": 30,
+      "before_unique": 954,
+      "first": {
+        "added": 0,
+        "updated": 1,
+        "unchanged": 953,
+        "discovered": 954,
+        "parse_failed": 0,
+        "unique_matches": 954
+      },
+      "repeat": {
+        "added": 0,
+        "updated": 0,
+        "unchanged": 954,
+        "discovered": 954,
+        "parse_failed": 0,
+        "unique_matches": 954
+      }
+    },
+    {
+      "external_id": 31,
+      "before_unique": 1140,
+      "first": {
+        "added": 0,
+        "updated": 0,
+        "unchanged": 1140,
+        "discovered": 1140,
+        "parse_failed": 0,
+        "unique_matches": 1140
+      },
+      "repeat": {
+        "added": 0,
+        "updated": 0,
+        "unchanged": 1140,
+        "discovered": 1140,
+        "parse_failed": 0,
+        "unique_matches": 1140
+      }
+    },
+    {
+      "external_id": 34,
+      "before_unique": 1140,
+      "first": {
+        "added": 0,
+        "updated": 0,
+        "unchanged": 1140,
+        "discovered": 1140,
+        "parse_failed": 0,
+        "unique_matches": 1140
+      },
+      "repeat": {
+        "added": 0,
+        "updated": 0,
+        "unchanged": 1140,
+        "discovered": 1140,
+        "parse_failed": 0,
+        "unique_matches": 1140
+      }
+    },
+    {
+      "external_id": 36,
+      "before_unique": 1140,
+      "first": {
+        "added": 0,
+        "updated": 0,
+        "unchanged": 1140,
+        "discovered": 1140,
+        "parse_failed": 0,
+        "unique_matches": 1140
+      },
+      "repeat": {
+        "added": 0,
+        "updated": 0,
+        "unchanged": 1140,
+        "discovered": 1140,
+        "parse_failed": 0,
+        "unique_matches": 1140
+      }
+    },
+    {
+      "external_id": 8,
+      "before_unique": 918,
+      "first": {
+        "added": 0,
+        "updated": 0,
+        "unchanged": 918,
+        "discovered": 918,
+        "parse_failed": 0,
+        "unique_matches": 918
+      },
+      "repeat": {
+        "added": 0,
+        "updated": 0,
+        "unchanged": 918,
+        "discovered": 918,
+        "parse_failed": 0,
+        "unique_matches": 918
+      }
+    }
+  ]
+}

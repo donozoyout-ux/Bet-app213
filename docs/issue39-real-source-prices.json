@@ -1,0 +1,610 @@
+{
+  "full_time": {
+    "Bet365": {
+      "1x2": {
+        "raw": {
+          "f": {
+            "u": "1.4",
+            "g": "4.75",
+            "d": "6.5"
+          },
+          "l": {
+            "u": "1.5",
+            "g": "4.33",
+            "d": "5.75"
+          },
+          "r": {
+            "u": "1.02",
+            "g": "19",
+            "d": "501"
+          },
+          "hr": true
+        },
+        "opening_home": 1.4,
+        "opening_draw": 4.75,
+        "opening_away": 6.5,
+        "latest_home": 1.5,
+        "latest_draw": 4.33,
+        "latest_away": 5.75,
+        "closing_home": null,
+        "closing_draw": null,
+        "closing_away": null
+      },
+      "ah": {
+        "raw": {
+          "f": {
+            "u": "0.8",
+            "g": "1.25",
+            "d": "1"
+          },
+          "l": {
+            "u": "0.78",
+            "g": "1",
+            "d": "1.03"
+          },
+          "r": {
+            "u": "0.5",
+            "g": "0",
+            "d": "1.5"
+          },
+          "hr": true
+        },
+        "opening_line": -1.25,
+        "opening_home": 1.8,
+        "opening_away": 2.0,
+        "latest_line": -1.0,
+        "latest_home": 1.78,
+        "latest_away": 2.03,
+        "closing_line": null,
+        "closing_home": null,
+        "closing_away": null
+      },
+      "ou": {
+        "raw": {
+          "f": {
+            "u": "0.8",
+            "g": "3.25",
+            "d": "1"
+          },
+          "l": {
+            "u": "0.88",
+            "g": "3.25",
+            "d": "0.93"
+          },
+          "r": {
+            "u": "6.8",
+            "g": "4.5",
+            "d": "0.09"
+          },
+          "hr": true
+        },
+        "opening_line": 3.25,
+        "opening_over": 1.8,
+        "opening_under": 2.0,
+        "latest_line": 3.25,
+        "latest_over": 1.88,
+        "latest_under": 1.93,
+        "closing_line": null,
+        "closing_over": null,
+        "closing_under": null
+      }
+    },
+    "Sbobet": {
+      "1x2": {
+        "raw": {
+          "f": {
+            "u": "1.48",
+            "g": "4.15",
+            "d": "4.85"
+          },
+          "l": {
+            "u": "1.49",
+            "g": "4.48",
+            "d": "5.3"
+          },
+          "r": {
+            "u": "1.02",
+            "g": "7.3",
+            "d": "220"
+          },
+          "hr": true
+        },
+        "opening_home": 1.48,
+        "opening_draw": 4.15,
+        "opening_away": 4.85,
+        "latest_home": 1.49,
+        "latest_draw": 4.48,
+        "latest_away": 5.3,
+        "closing_home": null,
+        "closing_draw": null,
+        "closing_away": null
+      },
+      "ah": {
+        "raw": {
+          "f": {
+            "u": "1.13",
+            "g": "1.25",
+            "d": "0.76"
+          },
+          "l": {
+            "u": "0.84",
+            "g": "1",
+            "d": "1.06"
+          },
+          "r": {
+            "u": "0.3",
+            "g": "0",
+            "d": "2.5"
+          },
+          "hr": true
+        },
+        "opening_line": -1.25,
+        "opening_home": 2.13,
+        "opening_away": 1.76,
+        "latest_line": -1.0,
+        "latest_home": 1.84,
+        "latest_away": 2.06,
+        "closing_line": null,
+        "closing_home": null,
+        "closing_away": null
+      },
+      "ou": {
+        "raw": {
+          "f": {
+            "u": "0.98",
+            "g": "3.25",
+            "d": "0.88"
+          },
+          "l": {
+            "u": "0.98",
+            "g": "3.25",
+            "d": "0.9"
+          },
+          "r": {
+            "u": "6.66",
+            "g": "4.5",
+            "d": "0.05"
+          },
+          "hr": true
+        },
+        "opening_line": 3.25,
+        "opening_over": 1.98,
+        "opening_under": 1.88,
+        "latest_line": 3.25,
+        "latest_over": 1.98,
+        "latest_under": 1.9,
+        "closing_line": null,
+        "closing_over": null,
+        "closing_under": null
+      }
+    },
+    "Crown": {
+      "1x2": {
+        "raw": {
+          "f": {
+            "u": "1.5",
+            "g": "4.9",
+            "d": "5.6"
+          },
+          "l": {
+            "u": "1.5",
+            "g": "4.7",
+            "d": "5"
+          },
+          "r": {
+            "u": "1.02",
+            "g": "14.5",
+            "d": "36"
+          },
+          "hr": true
+        },
+        "opening_home": 1.5,
+        "opening_draw": 4.9,
+        "opening_away": 5.6,
+        "latest_home": 1.5,
+        "latest_draw": 4.7,
+        "latest_away": 5.0,
+        "closing_home": null,
+        "closing_draw": null,
+        "closing_away": null
+      },
+      "ah": {
+        "raw": {
+          "f": {
+            "u": "1.03",
+            "g": "1.25",
+            "d": "0.85"
+          },
+          "l": {
+            "u": "0.81",
+            "g": "1",
+            "d": "1.08"
+          },
+          "r": {
+            "u": "6.66",
+            "g": "0.25",
+            "d": "0.03"
+          },
+          "hr": true
+        },
+        "opening_line": -1.25,
+        "opening_home": 2.03,
+        "opening_away": 1.85,
+        "latest_line": -1.0,
+        "latest_home": 1.81,
+        "latest_away": 2.08,
+        "closing_line": null,
+        "closing_home": null,
+        "closing_away": null
+      },
+      "ou": {
+        "raw": {
+          "f": {
+            "u": "0.99",
+            "g": "3.25",
+            "d": "0.87"
+          },
+          "l": {
+            "u": "0.9",
+            "g": "3.25",
+            "d": "0.97"
+          },
+          "r": {
+            "u": "7.14",
+            "g": "4.5",
+            "d": "0.02"
+          },
+          "hr": true
+        },
+        "opening_line": 3.25,
+        "opening_over": 1.99,
+        "opening_under": 1.87,
+        "latest_line": 3.25,
+        "latest_over": 1.9,
+        "latest_under": 1.97,
+        "closing_line": null,
+        "closing_over": null,
+        "closing_under": null
+      }
+    }
+  },
+  "first_half": {
+    "Bet365": {
+      "1x2": {
+        "raw": {
+          "f": {
+            "u": "1.95",
+            "g": "2.63",
+            "d": "5"
+          },
+          "l": {
+            "u": "1.95",
+            "g": "2.63",
+            "d": "5"
+          },
+          "r": {
+            "u": "1.95",
+            "g": "2.63",
+            "d": "5"
+          },
+          "hr": false
+        },
+        "opening_home": 1.95,
+        "opening_draw": 2.63,
+        "opening_away": 5.0,
+        "latest_home": 1.95,
+        "latest_draw": 2.63,
+        "latest_away": 5.0,
+        "closing_home": null,
+        "closing_draw": null,
+        "closing_away": null
+      },
+      "ah": {
+        "raw": {
+          "f": {
+            "u": "1",
+            "g": "0.5",
+            "d": "0.8"
+          },
+          "l": {
+            "u": "1",
+            "g": "0.5",
+            "d": "0.8"
+          },
+          "r": {
+            "u": "0.35",
+            "g": "0",
+            "d": "2.1"
+          },
+          "hr": true
+        },
+        "opening_line": -0.5,
+        "opening_home": 2.0,
+        "opening_away": 1.8,
+        "latest_line": -0.5,
+        "latest_home": 2.0,
+        "latest_away": 1.8,
+        "closing_line": null,
+        "closing_home": null,
+        "closing_away": null
+      },
+      "ou": {
+        "raw": {
+          "f": {
+            "u": "0.78",
+            "g": "1.25",
+            "d": "1.03"
+          },
+          "l": {
+            "u": "0.78",
+            "g": "1.25",
+            "d": "1.03"
+          },
+          "r": {
+            "u": "3.1",
+            "g": "0.5",
+            "d": "0.23"
+          },
+          "hr": true
+        },
+        "opening_line": 1.25,
+        "opening_over": 1.78,
+        "opening_under": 2.03,
+        "latest_line": 1.25,
+        "latest_over": 1.78,
+        "latest_under": 2.03,
+        "closing_line": null,
+        "closing_over": null,
+        "closing_under": null
+      }
+    },
+    "Sbobet": {
+      "1x2": {
+        "raw": {
+          "f": {
+            "u": "2",
+            "g": "2.49",
+            "d": "4.56"
+          },
+          "l": {
+            "u": "2.04",
+            "g": "2.57",
+            "d": "4.5"
+          },
+          "r": {
+            "u": "6.3",
+            "g": "1.16",
+            "d": "12.5"
+          },
+          "hr": true
+        },
+        "opening_home": 2.0,
+        "opening_draw": 2.49,
+        "opening_away": 4.56,
+        "latest_home": 2.04,
+        "latest_draw": 2.57,
+        "latest_away": 4.5,
+        "closing_home": null,
+        "closing_draw": null,
+        "closing_away": null
+      },
+      "ah": {
+        "raw": {
+          "f": {
+            "u": "1",
+            "g": "0.5",
+            "d": "0.86"
+          },
+          "l": {
+            "u": "1.04",
+            "g": "0.5",
+            "d": "0.86"
+          },
+          "r": {
+            "u": "0.34",
+            "g": "0",
+            "d": "2.27"
+          },
+          "hr": true
+        },
+        "opening_line": -0.5,
+        "opening_home": 2.0,
+        "opening_away": 1.86,
+        "latest_line": -0.5,
+        "latest_home": 2.04,
+        "latest_away": 1.86,
+        "closing_line": null,
+        "closing_home": null,
+        "closing_away": null
+      },
+      "ou": {
+        "raw": {
+          "f": {
+            "u": "0.85",
+            "g": "1.25",
+            "d": "1.01"
+          },
+          "l": {
+            "u": "0.77",
+            "g": "1.25",
+            "d": "1.12"
+          },
+          "r": {
+            "u": "7.69",
+            "g": "0.5",
+            "d": "0.03"
+          },
+          "hr": true
+        },
+        "opening_line": 1.25,
+        "opening_over": 1.85,
+        "opening_under": 2.01,
+        "latest_line": 1.25,
+        "latest_over": 1.77,
+        "latest_under": 2.12,
+        "closing_line": null,
+        "closing_over": null,
+        "closing_under": null
+      }
+    },
+    "Crown": {
+      "1x2": {
+        "raw": {
+          "f": {
+            "u": "1.96",
+            "g": "2.54",
+            "d": "5"
+          },
+          "l": {
+            "u": "1.97",
+            "g": "2.6",
+            "d": "4.8"
+          },
+          "r": {
+            "u": "15",
+            "g": "1.01",
+            "d": "21"
+          },
+          "hr": true
+        },
+        "opening_home": 1.96,
+        "opening_draw": 2.54,
+        "opening_away": 5.0,
+        "latest_home": 1.97,
+        "latest_draw": 2.6,
+        "latest_away": 4.8,
+        "closing_home": null,
+        "closing_draw": null,
+        "closing_away": null
+      },
+      "ah": {
+        "raw": {
+          "f": {
+            "u": "0.96",
+            "g": "0.5",
+            "d": "0.92"
+          },
+          "l": {
+            "u": "0.97",
+            "g": "0.5",
+            "d": "0.91"
+          },
+          "r": {
+            "u": "7.69",
+            "g": "0.25",
+            "d": "0.01"
+          },
+          "hr": true
+        },
+        "opening_line": -0.5,
+        "opening_home": 1.96,
+        "opening_away": 1.92,
+        "latest_line": -0.5,
+        "latest_home": 1.97,
+        "latest_away": 1.91,
+        "closing_line": null,
+        "closing_home": null,
+        "closing_away": null
+      },
+      "ou": {
+        "raw": {
+          "f": {
+            "u": "0.83",
+            "g": "1.25",
+            "d": "1.03"
+          },
+          "l": {
+            "u": "1.13",
+            "g": "1.5",
+            "d": "0.75"
+          },
+          "r": {
+            "u": "7.14",
+            "g": "0.5",
+            "d": "0.01"
+          },
+          "hr": true
+        },
+        "opening_line": 1.25,
+        "opening_over": 1.83,
+        "opening_under": 2.03,
+        "latest_line": 1.5,
+        "latest_over": 2.13,
+        "latest_under": 1.75,
+        "closing_line": null,
+        "closing_over": null,
+        "closing_under": null
+      }
+    }
+  },
+  "corners": {
+    "Bet365": {
+      "raw": {
+        "cid": 8,
+        "cn": "Bet365",
+        "type": 2,
+        "odds": {
+          "f": {
+            "u": "0.9",
+            "g": "9.5",
+            "d": "0.9"
+          },
+          "l": {
+            "u": "0.85",
+            "g": "10",
+            "d": "0.95"
+          },
+          "r": {
+            "u": "1.5",
+            "g": "9.5",
+            "d": "0.5"
+          },
+          "hr": true
+        }
+      },
+      "opening_line": 9.5,
+      "opening_over": 1.9,
+      "opening_under": 1.9,
+      "latest_line": 10.0,
+      "latest_over": 1.85,
+      "latest_under": 1.95,
+      "closing_line": null,
+      "closing_over": null,
+      "closing_under": null
+    },
+    "Crown": {
+      "raw": {
+        "cid": 3,
+        "cn": "Sb",
+        "type": 2,
+        "odds": {
+          "f": {
+            "u": "0.91",
+            "g": "10",
+            "d": "0.89"
+          },
+          "l": {
+            "u": "0.9",
+            "g": "10.5",
+            "d": "0.9"
+          },
+          "r": {
+            "u": "1.36",
+            "g": "10",
+            "d": "0.53"
+          },
+          "hr": true
+        }
+      },
+      "opening_line": 10.0,
+      "opening_over": 1.91,
+      "opening_under": 1.89,
+      "latest_line": 10.5,
+      "latest_over": 1.9,
+      "latest_under": 1.9,
+      "closing_line": null,
+      "closing_over": null,
+      "closing_under": null
+    }
+  }
+}

@@ -45,7 +45,7 @@ async def test_upcoming_quotes_refresh_markets_and_durable_backoff(db,monkeypatc
 
 
 def test_odds_diagnostic_distinguishes_exact_line_stale_and_no_source():
-    row=SimpleNamespace(match_id=1,market='corners',period='full_time',latest_line=9.5,latest_over=1.8,latest_under=1.9,updated_at=NOW-timedelta(hours=1),raw={})
+    row=SimpleNamespace(match_id=1,market='corners',period='full_time',latest_line=9.5,latest_over=1.8,latest_under=1.9,updated_at=NOW-timedelta(hours=1),raw={'_field_observed_at':{'latest_over':(NOW-timedelta(hours=1)).isoformat()}})
     def match(market,selection):return match_odds_for_candidate(dict(market=market,selection=selection,probability=.7),1,'scheduled',period_odds_rows=[(row,'Bet365')],cutoff=NOW)
     assert match('corners','over_9_5')['reason']=='odds_stale'
     assert match('corners','over_8_5')['reason']=='line_mismatch'

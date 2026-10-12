@@ -127,7 +127,9 @@ def price_observed_at(row, field):
         try:return _aware(datetime.fromisoformat(stamp))
         except (TypeError,ValueError):return None
     if isinstance(stamps,dict):return None
-    return _aware(getattr(row,'updated_at',None))
+    # Persisted prices without field provenance have unknown observation time.
+    # A row update (e.g. partial read) is not evidence that this price was seen.
+    return None
 
 
 def price_matches_line(row, stage, side, target):
@@ -516,7 +518,7 @@ def match_odds_for_candidate(candidate,match_id,match_status,odds_1x2_rows=None,
         elif line is not None and not any(price_matches_line(row,result['stage'],side,line) for row in supported):reason='line_mismatch'
         elif cutoff and any(price_observed_at(row,result['stage']+'_'+side) and price_observed_at(row,result['stage']+'_'+side)>_aware(cutoff) for row in supported):reason='observed_after_cutoff'
         else:reason='missing_stage_price'
-    return {**result,'reason':reason}
+    return {**result,'reason':reason, 'source': 'goaloo' if result['has_odds'] else None}
 
 
 def enrich_recommendations_with_odds(

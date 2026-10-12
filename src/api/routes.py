@@ -9,7 +9,7 @@ from sqlalchemy import select, func, or_, text
 from sqlalchemy.orm import aliased
 from src.config import settings
 from src.db import database
-from src.models import League, Season, Team, Match, Bookmaker, Odds1X2, AsianHandicap, AsianTotals, ScraperJob, MatchStatistics
+from src.models import League, Season, Team, Match, Bookmaker, Odds1X2, AsianHandicap, AsianTotals, MarketOdds, ScraperJob, MatchStatistics
 from src.jobs.worker import enqueue, aware, enqueue_all_updates
 from src.models import utcnow
 from src.match_views import LIVE_STATUSES, DISPLAY_TIMEZONE, day_bounds
@@ -37,6 +37,7 @@ async def diagnostics():
             result.update({key: summary[key] for key in ('latest_job_status', 'total_matches', 'total_odds', 'enabled_competitions', 'completed_competitions', 'active_backfill_competition', 'queued_backfills')})
             result.update({key:summary[key] for key in ('enabled_leagues','match_counts_by_league','stats_rows','matches_with_corners','matches_with_cards','matches_with_referee','active_backfill','stats_coverage_by_league','active_stats_backfill','queued_stats_backfills')})
             result['database_connected'] = True
+            result['fixture_discovery'] = summary.get('fixture_discovery', [])
         except Exception:
             logging.getLogger(__name__).exception('[DB] diagnostics unavailable')
     return result
@@ -252,7 +253,7 @@ async def automatic_coupon(strategy: Literal['balanced','cautious','value']='bal
 
 @router.get('/odds-coverage')
 async def odds_coverage(session=Depends(session_dependency)):
-    from src.analytics.odds_diagnostics import report
+    from src.analytics.odds_diagnostics import report, source_report
     records,now,_=await calculate_predictions(session,None,None)
     from copy import deepcopy
     from src.analytics.coupon import current_odds
@@ -261,7 +262,8 @@ async def odds_coverage(session=Depends(session_dependency)):
     await current_odds(session,{r['match_id']:r['candidates'] for r in analysis},now)
     for row in analysis:
         attach_coverage(row['market_engines'],row.pop('candidates'))
-    return {**report(records,now),'cache':session.info['prediction_snapshot'], 'engine_analysis':analysis}
+    return {**report(records,now),'cache':session.info['prediction_snapshot'], 'engine_analysis':analysis,
+            'source_rows': await source_report(session, now)}
 
 
 @router.post('/coupons')
@@ -388,12 +390,16 @@ async def odds_data(session, match_id):
 
 
 async def odds_data_bulk(session, match_ids):
+    from src.analytics.odds_matching import price_observed_at
     result = {}
-    for model, market in [(Odds1X2, '1x2'), (AsianHandicap, 'ah'), (AsianTotals, 'ou')]:
+    for model, market in [(Odds1X2, '1x2'), (AsianHandicap, 'ah'), (AsianTotals, 'ou'), (MarketOdds, None)]:
         rows = (await session.execute(select(model, Bookmaker.name).join(Bookmaker).where(model.match_id.in_(match_ids)))).all()
         for row, name in rows:
             keys = ['home', 'draw', 'away'] if market == '1x2' else (['line', 'home', 'away'] if market == 'ah' else ['line', 'over', 'under'])
-            result.setdefault(row.match_id, []).append(OddsResponse(bookmaker=name, bookmaker_id=row.bookmaker_id, market=market,
+            result.setdefault(row.match_id, []).append(OddsResponse(bookmaker=name, bookmaker_id=row.bookmaker_id, market=market or row.market,
+                period=row.period if model is MarketOdds else 'full_time',
+                field_observed_at={stage+'_'+side:price_observed_at(row,stage+'_'+side)
+                    for stage in ('opening','latest','closing') for side in keys if side!='line'},
                 opening={k: getattr(row, 'opening_' + k) for k in keys}, latest={k: getattr(row, 'latest_' + k) for k in keys},
                 closing={k: getattr(row, 'closing_' + k) for k in keys}, updated_at=aware(row.updated_at), raw=row.raw,
                 line_perspective='home' if market == 'ah' else None))

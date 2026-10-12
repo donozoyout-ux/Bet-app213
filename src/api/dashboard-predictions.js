@@ -184,18 +184,18 @@
     if(recs.length>1){for(const rec of recs.slice(1,2))element.append(node('p',`${rec.label} ${pct(rec.probability)} • ${confidence[rec.confidence]} Güven`));}
 
     const oddsWrap=node('div','','prediction-odds');
-    let awaitingPrices=0;
+    const priceReasons={line_mismatch:'Doğrulanmış kaynak çizgisi farklı',no_source_rows:'Kaynak oran bulunamadı',source_market_unavailable:'Bu market için kaynak bulunamadı',unsupported_bookmaker:'Desteklenen bookmaker bulunamadı',missing_stage_price:'Güncel kaynak fiyatı bulunamadı',odds_stale:'Oran gözlemi bayat',odds_unknown:'Fiyat gözlem zamanı doğrulanamadı',observed_after_cutoff:'Fiyat analiz zamanından sonra gözlendi'};
     for(const rec of recs.slice(0,2)){
       const vo=rec.verified_odds;
       if(vo && vo.has_odds){
         const row=node('div','','odds-line text-body-sm');
         row.append(node('span',`${rec.label}: ${num(vo.best_price)} (${vo.best_bookmaker}) • Değer: ${vo.best_value>=0?'+':''}${(100*vo.best_value).toFixed(1)} puan`,'font-semibold'));
+        row.append(node('small',`Kaynak: ${vo.source || 'Goaloo'} • Gözlem: ${vo.observed_at?date(vo.observed_at):'Doğrulanamadı'}${vo.reason?' • '+(priceReasons[vo.reason] || vo.reason):''}`));
         oddsWrap.append(row);
       } else {
-        awaitingPrices++;
+        oddsWrap.append(node('div',`${rec.label}: ${priceReasons[vo?.reason] || vo?.message || 'Kaynak oran bulunamadı'}`,'text-outline text-body-sm'));
       }
     }
-    if(awaitingPrices)oddsWrap.append(node('div',`${awaitingPrices} tahmin için oran bekleniyor`,'text-outline text-body-sm'));
     element.append(oddsWrap);
 
     const open=()=>{if(globalThis.BetAppDashboard?.selectMatch)globalThis.BetAppDashboard.selectMatch(m.id,true);else select(m.id,true);};
