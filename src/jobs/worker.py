@@ -653,6 +653,22 @@ async def work(once=False):
             if not database.ready:
                 await database.initialize()
             if not initialization_checked:
+                # Validate the three European cup schedules against the source before
+                # they are enabled or any historical backfill is queued.
+                try:
+                    from src.scrapers.goaloo.competitions import verify_uefa_competitions, upsert_competitions
+                    async with GoalooClient() as uefa_client:
+                        verified_uefa = await verify_uefa_competitions(uefa_client)
+                    async with database.session() as uefa_session:
+                        if uefa_session.bind.dialect.name == 'postgresql':
+                            await uefa_session.execute(text('SELECT pg_advisory_xact_lock(213001)'))
+                        await upsert_competitions(uefa_session, verified_uefa)
+                        await uefa_session.commit()
+                    log.info('[UEFA] verified and enabled CL EL Conference, queueing 2024+ backfill')
+                except asyncio.CancelledError:
+                    raise
+                except Exception as exc:
+                    log.warning('[UEFA] onboarding deferred error=%s', type(exc).__name__)
                 await enqueue_initial_backfill(database)
                 await enqueue_catalog_backfills(database)
                 initialization_checked = True
