@@ -61,6 +61,9 @@ class OddsResponse(BaseModel):
     bookmaker: str
     bookmaker_id: int
     market: str
+    period: str = 'full_time'
+    source: str = 'goaloo'
+    field_observed_at: dict[str, datetime | None] = Field(default_factory=dict)
     opening: dict[str, float | None]
     latest: dict[str, float | None]
     closing: dict[str, float | None]

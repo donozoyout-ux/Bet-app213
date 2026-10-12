@@ -35,6 +35,23 @@ async def database_summary(db, verify_schema=False):
     async with db.session() as session:
         await session.execute(text('SELECT 1'))
         result = {}
+        discovery_jobs = (await session.scalars(select(ScraperJob).join(League).where(
+            League.enabled.is_(True), ScraperJob.kind.in_(['backfill', 'update']),
+            ScraperJob.discovery_finished_at.is_not(None)).order_by(ScraperJob.id.desc()))).all()
+        discovery = {}
+        successes = {}
+        for job in discovery_jobs:
+            counters = {key: sum(section.get(key, 0) for section in (job.discovery_metrics or {}).values())
+                        for key in ('discovered', 'added', 'updated', 'unchanged', 'errors')}
+            if not counters['errors']:
+                successes.setdefault(job.league_id, job.discovery_finished_at)
+            if job.league_id in discovery:
+                continue
+            discovery[job.league_id] = dict(league_id=job.league_id, job_id=job.id,
+                last_completed_discovery=job.discovery_finished_at, **counters)
+        for league_id, row in discovery.items():
+            row['last_successful_discovery'] = successes.get(league_id)
+        result['fixture_discovery'] = list(discovery.values())
         if verify_schema:
             async with db.engine.connect() as conn:
                 tables = await conn.run_sync(lambda sync: inspect(sync).get_table_names())

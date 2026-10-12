@@ -1,7 +1,44 @@
 """Measured exact-price coverage of the current board, never theoretical coverage."""
 from collections import Counter,defaultdict
-from datetime import datetime
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
+
+
+async def source_report(session, now):
+    """Aggregate actual persisted latest fields by exact source identity and line."""
+    from sqlalchemy import select, func, case, and_
+    from src.models import Odds1X2, AsianTotals, AsianHandicap, MarketOdds, Bookmaker
+    rows = []
+    for model, family in [(Odds1X2, 'result'), (AsianTotals, 'goals'),
+                          (AsianHandicap, 'asian_handicap'), (MarketOdds, None)]:
+        dimensions = [Bookmaker.name]
+        if family is None:
+            dimensions += [model.market, model.period]
+        if model is not Odds1X2:
+            dimensions += [model.latest_line]
+        fields = ('home', 'draw', 'away') if model is Odds1X2 else ('home', 'away') if model is AsianHandicap else ('over', 'under')
+        aggregates = [func.count(model.id)]
+        for side in fields:
+            value = getattr(model, 'latest_' + side)
+            stamp = model.raw['_field_observed_at']['latest_' + side].as_string()
+            valid = and_(value > 1, value.is_not(None))
+            fresh = and_(valid, stamp >= (now - timedelta(minutes=15)).isoformat(), stamp <= now.isoformat())
+            aggregates += [func.count(case((valid, 1))), func.count(case((and_(valid, stamp.is_not(None)), 1))),
+                           func.count(case((fresh, 1)))]
+        query = select(*dimensions, *aggregates).join(Bookmaker).group_by(*dimensions)
+        for record in (await session.execute(query)).all():
+            values = list(record)
+            bookmaker = values.pop(0)
+            market, period = (values.pop(0), values.pop(0)) if family is None else (family, 'full_time')
+            line = values.pop(0) if model is not Odds1X2 else None
+            count = values.pop(0)
+            prices = {}
+            for side in fields:
+                prices[side] = dict(zip(('priced', 'observed', 'fresh'), values[:3]))
+                del values[:3]
+            rows.append(dict(market=market, period=period, bookmaker=bookmaker, line=line,
+                             source_rows=count, latest_fields=prices))
+    return rows
 
 
 def report(records,now):

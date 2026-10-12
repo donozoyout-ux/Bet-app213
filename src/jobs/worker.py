@@ -350,12 +350,20 @@ async def discover(job_id, client):
                 # A transaction commits each round plus job items; rediscovery is idempotent.
                 await session.execute(delete(ScraperIssue).where(ScraperIssue.job_id == job.id, ScraperIssue.season == season_name, ScraperIssue.round == round_number))
                 errors = []
+                counts = dict(discovered=0, added=0, updated=0, unchanged=0, errors=0)
+                seen = set()
                 for data in parse_matches(payload, round_number, errors):
                     if data['external_league_id'] != external_id:
-                        raise SourceError('League ID does not match request')
+                        errors.append(dict(external_match_id=str(data['external_match_id']),
+                                           error='League ID does not match request', raw=data['raw']))
+                        continue
                     if competition_type == 'national' and (data['kickoff_at'] is None or data['kickoff_at'].year < start_year):
                         continue
                     match = await store_match(session, league_id, season_name, data)
+                    if match.external_match_id not in seen:
+                        seen.add(match.external_match_id)
+                        counts['discovered'] += 1
+                        counts[match._discovery_change] += 1
                     kickoff = aware(match.kickoff_at)
                     recent = kickoff is not None and now - timedelta(days=7) <= kickoff <= now + timedelta(days=7)
                     needs_odds = kind == 'backfill' and not (match.status == 'finished' and match.odds_complete)
@@ -366,6 +374,9 @@ async def discover(job_id, client):
                     session.add(ScraperIssue(job_id=job.id, season=season_name, round=round_number, **error))
                     job.last_error = error['error']
                     log.warning('[MATCH] parse failed %s', error['error'])
+                counts['errors'] = len(errors)
+                # Replace a round checkpoint on resume rather than double count it.
+                job.discovery_metrics = {**(job.discovery_metrics or {}), f'{season_name}/{round_number}': counts}
                 await session.flush()
                 issues = await session.scalar(select(func.count(ScraperIssue.id)).where(ScraperIssue.job_id == job.id))
                 job.total_matches = issues + await session.scalar(select(func.count(JobItem.id)).where(JobItem.job_id == job.id))
@@ -374,6 +385,7 @@ async def discover(job_id, client):
     async with database.session() as session:
         job = await session.get(ScraperJob, job_id)
         job.discovery_complete = True
+        job.discovery_finished_at = utcnow()
         await session.commit()
     async with database.session() as audit_session:
         fixtures_after = await audit_session.scalar(select(func.count(Match.id)).where(Match.league_id == league_id))

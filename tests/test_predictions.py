@@ -78,7 +78,8 @@ async def seed(db):
         session.add(target);await session.flush()
         for book in (await session.scalars(select(Bookmaker))).all():
             session.add(Odds1X2(match_id=target.id,bookmaker_id=book.id,opening_home=2,opening_draw=3,opening_away=4,
-                               latest_home=2,latest_draw=3,latest_away=4,raw={'r':{'u':999}},updated_at=NOW-timedelta(minutes=1)))
+                               latest_home=2,latest_draw=3,latest_away=4,
+                               raw={'r':{'u':999},'_field_observed_at':{field:(NOW-timedelta(minutes=1)).isoformat() for field in ('opening_home','opening_draw','opening_away','latest_home','latest_draw','latest_away')}},updated_at=NOW-timedelta(minutes=1)))
         await session.commit()
         from src.analytics.board_cache import refresh_one
         await refresh_one(db, now=NOW, force_league=league.id)

@@ -19,6 +19,7 @@ from src.db import Database
 from tests.test_predictions import seed,NOW
 from tests.test_recommendations import candidate
 from src.analytics.recommendations import rank_candidate
+from tests.odds_fixture import observed_prices, move_observations
 
 
 async def coupon_seed(db):
@@ -38,7 +39,7 @@ async def coupon_seed(db):
             item['recommendations']=picks;item['strongest_prediction']=picks[0]['id'];items.append(item)
             for book in await session.scalars(select(Bookmaker)):
                 for market,period,line,price in [('first_half_goals','first_half',1.5,1.8),('corners','full_time',9.5,2.2)]:
-                    session.add(MarketOdds(match_id=fixture.id,bookmaker_id=book.id,market=market,period=period,latest_line=line,latest_over=price,latest_under=price,updated_at=NOW-timedelta(minutes=1),raw={}))
+                    session.add(MarketOdds(match_id=fixture.id,bookmaker_id=book.id,market=market,period=period,latest_line=line,latest_over=price,latest_under=price,updated_at=NOW-timedelta(minutes=1),raw=observed_prices(NOW-timedelta(minutes=1),'latest_over','latest_under')))
         board.payload={**board.payload,'items':items,'evaluated':2}
         board.expires_at=NOW+timedelta(minutes=10);board.model_version=MODEL_VERSION
         await session.commit()
@@ -111,14 +112,14 @@ async def test_coupon_api_revalidates_unchanged_cached_board(api,db,monkeypatch)
     pick=next(i['recommendation'] for i in page['items'] if i['match']['id']==ids[0] and i['recommendation']['market']=='first_half_goals')
     assert 'Bet365' not in pick['verified_odds']['bookmakers']
     async with db.session() as session:
-        for row in await session.scalars(select(MarketOdds)):row.updated_at=NOW-timedelta(hours=1)
+        for row in await session.scalars(select(MarketOdds)):move_observations(row,NOW-timedelta(hours=1))
         await session.commit()
     assert not (await api.post('/api/coupon/quote',json=request(ids))).json()['eligible']
 
 
 def test_fresh_price_priority_and_best_price_timestamp():
     def row(price,stamp,period='first_half'):
-        return SimpleNamespace(match_id=1,market='first_half_goals',period=period,latest_line=1.5,latest_over=price,updated_at=stamp,raw={})
+        return SimpleNamespace(match_id=1,market='first_half_goals',period=period,latest_line=1.5,latest_over=price,updated_at=stamp,raw=observed_prices(stamp,'latest_over'))
     candidate=dict(market='first_half_goals',selection='over_1_5',probability=.7)
     rows=[(row(5,NOW-timedelta(hours=1)),'Crown'),(row(1.8,NOW-timedelta(minutes=3)),'Bet365'),(row(1.7,NOW-timedelta(minutes=1)),'Sbobet')]
     vo=match_odds_for_candidate(candidate,1,'scheduled',period_odds_rows=rows,cutoff=NOW)
