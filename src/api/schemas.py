@@ -114,6 +114,8 @@ class StatusResponse(BaseModel):
     database: str
     database_engine: str | None = None
     total_matches: int | None = None
+    new_matches_24h: int | None = None
+    latest_new_match_at: datetime | None = None
     total_odds: int | None = None
     last_scraped_at: datetime | None = None
     app_env: str
