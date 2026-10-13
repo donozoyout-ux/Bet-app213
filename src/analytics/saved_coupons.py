@@ -21,8 +21,9 @@ from src.jobs.worker import aware
 COUPON_LOCK=213009
 COUPON_TZ=ZoneInfo('Europe/Istanbul')
 DEFAULT_COUPON_MATCHES=4
+AUTOMATIC_MAX_COMBINED_ODDS=5.0
 
-def daily_candidates(records, now, strategy='balanced', max_matches=DEFAULT_COUPON_MATCHES):
+def daily_candidates(records, now, strategy='balanced', max_matches=DEFAULT_COUPON_MATCHES, max_combined_odds=None):
     """Choose a daily shortlist without loosening the existing quality/price gate."""
     if strategy not in ('balanced','cautious','value'):
         raise ValueError('Unsupported coupon strategy')
@@ -48,11 +49,14 @@ def daily_candidates(records, now, strategy='balanced', max_matches=DEFAULT_COUP
               'value':value*.5+confidence*.5}[strategy]
         eligible.append((rank,confidence,probability,-kickoff.timestamp(),item))
     eligible.sort(key=lambda a:(-a[0],-a[1],-a[2],-a[3],a[4]['match']['id']))
-    chosen=[];matches=set()
+    chosen=[];matches=set();combined=1.0
     for part in eligible:
         item=part[4];match=item['match']
         if match['id'] in matches:continue
-        chosen.append(item);matches.add(match['id'])
+        price=float(item['quote']['price'])
+        if max_combined_odds is not None and combined*price > max_combined_odds+1e-9:
+            continue
+        chosen.append(item);matches.add(match['id']);combined*=price
         if len(chosen)==max_matches:break
     return sorted(chosen,key=lambda i:(str(i['match']['kickoff_at']),i['match']['id']))
 
@@ -104,13 +108,13 @@ async def automatic(session,now,strategy='balanced',max_matches=DEFAULT_COUPON_M
             if daily_candidates([candidate],now,strategy,1):
                 items.append(candidate)
                 break
-    items=daily_candidates(items,now,strategy,max_matches)
+    items=daily_candidates(items,now,strategy,max_matches,max_combined_odds=AUTOMATIC_MAX_COMBINED_ODDS)
     if not items:return None
     await lock_coupons(session)
     digest=fingerprint(items)
     existing=await session.scalar(select(SavedCoupon).where(SavedCoupon.automatic_fingerprint==digest))
     if existing:return existing
-    id=str(uuid.uuid4());row=SavedCoupon(id=id,root_id=id,revision=1,kind='automatic',automatic_fingerprint=digest,owner_hash=None,created_at=now,payload={**payload(items),'coupon_date':now.astimezone(COUPON_TZ).date().isoformat(),'strategy':strategy,'target_matches':max_matches})
+    id=str(uuid.uuid4());row=SavedCoupon(id=id,root_id=id,revision=1,kind='automatic',automatic_fingerprint=digest,owner_hash=None,created_at=now,payload={**payload(items),'coupon_date':now.astimezone(COUPON_TZ).date().isoformat(),'strategy':strategy,'target_matches':max_matches,'max_combined_odds':AUTOMATIC_MAX_COMBINED_ODDS})
     session.add(row);await session.flush();return row
 
 
