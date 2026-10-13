@@ -126,3 +126,56 @@ button:hover{background:#1c3d2a;color:#eafff1}
 .home-market-card .prediction-open{color:#70ffc0;font-weight:800}
 @media(max-width:700px){#prediction-cards{gap:12px}.home-market-card:hover{transform:none}.home-market-card .pick-primary{padding:14px}}
 @media(prefers-reduced-motion:reduce){.home-market-card{transition:none}.home-market-card:hover{transform:none}}
+
+/* Emerald cockpit 2026 — visual refresh layered over the existing dark tokens. */
+:root{--app-bg:#050b08;--surface:#0d1b13;--primary:#5dfa9a;--text:#ecfff3;--muted:#9cb8a7;--border:#234b36;--primary-soft:#123f29;--shadow:0 18px 45px #0007}
+html{color-scheme:dark}
+body{background:radial-gradient(ellipse 85% 34% at 70% -8%,#145b343b,transparent 73%),linear-gradient(180deg,#08170e 0%,#050b08 50%,#07120c 100%) fixed}
+.terminal-header{height:76px;background:#07150fee;border-bottom:1px solid #2f6b46;box-shadow:0 10px 32px #0005}
+.brand{font-size:23px;letter-spacing:-.055em}
+.brand-mark{background:linear-gradient(145deg,#7affba,#35c977);border-radius:12px;box-shadow:0 0 0 1px #baffc34d,0 0 28px #47ed8c35;color:#062111}
+.desktop-nav a{border:1px solid transparent;transition:background .16s,border-color .16s,color .16s}
+.desktop-nav a:hover{color:#eefff4;background:#183a26;border-color:#2b6343}
+.desktop-nav a[aria-current=page]{border-color:#348752;background:linear-gradient(150deg,#1c5634,#123b27);color:#a1ffca;box-shadow:inset 0 1px #ffffff12}
+.connection.connected{color:#a3f8bf}
+.connection.connected i{box-shadow:0 0 0 4px #47e58a21,0 0 12px #55ffa563}
+#dashboard-shell{max-width:1440px}
+.platform-intro{padding:27px 30px;border:1px solid #2d6a42;border-radius:22px;background:radial-gradient(circle at 90% 10%,#2cc87820,transparent 45%),linear-gradient(135deg,#163a25,#0b2116 62%,#0b1b13);box-shadow:0 20px 46px #0006}
+.platform-intro h1{font-size:clamp(29px,3.5vw,48px)}
+.platform-intro h1 span{color:#87ffb9}
+.eyebrow{color:#70ef9c}
+.home-summary{gap:14px;margin-bottom:34px}
+.home-summary article{background:linear-gradient(145deg,#132c1d,#0e2116);border:1px solid #315e40;border-radius:17px;min-height:116px;box-shadow:0 14px 34px #0004}
+.home-summary strong{color:#ecfff3;font-size:clamp(20px,2.4vw,32px)}
+.metric-icon{background:#1b5331;color:#89ffb6;border:1px solid #3d8d55}
+.section-heading{gap:16px}
+.section-heading h1{font-size:clamp(26px,3vw,39px)}
+.prediction-grid{gap:17px}
+.prediction-card{border-radius:18px}
+.prediction-card:hover{box-shadow:0 16px 45px #0009,0 0 0 1px #4ff69a2f}
+.home-market-card{background:linear-gradient(146deg,#10291a,#09190f);border-color:#2c6742}
+.home-market-card::before{background:linear-gradient(90deg,#4ef29a,#bdffd0 55%,transparent)}
+.pick-primary{border-radius:13px}
+.primary-button,#coupon-automatic,#coupon-save{background:linear-gradient(120deg,#5cf29d,#31cb78);color:#052012;border:1px solid #96ffbc;box-shadow:0 9px 25px #20c87431}
+.primary-button:hover,#coupon-automatic:hover,#coupon-save:hover{background:#a0ffc3;color:#052012}
+#coupon-section{max-width:1120px}
+#coupon-section .section-heading{background:radial-gradient(circle at 92% 0%,#36e9821c,transparent 48%),linear-gradient(125deg,#143723,#0c2015 80%);border:1px solid #3a7f50;border-radius:20px;padding:25px}
+#coupon-section [aria-labelledby="coupon-draft-title"]{padding:24px;border:1px solid #326647;background:linear-gradient(160deg,#0e2317,#0a1b11);border-radius:20px;box-shadow:0 17px 43px #0005}
+#coupon-draft-title{font-size:clamp(20px,2.6vw,28px);letter-spacing:-.03em}
+#coupon-selected{grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:14px}
+#coupon-selected>div{background:linear-gradient(160deg,#173824,#0c2015);border:1px solid #326849;border-top:3px solid #6affaa;border-left:1px solid #326849;border-radius:15px;padding:19px;box-shadow:0 12px 27px #0005}
+#coupon-selected>div p:first-child{font-size:17px;line-height:1.35}
+#coupon-selected>div button{margin-top:10px}
+#coupon-total{padding:15px 18px;border:1px solid #32784d;background:#123821;border-radius:13px;color:#97ffbe;font-size:clamp(15px,2vw,20px)}
+#coupon-edit-panel{border:1px solid #315d42;background:#0a1a11;border-radius:17px;margin-top:22px}
+#coupon-edit-panel summary{list-style-position:inside;font-size:15px;padding:6px}
+#coupon-edit-panel summary:hover{color:#c6ffda}
+#coupon-section [aria-labelledby="coupon-history-title"]{margin-top:25px}
+#coupon-section [aria-labelledby="coupon-history-title"] h2{margin-bottom:12px}
+#coupon-history button{margin:5px}
+#coupon-section details:not(#coupon-edit-panel){margin-top:23px;padding:17px;border:1px solid var(--border);border-radius:14px;background:#0c1d13}
+button,input,select{transition:border-color .18s,background .18s,box-shadow .18s}
+button:focus-visible,a:focus-visible,summary:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #9affc1;outline-offset:3px}
+@media(max-width:800px){.platform-intro{padding:20px}.home-summary article{min-height:92px}#coupon-section [aria-labelledby="coupon-draft-title"]{padding:17px}}
+@media(max-width:600px){.terminal-header{height:65px}.platform-intro{border-radius:16px;padding:17px}.platform-intro h1{font-size:30px}.home-summary{gap:10px}.home-summary article{border-radius:12px;padding:14px}#coupon-section .section-heading{padding:17px}#coupon-selected{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.prediction-card,.home-market-card,button,input,select{transition:none!important;animation:none!important}}
