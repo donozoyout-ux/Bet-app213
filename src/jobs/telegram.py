@@ -135,7 +135,9 @@ async def dispatch(db,now=None,coupon_id=None,transport=None):
                 response=await client.post(f'https://api.telegram.org/bot{token}/sendDocument',data=dict(chat_id=chat,caption=f"BetApp213 • {claim['selections']} seçim • Toplam {claim['combined_odds']} • Oluşturulma {claim['created_at']} Türkiye saati. Tüm maçlar ve gözlenen fiyatlar ekte; başarı garantisi yok."),files={'document':(f"BetApp213-{claim['file_date']}.txt",content.encode(),'text/plain')})
             try:body=response.json()
             except ValueError:body={}
-            if response.is_success and body.get('ok') is True and type(body.get('result',{}).get('message_id')) is int and body['result']['message_id']>0:
+            result=body.get('result') if isinstance(body,dict) else None
+            body=body if isinstance(body,dict) else {}
+            if response.is_success and body.get('ok') is True and isinstance(result,dict) and type(result.get('message_id')) is int and result['message_id']>0:
                 outcome='sent';error=None;message_id=body['result']['message_id']
             elif body.get('ok') is False and 400<=response.status_code<500:
                 outcome='failed';error='telegram_'+str(response.status_code)
@@ -164,7 +166,9 @@ async def status(session,now):
     for hour in (12,18):
         slot=local.replace(hour=hour,minute=0,second=0,microsecond=0).isoformat()
         if slot not in known:entries.append(dict(slot=slot,status='missed' if hour==12 and local.hour>=18 else 'pending' if local.hour>=hour else 'not_due',error_code=None))
-    return dict(configured=configured,timezone='Europe/Istanbul',times=['12:00','18:00'],automatic_daily_limit=2,today=sorted(entries,key=lambda x:x['slot']))
+    token,chat,_=configuration()
+    state='configured' if configured else 'missing' if not token or not chat else 'invalid'
+    return dict(configured=configured,configuration_status=state,connection_verified=False,timezone='Europe/Istanbul',times=['12:00','18:00'],automatic_daily_limit=2,today=sorted(entries,key=lambda x:x['slot']))
 
 
 async def loop(db):

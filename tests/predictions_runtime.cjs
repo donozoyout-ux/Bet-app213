@@ -38,10 +38,10 @@ async function scenario(mode){
         payload.candidates=[{market:'result',label:'Ev Sahibi',probability:.75,qualifies:true,verified_odds:{has_odds:true,best_price:1.8}},
           {market:'result',label:'Deplasman',probability:.2,qualifies:false,verified_odds:{has_odds:false,reason:'no_source_rows'}}];
       }
-      if(mode==='verified-odds'){
+      if(['verified-odds','stale-odds'].includes(mode)){
         if(payload.items?.[0]?.recommendations?.[0]){
           payload.items[0].recommendations[0].verified_odds = {
-            has_odds: true,
+            has_odds: true, coupon_eligible:mode==='verified-odds', freshness:mode==='verified-odds'?'fresh':'stale',
             period: 'full_time',
             stage: 'latest',
             bookmakers: {
@@ -71,7 +71,7 @@ async function scenario(mode){
         }
         if(payload.recommendations?.[0]){
           payload.recommendations[0].verified_odds = {
-            has_odds: true,
+            has_odds: true, coupon_eligible:mode==='verified-odds', freshness:mode==='verified-odds'?'fresh':'stale',
             period: 'full_time',
             stage: 'latest',
             bookmakers: {
@@ -116,6 +116,7 @@ async function scenario(mode){
   if(mode==='confidence'){const conf=ids.get('prediction-confidence');conf.value='high';conf.onchange();await api.refresh('1','2026-10-10');assert(cards.children.length>0 && cards.children.length<recorded.page.items.length);assert(!cards.text().includes('Orta Güven'));return;}
   if(mode==='filter'){filter.onclick();await api.refresh('1','2026-10-10');assert(calls.at(-1).includes('market=cards'));assert(cards.text().includes('eşikleri geçen'));assert.equal((await api.filterMatches(recorded.page.items.map(item=>item.match))).length,0);return;}
   if(mode==='best'){view.onchange();await api.refresh('1','2026-10-10');assert(calls.at(-1).includes('/best?'));assert(cards.text().includes(recorded.page.items[0].recommendations[0].label));cards.children[0].children[0].children[0].onclick();assert.equal(clicked.length,3);return;}
+  if(mode==='stale-odds'){assert(!cards.text().includes('1.50 (Bet365)'));return;}
   if(mode==='verified-odds'){
     assert(cards.text().includes('1.50 (Bet365)'));
     for(const [index,item] of recorded.page.items.entries()){
@@ -170,4 +171,4 @@ async function scenario(mode){
   ids.get('analysis-close').onclick();assert(box.hidden && !box.children.length && !ids.get('analysis-dialog').open);
   await api.select(firstId);ids.get('analysis-dialog').oncancel({preventDefault(){}});assert(!ids.get('analysis-dialog').open);
 }
-(async()=>{const modes=process.argv[2]?[process.argv[2]]:['populated','insufficient','empty','failed','detail-failed','missing','race','filter','best','one','two','three','confidence','pagination','card-categories','verified-odds','engines'];for(const mode of modes)await scenario(mode);console.log(`prediction runtime: ${modes.length} scenarios passed`);})().catch(error=>{console.error(error);process.exitCode=1;});
+(async()=>{const modes=process.argv[2]?[process.argv[2]]:['populated','insufficient','empty','failed','detail-failed','missing','race','filter','best','one','two','three','confidence','pagination','card-categories','verified-odds','stale-odds','engines'];for(const mode of modes)await scenario(mode);console.log(`prediction runtime: ${modes.length} scenarios passed`);})().catch(error=>{console.error(error);process.exitCode=1;});

@@ -13,9 +13,8 @@ from sqlalchemy import select,text,or_
 from sqlalchemy.orm import defer
 from src.models import SavedCoupon,Match,MatchStatistics
 from src.analytics.board_cache import read_board
-from src.analytics.coupon import current_odds,quote_draft,combined_price,draft_pick
+from src.analytics.coupon import current_odds,quote_draft,combined_price,draft_pick,coupon_qualified
 from src.analytics.performance import settle
-from src.analytics.recommendations import qualified_record
 from src.jobs.worker import aware
 
 COUPON_LOCK=213009
@@ -81,7 +80,7 @@ def payload(items):
 
 
 def strong(rec):
-    return qualified_record(rec)
+    return coupon_qualified(rec)
 
 
 async def automatic(session,now,strategy='balanced',max_matches=DEFAULT_COUPON_MATCHES):
@@ -103,11 +102,10 @@ async def automatic(session,now,strategy='balanced',max_matches=DEFAULT_COUPON_M
             candidate=dict(match=record['match'],recommendation=rec,quote=quote,status='pending')
             if daily_candidates([candidate],now,strategy,1):
                 items.append(candidate)
-                break
     items=daily_candidates(items,now,strategy,max_matches)
     if not items:return None
     await lock_coupons(session)
-    digest=fingerprint(items)
+    digest=hashlib.sha256(f'{strategy}:{max_matches}:{fingerprint(items)}'.encode()).hexdigest()
     existing=await session.scalar(select(SavedCoupon).where(SavedCoupon.automatic_fingerprint==digest))
     if existing:return existing
     id=str(uuid.uuid4());row=SavedCoupon(id=id,root_id=id,revision=1,kind='automatic',automatic_fingerprint=digest,owner_hash=None,created_at=now,payload={**payload(items),'coupon_date':now.astimezone(COUPON_TZ).date().isoformat(),'strategy':strategy,'target_matches':max_matches})
@@ -124,7 +122,7 @@ async def save_manual(session,request,key,now,base_id=None):
     contexts={r[0].id:match_response(r) for r in await session.execute(query.where(Match.id.in_(matches)))}
     items=[]
     for choice,quote in zip(request.selections,data['items']):
-        items.append(dict(match=contexts[choice.match_id],recommendation=dict(id=choice.recommendation_id,market=quote['market'],selection=quote['selection'],label=quote['label'],probability=quote['probability'],confidence=quote['confidence'],qualifies=True),quote=quote,status='pending'))
+        items.append(dict(match=contexts[choice.match_id],recommendation=dict(id=choice.recommendation_id,market=quote['market'],selection=quote['selection'],label=quote['label'],probability=quote['probability'],confidence=quote['confidence'],reliability=quote['reliability'],score=quote['score'],qualifies=True),quote=quote,status='pending'))
     await lock_coupons(session)
     base=await session.get(SavedCoupon,base_id) if base_id else None
     if base_id and (base is None or base.owner_hash!=owner):raise HTTPException(404,'Coupon not found')

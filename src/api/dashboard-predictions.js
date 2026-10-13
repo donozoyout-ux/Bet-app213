@@ -91,7 +91,7 @@
       for(const rec of data.recommendations.slice(0,2)){
         line(chosen,rec.label,`${pct(rec.probability)} • ${confidence[rec.confidence]} Güven • ${rec.sample_size} maç`);
         const vo=rec.verified_odds;
-        if(vo && vo.has_odds){
+        if(vo && vo.has_odds && vo.coupon_eligible && vo.freshness==='fresh'){
           line(chosen,'  └ En İyi Oran / Değer',`${num(vo.best_price)} (${vo.best_bookmaker}) • Değer: ${vo.best_value>=0?'+':''}${(100*vo.best_value).toFixed(1)} puan • İma: %${(100*vo.best_implied_probability).toFixed(1)}`);
           for(const bName of ['Crown','Bet365','Sbobet']){
             const b=vo.bookmakers?.[bName];
@@ -187,7 +187,7 @@
     const priceReasons={line_mismatch:'Doğrulanmış kaynak çizgisi farklı',no_source_rows:'Kaynak oran bulunamadı',source_market_unavailable:'Bu market için kaynak bulunamadı',unsupported_bookmaker:'Desteklenen bookmaker bulunamadı',missing_stage_price:'Güncel kaynak fiyatı bulunamadı',odds_stale:'Oran gözlemi bayat',odds_unknown:'Fiyat gözlem zamanı doğrulanamadı',observed_after_cutoff:'Fiyat analiz zamanından sonra gözlendi'};
     for(const rec of recs.slice(0,2)){
       const vo=rec.verified_odds;
-      if(vo && vo.has_odds){
+      if(vo && vo.has_odds && vo.coupon_eligible && vo.freshness==='fresh'){
         const row=node('div','','odds-line text-body-sm');
         row.append(node('span',`${rec.label}: ${num(vo.best_price)} (${vo.best_bookmaker}) • Değer: ${vo.best_value>=0?'+':''}${(100*vo.best_value).toFixed(1)} puan`,'font-semibold'));
         row.append(node('small',`Kaynak: ${vo.source || 'Goaloo'} • Gözlem: ${vo.observed_at?date(vo.observed_at):'Doğrulanamadı'}${vo.reason?' • '+(priceReasons[vo.reason] || vo.reason):''}`));
@@ -214,7 +214,7 @@
           if(state.confidence && item.recommendation.confidence!==state.confidence)continue;
           const row=node('li');
           const vo=item.recommendation.verified_odds;
-          const oddsTxt=vo && vo.has_odds ? ` • Oran: ${num(vo.best_price)} (${vo.best_bookmaker})` : ' • Oran bekleniyor';
+          const oddsTxt=vo && vo.has_odds && vo.coupon_eligible && vo.freshness==='fresh' ? ` • Oran: ${num(vo.best_price)} (${vo.best_bookmaker})` : ' • Oran bekleniyor';
           const button=node('button',`${index+1}. ${item.match.home_team} / ${item.match.away_team} — ${item.recommendation.label} ${pct(item.recommendation.probability)} • ${confidence[item.recommendation.confidence]} Güven${oddsTxt}`,'prediction-global-button');
           button.type='button';button.onclick=()=>globalThis.BetAppDashboard?.selectMatch ? globalThis.BetAppDashboard.selectMatch(item.match.id,true) : select(item.match.id,true);row.append(button);list.append(row);shown++;
         }box.append(list);

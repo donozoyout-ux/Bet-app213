@@ -183,3 +183,16 @@ async def test_chromium_coupon_add_copy_clear_and_settlement(api,db,monkeypatch)
         assert await page.evaluate('document.documentElement.scrollWidth<=innerWidth')
         await page.locator('#coupon-clear').click();await expect(page.locator('#coupon-selected')).to_contain_text('Henüz seçim yapılmadı')
         assert errors==[];await browser.close()
+
+
+async def test_home_prefers_fresh_priced_matches_before_page_limit(api,db,monkeypatch):
+    import src.api.routes as routes
+    monkeypatch.setattr(routes,'utcnow',lambda:NOW)
+    ids=await coupon_seed(db)
+    async with db.session() as session:
+        for row in await session.scalars(select(MarketOdds).where(MarketOdds.match_id==ids[0])):
+            move_observations(row,NOW-timedelta(minutes=16))
+        await session.commit()
+    page=(await api.get('/api/predictions?limit=1')).json()
+    assert page['items'][0]['match']['id']==ids[1]
+    assert page['items'][0]['recommendations'][0]['verified_odds']['coupon_eligible']

@@ -204,7 +204,13 @@ async def predictions(league: str | None = None, date: Date | None = None,
     calculated,now,evaluated=await calculate_predictions(session,league,date)
     calculated=[{**item,'recommendations':[r for r in item['recommendations'] if market_matches([r],market) and (not confidence or r['confidence']==confidence) and r['probability']>=min_probability]} for item in calculated]
     calculated=[item for item in calculated if item['recommendations']]
-    for item in calculated:item['strongest_prediction']=item['recommendations'][0]['id']
+    # Prioritize exact, fresh prices before limiting the home-page response.
+    def priced(rec):
+        return bool(rec.get('verified_odds',{}).get('coupon_eligible'))
+    for item in calculated:
+        item['recommendations'].sort(key=lambda r:not priced(r))
+        item['strongest_prediction']=item['recommendations'][0]['id']
+    calculated.sort(key=lambda item:not any(priced(r) for r in item['recommendations']))
     primary = [item for item in calculated if aware(item['match']['kickoff_at']) <= now + timedelta(hours=72)]
     enough=len(primary)>=min(5,limit)
     chosen=calculated if date or not enough else primary
