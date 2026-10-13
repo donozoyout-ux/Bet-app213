@@ -122,6 +122,25 @@ async def prepare(db,now,coupon_id=None):
         return dict(status='duplicate_claim')
 
 
+def telegram_client_error(status_code, description):
+    """Map Telegram's untrusted error text to an allowlisted, secret-free reason."""
+    message = str(description or '').lower()
+    if status_code == 400:
+        if 'chat not found' in message:
+            return 'telegram_chat_not_found'
+        if 'not enough rights' in message or 'not enough permissions' in message:
+            return 'telegram_missing_permissions'
+        if 'message is too long' in message:
+            return 'telegram_message_too_long'
+        if 'chat was upgraded' in message:
+            return 'telegram_chat_migrated'
+        if 'bot was kicked' in message:
+            return 'telegram_bot_removed'
+    if status_code == 403:
+        return 'telegram_bot_forbidden'
+    return 'telegram_' + str(status_code)
+
+
 async def dispatch(db,now=None,coupon_id=None,transport=None):
     now=now or utcnow();claim=await prepare(db,now,coupon_id)
     if claim['status']!='claimed':return claim
@@ -140,7 +159,7 @@ async def dispatch(db,now=None,coupon_id=None,transport=None):
             if response.is_success and body.get('ok') is True and isinstance(result,dict) and type(result.get('message_id')) is int and result['message_id']>0:
                 outcome='sent';error=None;message_id=body['result']['message_id']
             elif body.get('ok') is False and 400<=response.status_code<500:
-                outcome='failed';error='telegram_'+str(response.status_code)
+                outcome='failed';error=telegram_client_error(response.status_code,body.get('description'))
             else:error='unconfirmed_http_'+str(response.status_code)
     except asyncio.CancelledError:
         # The precommitted sending record already prevents a restart from resending.
