@@ -1,0 +1,51 @@
+name: Verify Telegram bot access (read only)
+on:
+  push:
+    paths:
+      - .github/workflows/telegram-verify-readonly.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  telegram_verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      SCRAPER_API_TOKEN: ${{ secrets.SCRAPER_API_TOKEN }}
+      BETAPP_URL: ${{ vars.BETAPP_URL }}
+    steps:
+      - name: Check bot and group permissions, no messages
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "$SCRAPER_API_TOKEN" ]; then
+            echo "FAIL: missing GitHub SCRAPER_API_TOKEN secret"
+            exit 1
+          fi
+          python - <<'PY'
+          import os,urllib.request,urllib.error,json
+          base=(os.getenv("BETAPP_URL") or "https://bet-app213.onrender.com").rstrip("/")
+          token=os.environ["SCRAPER_API_TOKEN"]
+          request=urllib.request.Request(
+              base+"/api/telegram/verify",
+              data=b"{}",
+              headers={"Authorization":"Bearer "+token,"Content-Type":"application/json"},
+              method="POST")
+          try:
+              with urllib.request.urlopen(request,timeout=40) as response:
+                  result=json.load(response)
+          except urllib.error.HTTPError as error:
+              print("FAIL: API returned HTTP",error.code)
+              raise SystemExit(1)
+          except Exception as error:
+              print("FAIL: network error",type(error).__name__)
+              raise SystemExit(1)
+          allowed={"verified","wrong_bot","unsupported_chat","unknown_permissions","missing_permissions","bot_removed","telegram_chat_not_found","telegram_missing_permissions","telegram_bot_forbidden","telegram_chat_migrated","telegram_bot_removed","telegram_401","telegram_400","telegram_429","unavailable","invalid","missing"}
+          status=result.get("status","unavailable")
+          if status not in allowed:status="unavailable"
+          print("Telegram read-only check:",status)
+          print("Bot and group verified:",result.get("connection_verified") is True)
+          print("Text allowed:",result.get("can_send_messages") is True)
+          print("Document allowed:",result.get("can_send_documents") is True)
+          if result.get("connection_verified") is not True:raise SystemExit(1)
+          PY
