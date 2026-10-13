@@ -55,6 +55,10 @@ async def scope_check(db, monkeypatch):
         assert result['latest_fields']['over']['fresh'] == 0
         assert result['latest_fields']['under']['fresh'] == 1
         assert result['last_observed_at'] == NOW
+        row.latest_line=float('inf');row.raw={'_field_observed_at':{'latest_over':stamp,'latest_under':stamp}}
+        await session.commit()
+        invalid=next(r for r in await source_report(session,NOW,match_ids=[ids[0]]) if r['market']=='corners' and r['bookmaker']=='Bet365')
+        assert invalid['line'] is None and invalid['latest_fields']['over']['fresh']==0
 
 
 async def test_diagnostic_scope_and_exact_field_provenance(db, monkeypatch):

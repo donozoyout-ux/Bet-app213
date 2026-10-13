@@ -27,7 +27,8 @@ async def source_report(session, now, match_ids=None):
         for row, bookmaker, stamps, lines in await session.execute(query):
             row._matching_meta = {'_field_observed_at': stamps, '_field_lines': lines}
             market, period = (row.market, row.period) if family is None else (family, 'full_time')
-            line = row.latest_line if model is not Odds1X2 else None
+            raw_line = row.latest_line if model is not Odds1X2 else None
+            line = raw_line if type(raw_line) in (int,float) and isfinite(raw_line) else None
             key = market, period, bookmaker, line
             if key not in buckets:
                 buckets[key] = dict(market=market, period=period, bookmaker=bookmaker, line=line,
