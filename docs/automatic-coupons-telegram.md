@@ -128,3 +128,45 @@ Refreshing a quote can create a new saved version, but does not authorize sendin
 the same match/selection set twice on the same local day. This duplicate check
 also covers uncertain deliveries. The ledger still commits before network I/O.
 See `critical-repair-audit.md` for measured coverage and saved-prediction metrics.
+
+
+## Issue 46: uncapped totals and separate manual mode
+
+Both coupon modes now enforce probability >= .70, reliability >= .80 and score
+>= .80, in addition to the existing qualified-model, exact market/period/line and
+15-minute observation checks. There is no maximum selection price or combined
+coupon price. The four-fixture limit applies only to the daily automatic shortlist.
+Both verified alternatives per fixture participate in strategy ranking; one wins
+per fixture. Strategy/target are part of the automatic version identity, preventing
+one control setting from returning another setting's stored metadata.
+
+Kuponum loads the daily automatic result before the optional manual candidate
+request. A dedicated daily panel stays visible while a separate manual draft is
+edited, saved or restored. Returning to automatic mode preserves the manual draft;
+opening manual mode restores it. Candidate-list failure does not hide a successful
+daily coupon. Empty daily results explain the quality, date, analysis or price
+failure. The home API prioritizes freshly priced recommendations and fixtures
+before its page limit; stale prices are never displayed as current offers.
+
+Telegram status distinguishes missing and invalid configuration without exposing
+credentials. Configuration presence does not verify bot identity or group access.
+The UI translates rejection, uncertainty, missed windows and duplicate prevention
+into Turkish. Malformed JSON success responses remain uncertain and never trigger
+a blind retry. The 12:00/18:00 Istanbul schedule, daily two-attempt limit and durable
+claims remain unchanged. Tests use injected MockTransport only.
+
+Read-only production observation, 13 October 2026 at 19:10 Europe/Istanbul:
+`/api/predictions/best?date=2026-10-13&limit=100&market=all` returned six daily
+recommendations above the strict quality floor, with one qualifying fresh price
+and no stale league boards. Three recommendations had mismatched source lines;
+two had unavailable source markets. At that observation a one-match daily coupon
+was possible; four selections could not be justified. Coverage is time-dependent.
+The aggregate `/api/odds-coverage` request returned HTTP 504 during the audit, so
+these counts come from the date-filtered prediction response rather than invented
+coverage totals.
+
+Read-only `/api/telegram/status` showed configured settings, a rejected noon
+attempt (`telegram_400`) and evening duplicate-selection suppression. Existing
+configuration is not proof that @BKupon8Bot can post to the intended group. The
+operator must inspect bot/group configuration and permission; this task neither
+sent a real test message nor reset the ledger, changed secrets or deployed.

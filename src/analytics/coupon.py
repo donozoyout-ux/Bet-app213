@@ -17,6 +17,11 @@ from src.analytics.performance import settle
 from src.analytics.recommendations import qualified_record
 
 
+def coupon_qualified(rec):
+    """Both coupon modes retain the daily evidence floor; prices have no upper cap."""
+    return qualified_record(rec) and rec['probability'] >= .70 and rec['reliability'] >= .80 and rec['score'] >= .80
+
+
 class DraftSelection(BaseModel):
     match_id: int = Field(gt=0)
     recommendation_id: str = Field(max_length=100)
@@ -64,13 +69,13 @@ async def quote_draft(session, request, now):
         board=boards.get(match.league_id)
         if board is None or board.model_version!=MODEL_VERSION or aware(board.generated_at)>now or aware(board.expires_at)<=now:entry['reason']='analysis_stale';continue
         record=next((r for r in board.payload['items'] if r['match']['id']==match.id),None)
-        rec=next((r for r in record['recommendations'][:2] if r['id']==choice.recommendation_id and qualified_record(r)),None) if record else None
+        rec=next((r for r in record['recommendations'][:2] if r['id']==choice.recommendation_id and coupon_qualified(r)),None) if record else None
         if rec:groups[match.id]=[deepcopy(rec)]
     await current_odds(session,groups,now)
     for choice,entry in zip(request.selections,items):
         if choice.match_id not in groups:continue
         rec=groups[choice.match_id][0];vo=rec['verified_odds'];book=vo.get('bookmakers',{}).get(choice.bookmaker,{})
-        entry.update(market=rec['market'],selection=rec['selection'],period=vo['period'],line=vo.get('line'),price=book.get('current_odds'),observed_at=book.get('observed_at'),expires_at=book.get('expires_at'),freshness=book.get('freshness','unknown'),probability=rec['probability'],confidence=rec['confidence'],label=rec['label'],eligible=bool(book.get('coupon_eligible')))
+        entry.update(market=rec['market'],selection=rec['selection'],period=vo['period'],line=vo.get('line'),price=book.get('current_odds'),observed_at=book.get('observed_at'),expires_at=book.get('expires_at'),freshness=book.get('freshness','unknown'),probability=rec['probability'],confidence=rec['confidence'],reliability=rec['reliability'],score=rec['score'],label=rec['label'],eligible=bool(book.get('coupon_eligible')))
         entry['reason']=None if entry['eligible'] else 'odds_stale' if book.get('current_odds') else 'no_verified_odds'
     eligible=all(i['eligible'] for i in items)
     return dict(items=items,eligible=eligible,combined_odds=combined_price([i['price'] for i in items]) if eligible else None,mixed_bookmakers=len({i['bookmaker'] for i in items})>1,checked_at=now)
