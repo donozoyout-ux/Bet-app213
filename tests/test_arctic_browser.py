@@ -3,7 +3,9 @@ import asyncio
 from datetime import timedelta
 import pytest
 from playwright.async_api import async_playwright, expect
-from src.models import Match, MatchStatistics
+from src.models import Match, MatchStatistics, PredictionBoard, MarketOdds, Bookmaker
+from sqlalchemy import select
+from tests.odds_fixture import observed_prices
 from tests.test_predictions import seed, NOW
 
 
@@ -21,6 +23,17 @@ async def test_arctic_navigation_filters_analysis_and_responsive_layout(api,db,m
         await session.commit();second_id=second.id
     from src.analytics.board_cache import refresh_one
     await refresh_one(db, now=NOW, force_league=league)
+    # Home now requires exact fresh prices, not unpriced model-only cards.
+    async with db.session() as session:
+        board=await session.get(PredictionBoard,league)
+        bookmaker=await session.scalar(select(Bookmaker).where(Bookmaker.name=='Bet365'))
+        for item in board.payload['items']:
+            rec=next(r for r in item['recommendations'] if r['market']=='corners')
+            line=float(rec['selection'].split('_',1)[1].replace('_','.'))
+            session.add(MarketOdds(match_id=item['match']['id'],bookmaker_id=bookmaker.id,
+                market='corners',period='full_time',latest_line=line,latest_over=1.9,
+                latest_under=1.9,updated_at=NOW,raw=observed_prices(NOW,'latest_over','latest_under')))
+        await session.commit()
     async with async_playwright() as p:
 
         browser=await p.chromium.launch()

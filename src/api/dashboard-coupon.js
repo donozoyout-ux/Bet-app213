@@ -15,7 +15,7 @@ const kickoff=i=>Date.parse(i?.match?.kickoff_at);
 const inWeek=i=>{const t=kickoff(i),now=Date.now();return Number.isFinite(t)&&t>now&&t<=now+7*24*60*60*1000&&i?.match?.status==='scheduled';};
 const byKickoff=(a,b)=>kickoff(a)-kickoff(b)||String(a?.match?.id).localeCompare(String(b?.match?.id))||String(a?.recommendation?.id).localeCompare(String(b?.recommendation?.id));
 const book=()=>$('coupon-bookmaker')?.value || 'Bet365';
-let busy=false,adding=false,copying=false,candidates=[],draftGeneration=0,pendingPick=null,saved=null,ownerKey=null,dirty=false,sharing=false,historyOffset=0,manualDraft=null;
+let busy=false,adding=false,copying=false,candidates=[],draftGeneration=0,pendingPick=null,saved=null,ownerKey=null,dirty=false,sharing=false,historyOffset=0,manualDraft=null,verifying=false;
 const draftKey='betapp-coupon-draft-v1';
 function persist(){
  if(saved?.kind==='automatic' && !dirty)return;
@@ -168,7 +168,7 @@ function loadCoupon(data){
 async function generate(activate=true){
  const generation=draftGeneration;
  const button=$('coupon-automatic');if(button)button.disabled=true;
- try{const strategy=$('coupon-strategy')?.value || 'balanced';const count=$('coupon-target')?.value || '4';const data=await api('/api/coupons/automatic?'+new URLSearchParams({strategy,max_matches:count}),{});if(generation!==draftGeneration)return;const box=$('coupon-daily');if(box){box.replaceChildren();for(const item of data.items || [])box.append(node('p',`${date(item.match.kickoff_at)} · ${item.match.home_team} — ${item.match.away_team} · ${item.recommendation.label} · ${item.quote.bookmaker} ${money(item.quote.price)} · Gözlem: ${date(item.quote.observed_at)}`));box.append(node('p',data.items?.length?`Günlük kombine oran: ${money(data.combined_odds)} · Üst sınır yok`:data.message || 'Bugün doğrulanmış uygun seçim yok.'));}
+ try{const strategy=$('coupon-strategy')?.value || 'balanced';const count=$('coupon-target')?.value || '4';const data=await api('/api/coupons/automatic?'+new URLSearchParams({strategy,max_matches:count}),{});if(generation!==draftGeneration)return;const box=$('coupon-daily');if(box){box.replaceChildren();for(const item of data.items || [])box.append(node('p',`${date(item.match.kickoff_at)} · ${item.match.home_team} — ${item.match.away_team} · ${item.recommendation.label} · ${item.quote.bookmaker} ${money(item.quote.price)} · Gözlem: ${date(item.quote.observed_at)}`));box.append(node('p',data.items?.length?`Günlük kombine oran: ${money(data.combined_odds)} · Üst sınır yok`:data.message || 'Bugün doğrulanmış uygun seçim yok.'));if(!data.items?.length){const updates=data.data_updates || {};box.append(node('p',`Son analiz: ${date(updates.analysis_generated_at || data.cache?.latest_generated_at || data.cache?.generated_at)} · Son fiyat gözlemi: ${date(updates.price_observed_at || data.diagnostics?.last_price_observed_at)} · Kontrol: ${date(updates.checked_at || data.diagnostics?.checked_at)}`));}}
   if(data.items?.length && (activate || !dirty && saved?.kind!=='manual')){if(activate && (dirty || saved?.kind==='manual'))manualDraft={items:[...selected.values()],saved,dirty};loadCoupon(data);}
   else if(!data.items?.length){if(!dirty && saved?.kind==='automatic'){selected.clear();saved=null;text('coupon-saved-note','');draw();}text('coupon-note',data.message || 'Bugün kalite eşiğini geçen ve güncel oranı doğrulanmış seçim bulunamadı; manuel taslak korunuyor.');}historyOffset=0;await history();}
  catch(_){text('coupon-note','Otomatik kupon oluşturulamadı. Yeniden deneyin.');text('coupon-daily','Günlük kupon bağlantısı bekleniyor. Yeniden deneyin.');}
@@ -196,8 +196,17 @@ async function history(){
 }
 async function management(){
  const labels={sent:'Gönderildi',sending:'Gönderim başladı; tekrar gönderilmez',uncertain:'Sonuç belirsiz; grubu kontrol edin, otomatik tekrar yok',failed:'Telegram reddetti; bot/grup ayarlarını kontrol edin',missed:'Gönderim penceresi kaçırıldı',pending:'Uygun kupon bekleniyor',not_due:'Gönderim saati bekleniyor',no_eligible_selections:'Kaliteli ve taze fiyatlı seçim yok',waiting_for_quotes:'Taze oran bekleniyor',duplicate_selections:'Aynı seçimler tekrar gönderilmez',duplicate_version:'Bu sürüm daha önce işlendi'};
- try{const data=await api('/api/telegram/status');text('telegram-status',data.configured?'Telegram ayarları mevcut; grup erişimi gönderimde doğrulanır.':data.configuration_status==='invalid'?'Telegram ayarlarının biçimi geçersiz; sunucu yapılandırmasını kontrol edin.':'Telegram yapılandırılmamış. Kupon sistemi kullanılabilir.');text('telegram-schedule','Türkiye saati 12:00 ve 18:00 · Günlük en fazla 2 otomatik gönderim. '+(data.today || []).map(s=>date(s.slot)+' · '+(s.error_code==='telegram_400'?'Telegram isteği geçersiz: grup kimliğini ve botun gruba eklenmesini kontrol edin':s.error_code==='telegram_chat_not_found'?'Telegram hedef grubu bulamıyor: grup kimliğini kontrol edin':s.error_code==='telegram_missing_permissions'?'Botun mesaj gönderme izni yetersiz':s.error_code==='telegram_message_too_long'?'Telegram mesajı boyut sınırını aştı':s.error_code==='telegram_chat_migrated'?'Telegram grup kimliği değişmiş olabilir':s.error_code==='telegram_bot_removed'?'Bot gruptan çıkarılmış':s.error_code==='telegram_bot_forbidden'||s.error_code==='telegram_403'?'Botun grupta gönderim izni yok; grup izinlerini kontrol edin':labels[s.status] || 'Gönderim durumu doğrulanamıyor')).join(' • '));}
+ try{const data=await api('/api/telegram/status');text('telegram-check-note',(data.connection?.message || 'Bağlantı henüz doğrulanmadı.')+(data.connection?.checked_at?' · Kontrol: '+date(data.connection.checked_at):''));text('telegram-status',data.connection_verified?'Telegram kimliği ve grup izinleri doğrulandı.':data.configured?'Telegram ayarları mevcut; bağlantı sonucu aşağıda.':data.configuration_status==='invalid'?'Telegram ayarlarının biçimi geçersiz; sunucu yapılandırmasını kontrol edin.':'Telegram yapılandırılmamış. Kupon sistemi kullanılabilir.');text('telegram-schedule','Türkiye saati 12:00 ve 18:00 · Günlük en fazla 2 otomatik gönderim. '+(data.today || []).map(s=>date(s.slot)+' · '+(s.error_code==='telegram_400'?'Telegram isteği geçersiz: grup kimliğini ve botun gruba eklenmesini kontrol edin':s.error_code==='telegram_chat_not_found'?'Telegram hedef grubu bulamıyor: grup kimliğini kontrol edin':s.error_code==='telegram_missing_permissions'?'Botun mesaj gönderme izni yetersiz':s.error_code==='telegram_message_too_long'?'Telegram mesajı boyut sınırını aştı':s.error_code==='telegram_chat_migrated'?'Telegram grup kimliği değişmiş olabilir':s.error_code==='telegram_bot_removed'?'Bot gruptan çıkarılmış':s.error_code==='telegram_bot_forbidden'||s.error_code==='telegram_403'?'Botun grupta gönderim izni yok; grup izinlerini kontrol edin':labels[s.status] || 'Gönderim durumu doğrulanamıyor')).join(' • '));}
  catch(_){text('telegram-status','Telegram yönetim bilgisi alınamadı.');}
+}
+async function verifyConnection(){
+ if(verifying)return;
+ const token=$('telegram-admin-token')?.value;
+ if(!token){text('telegram-check-note','Salt okunur kontrol için sunucu yönetim erişim anahtarı gerekli. Bot tokenını bu alana yazmayın.');return;}
+ verifying=true;if($('telegram-verify'))$('telegram-verify').disabled=true;text('telegram-check-note','Bot kimliği ve grup izinleri kontrol ediliyor; mesaj gönderilmez…');
+ try{const r=await fetch('/api/telegram/verify',{method:'POST',headers:{Authorization:'Bearer '+token},signal:AbortSignal.timeout(15000)});if(!r.ok){text('telegram-check-note',r.status===401?'Yönetim erişim anahtarı kabul edilmedi.':'Bağlantı kontrolü yapılamadı; sunucu ayarlarını kontrol edin.');return;}const data=await r.json();text('telegram-status',data.connection_verified?'Telegram kimliği ve grup izinleri doğrulandı.':'Telegram bağlantısı doğrulanamadı; yardım metnini izleyin.');text('telegram-check-note',(data.message || 'Bağlantı durumu doğrulanamadı.')+(data.checked_at?' · Kontrol: '+date(data.checked_at):''));}
+ catch(_){text('telegram-check-note','Bağlantı kontrolü tamamlanamadı. Mesaj gönderilmedi; daha sonra yeniden kontrol edin.');}
+ finally{verifying=false;if($('telegram-verify'))$('telegram-verify').disabled=false;}
 }
 async function share(){
  if(sharing)return;
@@ -216,5 +225,6 @@ if($('coupon-history-previous'))$('coupon-history-previous').onclick=()=>{histor
 if($('coupon-history-next'))$('coupon-history-next').onclick=()=>{historyOffset+=10;history();};
 if($('coupon-history-refresh'))$('coupon-history-refresh').onclick=history;
 if($('coupon-telegram'))$('coupon-telegram').onclick=share;
+if($('telegram-verify'))$('telegram-verify').onclick=verifyConnection;
 globalThis.BetAppCoupon=Object.freeze({refresh});restore();draw();
 })();

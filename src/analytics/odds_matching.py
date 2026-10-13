@@ -137,7 +137,8 @@ def price_matches_line(row, stage, side, target):
     lines=raw.get('_field_lines') if isinstance(raw,dict) else None
     field=stage+'_'+side
     observed_line=lines.get(field) if isinstance(lines,dict) else getattr(row,stage+'_line',None)
-    return observed_line is not None and target is not None and abs(observed_line-target)<1e-4
+    return (type(observed_line) in (int,float) and type(target) in (int,float) and
+            math.isfinite(observed_line) and math.isfinite(target) and abs(observed_line-target)<1e-4)
 
 
 def _match_odds_for_candidate(

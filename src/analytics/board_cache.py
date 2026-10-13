@@ -100,6 +100,7 @@ async def read_board(session,league,date,team,now):
     session.info['prediction_snapshot']={
         'status':'warming' if missing and not times else 'partial' if missing else 'stale' if stale else 'fresh',
         'stale':bool(stale or missing),'generated_at':min(times) if times else None,
+        'latest_generated_at':max(times) if times else None,
         'expires_at':min(times)+TTL if times else None,'model_version':MODEL_VERSION,
         'source_revisions':revisions,'missing_leagues':missing,'stale_leagues':stale}
     return items,now,evaluated
