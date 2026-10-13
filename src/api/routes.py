@@ -198,11 +198,15 @@ async def matches(league: str | None = None, season: str | None = None,
 
 @router.get('/predictions', response_model=PredictionPage)
 async def predictions(league: str | None = None, date: Date | None = None,
-                      limit: int = Query(default=8, ge=1, le=20),
+                      limit: int = Query(default=8, ge=1, le=20), priced_only: bool=False,
                       confidence: Literal['high','medium','low'] | None=None, min_probability: float=Query(default=0,ge=0,le=1),
                       market: Literal['all','result','goals','btts','corners','cards','yellow_cards','red_cards','asian_handicap','double_chance','first_half_goals','second_half_goals']='all', session=Depends(session_dependency)):
     calculated,now,evaluated=await calculate_predictions(session,league,date)
     calculated=[{**item,'recommendations':[r for r in item['recommendations'] if market_matches([r],market) and (not confidence or r['confidence']==confidence) and r['probability']>=min_probability]} for item in calculated]
+    if priced_only:
+        from src.analytics.coupon import coupon_qualified
+        stale=set(session.info.get('prediction_snapshot',{}).get('stale_leagues',[]))
+        calculated=[{**item,'recommendations':[r for r in item['recommendations'] if coupon_qualified(r) and (r.get('verified_odds') or {}).get('coupon_eligible')]} for item in calculated if item['match']['league_id'] not in stale]
     calculated=[item for item in calculated if item['recommendations']]
     # Prioritize exact, fresh prices before limiting the home-page response.
     def priced(rec):
@@ -254,7 +258,7 @@ async def automatic_coupon(strategy: Literal['balanced','cautious','value']='bal
         diagnostics=session.info.get('coupon_diagnostics',{});cache=session.info.get('prediction_snapshot',{});daily=diagnostics.get('daily',{})
         reason='analysis_unavailable' if cache.get('stale') else 'no_today_candidates' if not daily.get('selections') else 'quality_rejected' if daily.get('quality_rejected')==daily.get('selections') else 'price_rejected'
         messages={'analysis_unavailable':'Güncel analiz hazırlanıyor; kalite şartları korunuyor.','no_today_candidates':'Bugün henüz başlamamış uygun maç bulunamadı.','quality_rejected':'Bugünkü seçimler %70 olasılık, %80 güvenilirlik ve %80 kalite şartlarını karşılamıyor.','price_rejected':'Kaliteli seçimler için güncel ve tam eşleşen oran bekleniyor.'}
-        return {'items':[],'status':'no_eligible_selections','reason':reason,'message':messages[reason],'diagnostics':diagnostics,'cache':cache}
+        return {'items':[],'status':'no_eligible_selections','reason':reason,'message':messages[reason],'diagnostics':diagnostics,'cache':cache,'data_updates':{'analysis_generated_at':cache.get('latest_generated_at') or cache.get('generated_at'),'price_observed_at':diagnostics.get('last_price_observed_at'),'checked_at':diagnostics.get('checked_at')}}
 
 
 @router.get('/odds-coverage')
@@ -268,8 +272,11 @@ async def odds_coverage(session=Depends(session_dependency)):
     await current_odds(session,{r['match_id']:r['candidates'] for r in analysis},now)
     for row in analysis:
         attach_coverage(row['market_engines'],row.pop('candidates'))
+    from src.models import League
+    ids=list(await session.scalars(select(Match.id).join(League).where(League.enabled.is_(True),Match.status=='scheduled',Match.kickoff_at>now,Match.kickoff_at<=now+timedelta(days=7))))
     return {**report(records,now),'cache':session.info['prediction_snapshot'], 'engine_analysis':analysis,
-            'source_rows': await source_report(session, now)}
+            'source_scope':'enabled_upcoming_7_days','source_match_count':len(ids),
+            'source_rows': await source_report(session, now, match_ids=ids)}
 
 
 @router.post('/coupons')
@@ -301,6 +308,12 @@ async def get_coupon(coupon_id: str,x_coupon_key: str | None=Header(default=None
 async def telegram_status(session=Depends(session_dependency)):
     from src.jobs.telegram import status
     return await status(session,utcnow())
+
+
+@router.post('/telegram/verify',dependencies=[Depends(require_scraper_token)])
+async def verify_telegram_connection():
+    from src.jobs.telegram_verification import verify
+    return await verify()
 
 
 @router.post('/telegram/tick',dependencies=[Depends(require_scraper_token),Depends(session_dependency)])
