@@ -32,7 +32,7 @@ async def scope_check(db, monkeypatch):
         await session.commit()
     queries = []
     def record(conn, cursor, statement, params, context, many):
-        if 'JOIN bookmakers' in statement and 'SELECT' in statement:
+        if 'bookmakers' in statement and 'JOIN' in statement and 'SELECT' in statement:
             queries.append(statement)
     event.listen(db.engine.sync_engine, 'before_cursor_execute', record)
     try:
