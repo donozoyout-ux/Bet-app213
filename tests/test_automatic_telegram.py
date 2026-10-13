@@ -366,3 +366,13 @@ async def test_safe_configuration_status(db,monkeypatch,token,chat,state):
     assert data['configured']==(state=='configured')
     assert data['connection_verified'] is False
     assert TOKEN not in str(data) and CHAT not in str(data)
+
+
+def test_telegram_400_safe_reason_classification():
+    from src.jobs.telegram import telegram_client_error
+    assert telegram_client_error(400, 'Bad Request: chat not found') == 'telegram_chat_not_found'
+    assert telegram_client_error(400, 'Bad Request: not enough rights to send text messages') == 'telegram_missing_permissions'
+    assert telegram_client_error(400, 'Bad Request: message is too long') == 'telegram_message_too_long'
+    assert telegram_client_error(400, 'Bad Request: chat was upgraded') == 'telegram_chat_migrated'
+    assert telegram_client_error(403, 'Forbidden: bot was kicked from the supergroup') == 'telegram_bot_forbidden'
+    assert telegram_client_error(400, 'sensitive token and private chat details') == 'telegram_400'
