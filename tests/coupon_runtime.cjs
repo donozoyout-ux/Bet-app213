@@ -33,7 +33,7 @@ async function scenario(mode){
   if(mode==='request-failed')throw Error('timeout');
   if(mode==='automatic-list-failed' && path.startsWith('/api/predictions'))throw Error('candidate list unavailable');
   if(path.startsWith('/api/predictions'))return {ok:true,json:async()=>({items,generated_at:stamp,cache:{stale:false}})};
-  if(path==='/api/telegram/status')return {ok:true,json:async()=>({configured:false,today:[]})};
+  if(path==='/api/telegram/status')return {ok:true,json:async()=>({configured:true,today:[{slot:new Date(now).toISOString(),status:'failed',error_code:'telegram_400'}]})};
   if(path.startsWith('/api/coupons?'))return {ok:true,json:async()=>({items:[...versions.values()].map(v=>({...v,selections:v.items.length}))})};
   if(path.startsWith('/api/coupons/automatic?')){
    assert(path.includes('strategy=balanced') && path.includes('max_matches=4'));
@@ -66,6 +66,7 @@ async function scenario(mode){
   // Navigating to Kuponum must populate qualified selections without any click.
   assert.equal(ids.get('coupon-selected').children.length,3);
   assert(ids.get('coupon-daily').text().includes('5,83'));
+  assert(ids.get('telegram-schedule').text().includes('grup kimliğini'));
   if(mode==='automatic-list-failed'){assert(ids.get('coupon-candidates').text().includes('alınamadı'));return;}
   assert(ids.get('coupon-total').text().includes('5,83'));
   await ids.get('coupon-automatic').onclick();assert(ids.get('coupon-total').text().includes('5,83'));
