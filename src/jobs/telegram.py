@@ -35,7 +35,7 @@ for name in ('httpx','httpcore.http11','httpcore.connection'):
 
 def configuration():
     token=os.getenv('TELEGRAM_BOT_TOKEN','');chat=os.getenv('TELEGRAM_CHAT_ID','')
-    valid=bool(re.fullmatch(r'\d+:[A-Za-z0-9_-]+',token) and re.fullmatch(r'-\d+',chat))
+    valid=bool(re.fullmatch(r'\d+:[A-Za-z0-9_-]+',token) and re.fullmatch(r'-?[1-9]\d*',chat))
     return token,chat,valid
 
 

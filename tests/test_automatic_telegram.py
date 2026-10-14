@@ -358,7 +358,7 @@ async def test_malformed_telegram_success_is_uncertain_without_retry(db,configur
     assert len(calls)==1
 
 
-@pytest.mark.parametrize('token,chat,state',[('',CHAT,'missing'),(TOKEN,'','missing'),('invalid',CHAT,'invalid'),(TOKEN,'123','invalid'),(TOKEN,CHAT,'configured')])
+@pytest.mark.parametrize('token,chat,state',[('',CHAT,'missing'),(TOKEN,'','missing'),('invalid',CHAT,'invalid'),(TOKEN,'123','configured'),(TOKEN,CHAT,'configured')])
 async def test_safe_configuration_status(db,monkeypatch,token,chat,state):
     monkeypatch.setenv('TELEGRAM_BOT_TOKEN',token);monkeypatch.setenv('TELEGRAM_CHAT_ID',chat)
     async with db.session() as session:data=await status(session,NOW)

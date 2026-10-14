@@ -218,3 +218,31 @@ async def test_chromium_read_only_verify_button_and_safe_help(api, db, configure
             await page.unroute_all(behavior='ignoreErrors');await browser.close()
     async with db.session() as session:
         assert await session.scalar(select(func.count(TelegramDelivery.id)))==0
+
+
+async def test_private_chat_read_only_success(configured, monkeypatch):
+    from src.jobs.telegram import configuration
+    monkeypatch.setenv('TELEGRAM_CHAT_ID', '123456789')
+    assert configuration()[2]
+    calls = []
+    async def response(request):
+        method = request.url.path.rsplit('/', 1)[-1]
+        calls.append(method)
+        if method == 'getMe':
+            return httpx.Response(200, json={'ok': True, 'result': USER})
+        assert method == 'getChat'
+        assert json.loads(request.content) == {'chat_id': '123456789'}
+        return httpx.Response(200, json={'ok': True, 'result': {'id': 123456789, 'type': 'private'}})
+    result = await verification.verify(transport=httpx.MockTransport(response))
+    assert result['connection_verified'] and result['status'] == 'verified'
+    assert calls == ['getMe', 'getChat']
+
+
+async def test_private_chat_mismatched_id_rejected(configured, monkeypatch):
+    monkeypatch.setenv('TELEGRAM_CHAT_ID', '123456789')
+    async def response(request):
+        method = request.url.path.rsplit('/', 1)[-1]
+        result = USER if method == 'getMe' else {'id': 987654321, 'type': 'private'}
+        return httpx.Response(200, json={'ok': True, 'result': result})
+    result = await verification.verify(transport=httpx.MockTransport(response))
+    assert result['status'] == 'unsupported_chat' and not result['connection_verified']
