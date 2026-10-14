@@ -15,11 +15,11 @@ _lock = asyncio.Lock()
 HELP = {
     'not_checked': 'Bağlantı henüz doğrulanmadı. Yönetim anahtarıyla mesaj göndermeden kontrol edin.',
     'expired': 'Bağlantı kontrolü eski; bot/grup izinlerini yeniden doğrulayın.',
-    'missing': 'Sunucuda bot tokenı ve negatif grup kimliği tanımlanmalı.',
+    'missing': 'Sunucuda bot tokenı ve sayısal sohbet kimliği tanımlanmalı.',
     'invalid': 'Sunucudaki Telegram ayarlarının biçimini kontrol edin.',
-    'verified': '@BKupon8Bot kimliği, grup üyeliği ve metin/belge izinleri doğrulandı. Test mesajı gönderilmedi.',
+    'verified': '@BKupon8Bot kimliği, hedef sohbet erişimi ve uygun izinler doğrulandı. Test mesajı gönderilmedi.',
     'wrong_bot': 'Token @BKupon8Bot kimliğini doğrulamıyor; sunucudaki bot tokenını kontrol edin.',
-    'unsupported_chat': 'Hedef sohbet grup veya süpergrup olmalı; sunucudaki grup kimliğini kontrol edin.',
+    'unsupported_chat': 'Hedef sohbet özel sohbet, grup veya süpergrup olmalı; sunucudaki grup kimliğini kontrol edin.',
     'unknown_permissions': 'Grup izinleri tam doğrulanamadı. Bot üyeliğini ve metin/belge izinlerini kontrol edin.',
     'missing_permissions': 'Botun metin veya belge gönderme izni yok. Grup yöneticisi izinleri düzeltmeli.',
     'bot_removed': 'Bot hedef grupta değil; @BKupon8Bot grubun üyesi olmalı.',
@@ -130,10 +130,13 @@ async def verify(transport=None, now=None):
                 if type(me.get('id')) is not int or me['id'] <= 0 or me.get('is_bot') is not True or str(me.get('username', '')).casefold() != EXPECTED_BOT.casefold():
                     raise VerificationError('wrong_bot')
                 chat = await _call(client, token, 'getChat', {'chat_id': chat_id})
-                if type(chat.get('id')) is not int or chat['id'] != int(chat_id) or chat.get('type') not in ('group', 'supergroup'):
+                if type(chat.get('id')) is not int or chat['id'] != int(chat_id) or chat.get('type') not in ('private', 'group', 'supergroup'):
                     raise VerificationError('unsupported_chat')
-                member = await _call(client, token, 'getChatMember', {'chat_id': chat_id, 'user_id': me['id']})
-                text, documents = _permissions(chat, member, me['id'])
+                if chat['type'] == 'private':
+                    text, documents = True, True
+                else:
+                    member = await _call(client, token, 'getChatMember', {'chat_id': chat_id, 'user_id': me['id']})
+                    text, documents = _permissions(chat, member, me['id'])
                 result = _result('verified' if text and documents else 'missing_permissions', now, text, documents)
         except asyncio.CancelledError:
             raise
