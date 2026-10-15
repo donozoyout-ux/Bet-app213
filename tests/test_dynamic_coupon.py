@@ -42,6 +42,7 @@ def test_marginal_choice_is_not_probability_sorting_and_explains_quality_change(
     items,audit=select_portfolio(records,NOW)
     first=next(d for d in audit['decisions'] if d.get('selection_order')==1)
     assert first['match_id']==2
+    assert first['portfolio_quality_before'] is None
     for item in items:
         d=item['selection_explanation']
         assert d['marginal_utility']>0
@@ -59,7 +60,7 @@ def test_shared_team_and_same_match_are_not_independent():
     assert audit['rejections']=={'same_match':1,'shared_team':1}
 
 
-@pytest.mark.parametrize('field,value',[('probability',.699),('reliability',.799),('score',.799),('score',float('nan')),('probability',1.01),('reliability',2)])
+@pytest.mark.parametrize('field,value',[('probability',.699),('reliability',.799),('score',.799),('score',float('nan')),('probability',1.01),('reliability',2),('probability',True),('reliability',True),('score',True)])
 def test_quality_is_never_lowered(field,value):
     item=entry(1);item['recommendation'][field]=value
     assert select_portfolio([item],NOW)[0]==[]

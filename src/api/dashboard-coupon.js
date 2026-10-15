@@ -184,7 +184,7 @@ function renderDaily(data){
   card.append(node('p',`Model olasılığı: %${(100*r.probability).toFixed(1)} · Güven: ${confidence[r.confidence] || '—'} · Güvenilirlik: %${(100*r.reliability).toFixed(1)}`));
   card.append(node('p',`Son fiyat gözlemi: ${date(q.observed_at)}`));
   const why=item.selection_explanation;
-  if(why)card.append(node('p',`Seçilme nedeni: pozitif ek katkı ${Number(why.marginal_utility).toFixed(3)} · Ek risk ${Number(why.marginal_risk).toFixed(3)} · Kupon kalite göstergesi %${(100*why.portfolio_quality_before).toFixed(1)} → %${(100*why.portfolio_quality_if_added).toFixed(1)}`));list.append(card);
+  if(why)card.append(node('p',`Seçilme nedeni: pozitif ek katkı ${Number(why.marginal_utility).toFixed(3)} · Ek risk ${Number(why.marginal_risk).toFixed(3)} · Kupon kalite göstergesi ${why.portfolio_quality_before==null?'—':'%'+(100*why.portfolio_quality_before).toFixed(1)} → %${(100*why.portfolio_quality_if_added).toFixed(1)}`));list.append(card);
  }
  box.append(list);
  box.append(node('p',data.items?.length?`Günlük kombine oran: ${money(data.combined_odds)} · Üst sınır yok`:data.message || 'Bugün doğrulanmış uygun seçim yok.'));

@@ -34,7 +34,7 @@ def select_portfolio(records,now,strategy='balanced'):
         if kickoff.tzinfo is None:kickoff=kickoff.replace(tzinfo=timezone.utc)
         if kickoff<=now or kickoff.astimezone(ZoneInfo('Europe/Istanbul')).date()!=today:
             decision['reason']='outside_daily_window';continue
-        if not coupon_qualified(r) or not all(0<r[k]<=1 for k in ('probability','reliability','score')):decision['reason']='quality_rejected';continue
+        if not coupon_qualified(r) or not all(type(r[k]) in (int,float) and 0<r[k]<=1 for k in ('probability','reliability','score')):decision['reason']='quality_rejected';continue
         price=q.get('price')
         if type(price) not in (int,float) or not math.isfinite(price) or price<=1:
             decision['reason']='price_rejected';continue
@@ -76,7 +76,7 @@ def select_portfolio(records,now,strategy='balanced'):
             dilution=max(0,average-c['decision']['quality'])*.5
             gain=c['value']-AVERSION[strategy]*added*(1+risk/RISK_BUDGET)-dilution
             d.update(marginal_risk=added,marginal_utility=gain,portfolio_risk_if_added=risk+added,
-                portfolio_quality_before=average,portfolio_quality_if_added=(quality_total+c['decision']['quality'])/(len(chosen)+1),quality_dilution_penalty=dilution)
+                portfolio_quality_before=average if chosen else None,portfolio_quality_if_added=(quality_total+c['decision']['quality'])/(len(chosen)+1),quality_dilution_penalty=dilution)
             if risk+added>RISK_BUDGET+1e-12:d['reason']='combined_risk_budget';continue
             if gain<=0:d['reason']='non_positive_marginal_utility';continue
             if best is None or gain>best['decision']['marginal_utility']+1e-12:best=c
