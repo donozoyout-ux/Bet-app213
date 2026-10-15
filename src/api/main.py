@@ -109,6 +109,17 @@ async def hero_player():
                         media_type='image/svg+xml', headers={'Cache-Control': 'public, max-age=86400'})
 
 
+@app.get('/assets/kuponanalizii-stadium.webp', include_in_schema=False)
+async def hero_stadium():
+    return FileResponse(Path(__file__).resolve().parent / 'assets' / 'kuponanalizii-stadium.webp',
+                        media_type='image/webp', headers={'Cache-Control': 'public, max-age=86400'})
+
+
+@app.get('/dashboard-home.js', include_in_schema=False)
+async def home_script():
+    return FileResponse(Path(__file__).resolve().with_name('dashboard-home.js'), media_type='application/javascript')
+
+
 @app.get('/dashboard.js', include_in_schema=False)
 async def dashboard_script():
     return FileResponse(Path(__file__).resolve().with_name('dashboard.js'), media_type='application/javascript')
