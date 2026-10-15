@@ -1,0 +1,54 @@
+name: One-time UEFA domestic history backfill
+on:
+  workflow_dispatch:
+  schedule:
+    # 17 October 2026 11:00 Europe/Istanbul (08:00 UTC).
+    # Year guard below makes this effectively a one-time scheduled task.
+    - cron: '0 8 17 10 *'
+permissions:
+  contents: read
+concurrency:
+  group: uefa-domestic-history-backfill
+  cancel-in-progress: false
+jobs:
+  enqueue:
+    if: github.repository == 'donozoyout-ux/Bet-app213'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Guard scheduled execution date
+        id: dateguard
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "$(date -u +%F)" != "2026-10-17" ]; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        if: steps.dateguard.outputs.run == 'true'
+      - uses: actions/setup-python@v5
+        if: steps.dateguard.outputs.run == 'true'
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install worker dependencies
+        if: steps.dateguard.outputs.run == 'true'
+        run: pip install -r requirements.txt
+      - name: Enqueue verified domestic histories only
+        if: steps.dateguard.outputs.run == 'true'
+        env:
+          DATABASE_URL: ${{ secrets.RENDER_DATABASE_URL }}
+          NVIDIA_AI_ENABLED: 'false'
+          NVIDIA_DAILY_REQUEST_LIMIT: '0'
+          SCRAPER_WORKER_ENABLED: 'false'
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "::error::RENDER_DATABASE_URL secret missing. Nothing enqueued."
+            exit 1
+          fi
+          python -m scripts.uefa_coverage_report --enqueue-backfill
+      - name: Summary
+        if: success()
+        run: |
+          echo "Queued only; Render's existing worker consumes queued jobs." >> "$GITHUB_STEP_SUMMARY"
+          echo "Check scraper_jobs and historical coverage after jobs finish." >> "$GITHUB_STEP_SUMMARY"
