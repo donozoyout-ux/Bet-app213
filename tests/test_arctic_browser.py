@@ -110,7 +110,7 @@ async def test_arctic_navigation_filters_analysis_and_responsive_layout(api,db,m
             await page.locator('[data-view="live"]').click();await expect(page.locator('#matches-body')).to_contain_text('canlı maç yok')
             await page.locator('[data-view="today"]').focus();await page.keyboard.press('ArrowRight')
             await expect(page.locator('[data-view="upcoming"]')).to_have_attribute('aria-selected','true')
-            await go('performance');await expect(page.locator('#daily-summary .summary-card')).to_have_count(5)
+            await go('performance');await expect(page.locator('#daily-summary .summary-card')).to_have_count(6)
             await go('home');await page.go_back();await expect(page.locator('[data-page="performance"]')).to_be_visible()
             await page.go_forward();await expect(page.locator('[data-page="home"]')).to_be_visible()
             mode='empty';await go('predictions');await expect(page.locator('#market-picks')).to_contain_text('yaklaşan maç yok')

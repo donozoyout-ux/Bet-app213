@@ -7,7 +7,7 @@ import asyncio
 import logging
 import time
 from datetime import timedelta, timezone
-from sqlalchemy import select, or_, case
+from sqlalchemy import select, or_, case, String
 from sqlalchemy.orm import aliased
 
 from src.models import Match, League, Team, MatchStatistics, CollectorRetry, PredictionBoard, utcnow
@@ -58,6 +58,7 @@ class PriorityUpdater:
         self.next_recent=0
         self.league_cursor=0
         self.next_quotes=0
+        self.next_settlement=0
 
     async def tick(self, client):
         if time.monotonic()<self.next_tick or memory_constrained():return
@@ -69,6 +70,10 @@ class PriorityUpdater:
             except asyncio.CancelledError:raise
             except Exception as exc:log.warning('[ODDS] upcoming deferred error=%s',type(exc).__name__)
         try:
+            if time.monotonic()>=self.next_settlement:
+                from .settlement import recheck
+                self.next_settlement=time.monotonic()+30
+                await recheck(self,client)
             async with asyncio.timeout(25):
                 await self.live_cycle(client)
             if time.monotonic()>=self.next_recent:
@@ -145,10 +150,11 @@ class PriorityUpdater:
         start,end=day_bounds(now.astimezone(ZoneInfo(DISPLAY_TIMEZONE)).date(),DISPLAY_TIMEZONE)
         home,away=aliased(Team),aliased(Team)
         urgent=or_(Match.status.in_(LIVE_STATUSES),Match.kickoff_at<=now+timedelta(minutes=30))
+        final_queue=select(CollectorRetry.key).where(CollectorRetry.key=='settlement:'+Match.external_match_id.cast(String)).exists()
         async with self.db.session() as session:
             rows=(await session.execute(select(Match,League.external_id,home.external_id,away.external_id)
                 .join(League).join(home,home.id==Match.home_team_id).join(away,away.id==Match.away_team_id)
-                .where(League.enabled.is_(True),
+                .where(League.enabled.is_(True),~((Match.kickoff_at<=now-timedelta(hours=3)) & final_queue),
                     or_(Match.status.in_(LIVE_STATUSES),
                         (Match.status.in_(['scheduled','pending','interrupted'])) &
                         (Match.kickoff_at>=start-timedelta(days=1)) & (Match.kickoff_at<end)),
@@ -211,7 +217,10 @@ class PriorityUpdater:
                 observed=select(MatchStatistics.match_id).where(MatchStatistics.match_id==Match.id,
                     or_(full,(MatchStatistics.is_final.is_(True) & (MatchStatistics.updated_at>now-timedelta(hours=6))))).exists()
                 match=await session.scalar(select(Match).where(Match.league_id==league.id,Match.status=='finished',
-                    Match.kickoff_at>=now-timedelta(days=90),~observed).order_by(Match.kickoff_at.desc(),Match.id.desc()).limit(1))
+                    Match.kickoff_at>=now-timedelta(days=90),~observed,
+                    ~select(CollectorRetry.key).where(CollectorRetry.key=='settlement:'+Match.external_match_id.cast(String)).exists(),
+                    ~select(CollectorRetry.key).where(CollectorRetry.key=='stats:'+Match.external_match_id.cast(String),CollectorRetry.next_attempt_at>now).exists()
+                    ).order_by(Match.kickoff_at.desc(),Match.id.desc()).limit(1))
             if not match:continue
             stats_key = f'stats:{match.external_match_id}'
             async with self.db.session() as session:

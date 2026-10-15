@@ -1,0 +1,336 @@
+{
+  "observed_at": "2026-10-15T11:11:25.830957Z",
+  "source": "Read-only Render PostgreSQL; saved picks joined to match final data",
+  "matches": [
+    {
+      "id": 10475,
+      "external_match_id": 3073124,
+      "kickoff_at": "2026-10-13T19:00:00Z",
+      "status": "finished",
+      "ft_home": 3,
+      "ft_away": 0,
+      "ht_home": 0,
+      "ht_away": 0,
+      "is_final": true,
+      "home_corners": 7,
+      "away_corners": 0,
+      "home_yellow_cards": 2,
+      "away_yellow_cards": 1,
+      "home_red_cards": null,
+      "away_red_cards": null,
+      "captured_at": "2026-10-12T19:29:42.492968Z",
+      "picks": [
+        {
+          "market": "second_half_goals",
+          "selection": "under_2_5",
+          "probability": 0.847842030489901
+        },
+        {
+          "market": "first_half_goals",
+          "selection": "under_2_5",
+          "probability": 0.9086703715892068
+        }
+      ]
+    },
+    {
+      "id": 10476,
+      "external_match_id": 3073103,
+      "kickoff_at": "2026-10-13T19:00:00Z",
+      "status": "finished",
+      "ft_home": 1,
+      "ft_away": 4,
+      "ht_home": 1,
+      "ht_away": 1,
+      "is_final": true,
+      "home_corners": 1,
+      "away_corners": 6,
+      "home_yellow_cards": 2,
+      "away_yellow_cards": 0,
+      "home_red_cards": null,
+      "away_red_cards": null,
+      "captured_at": "2026-10-12T19:29:42.492968Z",
+      "picks": [
+        {
+          "market": "first_half_goals",
+          "selection": "over_0_5",
+          "probability": 0.794962158360221
+        },
+        {
+          "market": "second_half_goals",
+          "selection": "over_0_5",
+          "probability": 0.8318505314514276
+        }
+      ]
+    },
+    {
+      "id": 10478,
+      "external_match_id": 3073093,
+      "kickoff_at": "2026-10-13T19:00:00Z",
+      "status": "finished",
+      "ft_home": 3,
+      "ft_away": 4,
+      "ht_home": 1,
+      "ht_away": 1,
+      "is_final": true,
+      "home_corners": 4,
+      "away_corners": 4,
+      "home_yellow_cards": 2,
+      "away_yellow_cards": 4,
+      "home_red_cards": null,
+      "away_red_cards": null,
+      "captured_at": "2026-10-12T19:09:39.946401Z",
+      "picks": [
+        {
+          "market": "first_half_goals",
+          "selection": "under_2_5",
+          "probability": 0.8382945581669868
+        },
+        {
+          "market": "second_half_goals",
+          "selection": "under_2_5",
+          "probability": 0.8391484913031777
+        }
+      ]
+    },
+    {
+      "id": 10483,
+      "external_match_id": 3073150,
+      "kickoff_at": "2026-10-14T19:00:00Z",
+      "status": "finished",
+      "ft_home": 1,
+      "ft_away": 0,
+      "ht_home": 0,
+      "ht_away": 0,
+      "is_final": true,
+      "home_corners": 4,
+      "away_corners": 9,
+      "home_yellow_cards": 0,
+      "away_yellow_cards": 2,
+      "home_red_cards": null,
+      "away_red_cards": null,
+      "captured_at": "2026-10-12T19:29:42.492968Z",
+      "picks": [
+        {
+          "market": "second_half_goals",
+          "selection": "over_0_5",
+          "probability": 0.9562068108533026
+        },
+        {
+          "market": "goals",
+          "selection": "over_1_5",
+          "probability": 0.9186131577937847
+        }
+      ]
+    },
+    {
+      "id": 10484,
+      "external_match_id": 3073156,
+      "kickoff_at": "2026-10-14T19:00:00Z",
+      "status": "finished",
+      "ft_home": 6,
+      "ft_away": 0,
+      "ht_home": 3,
+      "ht_away": 0,
+      "is_final": true,
+      "home_corners": 9,
+      "away_corners": 7,
+      "home_yellow_cards": 0,
+      "away_yellow_cards": 2,
+      "home_red_cards": null,
+      "away_red_cards": null,
+      "captured_at": "2026-10-12T19:29:42.492968Z",
+      "picks": [
+        {
+          "market": "first_half_goals",
+          "selection": "under_2_5",
+          "probability": 0.8758386836263364
+        },
+        {
+          "market": "goals",
+          "selection": "over_1_5",
+          "probability": 0.7616926751680597
+        }
+      ]
+    },
+    {
+      "id": 10486,
+      "external_match_id": 3073074,
+      "kickoff_at": "2026-10-14T19:00:00Z",
+      "status": "finished",
+      "ft_home": 2,
+      "ft_away": 4,
+      "ht_home": 0,
+      "ht_away": 3,
+      "is_final": true,
+      "home_corners": 11,
+      "away_corners": 2,
+      "home_yellow_cards": 1,
+      "away_yellow_cards": 1,
+      "home_red_cards": null,
+      "away_red_cards": null,
+      "captured_at": "2026-10-12T19:09:39.946401Z",
+      "picks": [
+        {
+          "market": "second_half_goals",
+          "selection": "over_0_5",
+          "probability": 0.8240767528185118
+        },
+        {
+          "market": "goals",
+          "selection": "over_1_5",
+          "probability": 0.8077997962389212
+        }
+      ]
+    },
+    {
+      "id": 11519,
+      "external_match_id": 3073793,
+      "kickoff_at": "2026-10-15T16:45:00Z",
+      "status": "scheduled",
+      "ft_home": null,
+      "ft_away": null,
+      "ht_home": null,
+      "ht_away": null,
+      "is_final": null,
+      "home_corners": null,
+      "away_corners": null,
+      "home_yellow_cards": null,
+      "away_yellow_cards": null,
+      "home_red_cards": null,
+      "away_red_cards": null,
+      "captured_at": "2026-10-12T20:21:05.454353Z",
+      "picks": [
+        {
+          "market": "first_half_goals",
+          "selection": "under_2_5",
+          "probability": 0.8569379918829743
+        },
+        {
+          "market": "second_half_goals",
+          "selection": "under_2_5",
+          "probability": 0.8647478375276016
+        }
+      ]
+    },
+    {
+      "id": 12542,
+      "external_match_id": 3073870,
+      "kickoff_at": "2026-10-15T16:45:00Z",
+      "status": "scheduled",
+      "ft_home": null,
+      "ft_away": null,
+      "ht_home": null,
+      "ht_away": null,
+      "is_final": null,
+      "home_corners": null,
+      "away_corners": null,
+      "home_yellow_cards": null,
+      "away_yellow_cards": null,
+      "home_red_cards": null,
+      "away_red_cards": null,
+      "captured_at": "2026-10-12T20:21:19.361707Z",
+      "picks": [
+        {
+          "market": "second_half_goals",
+          "selection": "over_0_5",
+          "probability": 0.8107213015189252
+        },
+        {
+          "market": "first_half_goals",
+          "selection": "under_2_5",
+          "probability": 0.9203008667589383
+        }
+      ]
+    },
+    {
+      "id": 11527,
+      "external_match_id": 3073744,
+      "kickoff_at": "2026-10-15T19:00:00Z",
+      "status": "scheduled",
+      "ft_home": null,
+      "ft_away": null,
+      "ht_home": null,
+      "ht_away": null,
+      "is_final": null,
+      "home_corners": null,
+      "away_corners": null,
+      "home_yellow_cards": null,
+      "away_yellow_cards": null,
+      "home_red_cards": null,
+      "away_red_cards": null,
+      "captured_at": "2026-10-12T20:21:05.454353Z",
+      "picks": [
+        {
+          "market": "goals",
+          "selection": "over_1_5",
+          "probability": 0.8136199464735611
+        },
+        {
+          "market": "second_half_goals",
+          "selection": "under_2_5",
+          "probability": 0.9398923480261668
+        }
+      ]
+    },
+    {
+      "id": 11528,
+      "external_match_id": 3073734,
+      "kickoff_at": "2026-10-15T19:00:00Z",
+      "status": "scheduled",
+      "ft_home": null,
+      "ft_away": null,
+      "ht_home": null,
+      "ht_away": null,
+      "is_final": null,
+      "home_corners": null,
+      "away_corners": null,
+      "home_yellow_cards": null,
+      "away_yellow_cards": null,
+      "home_red_cards": null,
+      "away_red_cards": null,
+      "captured_at": "2026-10-12T23:43:09.771793Z",
+      "picks": [
+        {
+          "market": "yellow_cards",
+          "selection": "over_2_5",
+          "probability": 0.7860813941143914
+        },
+        {
+          "market": "corners",
+          "selection": "over_7_5",
+          "probability": 0.805969351450445
+        }
+      ]
+    },
+    {
+      "id": 12551,
+      "external_match_id": 3075331,
+      "kickoff_at": "2026-10-15T19:00:00Z",
+      "status": "scheduled",
+      "ft_home": null,
+      "ft_away": null,
+      "ht_home": null,
+      "ht_away": null,
+      "is_final": null,
+      "home_corners": null,
+      "away_corners": null,
+      "home_yellow_cards": null,
+      "away_yellow_cards": null,
+      "home_red_cards": null,
+      "away_red_cards": null,
+      "captured_at": "2026-10-12T20:21:19.361707Z",
+      "picks": [
+        {
+          "market": "goals",
+          "selection": "over_1_5",
+          "probability": 0.8836205750336329
+        },
+        {
+          "market": "second_half_goals",
+          "selection": "over_0_5",
+          "probability": 0.8853341853329348
+        }
+      ]
+    }
+  ]
+}
