@@ -218,7 +218,7 @@ class PriorityUpdater:
                     or_(full,(MatchStatistics.is_final.is_(True) & (MatchStatistics.updated_at>now-timedelta(hours=6))))).exists()
                 match=await session.scalar(select(Match).where(Match.league_id==league.id,Match.status=='finished',
                     Match.kickoff_at>=now-timedelta(days=90),~observed,
-                    ~select(CollectorRetry.key).where(CollectorRetry.key=='settlement:'+Match.external_match_id.cast(String)).exists(),
+                    ~select(CollectorRetry.key).where(CollectorRetry.key=='settlement:'+Match.external_match_id.cast(String),CollectorRetry.reason!='complete').exists(),
                     ~select(CollectorRetry.key).where(CollectorRetry.key=='stats:'+Match.external_match_id.cast(String),CollectorRetry.next_attempt_at>now).exists()
                     ).order_by(Match.kickoff_at.desc(),Match.id.desc()).limit(1))
             if not match:continue

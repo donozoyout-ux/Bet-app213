@@ -58,6 +58,9 @@ def test_missing_never_zero(market,field):
               home_corners=0,away_corners=0,home_yellow_cards=0,away_yellow_cards=0,home_red_cards=0,away_red_cards=0)
     m=SimpleNamespace(**data);p=dict(market=market,selection='under_0_5')
     assert settle(m,m,p)[0]=='won'
+    if market in {'corners','cards','yellow_cards','red_cards'}:
+        m.is_final=False;assert settle(m,m,p)==('awaiting_data',None)
+        m.is_final=True
     setattr(m,field,None);assert settle(m,m,p)==('awaiting_data',None)
     setattr(m,field,-1);assert settle(m,m,p)==('awaiting_data',None)
 
@@ -89,9 +92,11 @@ def final_source():
 
 async def verify_repair(db,monkeypatch):
     import src.jobs.settlement as worker
-    import src.analytics.performance as perf
+    import src.jobs.storage as storage
+    import src.jobs.live as live
     now=NOW+timedelta(hours=4)
-    monkeypatch.setattr(worker,'utcnow',lambda:now);monkeypatch.setattr(perf,'utcnow',lambda:now,raising=False)
+    monkeypatch.setattr(worker,'utcnow',lambda:now);monkeypatch.setattr(storage,'utcnow',lambda:now)
+    monkeypatch.setattr(live,'utcnow',lambda:now)
     original=await saved(db)
     async with db.session() as s:
         before=await performance(s)
@@ -109,6 +114,10 @@ async def verify_repair(db,monkeypatch):
         assert snap.captured_at.replace(tzinfo=timezone.utc)==NOW-timedelta(days=1)
     await recheck(updater,source);await recheck(updater,source)
     assert source.calls==1
+    # Completing saved goal picks must not freeze unrelated analytics coverage.
+    now+=timedelta(hours=7)
+    await updater.recent_statistics(source)
+    assert source.calls==2
 
 
 async def test_sqlite_final_repair_and_immutable_history(db,monkeypatch):

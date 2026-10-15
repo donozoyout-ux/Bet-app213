@@ -62,7 +62,9 @@ Each match has **at most six automatic repair attempts**, durably claimed in
 hours and one day; the sixth incomplete check exhausts the budget. Restarts and
 partial/missing successful pages do not reset it. A request has an eight-second
 budget and holds no database connection. Intensive live polling and recent-stat
-polling yield tracked overdue fixtures to this bounded queue. Explicit historical
+polling yield tracked unresolved overdue fixtures to this bounded queue. Once all
+saved picks settle, ordinary statistics coverage collection remains available;
+the repair budget does not freeze unrelated model input fields. Explicit historical
 backfill jobs keep their existing behavior and checkpoints.
 
 Final FT storage survives a missing/changed statistics table. Statistics require
