@@ -93,10 +93,11 @@ async def test_postgres_readonly_export_replay():
     d=result['diagnostics']
     assert result['database']=='postgresql' and result['http_status']==200
     assert d['inspected_matches']==36 and d['eligible_matches']==1
+    assert d['selected_matches']==0  # The sole real quote has negative model value.
     assert d['match_rejections']=={'insufficient_prematch_data':26,'price_rejected':3,'quality_rejected':6}
     assert d['source_coverage']['priced_matches']==36
     assert d['source_coverage']['fresh_price_matches']==5
-    assert result['automatic_coupon']['combined_odds']==1.14
+    assert result['automatic_coupon'] is None
 
 
 async def test_full_pool_rejects_stale_analysis_reschedule_and_new_day(db):
@@ -153,7 +154,7 @@ async def test_partial_api_reports_all_nineteen_rejections(api,db,monkeypatch):
     monkeypatch.setattr(routes,'utcnow',lambda:NOW)
     await pool_fixture(db,1)
     data=(await api.post('/api/coupons/automatic')).json()
-    assert len(data['items'])==1 and data['target_matches']==4
+    assert len(data['items'])==1 and data['selection_mode']=='dynamic'
     assert data['diagnostics']['inspected_matches']==20
     assert data['diagnostics']['match_rejections']=={'quality_rejected':19}
     assert data['data_updates']['checked_at'] and data['data_updates']['analysis_generated_at']

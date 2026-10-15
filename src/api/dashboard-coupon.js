@@ -171,7 +171,7 @@ function renderDaily(data){
  box.replaceChildren();
  const diagnostics=data.diagnostics || {}, updates=data.data_updates || {};
  const summary=node('div');summary.className='daily-coupon-summary';
- summary.append(node('strong',`Strateji: ${{balanced:'Dengeli',cautious:'Temkinli',value:'Değer odaklı'}[data.strategy || 'balanced']} · Hedef: ${data.target_matches ?? 4} maç`));
+ summary.append(node('strong',`Strateji: ${{balanced:'Dengeli',cautious:'Temkinli',value:'Değer odaklı'}[data.strategy || 'balanced']} · Dinamik seçim`));
  summary.append(node('span',`Uygun bulunan: ${diagnostics.eligible_matches ?? '—'} · Seçilen: ${data.items?.length ?? 0} · İncelenen toplam maç: ${diagnostics.inspected_matches ?? '—'}`));
  box.append(summary);
  const list=node('div');list.className='daily-selections';
@@ -182,7 +182,9 @@ function renderDaily(data){
   card.append(node('h3',`${m.home_team} — ${m.away_team}`));
   const price=node('div');price.className='daily-selection-price';price.append(node('strong',r.label),node('b',`${money(q.price)} · ${q.bookmaker}`));card.append(price);
   card.append(node('p',`Model olasılığı: %${(100*r.probability).toFixed(1)} · Güven: ${confidence[r.confidence] || '—'} · Güvenilirlik: %${(100*r.reliability).toFixed(1)}`));
-  card.append(node('p',`Son fiyat gözlemi: ${date(q.observed_at)}`));list.append(card);
+  card.append(node('p',`Son fiyat gözlemi: ${date(q.observed_at)}`));
+  const why=item.selection_explanation;
+  if(why)card.append(node('p',`Seçilme nedeni: pozitif ek katkı ${Number(why.marginal_utility).toFixed(3)} · Ek risk ${Number(why.marginal_risk).toFixed(3)} · Kupon kalite göstergesi %${(100*why.portfolio_quality_before).toFixed(1)} → %${(100*why.portfolio_quality_if_added).toFixed(1)}`));list.append(card);
  }
  box.append(list);
  box.append(node('p',data.items?.length?`Günlük kombine oran: ${money(data.combined_odds)} · Üst sınır yok`:data.message || 'Bugün doğrulanmış uygun seçim yok.'));
@@ -190,14 +192,37 @@ function renderDaily(data){
  const reasons=node('div');reasons.className='daily-rejections';
  for(const [reason,count] of Object.entries(diagnostics.match_rejections || {}))reasons.append(node('span',`${labels[reason] || reason}: ${count}`));
  box.append(reasons);
- if(diagnostics.candidate_coverage_complete===false)box.append(node('p','Eski analiz kaydında tüm market adayları saklanmamış. Tam kapsam, worker yeni analizi yayımladığında doğrulanabilir.'));
+ const policy=data.selection_policy || diagnostics.selection;
+ if(policy){
+  const names={same_match:'Aynı maçın diğer seçimleri',shared_team:'Ortak takım nedeniyle bağımlılık riski',combined_risk_budget:'Birleşik risk bütçesi',non_positive_marginal_utility:'Eklenen risk karşılığında yeterli katkı yok',evaluation_budget:'Değerlendirme bütçesi',team_identity_missing:'Takım kimliği doğrulanamadı',positive_marginal_utility:'Seçildi: risk ve kalite sonrası pozitif katkı'};
+  box.append(node('p',`Birleşik risk göstergesi: ${Number(policy.risk_indicator).toFixed(3)} / ${policy.risk_budget} · Kazanma olasılığı değildir.`));
+  for(const [reason,count] of Object.entries(policy.rejections || {}))box.append(node('p',`${names[reason] || reason}: ${count} aday`));
+  if(policy.evaluation_budget_exhausted)box.append(node('p','Değerlendirme süresi bütçesi doldu. Tüm adaylar tarandı; kalan adaylar üzerinde ek kupon denemesi yapılmadı.'));
+  const details=node('details');details.id='coupon-decision-details';details.append(node('summary','Adayların seçim ve eleme gerekçeleri'));
+  let built=false;
+  details.ontoggle=()=>{
+   if(!details.open || built)return;built=true;
+   const byMatch=new Map();
+   for(const d of policy.decisions || []){const list=byMatch.get(d.match_id) || [];list.push(d);byMatch.set(d.match_id,list);}
+   for(const state of diagnostics.matches || []){
+    const row=node('article');row.className='daily-decision';
+    row.append(node('strong',`${state.match.home_team} — ${state.match.away_team}`));
+    if(state.reason!=='eligible')row.append(node('p',labels[state.reason] || state.reason));
+    for(const d of byMatch.get(state.match.id) || [])row.append(node('p',`${d.label || d.recommendation_id} · ${names[d.reason] || labels[d.reason] || d.reason}${Number.isFinite(d.marginal_utility)?' · Ek katkı: '+d.marginal_utility.toFixed(3):''}`));
+    details.append(row);
+   }
+  };
+  box.append(details);
+ }
+
+ if(diagnostics.candidate_coverage_complete===false)box.append(node('p','Bazı analizlerin market ayrıntıları yenileniyor; tam aday kapsamı henüz doğrulanamadı.'));
  box.append(node('p',`Son analiz: ${date(updates.analysis_generated_at || data.cache?.latest_generated_at || data.cache?.generated_at)} · Son fiyat gözlemi: ${date(updates.price_observed_at || diagnostics.last_price_observed_at)} · Son güncelleme: ${date(updates.checked_at || diagnostics.checked_at)}`));
 }
 async function generate(activate=true){
  const generation=draftGeneration;
  const button=$('coupon-automatic');if(button)button.disabled=true;
- try{const strategy=$('coupon-strategy')?.value || 'balanced';const count=$('coupon-target')?.value || '4';const data=await api('/api/coupons/automatic?'+new URLSearchParams({strategy,max_matches:count}),{});if(generation!==draftGeneration)return;text('coupon-day',data.coupon_date || new Date().toLocaleDateString('tr-TR',{timeZone:'Europe/Istanbul'}));renderDaily(data);
-  if(data.items?.length && (activate || !dirty && saved?.kind!=='manual')){if(activate && (dirty || saved?.kind==='manual'))manualDraft={items:[...selected.values()],saved,dirty};loadCoupon(data);if($('coupon-tools') && !$('coupon-tools').open)text('coupon-note',`${data.items.length} maç seçildi · Hedef ${data.target_matches ?? 4} · Son kontrol: ${date(data.data_updates?.checked_at)}`);}
+ try{const strategy=$('coupon-strategy')?.value || 'balanced';const data=await api('/api/coupons/automatic?'+new URLSearchParams({strategy}),{});if(generation!==draftGeneration)return;text('coupon-day',data.coupon_date || new Date().toLocaleDateString('tr-TR',{timeZone:'Europe/Istanbul'}));renderDaily(data);
+  if(data.items?.length && (activate || !dirty && saved?.kind!=='manual')){if(activate && (dirty || saved?.kind==='manual'))manualDraft={items:[...selected.values()],saved,dirty};loadCoupon(data);if($('coupon-tools') && !$('coupon-tools').open)text('coupon-note',`${data.items.length} maç seçildi · Dinamik seçim · Son kontrol: ${date(data.data_updates?.checked_at)}`);}
   else if(!data.items?.length){if(!dirty && saved?.kind==='automatic'){selected.clear();saved=null;text('coupon-saved-note','');draw();}text('coupon-note',data.message || 'Bugün kalite eşiğini geçen ve güncel oranı doğrulanmış seçim bulunamadı; manuel taslak korunuyor.');}historyOffset=0;if(!$('coupon-tools') || $('coupon-tools').open)await history();}
  catch(_){text('coupon-day','Tarih doğrulanamadı');text('coupon-note','Otomatik kupon oluşturulamadı. Yeniden deneyin.');text('coupon-daily','Günlük kupon bağlantısı bekleniyor. Yeniden deneyin.');}
  finally{if(button)button.disabled=false;}
@@ -223,7 +248,7 @@ async function history(){
  }catch(_){box.replaceChildren();box.append(node('p','Kupon geçmişi bağlantı bekliyor.'));}
 }
 async function management(){
- const labels={sent:'Gönderildi',sending:'Gönderim başladı; tekrar gönderilmez',uncertain:'Sonuç belirsiz; grubu kontrol edin, otomatik tekrar yok',failed:'Telegram reddetti; bot/grup ayarlarını kontrol edin',missed:'Gönderim penceresi kaçırıldı',pending:'Uygun kupon bekleniyor',not_due:'Gönderim saati bekleniyor',no_eligible_selections:'Kaliteli ve taze fiyatlı seçim yok',waiting_for_quotes:'Taze oran bekleniyor',duplicate_selections:'Aynı seçimler tekrar gönderilmez',duplicate_version:'Bu sürüm daha önce işlendi'};
+ const labels={sent:'Gönderildi',sending:'Gönderim başladı; tekrar gönderilmez',uncertain:'Sonuç belirsiz; grubu kontrol edin, otomatik tekrar yok',failed:'Telegram reddetti; bot/grup ayarlarını kontrol edin',missed:'Gönderim penceresi kaçırıldı',pending:'Uygun kupon bekleniyor',not_due:'Gönderim saati bekleniyor',no_eligible_selections:'Risk ve katkı şartlarını karşılayan kupon yok',waiting_for_quotes:'Taze oran bekleniyor',duplicate_selections:'Aynı seçimler tekrar gönderilmez',duplicate_version:'Bu sürüm daha önce işlendi'};
  try{const data=await api('/api/telegram/status');text('telegram-check-note',(data.connection?.message || 'Bağlantı henüz doğrulanmadı.')+(data.connection?.checked_at?' · Kontrol: '+date(data.connection.checked_at):''));text('telegram-status',data.connection_verified?'Telegram kimliği ve grup izinleri doğrulandı.':data.configured?'Telegram ayarları mevcut; bağlantı sonucu aşağıda.':data.configuration_status==='invalid'?'Telegram ayarlarının biçimi geçersiz; sunucu yapılandırmasını kontrol edin.':'Telegram yapılandırılmamış. Kupon sistemi kullanılabilir.');text('telegram-schedule','Türkiye saati 12:00 ve 18:00 · Günlük en fazla 2 otomatik gönderim. '+(data.today || []).map(s=>date(s.slot)+' · '+(s.error_code==='telegram_400'?'Telegram isteği geçersiz: grup kimliğini ve botun gruba eklenmesini kontrol edin':s.error_code==='telegram_chat_not_found'?'Telegram hedef grubu bulamıyor: grup kimliğini kontrol edin':s.error_code==='telegram_missing_permissions'?'Botun mesaj gönderme izni yetersiz':s.error_code==='telegram_message_too_long'?'Telegram mesajı boyut sınırını aştı':s.error_code==='telegram_chat_migrated'?'Telegram grup kimliği değişmiş olabilir':s.error_code==='telegram_bot_removed'?'Bot gruptan çıkarılmış':s.error_code==='telegram_bot_forbidden'||s.error_code==='telegram_403'?'Botun grupta gönderim izni yok; grup izinlerini kontrol edin':labels[s.status] || 'Gönderim durumu doğrulanamıyor')).join(' • '));}
  catch(_){text('telegram-status','Telegram yönetim bilgisi alınamadı.');}
 }

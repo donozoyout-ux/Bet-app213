@@ -3,57 +3,24 @@ from copy import deepcopy
 import hashlib
 import json
 import uuid
-import math
-from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 
 from fastapi import HTTPException
 from fastapi.encoders import jsonable_encoder
-from sqlalchemy import select,text,or_
+from sqlalchemy import select,text
 from sqlalchemy.orm import defer
 from src.models import SavedCoupon,Match,MatchStatistics
-from src.analytics.coupon import current_odds,quote_draft,combined_price,draft_pick,coupon_qualified
+from src.analytics.coupon import quote_draft,combined_price,draft_pick,coupon_qualified
 from src.analytics.performance import settle
 from src.jobs.worker import aware
+from src.analytics.dynamic_coupon import select_portfolio,POLICY_VERSION
 
 COUPON_LOCK=213009
 COUPON_TZ=ZoneInfo('Europe/Istanbul')
-DEFAULT_COUPON_MATCHES=4
 
-def daily_candidates(records, now, strategy='balanced', max_matches=DEFAULT_COUPON_MATCHES):
-    """Choose a daily shortlist without loosening the existing quality/price gate."""
-    if strategy not in ('balanced','cautious','value'):
-        raise ValueError('Unsupported coupon strategy')
-    if not isinstance(max_matches,int) or isinstance(max_matches,bool) or not 1 <= max_matches <= 4:
-        raise ValueError('Coupon match target must be 1..4')
-    today=now.astimezone(COUPON_TZ).date()
-    eligible=[]
-    for item in records:
-        kickoff=datetime.fromisoformat(str(item['match']['kickoff_at']).replace('Z','+00:00'))
-        if kickoff.tzinfo is None:kickoff=kickoff.replace(tzinfo=timezone.utc)
-        if kickoff<=now or kickoff.astimezone(COUPON_TZ).date()!=today:continue
-        rec=item['recommendation'];price=item['quote']['price']
-        probability=float(rec['probability']);confidence=float(rec.get('reliability') or 0)
-        score=float(rec.get('score') or 0)
-        # Automatic tickets use stricter evidence gates than the general predictions board.
-        # These are selection filters, not calibrated guarantees of success.
-        if not all(math.isfinite(v) for v in (probability,confidence,score,float(price))) or float(price)<=1 or probability < .70 or confidence < .80 or score < .80:
-            continue
-        value=probability*float(price)-1
-        # Ranking only; no unverified or low-quality entries enter this function.
-        rank={'balanced':(confidence+probability)/2+min(max(value,0),.4)*.1,
-              'cautious':confidence*.65+probability*.35,
-              'value':value*.5+confidence*.5}[strategy]
-        eligible.append((rank,confidence,probability,-kickoff.timestamp(),item))
-    eligible.sort(key=lambda a:(-a[0],-a[1],-a[2],-a[3],a[4]['match']['id']))
-    chosen=[];matches=set()
-    for part in eligible:
-        item=part[4];match=item['match']
-        if match['id'] in matches:continue
-        chosen.append(item);matches.add(match['id'])
-        if len(chosen)==max_matches:break
-    return sorted(chosen,key=lambda i:(str(i['match']['kickoff_at']),i['match']['id']))
 
+def daily_candidates(records, now, strategy='balanced'):
+    return select_portfolio(records,now,strategy)[0]
 
 
 async def lock_coupons(session):
@@ -67,7 +34,7 @@ def owner_hash(key):
 
 def fingerprint(items):
     economic=[(i['match']['id'],i['recommendation']['id'],i['quote']['bookmaker'],i['quote']['price'],i['quote']['observed_at'],
-        i['recommendation']['probability'],i['recommendation']['confidence'],jsonable_encoder(i['match']['kickoff_at']),i['match']['home_team'],i['match']['away_team']) for i in items]
+        i['recommendation']['probability'],i['recommendation']['confidence'],i['recommendation'].get('reliability'),i['recommendation'].get('score'),jsonable_encoder(i['match']['kickoff_at']),i['match']['home_team'],i['match']['away_team']) for i in items]
     return hashlib.sha256(json.dumps(sorted(economic),separators=(',',':')).encode()).hexdigest()
 
 
@@ -82,7 +49,7 @@ def strong(rec):
     return coupon_qualified(rec)
 
 
-async def automatic(session,now,strategy='balanced',max_matches=DEFAULT_COUPON_MATCHES):
+async def automatic(session,now,strategy='balanced'):
     from src.analytics.daily_pool import daily_pool
     records=await daily_pool(session,now)
     groups={r['match']['id']:[c for c in r['recommendations'] if c['id'] in {b['id'] for b in r['coupon_candidates']} and strong(c)] for r in records}
@@ -95,19 +62,18 @@ async def automatic(session,now,strategy='balanced',max_matches=DEFAULT_COUPON_M
             book=max(usable,key=lambda b:(b['current_odds'],-('Crown','Bet365','Sbobet').index(b['bookmaker'])));vo=rec['verified_odds']
             quote=dict(eligible=True,price=book['current_odds'],bookmaker=book['bookmaker'],observed_at=book['observed_at'],expires_at=book['expires_at'],period=vo['period'],line=vo.get('line'),freshness='fresh')
             candidate=dict(match=record['match'],recommendation=rec,quote=quote,status='pending')
-            if daily_candidates([candidate],now,strategy,1):
-                items.append(candidate)
+            items.append(candidate)
     diagnostics=session.info['coupon_diagnostics']
-    diagnostics['independence_rejected']=len(items)-len({i['match']['id'] for i in items})
-    diagnostics['target_matches']=max_matches
-    items=daily_candidates(items,now,strategy,max_matches)
+    items,selection=select_portfolio(items,now,strategy)
+    diagnostics['selection']=selection
     diagnostics['selected_matches']=len(items)
+    session.info['coupon_selection_explanations']={(i['match']['id'],i['recommendation']['id']):i['selection_explanation'] for i in items}
     if not items:return None
     await lock_coupons(session)
-    digest=hashlib.sha256(f'{now.astimezone(COUPON_TZ).date().isoformat()}:{strategy}:{max_matches}:{fingerprint(items)}'.encode()).hexdigest()
+    digest=hashlib.sha256(f'{now.astimezone(COUPON_TZ).date().isoformat()}:{strategy}:{POLICY_VERSION}:{fingerprint(items)}'.encode()).hexdigest()
     existing=await session.scalar(select(SavedCoupon).where(SavedCoupon.automatic_fingerprint==digest))
     if existing:return existing
-    id=str(uuid.uuid4());row=SavedCoupon(id=id,root_id=id,revision=1,kind='automatic',automatic_fingerprint=digest,owner_hash=None,created_at=now,payload={**payload(items),'coupon_date':now.astimezone(COUPON_TZ).date().isoformat(),'strategy':strategy,'target_matches':max_matches})
+    id=str(uuid.uuid4());row=SavedCoupon(id=id,root_id=id,revision=1,kind='automatic',automatic_fingerprint=digest,owner_hash=None,created_at=now,payload={**payload(items),'coupon_date':now.astimezone(COUPON_TZ).date().isoformat(),'strategy':strategy,'selection_mode':'dynamic','selection_policy':selection})
     session.add(row);await session.flush();return row
 
 

@@ -54,7 +54,7 @@ async def daily_pool(session, now):
     boards={b.league_id:b for b in await session.scalars(select(PredictionBoard).where(PredictionBoard.league_id.in_(leagues)))}
     records=[];groups={};states=[];stamps=[];missing=[];stale=[]
     for row in rows:
-        match=row[0];context=match_response(row);board=boards.get(match.league_id)
+        match=row[0];context={**match_response(row),'home_team_id':row[0].home_team_id,'away_team_id':row[0].away_team_id};board=boards.get(match.league_id)
         entry=dict(match=context,reason=None,analysis_generated_at=None,candidate_count=0,quality_candidates=0,legacy_candidate_coverage=False)
         states.append(entry)
         if match.status!='scheduled' or aware(match.kickoff_at)<=now:entry['reason']='match_started_or_unavailable';continue

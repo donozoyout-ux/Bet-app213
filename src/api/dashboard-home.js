@@ -53,7 +53,7 @@
     clearTimeout(expiryTimer);
     const items=data.items || [], box=$('home-coupon-list'); if (!box) return;
     write('home-coupon-date',data.coupon_date || 'Bugünün kuponu');
-    write('home-coupon-total','—'); write('home-coupon-size',`${items.length} / 4 maç`);
+    write('home-coupon-total','—'); write('home-coupon-size',`${items.length} maç · Dinamik seçim`);
     const duplicates=new Set(items.map(i=>i.match?.id)).size!==items.length;
     if (!items.length || duplicates || !items.every(eligible)) {
       message('home-coupon-list',!items.length ? data.message || 'Bugün kalite şartlarını geçen, taze fiyatlı seçim bulunamadı.' : 'Seçimlerin güncel fiyat doğrulaması bekleniyor.', refresh);
@@ -135,7 +135,7 @@
     box.append(element('p',`Bu görünümde ${recs.length} seçim · ${r.sample_size} maçlık örneklem. Model olasılığı gerçekleşmiş başarı oranı değildir.`,'model-note'));
   }
   function refresh() {
-    request('home-coupon-list','/api/coupons/automatic?strategy=balanced&max_matches=4',renderCoupon,'POST');
+    request('home-coupon-list','/api/coupons/automatic?strategy=balanced',renderCoupon,'POST');
     request('home-live-list','/api/matches?view=live&include_odds=true&limit=3',renderLive);
     request('home-movement-list','/api/matches?view=upcoming&include_odds=true&limit=12',renderMovements);
     const snapshot=globalThis.BetAppMarket?.homeSnapshot?.();if(snapshot)renderModel(snapshot);

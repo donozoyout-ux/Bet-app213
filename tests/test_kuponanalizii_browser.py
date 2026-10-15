@@ -77,9 +77,9 @@ async def test_brand_navigation_coupon_and_accessible_motion(api, db, monkeypatc
             await expect(page.locator('#coupon-selected button')).to_have_count(4)
             await expect(page.locator('#coupon-day')).to_have_text(NOW.date().isoformat())
             await expect(page.locator('#coupon-total')).to_contain_text('23,43')
-            await expect(page.locator('#coupon-target')).to_have_value('4')
+            await expect(page.locator('#coupon-target')).to_have_count(0)
             await expect(page.locator('#coupon-strategy')).to_have_value('balanced')
-            assert any('/api/coupons/automatic?strategy=balanced&max_matches=4' in path for path in calls)
+            assert any('/api/coupons/automatic?strategy=balanced' in path for path in calls)
             await capture('coupon')
             assert await page.evaluate('document.documentElement.scrollWidth<=innerWidth')
             # Editing stays accessible outside the default daily view.
@@ -101,11 +101,10 @@ async def test_brand_navigation_coupon_and_accessible_motion(api, db, monkeypatc
             if width == 1536:
                 await page.locator(f'{nav} [data-page-link="coupon"]').click()
                 await page.locator('#coupon-manual').click()
-                await page.locator('#coupon-target').select_option('1')
                 await page.locator('#coupon-strategy').select_option('cautious')
                 await page.locator('#coupon-automatic').click()
-                await expect(page.locator('#coupon-selected button')).to_have_count(1)
-                assert any('strategy=cautious&max_matches=1' in path for path in calls)
+                await expect(page.locator('#coupon-daily')).to_contain_text('Dinamik seçim')
+                assert any('strategy=cautious' in path and 'max_matches' not in path for path in calls)
                 await page.locator('#coupon-manual').click()
                 await expect(page.locator('#coupon-selected button')).to_have_count(3)
             if width <= 600:

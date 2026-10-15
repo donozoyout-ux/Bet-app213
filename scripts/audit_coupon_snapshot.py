@@ -49,7 +49,7 @@ async def capture(client, now, folder, label):
                     await route.fulfill(status=response.status_code,body=response.content,content_type=response.headers.get('content-type','application/json'))
                 await page.route('**/*',forward)
                 await page.goto('http://audit/#coupon')
-                await expect(page.locator('#coupon-daily')).to_contain_text('kombine oran')
+                await expect(page.locator('#coupon-daily')).to_contain_text('Son güncelleme:' if label=='after' else 'kombine oran')
                 await page.wait_for_load_state('networkidle')
                 assert await page.evaluate('document.documentElement.scrollWidth<=innerWidth && visualViewport.scale===1')
                 await page.screenshot(path=str(folder/f'actual-{label}-{width}x{height}.png'),full_page=True)

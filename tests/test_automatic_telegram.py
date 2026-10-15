@@ -12,7 +12,7 @@ from sqlalchemy import select,func
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.schema import CreateSchema,DropSchema
 from src.db import Database
-from src.models import SavedCoupon,TelegramDelivery,PredictionBoard,MarketOdds,Match,CollectorRetry
+from src.models import Team,SavedCoupon,TelegramDelivery,PredictionBoard,MarketOdds,Match,CollectorRetry
 from src.analytics.saved_coupons import automatic,save_manual,detail
 from src.analytics.coupon import DraftRequest
 from src.jobs.telegram import dispatch,prepare,window,message,status
@@ -27,6 +27,13 @@ async def coupon_seed(db):
         data=deepcopy(board.payload)
         for item in data['items']:
             match=await session.get(Match,item['match']['id'])
+            if match.id!=ids[0]:
+                pair=[Team(external_id=8800000+match.id*2+i,name=f'Daily team {match.id}-{i}') for i in range(2)]
+                session.add_all(pair);await session.flush()
+                match.home_team_id=pair[0].id;match.away_team_id=pair[1].id
+                item['match'].update(home_team=pair[0].name,away_team=pair[1].name)
+            for rec in item['recommendations']:
+                rec.update(probability=.85,reliability=.98,score=.98)
             match.kickoff_at=NOW+timedelta(hours=5)
             item['match']['kickoff_at']=(NOW+timedelta(hours=5)).isoformat()
         board.payload=data
@@ -50,10 +57,12 @@ async def many_matches(db,count=12):
         items=deepcopy(board.payload['items']);template=items[0]
         existing=(await session.scalars(select(MarketOdds).where(MarketOdds.match_id==first.id))).all()
         for index in range(count-2):
+            pair=[Team(external_id=8900000+index*2+i,name=f'Pool team {index}-{i}') for i in range(2)]
+            session.add_all(pair);await session.flush()
             match=Match(external_match_id=770000+index,league_id=first.league_id,season_id=first.season_id,round=3,
-                home_team_id=first.home_team_id,away_team_id=first.away_team_id,kickoff_at=NOW+timedelta(hours=5),status='scheduled',raw={},created_at=NOW,updated_at=NOW)
+                home_team_id=pair[0].id,away_team_id=pair[1].id,kickoff_at=NOW+timedelta(hours=5),status='scheduled',raw={},created_at=NOW,updated_at=NOW)
             session.add(match);await session.flush()
-            item=deepcopy(template);item['match']['id']=match.id;item['match_id']=match.id;items.append(item)
+            item=deepcopy(template);item['match']['id']=match.id;item['match_id']=match.id;item['match'].update(home_team=pair[0].name,away_team=pair[1].name);items.append(item)
             for odds in existing:
                 session.add(MarketOdds(match_id=match.id,bookmaker_id=odds.bookmaker_id,market=odds.market,period=odds.period,latest_line=odds.latest_line,latest_over=odds.latest_over,latest_under=odds.latest_under,updated_at=NOW-timedelta(minutes=1),raw=observed_prices(NOW-timedelta(minutes=1),'latest_over','latest_under')))
         board.payload={**board.payload,'items':items,'evaluated':len(items)};await session.commit()
@@ -297,40 +306,19 @@ async def test_postgres_concurrency_restart_and_immutable_versions(configured):
         await db.close()
 
 
-def test_daily_balanced_four_and_no_forced_filler():
-    def entry(id,kickoff,score=.8,prob=.7,price=1.8):
-        return {'match':{'id':id,'kickoff_at':kickoff},'recommendation':{'score':score,'reliability':score,'probability':prob},'quote':{'price':price}}
-    today=(NOW+timedelta(hours=5)).isoformat()
-    tomorrow=(NOW+timedelta(days=1)).isoformat()
-    # All ranking fixtures meet the strict gate; weak records are tested separately.
-    records=[entry(i,today,score=.80+i*.01) for i in range(6)]
-    records.append(entry(99,tomorrow,score=.99))
-    picks=daily_candidates(records,NOW)
-    assert len(picks)==4
-    assert {x['match']['id'] for x in picks}=={2,3,4,5}
-    assert all(x['match']['id']!=99 for x in picks)
-    assert len(daily_candidates(records[:2],NOW))==2
-    assert daily_candidates([entry(7,tomorrow)],NOW)==[]
-    assert len(daily_candidates(records,NOW,strategy='cautious',max_matches=3))==3
-    assert len(daily_candidates(records,NOW,strategy='value',max_matches=3))==3
-    assert daily_candidates([entry(7,today,score=.79)],NOW)==[]
-    assert daily_candidates([entry(7,today,prob=.69)],NOW)==[]
-    assert daily_candidates([entry(7,today,score=float('nan'))],NOW)==[]
-    assert daily_candidates([entry(7,today,price=1)],NOW)==[]
 
 
 async def test_strategy_considers_both_verified_alternatives_and_keeps_metadata(db):
     await many_matches(db,4)
     async with db.session() as session:
         balanced=await automatic(session,NOW)
-        cautious=await automatic(session,NOW,strategy='cautious',max_matches=4)
-        two=await automatic(session,NOW,strategy='cautious',max_matches=2)
+        cautious=await automatic(session,NOW,strategy='cautious')
         assert balanced.payload['combined_odds']==pytest.approx(2.2**4)
-        assert cautious.payload['combined_odds']==pytest.approx(1.8**4)
-        assert two.payload['target_matches']==2
-        assert two.payload['strategy']=='cautious'
-        assert len(two.payload['items'])==2
-        assert (await automatic(session,NOW,strategy='cautious',max_matches=2)).id==two.id
+        assert cautious.payload['selection_mode']=='dynamic'
+        assert 'target_matches' not in cautious.payload
+        assert cautious.payload['strategy']=='cautious'
+        assert (await automatic(session,NOW,strategy='cautious')).id==cautious.id
+
 
 
 @pytest.mark.parametrize('field,value',[('probability',.699),('reliability',.799),('score',.799)])
