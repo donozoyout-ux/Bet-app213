@@ -77,3 +77,5 @@ Bu PR Render ortamını değiştirmez ve deploy başlatmaz. `.env.example` güve
 ## Test kapsamı
 
 Sahte NVIDIA ile üretim → kalıcı kayıt → salt okunur API → Chromium UI zinciri; sayı/yazıyla sayı/HTML/kazanç iddiası reddi; kaynak parmak izi/yöntem uyuşmazlığı; prompt sürümü; gerçek settlement düzeltmesi sonrası yeni rapor; retry/backoff/timeout/kota/gün geçişi; süreç iptali ve belirsiz rezervasyon; PostgreSQL genel kilidi ve değişmez kayıt trigger'ları; ayrı havuz temizliği ve kapalı durumda havuz açılmaması test edilir. AI UI 320/768/1536 genişliklerinde, mevcut Dersler testleri ayrıca 320/390/768/1024/1536 genişliklerinde çalışır. Tam Python/PostgreSQL/Chromium ve mevcut JavaScript regresyonları teslimatta raporlanır.
+
+CI regresyonunda Telegram durum GET yanıtının kullanıcının manuel doğrulama uyarısını/sonucunu ezdiği bir arayüz yarışı da giderildi. İki kontrollü gecikme testi eksik yönetim anahtarı ve başarılı salt okunur doğrulama durumlarını korur; Telegram gönderim, izin kontrolü ve zamanlama kodu değişmez.

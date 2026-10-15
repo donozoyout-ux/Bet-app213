@@ -276,3 +276,41 @@ async def test_one_shot_test_message_rejected_and_transport_ambiguous(configured
         raise httpx.ReadTimeout('timeout', request=req)
     result = await send_test_message(httpx.MockTransport(timeout))
     assert result['status'] == 'uncertain'
+
+@pytest.mark.parametrize('with_admin',[False,True])
+async def test_late_status_preserves_explicit_verification_feedback(api,db,configured,monkeypatch,with_admin):
+    """A stale startup GET must not replace a local warning or a completed check."""
+    import asyncio
+    from playwright.async_api import async_playwright,expect
+    import src.api.routes as routes
+    monkeypatch.setattr(routes,'settings',replace(routes.settings,scraper_token='management-test-only'))
+    calls=[];transport=provider(calls);real_client=httpx.AsyncClient
+    monkeypatch.setattr(verification.httpx,'AsyncClient',lambda **kw:real_client(**{**kw,'transport':transport}))
+    entered=asyncio.Event();release=asyncio.Event()
+    async with async_playwright() as p:
+        browser=await p.chromium.launch();page=await browser.new_page()
+        async def forward(route):
+            path=route.request.url.removeprefix('http://test')
+            headers={k:v for k,v in route.request.headers.items() if k in ('authorization','content-type','x-coupon-key')}
+            response=await api.request(route.request.method,path,content=route.request.post_data,headers=headers)
+            if path=='/api/telegram/status':
+                entered.set();await release.wait()
+            await route.fulfill(status=response.status_code,body=response.content,content_type=response.headers.get('content-type','application/json'))
+        await page.route('http://test/**',forward)
+        try:
+            await page.goto('http://test/#coupon',wait_until='domcontentloaded')
+            await page.locator('#coupon-tools > summary').click()
+            await asyncio.wait_for(entered.wait(),10)
+            await page.get_by_text('Telegram Yönetimi ve Manuel Paylaşım',exact=True).click()
+            if with_admin:await page.locator('#telegram-admin-token').fill('management-test-only')
+            await page.locator('#telegram-verify').click()
+            expected='@BKupon8Bot' if with_admin else 'yönetim erişim anahtarı'
+            await expect(page.locator('#telegram-check-note')).to_contain_text(expected)
+            release.set()
+            await page.wait_for_load_state('networkidle')
+            await expect(page.locator('#telegram-check-note')).to_contain_text(expected)
+            assert calls==(['getMe','getChat','getChatMember'] if with_admin else [])
+        finally:
+            release.set();await page.unroute_all(behavior='ignoreErrors');await browser.close()
+    async with db.session() as session:
+        assert await session.scalar(select(func.count(TelegramDelivery.id)))==0
