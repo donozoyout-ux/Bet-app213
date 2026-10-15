@@ -1,0 +1,3 @@
+SELECT p.match_id,p.league_id,p.captured_at,p.model_version,p.picks::text AS picks_json,m.status,m.kickoff_at,
+COALESCE((SELECT json_agg(d) FROM (SELECT DISTINCT ON (s.pick_index) s.id,s.pick_index,s.revision,s.outcome,s.actual::text AS actual_json,s.evidence::text AS evidence_json,s.snapshot_hash,s.evidence_hash,s.evaluator_version,s.recorded_at,(SELECT min(first.id) FROM prediction_settlements first WHERE first.match_id=s.match_id AND first.pick_index=s.pick_index) AS cursor FROM prediction_settlements s WHERE s.match_id=p.match_id ORDER BY s.pick_index,s.revision DESC) d),'[]'::json) AS settlements
+FROM prediction_snapshots p JOIN matches m ON m.id=p.match_id ORDER BY p.match_id;

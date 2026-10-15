@@ -344,3 +344,44 @@ class PredictionSettlement(Base):
     recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     actor: Mapped[str] = mapped_column(String(120))
     reason: Mapped[str] = mapped_column(String(500))
+
+
+class LearningReport(Base):
+    """Immutable complete analysis edition; source changes publish another edition."""
+    __tablename__ = 'learning_reports'
+    __table_args__ = (UniqueConstraint('method_version', 'data_fingerprint'),)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    method_version: Mapped[str] = mapped_column(String(80))
+    data_fingerprint: Mapped[str] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)
+    source_observed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    source_manifest: Mapped[list] = mapped_column(JSON, deferred=True)
+    summary: Mapped[dict] = mapped_column(JSON)
+    coverage: Mapped[dict] = mapped_column(JSON)
+
+
+class LearningSlice(Base):
+    __tablename__ = 'learning_slices'
+    __table_args__ = (UniqueConstraint('report_id', 'kind', 'scope_key'),)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    report_id: Mapped[int] = mapped_column(ForeignKey('learning_reports.id'), index=True)
+    kind: Mapped[str] = mapped_column(String(20))
+    scope_key: Mapped[str] = mapped_column(String(180))
+    payload: Mapped[dict] = mapped_column(JSON)
+
+
+class LearningLesson(Base):
+    __tablename__ = 'learning_lessons'
+    __table_args__ = (UniqueConstraint('report_id', 'scope_key'),)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    report_id: Mapped[int] = mapped_column(ForeignKey('learning_reports.id'), index=True)
+    scope_key: Mapped[str] = mapped_column(String(180))
+    payload: Mapped[dict] = mapped_column(JSON)
+
+
+class LearningHead(Base):
+    """Mutable publication pointer; report and lesson editions stay immutable."""
+    __tablename__ = 'learning_heads'
+    method_version: Mapped[str] = mapped_column(String(80), primary_key=True)
+    report_id: Mapped[int] = mapped_column(ForeignKey('learning_reports.id'))
+    source_observed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))

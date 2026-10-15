@@ -1,6 +1,7 @@
 """Brand, accessibility and real ASGI interactions at desktop/tablet/mobile sizes."""
 from pathlib import Path
 import os
+import asyncio
 
 import pytest
 from playwright.async_api import async_playwright, expect
@@ -73,7 +74,14 @@ async def test_brand_navigation_coupon_and_accessible_motion(api, db, monkeypatc
             await expect(page.locator('a:has-text("Premium"),a:has-text("Hesabım"),a:has-text("AI Tahmin")')).to_have_count(0)
             await capture('home')
             # Hero action reaches the existing automatic coupon API, not a demo state.
-            await page.locator('.hero-actions .primary-button').click()
+            # Navigation is synchronous, but coupon creation is a server request
+            # with a 10s budget. Wait for that response before checking its DOM.
+            async with page.expect_response(lambda r: '/api/coupons/automatic?strategy=balanced' in r.url, timeout=15000) as created:
+                await page.locator('.hero-actions .primary-button').click()
+            response=await created.value
+            assert response.status==200
+            assert len((await response.json())['items'])==4
+            await expect(page.locator('[data-page="coupon"]')).to_be_visible()
             await expect(page.locator('#coupon-selected button')).to_have_count(4)
             await expect(page.locator('#coupon-day')).to_have_text(NOW.date().isoformat())
             await expect(page.locator('#coupon-total')).to_contain_text('23,43')
@@ -112,6 +120,44 @@ async def test_brand_navigation_coupon_and_accessible_motion(api, db, monkeypatc
                 await expect(page.locator('#global-search')).to_be_focused()
             assert not any('/telegram/verify' in path or path.endswith('/telegram') for path in calls)
             assert not errors
+        finally:
+            await page.unroute_all(behavior='ignoreErrors')
+            await browser.close()
+
+
+async def test_tablet_coupon_waits_for_slow_automatic_response(api,db,monkeypatch):
+    import src.api.routes as routes
+    monkeypatch.setattr(routes,'utcnow',lambda:NOW)
+    await many_matches(db,4)
+    async with async_playwright() as p:
+        browser=await p.chromium.launch()
+        page=await browser.new_page(viewport={'width':768,'height':960},reduced_motion='reduce')
+        await page.clock.install(time=NOW)
+        async def forward(route):
+            path=route.request.url.removeprefix('http://test')
+            assert 'api.telegram.org' not in route.request.url
+            if path.startswith('/api/coupons/automatic') and '#coupon' in page.url:
+                # A valid response can exceed Playwright's default 5s assertion
+                # window while still meeting the endpoint's 10s server budget.
+                await asyncio.sleep(5.25)
+            headers={k:v for k,v in route.request.headers.items() if k in ('content-type','x-coupon-key')}
+            response=await api.request(route.request.method,path,content=route.request.post_data,headers=headers)
+            await route.fulfill(status=response.status_code,body=response.content,
+                content_type=response.headers.get('content-type','application/json'))
+        await page.route('http://test/**',forward)
+        try:
+            await page.goto('http://test/')
+            await page.wait_for_load_state('networkidle')
+            async with page.expect_response(lambda r:'/api/coupons/automatic?strategy=balanced' in r.url,timeout=15000) as created:
+                await page.locator('.hero-actions .primary-button').click()
+            response=await created.value
+            assert response.status==200 and len((await response.json())['items'])==4
+            await expect(page.locator('#coupon-selected button')).to_have_count(4)
+            await expect(page.locator('#coupon-total')).to_contain_text('23,43')
+            assert await page.evaluate('document.documentElement.scrollWidth<=innerWidth')
+            await page.locator('#coupon-tools > summary').click()
+            await page.locator('#coupon-selected button').first.click()
+            await expect(page.locator('#coupon-selected button')).to_have_count(3)
         finally:
             await page.unroute_all(behavior='ignoreErrors')
             await browser.close()

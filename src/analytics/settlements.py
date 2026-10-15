@@ -111,6 +111,31 @@ async def correct_settlement(session, match_id, pick_index, *, expected_revision
     return row
 
 
+def verify_decision(snapshot, latest):
+    """Verify an exported or stored decision against its original full snapshot."""
+    from types import SimpleNamespace
+    from src.analytics.performance import settle
+    if snapshot_digest(snapshot) != latest.snapshot_hash or digest(latest.evidence) != latest.evidence_hash:
+        raise ValueError('Prediction history integrity mismatch')
+    proof=latest.evidence
+    proof_match=SimpleNamespace(**proof)
+    proof_stats=SimpleNamespace(is_final=proof['is_final'], **proof['statistics'])
+    if latest.evaluator_version != VERSION or settle(proof_match,proof_stats,snapshot.picks[latest.pick_index]) != (latest.outcome,latest.actual['value']):
+        raise ValueError('Recorded decision does not match its evidence')
+
+
+def decision_item(snapshot, match, latest, cursor):
+    from src.jobs.worker import aware
+    verify_decision(snapshot, latest)
+    return dict(cursor=cursor, match_id=match.id, pick_index=latest.pick_index,
+        captured_at=aware(snapshot.captured_at), model_version=snapshot.model_version,
+        league_id=snapshot.league_id, kickoff_at=aware(match.kickoff_at), settlement_id=latest.id,
+        snapshot_hash=latest.snapshot_hash, evidence_hash=latest.evidence_hash,
+        prediction=deepcopy(snapshot.picks[latest.pick_index]), outcome=latest.outcome,
+        actual=deepcopy(latest.actual['value']), revision=latest.revision,
+        evidence=deepcopy(latest.evidence), recorded_at=aware(latest.recorded_at))
+
+
 async def resolved_predictions(session, *, after_id=0, limit=200):
     """Read-only, bounded cursor over verified first terminal records for Lessons.
 
@@ -133,20 +158,7 @@ async def resolved_predictions(session, *, after_id=0, limit=200):
         latest = latest_rows[match.id][original.pick_index]
         if not match.kickoff_at or aware(snapshot.captured_at) >= aware(match.kickoff_at):
             continue
-        if snapshot_digest(snapshot) != latest.snapshot_hash or digest(latest.evidence) != latest.evidence_hash:
-            raise ValueError('Prediction history integrity mismatch')
-        from types import SimpleNamespace
-        from src.analytics.performance import settle
-        proof=latest.evidence
-        proof_match=SimpleNamespace(**proof)
-        proof_stats=SimpleNamespace(is_final=proof['is_final'], **proof['statistics'])
-        if latest.evaluator_version != VERSION or settle(proof_match,proof_stats,snapshot.picks[original.pick_index]) != (latest.outcome,latest.actual['value']):
-            raise ValueError('Recorded decision does not match its evidence')
-        items.append(dict(cursor=original.id, match_id=match.id, pick_index=original.pick_index,
-            captured_at=aware(snapshot.captured_at), model_version=snapshot.model_version,
-            prediction=deepcopy(snapshot.picks[original.pick_index]), outcome=latest.outcome,
-            actual=deepcopy(latest.actual['value']), revision=latest.revision,
-            evidence=deepcopy(latest.evidence), recorded_at=latest.recorded_at))
+        items.append(decision_item(snapshot, match, latest, original.id))
     return items
 
 
