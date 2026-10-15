@@ -361,13 +361,17 @@ async def discover(job_id, client):
             return
     async with database.session() as audit_session:
         fixtures_before = await audit_session.scalar(select(func.count(Match.id)).where(Match.league_id == league_id))
-    seasons = await discover_seasons(client, external_id, start_year, overlap=True) if competition_type == 'national' else await discover_seasons(client, external_id, start_year)
+    seasons = await discover_seasons(client, external_id, start_year, overlap=True) if competition_type == 'national' or kind == 'domestic_history' else await discover_seasons(client, external_id, start_year)
     if not seasons:
         raise SourceError('No seasons available from the requested year')
     if kind == 'update':
         # Include the previous season for summer transitions and late corrections.
         seasons = seasons[-2:]
     now = utcnow()
+    if kind == 'domestic_history':
+        # Explicit archive-only repair, bounded to 2024..current year. Never
+        # rescrape odds or rewrite an existing result/observation timestamp.
+        seasons = [s for s in seasons if 2023 <= int(s[:4]) <= now.year][-4:]
     for season_name in seasons:
         payload = await season_data(client, external_id, season_name, schedule_format='cup') if schedule_format == 'cup' else await season_data(client, external_id, season_name)
         if payload.get('LeagueInfo'):
@@ -375,6 +379,10 @@ async def discover(job_id, client):
             source = next((record for record in verified_snapshot() if record['external_id'] == external_id), None)
             if source:
                 validate_identity(Competition(**source), payload, season_name)
+            elif kind == 'domestic_history':
+                raise SourceError('Domestic history source is not in the verified catalog')
+        elif kind == 'domestic_history':
+            raise SourceError('Domestic history requires a verified competition identity')
         for round_number in discover_rounds(payload):
             await priority_cycle(database,client)
             log.info('[GOALOO] league=%s season=%s round=%s', external_id, season_name, round_number)
@@ -395,6 +403,12 @@ async def discover(job_id, client):
                         errors.append(dict(external_match_id=str(data['external_match_id']),
                                            error='League ID does not match request', raw=data['raw']))
                         continue
+                    if kind == 'domestic_history':
+                        if (data['kickoff_at'] is None or data['kickoff_at'].year < 2024
+                                or data['status'] != 'finished' or data['kickoff_at'] > now-timedelta(hours=3)):
+                            continue
+                        if await session.scalar(select(Match.id).where(Match.external_match_id==data['external_match_id'])):
+                            continue
                     if competition_type == 'national' and (data['kickoff_at'] is None or data['kickoff_at'].year < start_year):
                         continue
                     match = await store_match(session, league_id, season_name, data)

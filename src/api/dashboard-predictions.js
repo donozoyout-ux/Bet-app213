@@ -116,7 +116,9 @@
     }
     line(model,'Güven',p.status==='ok' ? confidence[p.confidence] : '—');line(model,'Takım/venue örneği (benzersiz maç)',String(p.sample_size));
     line(model,'Yarışma örneği',String(p.league_sample_size));line(model,'Takım / venue örnekleri',`${p.home_sample_size} / ${p.away_sample_size} • ${p.home_venue_sample_size} / ${p.away_venue_sample_size}`);
-    line(model,'Veri kesim zamanı',date(data.as_of));box.append(model);}
+    line(model,'Veri kesim zamanı',date(data.as_of));
+    box.append(model);}
+    if(['summary','predictions','goals'].includes(state.tab) && data.uefa_coverage){const coverage=node('section','','uefa-coverage');coverage.append(node('h4','Avrupa ve Yerel Lig Veri Kapsamı'));for(const [side,name] of [['home',m.home_team],['away',m.away_team]]){const c=data.uefa_coverage[side];if(!c)continue;line(coverage,name,`Avrupa: ${c.europe_matches} (ev ${c.europe_home}, deplasman ${c.europe_away}) · Yerel lig: ${c.domestic_matches} (ev ${c.domestic_home}, deplasman ${c.domestic_away})`);for(const reason of c.missing_reasons||[])coverage.append(node('p',reason));}coverage.append(node('p','Kullanılabilir, tahmin öncesi gözlemlenmiş sonuçlar. Yerel veriler canlı model olasılığını değiştirmez.'));box.append(coverage);}
     if(['form','goals'].includes(state.tab)){
     const stats=node('div','','statistics-grid');
     form(stats,`${m.home_team} • Son 5`,data.home_form);form(stats,`${m.away_team} • Son 5`,data.away_form);
