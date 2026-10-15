@@ -331,3 +331,41 @@ body { background:radial-gradient(ellipse 75% 34% at 50% -9%,#153c7778,transpare
 @media(prefers-reduced-motion:reduce) {
  [data-page="home"] .hero-logo,[data-page="home"] .pitch-orbit,[data-page="home"] .stadium-spotlight {animation:none!important;}
 }
+
+/* Reference-inspired football centerpiece: works with real existing data only. */
+[data-page="home"] .platform-intro {min-height:395px;padding:30px clamp(20px,3vw,48px);
+ grid-template-columns:minmax(0,1.15fr) minmax(280px,.95fr) minmax(180px,.60fr);
+ background:radial-gradient(ellipse 53% 90% at 66% 48%,#0753ae87,transparent 76%),
+ linear-gradient(108deg,#071736 5%,#071733 45%,#0b2452 100%);}
+[data-page="home"] .hero-art {height:340px;min-height:340px;}
+[data-page="home"] .hero-player {position:absolute;display:block;z-index:2;inset:-27px -70px -36px;pointer-events:none;
+ filter:drop-shadow(0 0 24px #069eff7a);}
+[data-page="home"] .hero-player img {width:100%;height:100%;object-fit:contain;object-position:center bottom;}
+[data-page="home"] .hero-logo {display:none;}
+[data-page="home"] .pitch-orbit {width:320px;height:320px;z-index:-1;opacity:.8;}
+[data-page="home"] .hero-stadium {inset:-45px -65px -24px;border-radius:36%;}
+[data-page="home"] .hero-copy {align-self:center;}
+[data-page="home"] .hero-features {z-index:3;}
+[data-page="home"] .home-summary {grid-template-columns:repeat(5,minmax(0,1fr));}
+[data-page="home"] .home-summary article {padding:16px 14px;gap:10px;}
+[data-page="home"] .home-summary p {font-size:11px;}
+[data-page="home"] .home-summary strong {font-size:clamp(17px,1.7vw,25px);}
+[data-page="home"] .section-heading h2 {font-size:clamp(22px,2vw,31px);}
+@media(max-width:1160px) {
+ [data-page="home"] .platform-intro {grid-template-columns:minmax(0,1.1fr) minmax(220px,.9fr);}
+ [data-page="home"] .hero-features {grid-column:1/-1;}
+ [data-page="home"] .home-summary {grid-template-columns:repeat(3,minmax(0,1fr));}
+ [data-page="home"] .hero-art {height:300px;min-height:300px;}
+}
+@media(max-width:700px) {
+ [data-page="home"] .platform-intro {display:flex;flex-direction:column;min-height:0;padding:24px 20px;}
+ [data-page="home"] .hero-art {display:flex;height:235px;min-height:235px;margin:0;overflow:visible;}
+ [data-page="home"] .hero-player {inset:-35px -8px -20px;}
+ [data-page="home"] .hero-stadium {inset:-12px 0 0;}
+ [data-page="home"] .pitch-orbit {width:180px;height:180px;}
+ [data-page="home"] .home-summary {grid-template-columns:repeat(2,minmax(0,1fr));}
+ [data-page="home"] .hero-features {grid-column:auto;}
+}
+@media(prefers-reduced-motion:reduce) {
+ [data-page="home"] .hero-player {animation:none!important;}
+}

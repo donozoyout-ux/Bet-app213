@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 570 510" role="img" aria-label="Futbolcu silüeti">
+<defs><radialGradient id="halo"><stop stop-color="#14bfff" stop-opacity=".65"/><stop offset="1" stop-color="#00b8ff" stop-opacity="0"/></radialGradient><linearGradient id="shirt" x1=".1" y1="0" x2=".9" y2="1"><stop stop-color="#126dce"/><stop offset=".43" stop-color="#061a39"/><stop offset="1" stop-color="#153e7a"/></linearGradient><linearGradient id="body" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#2e9ee3"/><stop offset=".3" stop-color="#0a3265"/><stop offset="1" stop-color="#05102e"/></linearGradient><filter id="glow"><feGaussianBlur stdDeviation="9"/></filter></defs>
+<ellipse cx="290" cy="290" rx="250" ry="200" fill="url(#halo)" opacity=".45"/>
+<path d="M100 464L47 431 37 386 67 335 107 292 162 258 190 244 379 244 419 260 477 312 522 375 515 447 475 473 439 430 426 375 404 353 413 500 162 500 176 353 151 377 139 432Z" fill="url(#shirt)" stroke="#27b1ff" stroke-width="5"/>
+<path d="M175 289L125 337 78 413 95 463 129 467 170 385M407 288L458 340 494 419 481 464 450 467 415 389" fill="url(#body)" stroke="#098dde" stroke-width="3"/>
+<path d="M242 231L224 254Q288 301 350 252L331 230Z" fill="#092653" stroke="#26b1ef" stroke-width="3"/>
+<path d="M223 134Q230 75 288 78Q351 83 358 142L344 191 330 221Q289 254 248 221L233 194Z" fill="url(#body)" stroke="#21a5e7" stroke-width="4"/>
+<path d="M217 149Q212 92 251 73Q285 49 329 76Q363 93 363 145Q336 138 315 117Q272 133 232 123Z" fill="#031029" stroke="#2082ca" stroke-width="3"/>
+<path d="M184 298L213 271 226 348 198 407 168 444M382 297L358 275 344 352 376 413 408 451" fill="none" stroke="#00b4ff" stroke-opacity=".38" stroke-width="5"/>
+<path d="M195 287Q289 326 391 287M186 352Q286 399 400 352M174 423Q288 467 408 421" stroke="#39bfff" stroke-opacity=".12" stroke-width="10" fill="none"/>
+<text x="288" y="418" fill="#b7eaff" font-family="Arial,sans-serif" font-size="146" font-weight="900" text-anchor="middle" opacity=".92" stroke="#0879d3" stroke-width="2">10</text>
+<path d="M160 501Q292 470 413 501" stroke="#42dcff" stroke-width="4" fill="none" filter="url(#glow)"/>
+<g transform="translate(125 406)"><circle r="70" fill="#071b3a" stroke="#77dfff" stroke-width="4"/><path d="M0-35L33-11 21 27 -21 27 -33-11Z" fill="#ecf8ff"/><path d="M0-70V-35L33-11 63-30M63 30L21 27 0 70 -21 27 -63 30M-63-30L-33-11" stroke="#8bdeff" stroke-width="7" fill="none"/><path d="M0-35L-33-11 -21 27 21 27 33-11Z" fill="none" stroke="#117bc6" stroke-width="3"/></g>
+</svg>
