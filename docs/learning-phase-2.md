@@ -40,7 +40,7 @@ Every observation includes title, edition date, league/market/model scope where 
 - Sufficient sample but no statistically supported gap: `inconclusive`, confidence low.
 - Sufficient sample and simultaneous gap interval excludes zero: `supported_candidate`, confidence moderate. It is a candidate, not an automatically verified lesson or live model adjustment.
 
-The tested family includes overall and every reported league/market/model/league×market scope. Each uses `alpha=.05/number_of_scopes` (Bonferroni), accounting for overlapping searches. These are policy gates fixed in method version `learning-v1-cluster-hoeffding-temporal`, not tuned to the current 120 outcomes. Changes to calculations, gates or optimizer require a new method version.
+The tested family includes overall and every reported league/market/model/league×market scope. Each uses `alpha=.05/number_of_scopes` (Bonferroni), accounting for overlapping searches. These are policy gates fixed in method version `learning-v2-cluster-hoeffding-temporal`, not tuned to the current 120 outcomes. Changes to calculations, gates or optimizer require a new method version.
 
 ## Offline calibration research and acceptance
 
@@ -118,3 +118,12 @@ Validation on Python 3.12 / Windows with isolated PostgreSQL 16.4 and Chromium:
 These selections overlap and should not be summed as unique tests. Linux CI runs the final full tree, including Gunicorn checks. Coverage includes independent probability/scoring examples, clustered picks, invalid/void/missing outcomes, all scope gates, temporal ties and late corrections, accepted/rejected offline candidates, correction-triggered editions, repeated/concurrent publication, transactional failure, old-source publication prevention, manifest deferral, bounded pagination and large datasets. The real-data replay is a regression fixture and rejects altered evidence.
 
 No master merge, Render deploy, production writes or real Telegram send is part of this work. The only production access was read-only SQL. Existing JavaScript/Chromium and Python/PostgreSQL regressions are run in addition to the phase-2 tests.
+
+
+## PR #65 CI correction
+
+The original Linux failure was a last-bit libm difference in nine log-loss fields in `summary`/`slices`, not a different source, fingerprint or outcome. For example, Windows emitted 0.7547635343647574 and Linux 0.7547635343647572. Version v2 evaluates log/exp/sqrt with a fixed 40-digit Decimal context and converts back to full-precision float; it uses fsum reductions and canonical observation/optimizer ordering. It does not round original probabilities or replace exact fixture equality with tolerances. A new method version keeps existing immutable v1 editions intact. The example was regenerated only from the unchanged verified export. All 55 insufficient-sample observations remain.
+
+The tablet push-run failure occurred while the automatic-coupon ASGI route was still acquiring a database connection. The test asserted its four DOM rows after only the default 5s, although that endpoint has a 10s server budget. The other Linux run and local 768px replay passed. The navigation test now waits for its specific response, asserts HTTP 200 and four real selections, and still asserts four rendered rows, editing, mobile/desktop navigation and no overflow. A separate tablet regression deliberately delays that response beyond 5s. UI CSS, coupon selection rules, probabilities and Telegram code are unchanged. The automatic response is consumed before its rendered rows are asserted.
+
+Exact subprocess replay covers PYTHONHASHSEED 0, 1, 7, 42 and random, shuffled snapshot/settlement/input orders, plus reordered fitted-calibration cohorts. The original audited-export equality assertion is retained unchanged. Linux Actions checks the same fixture and these subprocess replays.

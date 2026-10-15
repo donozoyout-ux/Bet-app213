@@ -1,7 +1,7 @@
 """Offline candidates only: fixed temporal train/validation/test with as-of gates."""
 from collections import Counter
 import math
-from src.analytics.learning_metrics import clip, losses, metrics, effective_matches, EPSILON
+from src.analytics.learning_metrics import clip, losses, metrics, effective_matches, EPSILON, stable_log, stable_sqrt, stable_sigmoid
 
 MIN_TRAIN, MIN_VALIDATION, MIN_TEST = 200, 100, 100
 
@@ -25,21 +25,22 @@ def temporal_split(rows):
 
 def transform(p, slope, intercept):
     q = clip(p)
-    z = max(-30, min(30, slope*math.log(q/(1-q))+intercept))
-    return clip(1/(1+math.exp(-z)))
+    z = max(-30, min(30, slope*stable_log(q/(1-q))+intercept))
+    return clip(stable_sigmoid(z))
 
 
 def fit(rows, *, slope_enabled):
     # Fixed optimizer/regularization, no tuning on held-out test results.
+    rows = sorted(rows,key=lambda r:(r['kickoff_at'],r['match_id'],r['pick_index']))
     counts = Counter(r['match_id'] for r in rows)
-    prepared = [(math.log(clip(r['probability'])/(1-clip(r['probability']))), r['y'], 1/counts[r['match_id']]) for r in rows]
+    prepared = [(stable_log(clip(r['probability'])/(1-clip(r['probability']))), r['y'], 1/counts[r['match_id']]) for r in rows]
     denominator = len(counts)
     slope, intercept = 1., 0.
     for _ in range(200):
         da = db = 0.
         for x, y, weight in prepared:
             z = max(-30, min(30, slope*x+intercept))
-            error = (1/(1+math.exp(-z))-y)*weight
+            error = (stable_sigmoid(z)-y)*weight
             da += error*x
             db += error
         if slope_enabled:
@@ -57,14 +58,14 @@ def paired_bounds(rows, calibrated, *, families=1):
     alpha = .05/(2*families)
     n = len(rows)
     neff = effective_matches(rows)
-    radius = math.sqrt(2*math.log(1/alpha)/neff)
+    radius = stable_sqrt(2*stable_log(1/alpha)/neff)
     original = [losses(r['probability'],r['y']) for r in rows]
     candidate = [losses(r['probability'],r['y']) for r in calibrated]
-    brier = sum(b[0]-a[0] for a,b in zip(original,candidate))/n
-    logloss = sum(b[1]-a[1] for a,b in zip(original,candidate))/n
+    brier = math.fsum(b[0]-a[0] for a,b in zip(original,candidate))/n
+    logloss = math.fsum(b[1]-a[1] for a,b in zip(original,candidate))/n
     return dict(brier_delta=brier, log_loss_delta=logloss,
         brier_delta_upper=brier+radius,
-        log_loss_delta_upper=logloss+(-math.log(EPSILON))*radius,
+        log_loss_delta_upper=logloss+(-stable_log(EPSILON))*radius,
         alpha_per_score=alpha, method='one_sided_paired_match_cluster_hoeffding', effective_matches=neff)
 
 

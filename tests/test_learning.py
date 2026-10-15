@@ -345,6 +345,42 @@ def test_audited_export_is_verified_and_reproducible():
     with pytest.raises(ValueError):exported_source(corrupted)
 
 
+@pytest.mark.parametrize('seed',['0','1','7','42','random'])
+def test_audited_report_exact_across_hash_seeds_and_input_orders(seed):
+    import json,subprocess,sys
+    from pathlib import Path
+    root=Path(__file__).resolve().parents[1]
+    code='''
+import json,random
+from pathlib import Path
+from scripts.learning_report import exported_source,report
+export=json.loads(Path('docs/learning-phase-2-source.json').read_text(encoding='utf-8'))
+rng=random.Random(SEED)
+rng.shuffle(export['records'])
+for record in export['records']:rng.shuffle(record['settlements'])
+items,coverage,fingerprint=exported_source(export['records'])
+rng.shuffle(items)
+print(json.dumps(report(items,coverage,fingerprint,export['audit_completed_at_utc']),sort_keys=True))
+'''.replace('SEED',repr(seed))
+    result=subprocess.run([sys.executable,'-c',code],cwd=root,
+        env={**os.environ,'PYTHONHASHSEED':seed},capture_output=True,text=True,encoding='utf-8',check=True,timeout=30)
+    expected=json.loads((root/'docs/learning-phase-2-example.json').read_text(encoding='utf-8'))
+    assert json.loads(result.stdout)==expected
+    assert len(expected['lessons'])==55
+    assert all(x['payload']['status']=='insufficient_sample' for x in expected['lessons'])
+
+
+def test_metrics_and_fitted_calibration_do_not_depend_on_row_order():
+    import random
+    rows=[row(i,p=.7,y=i%2) for i in range(600)]
+    expected_metrics=metrics(rows)
+    expected_calibration=evaluate_calibration(rows)
+    for seed in (0,1,7):
+        shuffled=deepcopy(rows);random.Random(seed).shuffle(shuffled)
+        assert metrics(shuffled)==expected_metrics
+        assert evaluate_calibration(shuffled)==expected_calibration
+
+
 async def test_worker_keeps_learning_pool_separate_and_cleans_up(monkeypatch):
     import asyncio
     from types import SimpleNamespace
