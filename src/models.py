@@ -385,3 +385,48 @@ class LearningHead(Base):
     method_version: Mapped[str] = mapped_column(String(80), primary_key=True)
     report_id: Mapped[int] = mapped_column(ForeignKey('learning_reports.id'))
     source_observed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+class LearningAIExplanation(Base):
+    """Append-only accepted narrative, distinct from statistical evidence."""
+    __tablename__ = 'learning_ai_explanations'
+    __table_args__ = (UniqueConstraint('lesson_id', 'prompt_version'),)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    report_id: Mapped[int] = mapped_column(ForeignKey('learning_reports.id'), index=True)
+    lesson_id: Mapped[int] = mapped_column(ForeignKey('learning_lessons.id'), index=True)
+    model: Mapped[str] = mapped_column(String(120))
+    prompt_version: Mapped[str] = mapped_column(String(80))
+    evidence_hash: Mapped[str] = mapped_column(String(64))
+    sections: Mapped[dict] = mapped_column(JSON)
+    facts: Mapped[dict] = mapped_column(JSON)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class LearningAITask(Base):
+    __tablename__ = 'learning_ai_tasks'
+    __table_args__ = (UniqueConstraint('lesson_id', 'prompt_version'),
+        CheckConstraint('attempts >= 0 AND attempts <= 3'),
+        Index('ix_learning_ai_task_queue', 'report_id', 'prompt_version', 'status', 'next_attempt_at'),
+        Index('ix_learning_ai_task_recovery', 'status', 'updated_at'))
+    id: Mapped[int] = mapped_column(primary_key=True)
+    report_id: Mapped[int] = mapped_column(ForeignKey('learning_reports.id'), index=True)
+    lesson_id: Mapped[int] = mapped_column(ForeignKey('learning_lessons.id'), index=True)
+    prompt_version: Mapped[str] = mapped_column(String(80))
+    model: Mapped[str] = mapped_column(String(120))
+    status: Mapped[str] = mapped_column(String(24), default='pending')
+    attempts: Mapped[int] = mapped_column(default=0)
+    next_attempt_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    error_code: Mapped[str | None] = mapped_column(String(32))
+
+
+class LearningAIQuota(Base):
+    __tablename__ = 'learning_ai_quotas'
+    day: Mapped[str] = mapped_column(String(10), primary_key=True)
+    requests: Mapped[int] = mapped_column(default=0)
+    __table_args__ = (CheckConstraint('requests >= 0'),)
+
+
+class LearningAIGate(Base):
+    __tablename__ = 'learning_ai_gates'
+    provider: Mapped[str] = mapped_column(String(20), primary_key=True)
+    next_attempt_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

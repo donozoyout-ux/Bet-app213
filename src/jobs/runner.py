@@ -18,15 +18,20 @@ async def run():
     # Telegram connection budget. This task opens at most one session at a time.
     learning_db = Database(settings.database_url)
     learning = asyncio.create_task(learning_loop(learning_db))
+    from src.analytics.learning_ai import loop as ai_loop, config as ai_config
+    ai_db = Database(settings.database_url) if ai_config().active else None
+    ai = asyncio.create_task(ai_loop(ai_db)) if ai_db else None
     loop = asyncio.get_running_loop()
     if os.name != 'nt':
         loop.add_signal_handler(signal.SIGTERM, task.cancel)
     try:
         await task
     finally:
+        if ai:ai.cancel()
         learning.cancel()
         telegram.cancel()
-        await asyncio.gather(telegram,learning,return_exceptions=True)
+        await asyncio.gather(*[t for t in (telegram,learning,ai) if t is not None],return_exceptions=True)
+        if ai_db:await ai_db.close()
         await learning_db.close()
         await database.close()
 
