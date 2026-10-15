@@ -105,23 +105,12 @@ class PriorityUpdater:
                         if retry and aware(retry.next_attempt_at)>now:continue
                         tasks.append((aware(match.kickoff_at),aware(retry.next_attempt_at) if retry else now-timedelta(days=1),key,market,match.id,match.external_match_id))
             # Prices must not depend on already having a qualifying, priced model
-            # pick. Probe all supported fixtures in the next 48 hours, one endpoint
+            # pick. Probe all supported fixtures in the existing seven-day window, one endpoint
             # per cycle, using the same durable cooldown and source validation.
             known={task[2] for task in tasks}
             for match in matches.values():
-                if aware(match.kickoff_at)>now+timedelta(hours=48):continue
                 key=f'quotes:full_time:{match.external_match_id}';retry=retries.get(key)
                 if key in known or retry and aware(retry.next_attempt_at)>now:continue
-                tasks.append((aware(match.kickoff_at),aware(retry.next_attempt_at) if retry else now-timedelta(days=1),key,'full_time',match.id,match.external_match_id))
-            # Missing recommendations must not exclude today's source-accessible fixtures.
-            # One endpoint per tick, the existing retry ledger and five-minute cadence
-            # bound this work; failed/empty responses never become fresh observations.
-            today=now.astimezone(ZoneInfo(DISPLAY_TIMEZONE)).date()
-            present={t[2] for t in tasks}
-            for match in matches.values():
-                if aware(match.kickoff_at).astimezone(ZoneInfo(DISPLAY_TIMEZONE)).date()!=today:continue
-                key=f'quotes:full_time:{match.external_match_id}';retry=retries.get(key)
-                if key in present or retry and aware(retry.next_attempt_at)>now:continue
                 tasks.append((aware(match.kickoff_at),aware(retry.next_attempt_at) if retry else now-timedelta(days=1),key,'full_time',match.id,match.external_match_id))
         if not tasks:return
         # Oldest due endpoint first; today's fixtures break ties. Recurring today

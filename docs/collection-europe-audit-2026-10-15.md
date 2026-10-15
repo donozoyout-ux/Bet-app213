@@ -69,10 +69,12 @@ Canlı kaynaktan yeniden doğrulanan örnekler:
 - **3073151:** Günlük iş sırasında eksik olan Crown fiyatları artık kaynakta var,
   fakat üretim kaydı inceleme anında altı açılış/son alanında da NULL.
 
-Yazılım açığı: öncelikli fiyat yenileme yalnızca modelin önceden `qualifies`
-seçimleri üzerinden çalışıyordu. Model/veri eksikliği veya kupon seçimi olmayan
-bir maç, yeni yayımlanan fiyatı tekrar kontrol etmeden kalabiliyordu. Artık önümüzdeki
-48 saatteki tüm desteklenen programlanmış maçlar tam zaman 1X2/AH/OU kontrolüne
+Yazılım açığı: master'da bugün için modelden bağımsız kaynak kontrolü zaten vardı;
+bugünden sonraki maçlar ise modelin önceden `qualifies` seçimi üretmesine bağlıydı.
+Model/veri eksikliği veya kupon seçimi olmayan ileriki bir maç, yeni yayımlanan
+fiyatı tekrar kontrol etmeden kalabiliyordu. Gerçek 3073151 örneğinin kickoff
+zamanı 20 Ekim 16:45 UTC. Artık API'nin mevcut yedi günlük penceresindeki tüm
+desteklenen programlanmış maçlar tam zaman 1X2/AH/OU kontrolüne
 girer; mevcut fiyatlı model seçimlerinin diğer market yolları devam eder. Döngü
 başına bir endpoint, sekiz saniye bütçe, başarılı gözlemde beş dakika aralık,
 başarısızlıkta kalıcı artan backoff korunur. En uzun bekleyen endpoint önce gelir;
@@ -117,7 +119,7 @@ türetilmez. Eksik backend değeri arayüzde sıfır diye uydurulmaz.
 | Üretimde güncel kaynak fikstürü kapsamı | 3.494 / 3.494 | Aynı; üretime yazılmadı |
 | Üretimde yeni kayıt / son 24 saat | 0 | Aynı; kayıt uydurulmadı |
 | Gerçek kaynak kaydı 3073151, Crown 1X2 yerel tekrar testi | 0 / 3 son fiyat alanı | 3 / 3; yalnızca gözlenen alanlar yeni timestamp aldı |
-| Model board'u olmadan fiyat kontrolü | Fiyat toplama adayı yok | 48 saatlik maç kaynak kuyruğuna giriyor |
+| Bugünden sonraki maçta model board'u olmadan fiyat kontrolü | Fiyat toplama adayı yok | Yedi günlük penceredeki maç kaynak kuyruğuna giriyor |
 | Dış günlük tetikleme kaçırıldığında | Worker kendi update işini açmıyor | 24 saatlik başarılı keşif / 6 saatlik hata aralığıyla idempotent fallback |
 | Yerel lig formu | UEFA analizinde görünmüyor | Kesin kimlikli, ayrı ve sızıntısız bağlam |
 

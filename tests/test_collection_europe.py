@@ -99,7 +99,7 @@ async def test_real_crown_source_capture_repairs_empty_row_offline(db,monkeypatc
     target,*_=await seed(db)
     async with db.session() as s:
         await s.execute(delete(PredictionBoard))
-        m=await s.get(Match,target);m.external_match_id=3073151;m.kickoff_at=now+timedelta(days=1)
+        m=await s.get(Match,target);m.external_match_id=3073151;m.kickoff_at=datetime.fromisoformat(payload['_audit']['production_kickoff_at'])
         row=await s.scalar(select(Odds1X2).join(Bookmaker).where(Odds1X2.match_id==target,Bookmaker.name=='Crown'))
         for stage in ('opening','latest'):
             for side in ('home','draw','away'):setattr(row,stage+'_'+side,None)
