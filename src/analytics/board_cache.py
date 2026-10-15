@@ -44,7 +44,7 @@ async def refresh_one(db, now=None, force_league=None):
             if board is None:board=PredictionBoard(league_id=league);session.add(board)
             board.model_version=MODEL_VERSION;board.generated_at=generated;board.expires_at=generated+TTL
             board.source_revision=source
-            board.payload=jsonable_encoder(dict(items=items,availability=session.info.get('count_availability',[]),evaluated=evaluated,engine_analysis=session.info.get('engine_analysis',[])))
+            board.payload=jsonable_encoder(dict(items=items,availability=session.info.get('count_availability',[]),evaluated=evaluated,engine_analysis=session.info.get('engine_analysis',[]),coupon_records=session.info.get('coupon_records',[])))
             # Publish the immutable picks and board together, after a complete calculation.
             from src.analytics.performance import capture_many
             await capture_many(session,session.info.get('board_observations',[]),now)
@@ -82,7 +82,7 @@ async def read_board(session,league,date,team,now):
         evaluated+=board.payload['evaluated']
         for item in board.payload['items']:
             item={**item,'match':dict(item['match'])}
-            m=item['match'];kickoff=datetime.fromisoformat(m['kickoff_at'])
+            m=item['match'];kickoff=aware(datetime.fromisoformat(m['kickoff_at']))
             if m['id'] not in eligible:continue
             # A rescheduled fixture must await a new board, not retain yesterday's date.
             if aware(kickoff)!=aware(eligible[m['id']]):continue

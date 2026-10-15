@@ -16,6 +16,7 @@ async def source_report(session, now, match_ids=None):
     from src.models import Odds1X2, AsianTotals, AsianHandicap, MarketOdds, Bookmaker
     from src.analytics.odds_matching import price_observed_at, price_matches_line
     buckets = {}
+    priced_ids=set();fresh_ids=set();source_books=defaultdict(set);fresh_fields=0;last_observation=None
     for model, family in [(Odds1X2, 'result'), (AsianTotals, 'goals'),
                           (AsianHandicap, 'asian_handicap'), (MarketOdds, None)]:
         query = select(model, Bookmaker.name, model.raw['_field_observed_at'], model.raw['_field_lines']).options(defer(model.raw)).join(Bookmaker)
@@ -43,10 +44,14 @@ async def source_report(session, now, match_ids=None):
                     continue
                 values = bucket['latest_fields'][side]
                 values['priced'] += 1
+                if bookmaker in ('Bet365','Crown','Sbobet'):
+                    priced_ids.add(row.match_id);source_books[bookmaker].add(row.match_id)
                 stamp = price_observed_at(row, 'latest_' + side)
                 if stamp is None:
                     continue
                 values['observed'] += 1
+                if bookmaker in ('Bet365','Crown','Sbobet') and stamp<=now:
+                    last_observation=max(last_observation,stamp) if last_observation else stamp
                 if stamp <= now and (bucket['last_observed_at'] is None or stamp > bucket['last_observed_at']):
                     bucket['last_observed_at'] = stamp
                 try:
@@ -55,10 +60,14 @@ async def source_report(session, now, match_ids=None):
                     exact_line = False
                 if exact_line and 0 <= (now-stamp).total_seconds() <= 900:
                     values['fresh'] += 1
+                    if bookmaker in ('Bet365','Crown','Sbobet'):
+                        fresh_ids.add(row.match_id);fresh_fields+=1
+    session.info['source_coverage']=dict(priced_matches=len(priced_ids),fresh_price_matches=len(fresh_ids),fresh_price_fields=fresh_fields,bookmaker_matches={b:len(ids) for b,ids in source_books.items()},last_price_observed_at=last_observation)
     return sorted(buckets.values(), key=lambda b: (b['market'], b['period'], b['bookmaker'], str(b['line'])))
 
 
 def report(records,now):
+    from src.analytics.coupon import coupon_qualified
     families=defaultdict(Counter);daily=Counter();today=now.astimezone(ZoneInfo('Europe/Istanbul')).date()
     for record in records:
         kickoff=record['match']['kickoff_at']
@@ -71,7 +80,7 @@ def report(records,now):
             else:bucket[vo.get('reason') or 'no_verified_odds']+=1
             if kickoff.astimezone(ZoneInfo('Europe/Istanbul')).date()!=today:continue
             daily['selections']+=1
-            if rec.get('probability',0)<.7 or rec.get('reliability',0)<.8 or rec.get('score',0)<.8:daily['quality_rejected']+=1
+            if not coupon_qualified(rec):daily['quality_rejected']+=1
             elif not vo.get('coupon_eligible'):daily['price_rejected']+=1
             else:daily['qualified_priced']+=1
     reason_keys=('no_source_rows','line_mismatch','stale','unsupported_bookmaker','missing_stage_price','source_market_unavailable','unknown_observation','observed_after_cutoff')

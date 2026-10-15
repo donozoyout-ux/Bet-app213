@@ -42,7 +42,8 @@ async function run(mode){
   const settle=async()=>{for(let i=0;i<8;i++)await new Promise(resolve=>setImmediate(resolve));};
   await settle();
   if(mode==='hidden'){assert.equal(calls.length,0);return;}
-  assert(!calls.some(c=>c.path.includes('telegram')));
+  assert(!calls.some(c=>c.path.includes('telegram') || c.path.includes('max_matches')));
+  assert(!nodes.get('home-coupon-size').text().includes('/ 4'));
   const text=id=>nodes.get(id).text();
   if(mode==='failed'){assert(text('home-coupon-list').includes('Veri bağlantısı'));assert.equal(text('home-coupon-total'),'—');return;}
   const valid=['valid','stale-movement','changed-line'].includes(mode);

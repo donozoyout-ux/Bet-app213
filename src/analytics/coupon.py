@@ -68,8 +68,9 @@ async def quote_draft(session, request, now):
         if aware(match.kickoff_at)>now+timedelta(days=7):entry['reason']='outside_manual_window';continue
         board=boards.get(match.league_id)
         if board is None or board.model_version!=MODEL_VERSION or aware(board.generated_at)>now or aware(board.expires_at)<=now:entry['reason']='analysis_stale';continue
-        record=next((r for r in board.payload['items'] if r['match']['id']==match.id),None)
-        rec=next((r for r in record['recommendations'][:2] if r['id']==choice.recommendation_id and coupon_qualified(r)),None) if record else None
+        from src.analytics.daily_pool import board_candidates
+        candidates,_=board_candidates(board,match.id,match.kickoff_at,require_context=True)
+        rec=next((r for r in candidates if r['id']==choice.recommendation_id and coupon_qualified(r)),None)
         if rec:groups[match.id]=[deepcopy(rec)]
     await current_odds(session,groups,now)
     for choice,entry in zip(request.selections,items):
