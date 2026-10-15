@@ -155,8 +155,14 @@ async def test_durable_backoff_partial_data_and_exhaustion(db,monkeypatch,failur
         stats=await s.get(MatchStatistics,5959)
         if stats is None:stats=MatchStatistics(match_id=5959,raw={});s.add(stats)
         stats.is_final=True;stats.home_red_cards=stats.away_red_cards=0
+        stats.updated_at=now
         await s.commit()
         assert settle(await s.get(Match,5959),stats,original,now)==('won',0)
+        from src.analytics.settlement import details
+        m=await s.get(Match,5959)
+        audit=details(m,stats,original,'won',m.raw['_settlement_check'],now)
+        assert audit['retry_state']=='complete' and audit['next_check_at'] is None
+        assert audit['last_checked_at']==now
 
 
 async def test_no_early_network_and_no_connection_during_http(db,monkeypatch):

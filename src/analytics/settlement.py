@@ -1,5 +1,5 @@
 """Final-data requirements and audit details, independent of prediction generation."""
-from datetime import timedelta
+from datetime import datetime, timedelta
 from src.models import utcnow
 from src.jobs.worker import aware
 
@@ -49,7 +49,13 @@ def details(match, stats, pick, outcome, audit=None, now=None):
     observed=getattr(stats,'updated_at',None) if statistical else getattr(match,'status_observed_at',None)
     source=getattr(stats,'source',None) if statistical and stats and stats.is_final else ('goaloo' if observed else None)
     if match.status!='finished':observed=source=None
-    return dict(reason=reason,missing_fields=fields,last_checked_at=audit.get('checked_at') or getattr(match,'live_checked_at',None),
+    checks=[]
+    for value in (audit.get('checked_at'),getattr(match,'live_checked_at',None),observed):
+        if value is not None:
+            try:checks.append(aware(datetime.fromisoformat(value.replace('Z','+00:00'))) if isinstance(value,str) else aware(value))
+            except ValueError:pass
+    complete=outcome in {'won','lost','void'}
+    return dict(reason=reason,missing_fields=fields,last_checked_at=max(checks) if checks else None,
                 final_observed_at=aware(observed) if observed else None,result_source=source,
-                check_source=audit.get('source'),retry_state=audit.get('state'),
-                check_attempts=audit.get('attempts',0),next_check_at=audit.get('next_check_at'))
+                check_source=audit.get('source'),retry_state='complete' if complete and audit else audit.get('state'),
+                check_attempts=audit.get('attempts',0),next_check_at=None if complete else audit.get('next_check_at'))
