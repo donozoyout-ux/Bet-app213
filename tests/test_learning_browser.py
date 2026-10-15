@@ -66,10 +66,10 @@ async def test_learning_navigation_schema_filters_and_safe_evidence(api,db,width
             assert await page.locator('.learning-card img').count()==0
             assert await page.evaluate('window.pwned') is None
             await expect(page.locator('.learning-evidence')).to_contain_text('doğrulanmış bir ders değildir')
-            summary=page.locator('.learning-card details summary');await summary.focus();await page.keyboard.press('Enter')
-            await expect(page.locator('.learning-card details')).to_have_attribute('open','')
-            await expect(page.locator('.learning-card details')).to_contain_text(METHOD)
-            await expect(page.locator('.learning-card details')).to_contain_text('güven aralığı')
+            summary=page.locator('.learning-card > details:not(.learning-ai) summary');await summary.focus();await page.keyboard.press('Enter')
+            await expect(page.locator('.learning-card > details:not(.learning-ai)')).to_have_attribute('open','')
+            await expect(page.locator('.learning-card > details:not(.learning-ai)')).to_contain_text(METHOD)
+            await expect(page.locator('.learning-card > details:not(.learning-ai)')).to_contain_text('güven aralığı')
             for kind in ('league','market','model'):
                 await page.locator('#learning-kind').select_option(kind)
                 values=await page.locator('#learning-scope option').evaluate_all('(nodes)=>nodes.map(n=>n.value)')
@@ -156,3 +156,44 @@ async def test_learning_server_pagination_and_loading_are_pinned(api,db):
             await expect(page.locator('#learning-lessons')).to_contain_text('kaydı bulunmuyor')
         finally:
             release.set();await page.unroute_all(behavior='ignoreErrors');await browser.close()
+
+@pytest.mark.parametrize('width',[320,768,1536])
+async def test_ai_explanation_real_api_background_and_disabled_states(api,db,monkeypatch,width):
+    import httpx
+    from src.analytics import learning_ai as ai
+    from tests.test_learning_ai import CFG,SECRET,success,only_general
+    await only_general(db)
+    async with async_playwright() as p:
+        browser=await p.chromium.launch();page=await browser.new_page(viewport={'width':width,'height':960})
+        calls=[]
+        async def forward(route):
+            path=route.request.url.removeprefix('http://test')
+            assert 'nvidia.com' not in path
+            response=await api.get(path);assert SECRET not in response.text
+            await route.fulfill(status=response.status_code,body=response.content,content_type=response.headers.get('content-type','application/json'))
+        await page.route('**/*',forward)
+        try:
+            await page.goto('http://test/#lessons')
+            await page.locator('.learning-ai > summary').click()
+            await expect(page.locator('.learning-ai')).to_contain_text('AI açıklaması devre dışı')
+            monkeypatch.setattr(ai,'config',lambda:CFG)
+            await page.locator('#learning-refresh').click()
+            await page.locator('.learning-ai > summary').click()
+            await expect(page.locator('.learning-ai')).to_contain_text('AI açıklaması hazırlanmadı')
+            def provider(request):calls.append(request);return success(request)
+            assert not calls
+            assert await ai.run_once(db,CFG,httpx.MockTransport(provider))=='completed'
+            # Simulate the regular page tick, not a generation endpoint or forced reload.
+            await page.evaluate('BetAppLearning.refresh()')
+            await page.locator('.learning-ai > summary').click()
+            await expect(page.locator('.learning-ai')).to_contain_text('Dayanak: Rapor #')
+            await expect(page.locator('.learning-ai')).to_contain_text('120 tahmin / 61 maç')
+            await expect(page.locator('.learning-ai')).to_contain_text('doğrulanmış bir ders değildir')
+            if os.getenv('UI_SCREENSHOT_DIR'):
+                target=Path(os.environ['UI_SCREENSHOT_DIR']);target.mkdir(parents=True,exist_ok=True)
+                await page.screenshot(path=str(target/f'learning-ai-ready-{width}.png'),full_page=True)
+            assert len(calls)==1
+            assert await page.evaluate('document.documentElement.scrollWidth<=innerWidth')
+            assert SECRET not in await page.content()
+        finally:
+            await page.unroute_all(behavior='ignoreErrors');await browser.close()

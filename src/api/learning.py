@@ -68,5 +68,17 @@ async def lessons(report_id:int|None=Query(None,ge=1),limit:int=Query(20,ge=1,le
         return dict(status='warming',items=[],total=0,limit=limit,offset=offset)
     query=select(LearningLesson).where(LearningLesson.report_id==report.id)
     rows=await session.scalars(query.order_by(LearningLesson.scope_key).offset(offset).limit(limit))
-    return dict(status='ready',**metadata(report,session),items=[dict(scope_key=r.scope_key,**r.payload) for r in rows],
+    rows=list(rows)
+    from src.analytics.learning_ai import config, PROMPT_VERSION
+    from src.models import LearningAIExplanation
+    cfg=config()
+    explanations={r.lesson_id:r for r in await session.scalars(select(LearningAIExplanation).where(
+        LearningAIExplanation.report_id==report.id,LearningAIExplanation.lesson_id.in_([r.id for r in rows]),
+        LearningAIExplanation.prompt_version==PROMPT_VERSION))} if cfg.active and rows else {}
+    def narrative(row):
+        value=explanations.get(row.id)
+        if value is None:return dict(status='not_prepared' if cfg.active else 'disabled',report_id=report.id)
+        return dict(status='ready',report_id=value.report_id,lesson_id=value.lesson_id,model=value.model,
+            prompt_version=value.prompt_version,created_at=value.created_at,sections=value.sections,facts=value.facts)
+    return dict(status='ready',**metadata(report,session),items=[dict(scope_key=r.scope_key,**r.payload,ai=narrative(r)) for r in rows],
         total=await session.scalar(select(func.count(LearningLesson.id)).where(LearningLesson.report_id==report.id)),limit=limit,offset=offset)

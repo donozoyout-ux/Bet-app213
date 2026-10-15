@@ -1459,3 +1459,5 @@ body {margin:0;background:radial-gradient(ellipse at 65% 0%,#12336355,transparen
 .learning-controls select {max-width:100%;}
 @media(max-width:800px){.learning-cards {grid-template-columns:minmax(0,1fr);}.learning-metrics {grid-template-columns:repeat(2,minmax(0,1fr));}}
 @media(max-width:600px){.bottom-nav {overflow-x:auto;}.bottom-nav a {flex:1 0 4rem;}.learning-metric,.learning-card {padding:1rem;}.learning-metric strong {font-size:1.35rem;}.learning-controls label {min-width:0;width:100%;}}
+.learning-card .learning-ai {border:1px solid #245063;background:#092b3540;border-radius:.65rem;padding:1rem;}
+.learning-ai h3 {font-size:.9rem;color:var(--text);margin:1rem 0 .35rem;}

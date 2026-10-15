@@ -40,7 +40,18 @@
     const facts=el('dl','','learning-facts');for(const [name,value] of [['Örneklem',`${num(r.predictions)} tahmin / ${num(r.matches)} maç`],['Beklenen başarı',pct(r.expected_success)],['Gerçekleşen başarı',pct(r.observed_success)],['Güven seviyesi',confidence[r.confidence] || 'Belirtilmedi']])facts.append(el('dt',name),el('dd',value));n.append(facts);
     n.append(el('p',r.status==='insufficient_sample'?'Yeterli veri birikiyor. Bu kayıt doğrulanmış bir ders değildir.':r.status==='supported_candidate'?'Bu aday kayıtlı istatistiksel kanıtla desteklenir; doğrulanmış ders değildir ve model değişikliği uygulanmaz.':'Kanıt henüz kesin bir sonuca ulaşmıyor. Bu gözlem doğrulanmış bir ders değildir.','learning-evidence'));
     const details=el('details'),e=r.evidence || {};details.append(el('summary','Ayrıntıları Gör'));
-    for(const text of [`Hesaplama yöntemi: gerçekleşen sonuç ile model olasılığı farkının ortalaması; maç kümeleriyle ağırlıklı Hoeffding sınırı ve çoklu karşılaştırma için Bonferroni düzeltmesi.`, `Kayıtlı yöntem: ${e.calculation || 'Yöntem kaydı bulunmuyor'}`,`Başarı farkı güven aralığı: ${Array.isArray(e.gap_interval)?e.gap_interval.map(pct).join(' – '):'Veri yok'}`,`Aile hata sınırı: ${pct(e.family_alpha)} · Karşılaştırma: ${num(e.family_tests)}`,`Etkin maç örneklemi: ${num(e.effective_matches)} · Gerekli: ${num(e.minimum_effective_matches)}`,`Aynı maçtaki tahminler birlikte değerlendirilir. Tekrarlayan takım ve zaman bağımlılığı kalabilir.`,`Rapor #${state.data.meta.report_id} · Sürüm: ${r.method_version || state.data.meta.method_version}`,`Kanıt kimliği: ${r.data_fingerprint || state.data.meta.data_fingerprint}`])details.append(el('p',text));n.append(details);return n;
+    for(const text of [`Hesaplama yöntemi: gerçekleşen sonuç ile model olasılığı farkının ortalaması; maç kümeleriyle ağırlıklı Hoeffding sınırı ve çoklu karşılaştırma için Bonferroni düzeltmesi.`, `Kayıtlı yöntem: ${e.calculation || 'Yöntem kaydı bulunmuyor'}`,`Başarı farkı güven aralığı: ${Array.isArray(e.gap_interval)?e.gap_interval.map(pct).join(' – '):'Veri yok'}`,`Aile hata sınırı: ${pct(e.family_alpha)} · Karşılaştırma: ${num(e.family_tests)}`,`Etkin maç örneklemi: ${num(e.effective_matches)} · Gerekli: ${num(e.minimum_effective_matches)}`,`Aynı maçtaki tahminler birlikte değerlendirilir. Tekrarlayan takım ve zaman bağımlılığı kalabilir.`,`Rapor #${state.data.meta.report_id} · Sürüm: ${r.method_version || state.data.meta.method_version}`,`Kanıt kimliği: ${r.data_fingerprint || state.data.meta.data_fingerprint}`])details.append(el('p',text));n.append(details);
+    const a=r.ai, ready=a?.status==='ready' && a.report_id===state.data.meta.report_id;
+    const ai=el('details','','learning-ai');ai.append(el('summary','AI Açıklaması · '+(ready?'Hazır':a?.status==='disabled'?'Devre dışı':'Hazırlanmadı')));
+    ai.append(el('p','AI anlatımıdır; doğrulanmış istatistiksel kanıttan ayrı değerlendirilir.'));
+    if(ready){
+      ai.append(el('p',`Dayanak: Rapor #${a.report_id} · ${a.model} · ${a.prompt_version} · ${date(a.created_at)}`));
+      const titles={observed:'Ne gözlemlendi?',sample:'Örneklem',expected:'Model ne bekliyordu?',actual:'Gerçekte ne oldu?',reliability:'Kanıtın güvenilirliği',conclusion:'İhtiyatlı sonuç',limits:'Henüz ne söylenemez?'};
+      for(const [key,title] of Object.entries(titles)){ai.append(el('h3',title),el('p',a.sections?.[key] || 'Açıklama bulunmuyor.'));}
+      const f=a.facts || {};
+      ai.append(el('p',`Backend tarafından rapordan eklenen sayılar: ${num(f.predictions)} tahmin / ${num(f.matches)} maç · Beklenen ${pct(f.expected_success)} · Gerçekleşen ${pct(f.observed_success)} · Fark aralığı ${Array.isArray(f.gap_interval)?f.gap_interval.map(pct).join(' – '):'—'}`));
+    }else ai.append(el('p',a?.status==='disabled'?'AI açıklaması devre dışı':'AI açıklaması hazırlanmadı'));
+    n.append(ai);return n;
   }
   function render(){if(!state.data)return;const filter=$('learning-kind').value,scope=$('learning-scope').value;
     const rows=state.data.lessons.filter(r=>(filter==='all' || kind(r)===filter) && (!scope || r.scope_key===scope));const box=$('learning-lessons');box.replaceChildren();
@@ -59,7 +70,15 @@
     try{const selected=$('learning-report').value;const summary=await get('learning/summary'+(selected?'?report_id='+selected:''),signal);
       if(summary.status==='warming'){state.data=null;$('learning-summary').replaceChildren();$('learning-lessons').replaceChildren();put('learning-status','Yeterli veri birikiyor. İlk öğrenme raporu hazırlanıyor.');put('learning-coverage','');put('learning-page','');put('learning-statistics','');scopes();return;}
       const id=summary.report_id;if(!Number.isInteger(id) || !summary.summary)throw new Error('Geçersiz özet');
-      if(!force && state.data?.meta.report_id===id){state.data.meta=summary;renderSummary();return;}
+      if(!force && state.data?.meta.report_id===id){
+        if(state.data.lessons.some(r=>r.ai?.status==='not_prepared')){
+          const lessons=await pages('lessons',id,signal);
+          if(generation!==state.generation)return;
+          lessons.sort((a,b)=>(Date.parse(b.date)||0)-(Date.parse(a.date)||0) || a.scope_key.localeCompare(b.scope_key));
+          state.data.lessons=lessons;render();
+        }
+        state.data.meta=summary;renderSummary();return;
+      }
       const [coverage,lessons,leagueStats,marketStats,modelStats,leagues]=await Promise.all([
         get('learning/coverage?report_id='+id,signal),pages('lessons',id,signal),pages('statistics?kind=league',id,signal),pages('statistics?kind=market',id,signal),pages('statistics?kind=model',id,signal),get('leagues',signal)]);
       if(coverage.report_id!==id || !coverage.coverage)throw new Error('Kapsam raporu uyuşmuyor');await reports(signal);
