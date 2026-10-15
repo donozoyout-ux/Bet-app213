@@ -53,6 +53,8 @@ async def store_match(session, league_id, season_name, data):
             setattr(match, k, v)
     if match.status=='finished':match.live_minute=None
     match._discovery_change = 'added' if added else 'updated' if changed else 'unchanged'
+    from src.analytics.settlements import settle_match
+    await settle_match(session, match)
     return match
 
 
@@ -70,6 +72,8 @@ async def store_live(session, match, observation, observed_at):
     match.last_scraped_at=observed_at
     match.raw={**(match.raw or {}),'live':observation['raw']}
     await session.flush()
+    from src.analytics.settlements import settle_match
+    await settle_match(session, match)
     return True
 
 
@@ -190,4 +194,6 @@ async def store_statistics(session,match,data):
         if keys:query=query.where(MatchEvent.source_key.not_in(keys))
         await session.execute(query)
     await session.flush()
+    from src.analytics.settlements import settle_match
+    await settle_match(session, match)
     return row

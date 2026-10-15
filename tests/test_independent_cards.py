@@ -114,19 +114,22 @@ async def verify_persistent_analytics(db):
             for window in ('last_5','last_10','home_split','away_split'):
                 assert extra['yellow_cards'][side][window]['for_avg']==1
                 assert extra['red_cards'][side][window]['for_avg'] is None
-        # A pre-existing published combined pick is immutable even after adding yellow models.
+        # A pre-existing published pick is immutable even after adding yellow models.
         match=await session.get(Match,target)
         old=[{'market':'cards','selection':'over_4_5','label':'4.5 Kart Üst'}]
         existing=await session.get(PredictionSnapshot,target)
         if existing:
-            existing.picks=old;existing.model_version='quality-poisson-v1'
+            from copy import deepcopy
+            old=deepcopy(existing.picks)
+            old_version=existing.model_version
         else:
+            old_version='quality-poisson-v1'
             session.add(PredictionSnapshot(match_id=target,league_id=match.league_id,captured_at=NOW,
                 model_version='quality-poisson-v1',picks=old))
         await session.commit()
         assert not await capture(session,match,selected,NOW)
         saved=await session.get(PredictionSnapshot,target)
-        assert saved.picks==old and saved.model_version=='quality-poisson-v1'
+        assert saved.picks==old and saved.model_version==old_version
 
         stored=await session.get(MatchStatistics,history[0])
         assert stored.home_red_cards is stored.away_red_cards is None

@@ -9,6 +9,7 @@ from src.analytics.recommendations import market_matches
 
 
 async def capture(session, match, picks, now):
+    from src.analytics.board_cache import MODEL_VERSION
     if match.status != 'scheduled' or not match.kickoff_at or aware(match.kickoff_at) <= now or not picks:return False
     known=session.info.get('captured_matches')
     if (match.id in known) if known is not None else (await session.get(PredictionSnapshot,match.id)):
@@ -17,16 +18,17 @@ async def capture(session, match, picks, now):
         from sqlalchemy.dialects.postgresql import insert
     else:
         from sqlalchemy.dialects.sqlite import insert
-    result=await session.execute(insert(PredictionSnapshot).values(match_id=match.id,league_id=match.league_id,captured_at=now,model_version='quality-poisson-v3-half-goals',picks=picks).on_conflict_do_nothing(index_elements=['match_id']))
+    result=await session.execute(insert(PredictionSnapshot).values(match_id=match.id,league_id=match.league_id,captured_at=now,model_version=MODEL_VERSION,picks=picks).on_conflict_do_nothing(index_elements=['match_id']))
     if known is not None:known.add(match.id)
     return result.rowcount > 0
 
 
 async def capture_many(session, observations, now):
     """Publish a board atomically without an INSERT round trip per match."""
+    from src.analytics.board_cache import MODEL_VERSION
     known = session.info.get('captured_matches', set())
     records = [dict(match_id=m.id, league_id=m.league_id, captured_at=now,
-                    model_version='quality-poisson-v3-half-goals', picks=picks)
+                    model_version=MODEL_VERSION, picks=picks)
                for m,picks in observations if m.id not in known and picks and
                m.status=='scheduled' and m.kickoff_at and aware(m.kickoff_at)>now]
     if not records:
@@ -39,14 +41,15 @@ async def capture_many(session, observations, now):
     return result.rowcount > 0
 
 
-def settle(match, stats, pick):
-    if match.status in {'cancelled','abandoned','postponed'}:return 'void',None
+def _settle(match, stats, pick):
+    if match.status in {'cancelled','abandoned'}:return 'void',None
     if match.status != 'finished':return 'pending',None
     market,selection=pick['market'],pick['selection']
     if market in {'corners','cards','yellow_cards','red_cards'}:
         fields=['home_corners','away_corners'] if market=='corners' else ['home_yellow_cards','away_yellow_cards','home_red_cards','away_red_cards']
         if market in {'yellow_cards','red_cards'}:fields=['home_'+market,'away_'+market]
         if not stats or not stats.is_final or any(getattr(stats,f) is None for f in fields):return 'awaiting_data',None
+        if any(getattr(stats,f)<0 for f in fields):return 'awaiting_data',None
         total=sum(getattr(stats,f) for f in fields)
     elif market in {'first_half_goals','second_half_goals'}:
         if match.ht_home is None or match.ht_away is None:
@@ -61,7 +64,9 @@ def settle(match, stats, pick):
             total = (match.ft_home - match.ht_home) + (match.ft_away - match.ht_away)
     else:
         if match.ft_home is None or match.ft_away is None:return 'awaiting_data',None
-        home,away=match.ft_home,match.ft_away;total=home+away
+        home,away=match.ft_home,match.ft_away
+        if home<0 or away<0:return 'awaiting_data',None
+        total=home+away
     if market in {'goals','corners','cards','yellow_cards','red_cards','first_half_goals','second_half_goals'}:
         direction,a,b=selection.split('_');line=float(a+'.'+b)
         if total==line:return 'void',total
@@ -75,6 +80,22 @@ def settle(match, stats, pick):
         won=difference+line>0;actual=f'{home}-{away}'
     else:return 'awaiting_data',None
     return ('won' if won else 'lost'),actual
+
+
+def settle(match, stats, pick):
+    """Reject unknown/malformed imported selections rather than guessing a result."""
+    import re
+    market = pick.get('market')
+    selection = pick.get('selection')
+    totals = {'goals','corners','cards','yellow_cards','red_cards','first_half_goals','second_half_goals'}
+    choices = {'btts': {'yes','no'}, 'result': {'home','draw','away'}, 'double_chance': {'1x','x2','12'}}
+    valid = isinstance(selection, str) and (
+        (market in totals and re.fullmatch(r'(over|under)_[0-9]+_[05]', selection)) or
+        (market == 'asian_handicap' and re.fullmatch(r'(home|away)_(plus|minus)_[0-9]+_[05]', selection)) or
+        (market in choices and selection in choices[market]))
+    if not valid:
+        return 'awaiting_data', None
+    return _settle(match, stats, pick)
 
 
 def tally():return dict(total=0,settled=0,won=0,lost=0,pending=0,awaiting_data=0,void=0,reliability_sum=0,sample_sum=0,last_10=[],probability_sum=0,brier_sum=0,calibrated_samples=0,calibration={},priced_samples=0,profit=0)
@@ -126,20 +147,24 @@ async def performance(session, league=None, start=None, end=None, market='all', 
     if start:query=query.where(PredictionSnapshot.captured_at>=start)
     if end:query=query.where(PredictionSnapshot.captured_at<end)
     query=query.order_by(PredictionSnapshot.captured_at.desc(),Match.id.desc()).execution_options(yield_per=200)
+    from src.analytics.settlements import decisions_many
+    frozen_rows=await decisions_many(session,query.with_only_columns(Match.id).order_by(None))
     summary=tally();families=defaultdict(tally);exact=defaultdict(tally);labels={};items=[];count=0
     cohorts={name:tally() for name in ('all_saved','probability_70','reliability_80','quality_80','combined_70_80_80')}
     async for row in await session.stream(query):
         match=row[0];snapshot,stats=row[-2:]
         # Never accept a record captured at/after kickoff, including imported bad rows.
         if not match.kickoff_at or aware(snapshot.captured_at)>=aware(match.kickoff_at):continue
-        for pick in snapshot.picks:
+        frozen=frozen_rows.get(match.id,{})
+        for index,pick in enumerate(snapshot.picks):
             if not market_matches([pick],market) or exact_market and pick['id']!=exact_market or confidence and pick['confidence']!=confidence:continue
-            outcome,actual=settle(match,stats,pick)
+            saved=frozen.get(index)
+            outcome,actual=(saved.outcome,saved.actual['value']) if saved else settle(match,stats,pick)
             add(summary,pick,outcome,snapshot.captured_at);add(families[pick['market']],pick,outcome,snapshot.captured_at);add(exact[pick['id']],pick,outcome,snapshot.captured_at);labels[pick['id']]=(pick['market'],pick['label'])
             gates={'probability_70':pick.get('probability',0)>=.7,'reliability_80':pick.get('reliability',0)>=.8,'quality_80':pick.get('score',0)>=.8}
             for name,accept in {'all_saved':True,**gates,'combined_70_80_80':all(gates.values())}.items():
                 if accept:add(cohorts[name],pick,outcome,snapshot.captured_at)
-            if offset<=count<offset+limit:items.append(dict(match=match_response(row[:5]),recommendation=pick,captured_at=aware(snapshot.captured_at),model_version=snapshot.model_version,outcome=outcome,actual=actual))
+            if offset<=count<offset+limit:items.append(dict(match=match_response(row[:5]),recommendation=pick,captured_at=aware(snapshot.captured_at),model_version=snapshot.model_version,outcome=outcome,actual=actual,settlement_basis='recorded' if saved else 'unrecorded_evaluation',settlement_revision=saved.revision if saved else None))
             count+=1
     from src.diagnostics import statistics_coverage
     coverage=await statistics_coverage(session)

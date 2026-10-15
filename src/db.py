@@ -56,6 +56,8 @@ class Database:
             if conn.dialect.name == 'postgresql':
                 await conn.execute(text('SELECT pg_advisory_xact_lock(213001)'))
             await conn.run_sync(Base.metadata.create_all)
+            from src.prediction_integrity import install_prediction_guards
+            await install_prediction_guards(conn)
             await migrate_competitions(conn)
             if not (await conn.execute(select(League.id).where(League.external_id == 36))).first():
                 await conn.execute(League.__table__.insert().values(external_id=36, name='English Premier League', country='England', source='goaloo'))
