@@ -1,0 +1,626 @@
+{
+  "1440x900": {
+    "before": {
+      "hero": {
+        "x": 43.1875,
+        "y": 149,
+        "width": 1353.625,
+        "height": 500.234375,
+        "bottom": 649.234375
+      },
+      "board": null,
+      "coupon": null,
+      "titleSize": 53.28,
+      "bodySize": 16.808,
+      "fonts": {
+        "html": "Inter, \"Segoe UI\", Arial, sans-serif",
+        "body": "Inter, \"Segoe UI\", Arial, sans-serif",
+        "p": "Inter, \"Segoe UI\", Arial, sans-serif"
+      },
+      "heights": {
+        "list": null,
+        "footer": null,
+        "heading": null
+      }
+    },
+    "after": {
+      "hero": {
+        "x": 0,
+        "y": 70,
+        "width": 1440,
+        "height": 295.84375,
+        "bottom": 365.84375
+      },
+      "board": {
+        "x": 23.09375,
+        "y": 462.8125,
+        "width": 1393.8125,
+        "height": 414.1875,
+        "bottom": 877
+      },
+      "coupon": {
+        "x": 23.09375,
+        "y": 462.8125,
+        "width": 627.078125,
+        "height": 414.1875,
+        "bottom": 877
+      },
+      "titleSize": 50.4,
+      "bodySize": 14,
+      "fonts": {
+        "html": "\"Segoe UI\", Arial, sans-serif",
+        "body": "\"Segoe UI\", Arial, sans-serif",
+        "p": "\"Segoe UI\", Arial, sans-serif"
+      },
+      "heights": {
+        "list": {
+          "x": 34.59375,
+          "y": 537.765625,
+          "width": 604.078125,
+          "height": 237.015625,
+          "bottom": 774.78125
+        },
+        "footer": {
+          "x": 34.59375,
+          "y": 783.171875,
+          "width": 604.078125,
+          "height": 63.140625,
+          "bottom": 846.3125
+        },
+        "heading": {
+          "x": 34.59375,
+          "y": 474.3125,
+          "width": 604.078125,
+          "height": 29.390625,
+          "bottom": 503.703125
+        }
+      }
+    }
+  },
+  "1920x1080": {
+    "before": {
+      "hero": {
+        "x": 57.59375,
+        "y": 149,
+        "width": 1804.8125,
+        "height": 666.296875,
+        "bottom": 815.296875
+      },
+      "board": null,
+      "coupon": null,
+      "titleSize": 71.04,
+      "bodySize": 18,
+      "fonts": {
+        "html": "Inter, \"Segoe UI\", Arial, sans-serif",
+        "body": "Inter, \"Segoe UI\", Arial, sans-serif",
+        "p": "Inter, \"Segoe UI\", Arial, sans-serif"
+      },
+      "heights": {
+        "list": null,
+        "footer": null,
+        "heading": null
+      }
+    },
+    "after": {
+      "hero": {
+        "x": 0,
+        "y": 86.390625,
+        "width": 1920,
+        "height": 364.96875,
+        "bottom": 451.359375
+      },
+      "board": {
+        "x": 28.5,
+        "y": 570.5625,
+        "width": 1863,
+        "height": 507.828125,
+        "bottom": 1078.390625
+      },
+      "coupon": {
+        "x": 28.5,
+        "y": 570.5625,
+        "width": 839.15625,
+        "height": 507.828125,
+        "bottom": 1078.390625
+      },
+      "titleSize": 62.208,
+      "bodySize": 17.28,
+      "fonts": {
+        "html": "\"Segoe UI\", Arial, sans-serif",
+        "body": "\"Segoe UI\", Arial, sans-serif",
+        "p": "\"Segoe UI\", Arial, sans-serif"
+      },
+      "heights": {
+        "list": {
+          "x": 42.453125,
+          "y": 662.34375,
+          "width": 811.25,
+          "height": 290.609375,
+          "bottom": 952.953125
+        },
+        "footer": {
+          "x": 42.453125,
+          "y": 963.3125,
+          "width": 811.25,
+          "height": 77.484375,
+          "bottom": 1040.796875
+        },
+        "heading": {
+          "x": 42.453125,
+          "y": 584.515625,
+          "width": 811.25,
+          "height": 36.28125,
+          "bottom": 620.796875
+        }
+      }
+    }
+  },
+  "2560x1440": {
+    "before": {
+      "hero": {
+        "x": 72,
+        "y": 149,
+        "width": 2416,
+        "height": 730,
+        "bottom": 879
+      },
+      "board": null,
+      "coupon": null,
+      "titleSize": 84,
+      "bodySize": 18,
+      "fonts": {
+        "html": "Inter, \"Segoe UI\", Arial, sans-serif",
+        "body": "Inter, \"Segoe UI\", Arial, sans-serif",
+        "p": "Inter, \"Segoe UI\", Arial, sans-serif"
+      },
+      "heights": {
+        "list": null,
+        "footer": null,
+        "heading": null
+      }
+    },
+    "after": {
+      "hero": {
+        "x": 0,
+        "y": 115.1875,
+        "width": 2560,
+        "height": 484.984375,
+        "bottom": 600.171875
+      },
+      "board": {
+        "x": 38.015625,
+        "y": 759.703125,
+        "width": 2483.96875,
+        "height": 673.765625,
+        "bottom": 1433.46875
+      },
+      "coupon": {
+        "x": 38.015625,
+        "y": 759.703125,
+        "width": 1118.875,
+        "height": 673.765625,
+        "bottom": 1433.46875
+      },
+      "titleSize": 82.944,
+      "bodySize": 23.04,
+      "fonts": {
+        "html": "\"Segoe UI\", Arial, sans-serif",
+        "body": "\"Segoe UI\", Arial, sans-serif",
+        "p": "\"Segoe UI\", Arial, sans-serif"
+      },
+      "heights": {
+        "list": {
+          "x": 56.28125,
+          "y": 881.078125,
+          "width": 1082.34375,
+          "height": 386.109375,
+          "bottom": 1267.1875
+        },
+        "footer": {
+          "x": 56.28125,
+          "y": 1281,
+          "width": 1082.34375,
+          "height": 102.65625,
+          "bottom": 1383.65625
+        },
+        "heading": {
+          "x": 56.28125,
+          "y": 777.96875,
+          "width": 1082.34375,
+          "height": 48.375,
+          "bottom": 826.34375
+        }
+      }
+    }
+  },
+  "3840x2160": {
+    "before": {
+      "hero": {
+        "x": 72,
+        "y": 149,
+        "width": 3696,
+        "height": 730,
+        "bottom": 879
+      },
+      "board": null,
+      "coupon": null,
+      "titleSize": 84,
+      "bodySize": 18,
+      "fonts": {
+        "html": "Inter, \"Segoe UI\", Arial, sans-serif",
+        "body": "Inter, \"Segoe UI\", Arial, sans-serif",
+        "p": "Inter, \"Segoe UI\", Arial, sans-serif"
+      },
+      "heights": {
+        "list": null,
+        "footer": null,
+        "heading": null
+      }
+    },
+    "after": {
+      "hero": {
+        "x": 0,
+        "y": 160,
+        "width": 3840,
+        "height": 675.65625,
+        "bottom": 835.65625
+      },
+      "board": {
+        "x": 52.796875,
+        "y": 1054.828125,
+        "width": 3734.40625,
+        "height": 933.21875,
+        "bottom": 1988.046875
+      },
+      "coupon": {
+        "x": 52.796875,
+        "y": 1054.828125,
+        "width": 1683.90625,
+        "height": 933.21875,
+        "bottom": 1988.046875
+      },
+      "titleSize": 115.2,
+      "bodySize": 32,
+      "fonts": {
+        "html": "\"Segoe UI\", Arial, sans-serif",
+        "body": "\"Segoe UI\", Arial, sans-serif",
+        "p": "\"Segoe UI\", Arial, sans-serif"
+      },
+      "heights": {
+        "list": {
+          "x": 77.796875,
+          "y": 1222.28125,
+          "width": 1633.90625,
+          "height": 535.921875,
+          "bottom": 1758.203125
+        },
+        "footer": {
+          "x": 77.796875,
+          "y": 1777.390625,
+          "width": 1633.90625,
+          "height": 141.8125,
+          "bottom": 1919.203125
+        },
+        "heading": {
+          "x": 77.796875,
+          "y": 1079.828125,
+          "width": 1633.90625,
+          "height": 67.1875,
+          "bottom": 1147.015625
+        }
+      }
+    }
+  },
+  "1024x900": {
+    "before": {
+      "hero": {
+        "x": 30.71875,
+        "y": 192.390625,
+        "width": 962.5625,
+        "height": 545.75,
+        "bottom": 738.140625
+      },
+      "board": null,
+      "coupon": null,
+      "titleSize": 42,
+      "bodySize": 14,
+      "fonts": {
+        "html": "Inter, \"Segoe UI\", Arial, sans-serif",
+        "body": "Inter, \"Segoe UI\", Arial, sans-serif",
+        "p": "Inter, \"Segoe UI\", Arial, sans-serif"
+      },
+      "heights": {
+        "list": null,
+        "footer": null,
+        "heading": null
+      }
+    },
+    "after": {
+      "hero": {
+        "x": 0,
+        "y": 121.546875,
+        "width": 1024,
+        "height": 352,
+        "bottom": 473.546875
+      },
+      "board": {
+        "x": 20,
+        "y": 675.46875,
+        "width": 984,
+        "height": 963.703125,
+        "bottom": 1639.171875
+      },
+      "coupon": {
+        "x": 20,
+        "y": 675.46875,
+        "width": 566.984375,
+        "height": 721.421875,
+        "bottom": 1396.890625
+      },
+      "titleSize": 44.8,
+      "bodySize": 16,
+      "fonts": {
+        "html": "\"Segoe UI\", Arial, sans-serif",
+        "body": "\"Segoe UI\", Arial, sans-serif",
+        "p": "\"Segoe UI\", Arial, sans-serif"
+      },
+      "heights": {
+        "list": {
+          "x": 33,
+          "y": 760.703125,
+          "width": 540.984375,
+          "height": 452.625,
+          "bottom": 1213.328125
+        },
+        "footer": {
+          "x": 33,
+          "y": 1222.921875,
+          "width": 540.984375,
+          "height": 139.046875,
+          "bottom": 1361.96875
+        },
+        "heading": {
+          "x": 33,
+          "y": 688.46875,
+          "width": 540.984375,
+          "height": 33.609375,
+          "bottom": 722.078125
+        }
+      }
+    }
+  },
+  "768x1024": {
+    "before": {
+      "hero": {
+        "x": 23.03125,
+        "y": 192.390625,
+        "width": 721.9375,
+        "height": 542.65625,
+        "bottom": 735.046875
+      },
+      "board": null,
+      "coupon": null,
+      "titleSize": 42,
+      "bodySize": 14,
+      "fonts": {
+        "html": "Inter, \"Segoe UI\", Arial, sans-serif",
+        "body": "Inter, \"Segoe UI\", Arial, sans-serif",
+        "p": "Inter, \"Segoe UI\", Arial, sans-serif"
+      },
+      "heights": {
+        "list": null,
+        "footer": null,
+        "heading": null
+      }
+    },
+    "after": {
+      "hero": {
+        "x": 0,
+        "y": 121.546875,
+        "width": 768,
+        "height": 352,
+        "bottom": 473.546875
+      },
+      "board": {
+        "x": 20,
+        "y": 675.46875,
+        "width": 728,
+        "height": 977.609375,
+        "bottom": 1653.078125
+      },
+      "coupon": {
+        "x": 20,
+        "y": 675.46875,
+        "width": 417.65625,
+        "height": 721.421875,
+        "bottom": 1396.890625
+      },
+      "titleSize": 44.8,
+      "bodySize": 16,
+      "fonts": {
+        "html": "\"Segoe UI\", Arial, sans-serif",
+        "body": "\"Segoe UI\", Arial, sans-serif",
+        "p": "\"Segoe UI\", Arial, sans-serif"
+      },
+      "heights": {
+        "list": {
+          "x": 33,
+          "y": 760.703125,
+          "width": 391.65625,
+          "height": 452.625,
+          "bottom": 1213.328125
+        },
+        "footer": {
+          "x": 33,
+          "y": 1222.921875,
+          "width": 391.65625,
+          "height": 139.046875,
+          "bottom": 1361.96875
+        },
+        "heading": {
+          "x": 33,
+          "y": 688.46875,
+          "width": 391.65625,
+          "height": 33.609375,
+          "bottom": 722.078125
+        }
+      }
+    }
+  },
+  "390x844": {
+    "before": {
+      "hero": {
+        "x": 16,
+        "y": 116.390625,
+        "width": 358,
+        "height": 847.9375,
+        "bottom": 964.328125
+      },
+      "board": null,
+      "coupon": null,
+      "titleSize": 34,
+      "bodySize": 16,
+      "fonts": {
+        "html": "Inter, \"Segoe UI\", Arial, sans-serif",
+        "body": "Inter, \"Segoe UI\", Arial, sans-serif",
+        "p": "Inter, \"Segoe UI\", Arial, sans-serif"
+      },
+      "heights": {
+        "list": null,
+        "footer": null,
+        "heading": null
+      }
+    },
+    "after": {
+      "hero": {
+        "x": 0,
+        "y": 83.171875,
+        "width": 390,
+        "height": 448,
+        "bottom": 531.171875
+      },
+      "board": {
+        "x": 16,
+        "y": 821.84375,
+        "width": 358,
+        "height": 1466.6875,
+        "bottom": 2288.53125
+      },
+      "coupon": {
+        "x": 16,
+        "y": 821.84375,
+        "width": 358,
+        "height": 662.265625,
+        "bottom": 1484.109375
+      },
+      "titleSize": 30.42,
+      "bodySize": 16,
+      "fonts": {
+        "html": "\"Segoe UI\", Arial, sans-serif",
+        "body": "\"Segoe UI\", Arial, sans-serif",
+        "p": "\"Segoe UI\", Arial, sans-serif"
+      },
+      "heights": {
+        "list": {
+          "x": 29.796875,
+          "y": 907.390625,
+          "width": 330.40625,
+          "height": 393.875,
+          "bottom": 1301.265625
+        },
+        "footer": {
+          "x": 29.796875,
+          "y": 1310.859375,
+          "width": 330.40625,
+          "height": 135.84375,
+          "bottom": 1446.703125
+        },
+        "heading": {
+          "x": 29.796875,
+          "y": 835.640625,
+          "width": 330.40625,
+          "height": 33.609375,
+          "bottom": 869.25
+        }
+      }
+    }
+  },
+  "320x740": {
+    "before": {
+      "hero": {
+        "x": 16,
+        "y": 116.390625,
+        "width": 288,
+        "height": 1015.59375,
+        "bottom": 1131.984375
+      },
+      "board": null,
+      "coupon": null,
+      "titleSize": 34,
+      "bodySize": 16,
+      "fonts": {
+        "html": "Inter, \"Segoe UI\", Arial, sans-serif",
+        "body": "Inter, \"Segoe UI\", Arial, sans-serif",
+        "p": "Inter, \"Segoe UI\", Arial, sans-serif"
+      },
+      "heights": {
+        "list": null,
+        "footer": null,
+        "heading": null
+      }
+    },
+    "after": {
+      "hero": {
+        "x": 0,
+        "y": 83.171875,
+        "width": 320,
+        "height": 448,
+        "bottom": 531.171875
+      },
+      "board": {
+        "x": 16,
+        "y": 835.734375,
+        "width": 288,
+        "height": 1495.171875,
+        "bottom": 2330.90625
+      },
+      "coupon": {
+        "x": 16,
+        "y": 835.734375,
+        "width": 288,
+        "height": 679.21875,
+        "bottom": 1514.953125
+      },
+      "titleSize": 29,
+      "bodySize": 16,
+      "fonts": {
+        "html": "\"Segoe UI\", Arial, sans-serif",
+        "body": "\"Segoe UI\", Arial, sans-serif",
+        "p": "\"Segoe UI\", Arial, sans-serif"
+      },
+      "heights": {
+        "list": {
+          "x": 29.796875,
+          "y": 956.859375,
+          "width": 260.40625,
+          "height": 375.25,
+          "bottom": 1332.109375
+        },
+        "footer": {
+          "x": 29.796875,
+          "y": 1341.703125,
+          "width": 260.40625,
+          "height": 135.84375,
+          "bottom": 1477.546875
+        },
+        "heading": {
+          "x": 29.796875,
+          "y": 849.53125,
+          "width": 260.40625,
+          "height": 69.1875,
+          "bottom": 918.71875
+        }
+      }
+    }
+  }
+}
