@@ -149,3 +149,8 @@ async def coupon_script():
 
 from src.api.learning import router as learning_router
 app.include_router(learning_router, prefix="/api")
+
+
+@app.get('/dashboard-learning.js', include_in_schema=False)
+async def learning_script():
+    return FileResponse(Path(__file__).resolve().with_name('dashboard-learning.js'), media_type='application/javascript')

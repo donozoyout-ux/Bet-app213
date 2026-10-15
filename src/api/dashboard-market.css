@@ -1439,3 +1439,23 @@ body {margin:0;background:radial-gradient(ellipse at 65% 0%,#12336355,transparen
  *,*::before,*::after {animation:none!important;transition:none!important;scroll-behavior:auto!important;}
  .prediction-card:hover {transform:none;}
 }
+
+/* Learning editions: native controls and text-only evidence, shared dark palette. */
+.learning-metrics {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;margin:1.5rem 0;}
+.learning-metric,.learning-card {background:linear-gradient(145deg,#102744,#08172c);border:1px solid #294663;border-radius:1rem;padding:1.4rem;min-width:0;}
+.learning-metric span {display:block;color:var(--muted);font-size:.85rem;}
+.learning-metric strong {display:block;margin-top:.6rem;font-size:1.7rem;color:var(--primary);}
+.learning-cards {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;}
+.learning-card h2 {font-size:1.2rem;margin:1rem 0;}
+.learning-card .card-meta {flex-wrap:wrap;gap:.7rem;}
+.learning-card time {color:var(--muted);font-size:.8rem;}
+.learning-facts {display:grid;grid-template-columns:1fr 1fr;gap:.6rem;font-size:.9rem;}
+.learning-facts dt {color:var(--muted);}.learning-facts dd {margin:0;text-align:right;}
+.learning-evidence,.learning-explainer {padding:1rem;border-left:3px solid var(--primary);background:#062b303b;line-height:1.65;}
+.learning-card details {border-top:1px solid #294663;padding-top:1rem;margin-top:1rem;}
+.learning-card summary {cursor:pointer;color:var(--primary);min-height:2rem;}
+.learning-card p,.learning-card h2,#learning-status,#learning-statistics {overflow-wrap:anywhere;}
+.learning-card details p {font-size:.85rem;color:var(--muted);line-height:1.6;}
+.learning-controls select {max-width:100%;}
+@media(max-width:800px){.learning-cards {grid-template-columns:minmax(0,1fr);}.learning-metrics {grid-template-columns:repeat(2,minmax(0,1fr));}}
+@media(max-width:600px){.bottom-nav {overflow-x:auto;}.bottom-nav a {flex:1 0 4rem;}.learning-metric,.learning-card {padding:1rem;}.learning-metric strong {font-size:1.35rem;}.learning-controls label {min-width:0;width:100%;}}
