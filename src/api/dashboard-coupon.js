@@ -15,7 +15,7 @@ const kickoff=i=>Date.parse(i?.match?.kickoff_at);
 const inWeek=i=>{const t=kickoff(i),now=Date.now();return Number.isFinite(t)&&t>now&&t<=now+7*24*60*60*1000&&i?.match?.status==='scheduled';};
 const byKickoff=(a,b)=>kickoff(a)-kickoff(b)||String(a?.match?.id).localeCompare(String(b?.match?.id))||String(a?.recommendation?.id).localeCompare(String(b?.recommendation?.id));
 const book=()=>$('coupon-bookmaker')?.value || 'Bet365';
-let busy=false,adding=false,copying=false,candidates=[],draftGeneration=0,pendingPick=null,saved=null,ownerKey=null,dirty=false,sharing=false,historyOffset=0,manualDraft=null,verifying=false;
+let busy=false,refreshPending=false,adding=false,copying=false,candidates=[],draftGeneration=0,pendingPick=null,saved=null,ownerKey=null,dirty=false,sharing=false,historyOffset=0,manualDraft=null,verifying=false;
 const draftKey='betapp-coupon-draft-v1';
 function persist(){
  if(saved?.kind==='automatic' && !dirty)return;
@@ -133,7 +133,7 @@ async function updateSelected(){
  draw();
 }
 async function refresh(){
- if(busy)return;busy=true;$('coupon-candidates')?.setAttribute('aria-busy','true');
+ if(busy){refreshPending=true;return;}busy=true;$('coupon-candidates')?.setAttribute('aria-busy','true');
  // Daily generation is independent of the optional manual candidate list.
  if($('coupon-automatic'))await generate(false);
  if($('coupon-tools') && !$('coupon-tools').open){busy=false;$('coupon-candidates')?.setAttribute('aria-busy','false');return;}
@@ -141,7 +141,7 @@ async function refresh(){
   let items=[],offset=0,data;do{data=await api('/api/predictions/best?limit=100&offset='+offset+'&market=all&sort=ranking');items.push(...(data.items || []));offset+=100;}while(data.items?.length===100);
   render(items);
  }catch(_){const box=$('coupon-candidates');if(box){box.replaceChildren();const row=node('tr');td(row,'Fiyat listesi alınamadı. Oranları Yenile ile yeniden deneyin.').colSpan=6;box.append(row);}if(!$('coupon-automatic'))text('coupon-note','Bağlantı bekleniyor. Yeniden deneyin.');}
- finally{await updateSelected();await history();await management();busy=false;$('coupon-candidates')?.setAttribute('aria-busy','false');}
+ finally{await updateSelected();await history();await management();busy=false;$('coupon-candidates')?.setAttribute('aria-busy','false');if(refreshPending){refreshPending=false;await refresh();}}
 }
 async function copy(){
  if(!selected.size || copying)return;copying=true;draw();
