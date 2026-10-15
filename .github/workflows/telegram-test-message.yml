@@ -1,0 +1,45 @@
+name: Send Telegram connection test (manual)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  telegram_test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      SCRAPER_API_TOKEN: ${{ secrets.SCRAPER_API_TOKEN }}
+      BETAPP_URL: ${{ vars.BETAPP_URL }}
+    steps:
+      - name: Send exactly one test message (no coupon)
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "$SCRAPER_API_TOKEN" ]; then
+            echo "FAIL: missing SCRAPER_API_TOKEN secret"
+            exit 1
+          fi
+          python - <<'PY'
+          import json, os, urllib.error, urllib.request
+          base=(os.getenv("BETAPP_URL") or "https://bet-app213.onrender.com").rstrip("/")
+          req=urllib.request.Request(
+              base+"/api/telegram/test-message",
+              data=b"{}",
+              headers={"Authorization":"Bearer "+os.environ["SCRAPER_API_TOKEN"],"Content-Type":"application/json"},
+              method="POST")
+          try:
+              with urllib.request.urlopen(req,timeout=30) as resp:
+                  result=json.load(resp)
+          except urllib.error.HTTPError as exc:
+              print("FAIL: API HTTP",exc.code)
+              raise SystemExit(1)
+          except Exception as exc:
+              print("FAIL: request",type(exc).__name__)
+              raise SystemExit(1)
+          state=result.get("status","unknown")
+          print("Telegram test message:",state)
+          if state != "sent":
+              print("Reason:",result.get("error_code","unknown"))
+              raise SystemExit(1)
+          print("Telegram accepted message ID:",result.get("message_id"))
+          PY

@@ -246,3 +246,32 @@ async def test_private_chat_mismatched_id_rejected(configured, monkeypatch):
         return httpx.Response(200, json={'ok': True, 'result': result})
     result = await verification.verify(transport=httpx.MockTransport(response))
     assert result['status'] == 'unsupported_chat' and not result['connection_verified']
+
+
+async def test_one_shot_test_message_success_without_coupon_delivery(api, db, configured, monkeypatch):
+    from src.jobs.telegram import send_test_message
+    calls = []
+    async def mock_send(request):
+        calls.append(request)
+        assert request.url.path.endswith('/sendMessage')
+        payload = json.loads(request.content)
+        assert payload['chat_id'] == CHAT
+        assert 'test' in payload['text'].lower()
+        return httpx.Response(200, json={'ok': True, 'result': {'message_id': 23}})
+    result = await send_test_message(httpx.MockTransport(mock_send))
+    assert result == {'status': 'sent', 'message_id': 23}
+    assert len(calls) == 1
+    async with db.session() as session:
+        assert await session.scalar(select(func.count(TelegramDelivery.id))) == 0
+    assert (await api.post('/api/telegram/test-message')).status_code in (401, 503)
+
+
+async def test_one_shot_test_message_rejected_and_transport_ambiguous(configured):
+    from src.jobs.telegram import send_test_message
+    result = await send_test_message(httpx.MockTransport(
+        lambda req: httpx.Response(403, json={'ok': False, 'description': 'Forbidden: bot was blocked by the user'})))
+    assert result['status'] == 'failed' and 'error_code' in result
+    def timeout(req):
+        raise httpx.ReadTimeout('timeout', request=req)
+    result = await send_test_message(httpx.MockTransport(timeout))
+    assert result['status'] == 'uncertain'

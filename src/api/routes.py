@@ -316,6 +316,12 @@ async def verify_telegram_connection():
     return await verify()
 
 
+@router.post('/telegram/test-message', dependencies=[Depends(require_scraper_token)])
+async def telegram_test_message():
+    from src.jobs.telegram import send_test_message
+    return await send_test_message()
+
+
 @router.post('/telegram/tick',dependencies=[Depends(require_scraper_token),Depends(session_dependency)])
 async def telegram_tick():
     from src.jobs.telegram import dispatch
