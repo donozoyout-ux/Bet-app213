@@ -250,6 +250,17 @@ async def priority_cycle(db,client):
     if settings.app_env!='production' and os.getenv('BETAPP_PROCESS_ROLE')!='scraper':return
     if not hasattr(db,'priority_updater'):db.priority_updater=PriorityUpdater(db)
     await db.priority_updater.tick(client)
+    if time.monotonic() >= getattr(db, 'next_settlement_tick', 0):
+        db.next_settlement_tick = time.monotonic() + 60
+        try:
+            from src.analytics.settlements import settle_batch
+            async with db.session() as session:
+                cursor = await settle_batch(session, after_match_id=getattr(db, 'settlement_cursor', 0))
+                await session.commit()
+                db.settlement_cursor = cursor
+        except asyncio.CancelledError:raise
+        except Exception as exc:
+            log.warning('[SETTLEMENT] sweep deferred error=%s', type(exc).__name__)
     if memory_constrained():return
     if time.monotonic()<getattr(db,'next_prediction_refresh',0):return
     db.next_prediction_refresh=time.monotonic()+10

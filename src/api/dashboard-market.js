@@ -8,7 +8,7 @@ const date=v=>v?new Date(v).toLocaleString('tr-TR',{timeZone:'Europe/Istanbul',d
 const today=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Istanbul',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 const families={all:'Tümü',result:'Sonuç',double_chance:'Çifte Şans',goals:'Gol',first_half_goals:'1. Yarı Gol',second_half_goals:'2. Yarı Gol',btts:'KG',asian_handicap:'Handikap',corners:'Korner',cards:'Sarı + Kırmızı',yellow_cards:'Sarı Kart',red_cards:'Kırmızı Kart'};
 const pickLabel=r=>r?.market==='double_chance'?({'1x':'Çifte Şans 1X — Ev Sahibi veya Beraberlik','x2':'Çifte Şans X2 — Beraberlik veya Deplasman','12':'Çifte Şans 12 — Beraberlik Olmaz'}[r.selection]||r.label):r?.label;
-const confidences={high:'Yüksek',medium:'Orta',low:'Düşük'},outcomes={won:'Kazandı',lost:'Kaybetti',pending:'Bekliyor',awaiting_data:'Final veri bekleniyor',void:'İptal / geçersiz'};
+const confidences={high:'Yüksek',medium:'Orta',low:'Düşük'},outcomes={won:'Kazandı',lost:'Kaybetti',pending:'Maç bekleniyor',awaiting_data:'Sonuç verisi bekleniyor',void:'Geçersiz'};
 const pages=['home','predictions','markets','matches','performance','coupon'];
 const state={page:'home',market:'goals',offset:0,performanceOffset:0,controllers:new Map(),lastMatch:null};
 function cell(row,text,cls=''){const el=node('td',text,cls);row.append(el);return el;}

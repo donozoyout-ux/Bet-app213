@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from sqlalchemy import DateTime, ForeignKey, Integer, String, JSON, UniqueConstraint, Index, Boolean
+from sqlalchemy import DateTime, ForeignKey, Integer, String, JSON, UniqueConstraint, Index, Boolean, CheckConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -273,7 +273,7 @@ class PredictionSnapshot(Base):
     match_id: Mapped[int] = mapped_column(ForeignKey('matches.id'), primary_key=True)
     league_id: Mapped[int] = mapped_column(ForeignKey('leagues.id'), index=True)
     captured_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
-    model_version: Mapped[str] = mapped_column(String(40), default='quality-poisson-v1')
+    model_version: Mapped[str] = mapped_column(String(100), default='quality-poisson-v1')
     picks: Mapped[list] = mapped_column(JSON)
 
 
@@ -323,3 +323,24 @@ class TelegramDelivery(Base):
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     error_code: Mapped[str | None] = mapped_column(String(80))
     message_id: Mapped[int | None]
+
+
+class PredictionSettlement(Base):
+    """Append-only terminal decisions; revisions require an explicit correction."""
+    __tablename__ = 'prediction_settlements'
+    __table_args__ = (UniqueConstraint('match_id', 'pick_index', 'revision'),
+        CheckConstraint("outcome IN ('won','lost','void')"),
+        CheckConstraint('revision >= 1 AND pick_index >= 0'))
+    id: Mapped[int] = mapped_column(primary_key=True)
+    match_id: Mapped[int] = mapped_column(ForeignKey('prediction_snapshots.match_id'), index=True)
+    pick_index: Mapped[int]
+    revision: Mapped[int] = mapped_column(default=1)
+    outcome: Mapped[str] = mapped_column(String(16))
+    actual: Mapped[dict] = mapped_column(JSON)
+    evidence: Mapped[dict] = mapped_column(JSON)
+    snapshot_hash: Mapped[str] = mapped_column(String(64))
+    evidence_hash: Mapped[str] = mapped_column(String(64))
+    evaluator_version: Mapped[str] = mapped_column(String(40))
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    actor: Mapped[str] = mapped_column(String(120))
+    reason: Mapped[str] = mapped_column(String(500))

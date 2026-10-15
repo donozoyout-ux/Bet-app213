@@ -5,7 +5,7 @@ const $=id=>document.getElementById(id),selected=new Map();
 const money=n=>n==null?'—':!Number.isFinite(Number(n))?String(n):Number(n).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});
 const date=s=>s?new Date(s).toLocaleString('tr-TR',{timeZone:'Europe/Istanbul'}):'Gözlem zamanı bilinmiyor';
 const confidence={high:'Yüksek',medium:'Orta',low:'Düşük'};
-const outcomes={won:'Kazandı',lost:'Kaybetti',pending:'Bekliyor',awaiting_data:'Final veri bekleniyor',void:'İptal / iade'};
+const outcomes={won:'Kazandı',lost:'Kaybetti',pending:'Maç bekleniyor',awaiting_data:'Sonuç verisi bekleniyor',void:'Geçersiz'};
 const reasons={outside_manual_window:'Maç yedi günlük pencerenin dışında',match_started:'Maç başladı',analysis_stale:'Analiz güncel değil',selection_unavailable:'Seçim artık güçlü tahminler arasında değil',odds_stale:'Oran bayat',no_verified_odds:'Bu market için doğrulanmış güncel oran yok'};
 const text=(id,value)=>{if($(id))$(id).textContent=value;};
 const node=(tag,value='')=>{const e=document.createElement(tag);e.textContent=value;return e;};

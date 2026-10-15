@@ -166,21 +166,22 @@ async def test_postgres_scope_migration_and_concurrent_immutable_capture(monkeyp
         assert all([j.id for j in rows]==[j.id for j in rollouts[0]] for rows in rollouts)
         async with db.session() as session:
             assert await session.scalar(select(func.count(ScraperJob.id)).where(ScraperJob.kind=='stats_backfill'))==8
-        # seed() warms the new durable board and captures prematch picks.
-        # Reset that fixture's ledger here to exercise concurrent first publication.
-        from sqlalchemy import delete
+        # A fresh fixture exercises concurrent publication without deleting history.
         async with db.session() as session:
-            await session.execute(delete(PredictionSnapshot).where(PredictionSnapshot.match_id == id))
-            await session.commit()
+            original=await session.get(Match,id)
+            fresh=Match(external_match_id=999991, league_id=original.league_id, season_id=original.season_id,
+                home_team_id=original.home_team_id, away_team_id=original.away_team_id,
+                round=1, status='scheduled', kickoff_at=NOW+timedelta(days=1),raw={})
+            session.add(fresh);await session.commit();id=fresh.id
         pick=rank_candidate(candidate('goals','goal_environment',.68,'over_2_5'))
         async def publish():
             async with db.session() as session:
                 match=await session.get(Match,id);created=await capture(session,match,[pick],NOW);await session.commit();return created
         assert sum(await asyncio.gather(*(publish() for _ in range(6))))==1
         async with db.session() as session:
-            assert await session.scalar(select(func.count(PredictionSnapshot.match_id)))==1
+            assert await session.scalar(select(func.count(PredictionSnapshot.match_id)))==2
             assert set(await session.scalars(select(League.external_id).where(League.enabled.is_(True))))==set(PRODUCTION_LEAGUE_IDS).intersection({r['external_id'] for r in verified_snapshot()})
-            assert (await performance(session))['summary']['pending']==1
+            assert (await performance(session))['summary']['pending']>=2
     finally:
         async with db.engine.begin() as conn:await conn.execute(DropSchema(schema,cascade=True,if_exists=True))
         await db.close()
