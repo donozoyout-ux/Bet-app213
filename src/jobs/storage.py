@@ -98,15 +98,18 @@ def merge_odds_observations(row, data):
 
 
 async def store_odds(session, match, odds, final):
+    stored=False
     for name, markets in odds.items():
         bookmaker = await session.scalar(select(Bookmaker).where(Bookmaker.name == name))
         for key, model in [('1x2', Odds1X2), ('ah', AsianHandicap), ('ou', AsianTotals)]:
             data = markets.get(key)
             if not data:continue
+            if not any(value is not None for field,value in data.items() if field!='raw'):continue
             row = await get_or_create(session, model, {'match_id': match.id, 'bookmaker_id': bookmaker.id}, {'raw': data['raw']})
             merge_odds_observations(row,data)
+            stored=True
             log.info('[ODDS] bookmaker=%s market=%s match_id=%s saved', name, key, match.external_match_id)
-    match.last_scraped_at = utcnow()
+    if stored:match.last_scraped_at = utcnow()
     match.odds_complete = final and complete_odds(odds, final=True)
 
 
@@ -120,6 +123,7 @@ async def store_market_odds(session, match, odds_by_bookmaker, market, period):
     for name, data in odds_by_bookmaker.items():
         if not data:
             continue
+        if not any(value is not None for field,value in data.items() if field!='raw'):continue
         bookmaker = await session.scalar(select(Bookmaker).where(Bookmaker.name == name))
         if not bookmaker:
             continue
@@ -140,7 +144,7 @@ async def store_market_odds(session, match, odds_by_bookmaker, market, period):
             '[MARKET_ODDS] bookmaker=%s market=%s period=%s match_id=%s saved',
             name, market, period, match.external_match_id,
         )
-    match.last_scraped_at = utcnow()
+    if count:match.last_scraped_at = utcnow()
     return count
 
 

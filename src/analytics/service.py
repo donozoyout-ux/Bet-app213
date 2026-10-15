@@ -188,6 +188,8 @@ async def statistics(session, match, context, now, data_revision=None):
               'historical': historical, 'cache_seconds': CACHE_SECONDS,
               'methodology': 'Independent Poisson; venue rates shrunk with weight 5 toward this competition only. Minimum: league 20, each team 5, each venue 3. Results require observation stamps before cutoff and a three-hour completion buffer. No measured xG, event statistics or ML.'}
     result['ranking_evidence']={'goal_stability':min(stability),'goal_season_agreement':min(season_agreement)}
+    from .domestic_context import domestic_context,UEFA
+    result['domestic_context']=await domestic_context(session,match,cutoff) if context.get('external_league_id') in UEFA else None
     result['asian_handicap_candidates']=list(asian_candidates.values())
     result['market_engines'] = engine_reports
     result['engine_context'] = dict(match_id=match.id, kickoff_at=engine_context.kickoff_at,

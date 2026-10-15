@@ -177,6 +177,7 @@ class Recommendation(BaseModel):
 
 
 class Statistics(BaseModel):
+    domestic_context: dict | None = None
     market_engines: dict = Field(default_factory=dict)
     engine_context: dict = Field(default_factory=dict)
     engine_registry: dict = Field(default_factory=dict)

@@ -221,6 +221,25 @@ async def enqueue_all_updates():
         await session.commit()
         return result
 
+
+async def enqueue_due_updates(db=None, now=None):
+    """Daily fallback if the external scheduler misses a run; never replace active work."""
+    db=db or database;now=now or utcnow();created=[]
+    async with db.session() as session:
+        if session.bind.dialect.name=='postgresql':await session.execute(text('SELECT pg_advisory_xact_lock(213003)'))
+        for league in await session.scalars(select(League).where(League.enabled.is_(True)).order_by(League.priority,League.id)):
+            active=await session.scalar(select(ScraperJob.id).where(ScraperJob.league_id==league.id,ScraperJob.kind=='update',ScraperJob.status.in_(['running','queued'])).limit(1))
+            if active:continue
+            discoveries=(await session.execute(select(ScraperJob.discovery_finished_at,ScraperJob.discovery_metrics).where(ScraperJob.league_id==league.id,
+                ScraperJob.kind.in_(['update','backfill']),ScraperJob.discovery_complete.is_(True),ScraperJob.discovery_finished_at>now-timedelta(hours=24)))).all()
+            attempt=await session.scalar(select(func.max(ScraperJob.created_at)).where(ScraperJob.league_id==league.id,ScraperJob.kind=='update'))
+            if any(not any(v.get('errors',0) for v in (metrics or {}).values()) for stamp,metrics in discoveries):continue
+            if attempt and aware(attempt)>now-timedelta(hours=6):continue
+            job=ScraperJob(kind='update',league_id=league.id,start_year=league.backfill_from_year,priority=0)
+            session.add(job);created.append(job)
+        await session.commit()
+    return created
+
 async def discover(job_id, client):
     async with database.session() as session:
         job = await session.get(ScraperJob, job_id)
@@ -608,7 +627,9 @@ async def process_item(job_id, item_id, client):
                     await session.commit()  # A later source failure cannot roll back valid odds.
                     ok = complete_odds(odds, final)
                     if not ok:
-                        errors.append('Incomplete bookmaker markets')
+                        from src.scrapers.goaloo.odds import odds_gaps
+                        gaps=odds_gaps(odds,final)
+                        errors.append('Incomplete bookmaker markets: '+', '.join(f"{g['bookmaker']}/{g['market']}/{g['stage']}" for g in gaps))
                 except SourceError as exc:
                     ok = False
                     errors.append(str(exc))
@@ -682,6 +703,7 @@ async def work(once=False):
     initialization_checked = False
     stats_queue_checked = float('-inf')
     market_queue_checked = float('-inf')
+    update_queue_checked = float('-inf')
     while True:
         try:
             await wait_for_capacity()
@@ -717,6 +739,9 @@ async def work(once=False):
                 if now_mono - market_queue_checked >= 60:
                     await enqueue_market_odds_rollout(automatic=True)
                     market_queue_checked = now_mono
+            if not once and settings.app_env=='production' and time.monotonic()-update_queue_checked>=300:
+                await enqueue_due_updates(database)
+                update_queue_checked=time.monotonic()
             async with database.engine.connect() as lock:
                 postgres = lock.dialect.name == 'postgresql'
                 acquired = not postgres or await lock.scalar(text('SELECT pg_try_advisory_lock(:id)'), {'id': LOCK_ID})

@@ -121,6 +121,15 @@ class StatusResponse(BaseModel):
     latest_new_match_at: datetime | None = None
     total_odds: int | None = None
     last_scraped_at: datetime | None = None
+    last_successful_discovery_at: datetime | None = None
+    last_data_update_at: datetime | None = None
+    stale_fixture_leagues: int | None = None
+    failed_collection_items_24h: int | None = None
+    partial_collection_jobs_24h: int | None = None
+    active_collection_jobs: int | None = None
+    collection_retry_cooldowns: int | None = None
+    partial_quote_sources: int | None = None
+    fixture_collection: list[dict] = Field(default_factory=list)
     app_env: str
 
 

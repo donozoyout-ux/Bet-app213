@@ -26,22 +26,26 @@ async def test_upcoming_quotes_refresh_markets_and_durable_backoff(db,monkeypatc
     async def corner(*args,**kwargs):
         calls.append('corners');return {'Bet365':dict(latest_line=9.5,latest_over=2.1,latest_under=2.3,raw={})}
     monkeypatch.setattr(odds,'fetch_halftime_odds',ht);monkeypatch.setattr(corners,'fetch_corner_odds',corner)
+    async def full(*args):
+        from tests.test_goaloo import fixture
+        calls.append('full');return odds.parse_odds(fixture('goaloo_odds.json'))
+    monkeypatch.setattr(odds,'fetch_odds',full)
     updater=PriorityUpdater(db)
-    for _ in range(5):await updater.upcoming_quotes(None)
-    assert calls.count('ht')==2 and calls.count('corners')==2
+    for _ in range(6):await updater.upcoming_quotes(None)
+    assert calls.count('ht')==2 and calls.count('corners')==2 and calls.count('full')==2
     async with db.session() as session:
         rows=(await session.scalars(select(MarketOdds).where(MarketOdds.match_id.in_(ids),MarketOdds.market=='corners'))).all()
         assert any(row.latest_under==2.3 and row.raw['_field_observed_at']['latest_under']==NOW.isoformat() for row in rows)
-        assert len((await session.scalars(select(CollectorRetry).where(CollectorRetry.key.like('quotes:%')))).all())==4
+        assert len((await session.scalars(select(CollectorRetry).where(CollectorRetry.key.like('quotes:%')))).all())==6
     # A failed endpoint is backed off; another market still proceeds.
     monkeypatch.setattr(live,'utcnow',lambda:NOW+timedelta(minutes=6))
     async def failure(*args):raise TimeoutError()
     monkeypatch.setattr(odds,'fetch_halftime_odds',failure)
-    for _ in range(4):await updater.upcoming_quotes(None)
+    for _ in range(6):await updater.upcoming_quotes(None)
     async with db.session() as session:
         retries=(await session.scalars(select(CollectorRetry))).all()
         assert sum(r.reason=='TimeoutError' for r in retries)==2
-        assert sum(r.reason=='quote_refresh' for r in retries)==2
+        assert sum(r.reason=='quote_refresh' for r in retries)==4
 
 
 def test_odds_diagnostic_distinguishes_exact_line_stale_and_no_source():

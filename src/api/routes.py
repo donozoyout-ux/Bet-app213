@@ -84,7 +84,9 @@ async def uncached_status():
         last = await session.scalar(select(func.max(Match.last_scraped_at)))
         stats_last=await session.scalar(select(func.max(MatchStatistics.updated_at)))
         last=max((aware(value) for value in [last,stats_last] if value is not None),default=None)
-    return StatusResponse(database='connected', database_engine=database.engine.dialect.name, total_matches=total, new_matches_24h=new_matches_24h, latest_new_match_at=latest_new_match_at, total_odds=odds_total, last_scraped_at=aware(last), app_env=settings.app_env)
+        from src.jobs.monitoring import collection_health
+        collection=await collection_health(session,utcnow())
+    return StatusResponse(database='connected', database_engine=database.engine.dialect.name, total_matches=total, new_matches_24h=new_matches_24h, latest_new_match_at=latest_new_match_at, total_odds=odds_total, last_scraped_at=aware(last), app_env=settings.app_env,**collection)
 
 
 @router.get('/leagues', response_model=list[LeagueResponse])

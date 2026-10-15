@@ -83,7 +83,7 @@ class PriorityUpdater:
 
     async def upcoming_quotes(self,client):
         """Refresh one due priced market ahead of historical backfill, with durable backoff."""
-        from src.scrapers.goaloo.odds import fetch_odds,fetch_halftime_odds
+        from src.scrapers.goaloo.odds import fetch_odds,fetch_halftime_odds,has_source_prices
         from src.scrapers.goaloo.corner_odds import fetch_corner_odds
         from .storage import store_odds,store_market_odds
         now=utcnow();tasks=[]
@@ -104,6 +104,15 @@ class PriorityUpdater:
                         key=f'quotes:{market}:{match.external_match_id}';retry=retries.get(key)
                         if retry and aware(retry.next_attempt_at)>now:continue
                         tasks.append((aware(match.kickoff_at),aware(retry.next_attempt_at) if retry else now-timedelta(days=1),key,market,match.id,match.external_match_id))
+            # Prices must not depend on already having a qualifying, priced model
+            # pick. Probe all supported fixtures in the next 48 hours, one endpoint
+            # per cycle, using the same durable cooldown and source validation.
+            known={task[2] for task in tasks}
+            for match in matches.values():
+                if aware(match.kickoff_at)>now+timedelta(hours=48):continue
+                key=f'quotes:full_time:{match.external_match_id}';retry=retries.get(key)
+                if key in known or retry and aware(retry.next_attempt_at)>now:continue
+                tasks.append((aware(match.kickoff_at),aware(retry.next_attempt_at) if retry else now-timedelta(days=1),key,'full_time',match.id,match.external_match_id))
             # Missing recommendations must not exclude today's source-accessible fixtures.
             # One endpoint per tick, the existing retry ledger and five-minute cadence
             # bound this work; failed/empty responses never become fresh observations.
@@ -115,23 +124,33 @@ class PriorityUpdater:
                 if key in present or retry and aware(retry.next_attempt_at)>now:continue
                 tasks.append((aware(match.kickoff_at),aware(retry.next_attempt_at) if retry else now-timedelta(days=1),key,'full_time',match.id,match.external_match_id))
         if not tasks:return
-        # Today's candidates are first, then the longest waiting market. Never starve a bookmaker endpoint.
+        # Oldest due endpoint first; today's fixtures break ties. Recurring today
+        # refreshes must not permanently starve another supported competition.
         today=now.astimezone(ZoneInfo(DISPLAY_TIMEZONE)).date()
-        kickoff,due,key,market,id,external=min(tasks,key=lambda t:(t[0].astimezone(ZoneInfo(DISPLAY_TIMEZONE)).date()!=today,t[1],t[0],t[2]))
+        kickoff,due,key,market,id,external=min(tasks,key=lambda t:(t[1],t[0].astimezone(ZoneInfo(DISPLAY_TIMEZONE)).date()!=today,t[0],t[2]))
         try:
             async with asyncio.timeout(8):
                 if market=='full_time':data=await fetch_odds(client,external,False)
                 elif market=='first_half_goals':data={b:v['ou'] for b,v in (await fetch_halftime_odds(client,external,False)).items() if v.get('ou')}
                 else:data=await fetch_corner_odds(client,external,half_time=False,final=False)
             if not data:raise SourceError('No source prices')
+            current_prices=market!='full_time' or has_source_prices(data,'latest')
+            if not current_prices and not has_source_prices(data,'opening'):
+                raise SourceError('No source prices')
             async with self.db.session() as session:
                 match=await session.get(Match,id)
                 if match.status!='scheduled' or aware(match.kickoff_at)<=utcnow():return
                 if market=='full_time':await store_odds(session,match,data,False)
                 else:await store_market_odds(session,match,data,market,'first_half' if market=='first_half_goals' else 'full_time')
-                retry=await session.get(CollectorRetry,key)
-                if retry is None:retry=CollectorRetry(key=key);session.add(retry)
-                retry.failures=0;retry.reason='quote_refresh';retry.next_attempt_at=utcnow()+timedelta(minutes=5)
+                from src.scrapers.goaloo.odds import odds_gaps
+                if current_prices:
+                    retry=await session.get(CollectorRetry,key)
+                    if retry is None:retry=CollectorRetry(key=key);session.add(retry)
+                    retry.failures=0;retry.reason='quote_partial_source' if market=='full_time' and odds_gaps(data) else 'quote_refresh';retry.next_attempt_at=utcnow()+timedelta(minutes=5)
+                else:
+                    # Real opening values survive; missing latest values neither
+                    # inherit that observation time nor suppress controlled retry.
+                    await record_retry_failure(session,key,'no_current_source_prices',utcnow(),base_delay=60,max_delay=900)
                 await session.commit()
         except asyncio.CancelledError:raise
         except Exception as exc:

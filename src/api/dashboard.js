@@ -167,12 +167,16 @@
       write('new-matches-24h',system.new_matches_24h == null ? empty : system.new_matches_24h);
       write('latest-new-match',`Son kayıt: ${date(system.latest_new_match_at)}`);
       write('data-source','Goaloo');
+      write('fixture-last-success',date(system.last_successful_discovery_at));write('collection-last-update',date(system.last_data_update_at));
+      write('collection-summary',system.stale_fixture_leagues==null?'Durum bekleniyor':system.stale_fixture_leagues?`${system.stale_fixture_leagues} ligde keşif bekleniyor`:'Aktif liglerin keşfi güncel');
+      write('collection-failures',`Son 24 saat: ${system.failed_collection_items_24h??'—'} başarısız öğe · ${system.partial_collection_jobs_24h??'—'} kısmi/başarısız iş · ${system.active_collection_jobs??'—'} aktif iş · ${system.collection_retry_cooldowns??'—'} kontrollü bekleyen kaynak · ${system.partial_quote_sources??'—'} kısmi oran kaynağı`);
+      const collection=$('collection-leagues');if(collection){collection.replaceChildren();for(const league of system.fixture_collection||[]){const row=document.createElement('tr');for(const text of [league.name,date(league.last_successful_discovery_at),league.discovered,league.added,league.updated,league.errors,league.stale?'Keşif bekleniyor':'Güncel']){const cell=document.createElement('td');cell.textContent=String(text??'—');row.append(cell);}collection.append(row);}}
 
       for(const id of ['last-scraped','hero-last','header-last','home-last'])write(id,date(system.last_scraped_at));
       write('system-summary',system.total_odds == null ? 'Veri bekleniyor' : `${system.total_odds} bookmaker piyasa kaydı`);
       const [live,today]=await Promise.allSettled([api('/api/matches?view=live&limit=1'),api('/api/matches?view=today&display_timezone=Europe%2FIstanbul&limit=1')]);write('live-matches',live.status==='fulfilled'?live.value.total:'Veri bekleniyor');write('today-matches',today.status==='fulfilled'?today.value.total:'Veri bekleniyor');
       if(!globalThis.BetAppUI || globalThis.BetAppUI.active('matches'))await loadSeasons();
-    } catch (_) {write('system-db',requestError(_));['total-matches','live-matches','today-matches','system-summary'].forEach(id=>write(id,'Veri bekleniyor'));}
+    } catch (_) {write('system-db',requestError(_));['total-matches','new-matches-24h','latest-new-match','live-matches','today-matches','system-summary','fixture-last-success','collection-last-update','collection-summary','collection-failures'].forEach(id=>write(id,'Veri bekleniyor'));}
     refreshPredictions();
     } finally {healthBusy=false;}
   }
