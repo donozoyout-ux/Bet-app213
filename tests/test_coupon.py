@@ -33,6 +33,7 @@ async def coupon_seed(db):
         template=deepcopy(board.payload['items'][0]);items=[]
         for fixture in (match,second):
             item=deepcopy(template);item['match']['id']=fixture.id;item['match_id']=fixture.id
+            item['match']['kickoff_at']=fixture.kickoff_at.replace(tzinfo=NOW.tzinfo).isoformat()
             picks=[]
             for market,selection,label in [('first_half_goals','over_1_5','1.5 İlk Yarı Gol Üst'),('corners','under_9_5','9.5 Korner Alt')]:
                 rec=rank_candidate(candidate(market,market,.70,selection));rec['label']=label;picks.append(rec)
@@ -40,6 +41,8 @@ async def coupon_seed(db):
             for book in await session.scalars(select(Bookmaker)):
                 for market,period,line,price in [('first_half_goals','first_half',1.5,1.8),('corners','full_time',9.5,2.2)]:
                     session.add(MarketOdds(match_id=fixture.id,bookmaker_id=book.id,market=market,period=period,latest_line=line,latest_over=price,latest_under=price,updated_at=NOW-timedelta(minutes=1),raw=observed_prices(NOW-timedelta(minutes=1),'latest_over','latest_under')))
+        # This fixture intentionally models the legacy two-pick board format.
+        board.payload={k:v for k,v in board.payload.items() if k!='coupon_records'}
         board.payload={**board.payload,'items':items,'evaluated':2}
         board.expires_at=NOW+timedelta(minutes=10);board.model_version=MODEL_VERSION
         await session.commit()
@@ -165,6 +168,7 @@ async def test_chromium_coupon_add_copy_clear_and_settlement(api,db,monkeypatch)
             response=await api.request(route.request.method,route.request.url.removeprefix('http://test'),content=route.request.post_data,headers={'content-type':'application/json'})
             await route.fulfill(status=response.status_code,body=response.content,content_type=response.headers.get('content-type','application/json'))
         await page.route('http://test/**',forward);await page.goto('http://test/#coupon')
+        await page.locator('#coupon-tools > summary').click()
         await page.locator('#coupon-edit-panel summary').click()
         checks=page.locator('[data-coupon-pick]');await expect(checks).to_have_count(4)
         await checks.nth(0).check();await expect(page.locator('#coupon-selected')).to_contain_text('İlk Yarı')
@@ -173,6 +177,7 @@ async def test_chromium_coupon_add_copy_clear_and_settlement(api,db,monkeypatch)
         await page.locator('#coupon-copy').click();await expect(page.locator('#coupon-note')).to_contain_text('kopyalandı')
         assert 'Bet365' in await page.evaluate('window.copiedText')
         await page.reload()
+        await page.locator('#coupon-tools > summary').click()
         await expect(page.locator('#coupon-selected button')).to_have_count(2)
         await expect(page.locator('#coupon-total')).to_contain_text('3,96')
         await page.locator('#coupon-edit-panel summary').click()

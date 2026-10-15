@@ -58,6 +58,7 @@ async def test_brand_navigation_coupon_and_accessible_motion(api, db, monkeypatc
 
         try:
             await page.goto('http://test/')
+            await page.wait_for_load_state('networkidle')
             await expect(page).to_have_title('Kuponanalizii · Futbol Analiz Merkezi')
             logo = page.locator('.brand-symbol img')
             await expect(logo).to_be_visible()
@@ -81,7 +82,9 @@ async def test_brand_navigation_coupon_and_accessible_motion(api, db, monkeypatc
             assert any('/api/coupons/automatic?strategy=balanced&max_matches=4' in path for path in calls)
             await capture('coupon')
             assert await page.evaluate('document.documentElement.scrollWidth<=innerWidth')
-            # Clear evidence of manual vs automatic state; existing draft remains editable.
+            # Editing stays accessible outside the default daily view.
+            await expect(page.locator('#coupon-selected')).not_to_be_visible()
+            await page.locator('#coupon-tools > summary').click()
             await page.locator('#coupon-selected button').first.click()
             await expect(page.locator('#coupon-mode')).to_contain_text('Manuel')
             await expect(page.locator('#coupon-selected button')).to_have_count(3)

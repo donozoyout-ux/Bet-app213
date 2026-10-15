@@ -126,7 +126,7 @@ async def test_empty_daily_coupon_exposes_real_update_times(api, db, monkeypatch
     await coupon_seed(db)  # These fixtures are tomorrow; no forced daily filler.
     data = (await api.post('/api/coupons/automatic')).json()
     assert data['items'] == [] and data['reason'] == 'no_today_candidates'
-    assert data['data_updates']['analysis_generated_at']
+    assert data['data_updates']['analysis_generated_at'] is None  # Today's pool has no league analysis; tomorrow is a different scope.
     assert data['data_updates']['price_observed_at'] is None  # no daily source was examined
     assert data['data_updates']['checked_at']
 

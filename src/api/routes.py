@@ -254,11 +254,14 @@ async def automatic_coupon(strategy: Literal['balanced','cautious','value']='bal
     async with asyncio.timeout(10):
         row=await automatic(session,utcnow(),strategy=strategy,max_matches=max_matches)
         await session.commit()
-        if row:return await coupon_detail(session,row)
+        if row:
+            data=await coupon_detail(session,row)
+            diagnostics=session.info.get('coupon_diagnostics',{})
+            return {**data,'diagnostics':diagnostics,'data_updates':{'checked_at':diagnostics.get('checked_at'),'analysis_generated_at':diagnostics.get('last_analysis_generated_at'),'price_observed_at':diagnostics.get('last_quality_price_observed_at')}}
         diagnostics=session.info.get('coupon_diagnostics',{});cache=session.info.get('prediction_snapshot',{});daily=diagnostics.get('daily',{})
-        reason='analysis_unavailable' if cache.get('stale') else 'no_today_candidates' if not daily.get('selections') else 'quality_rejected' if daily.get('quality_rejected')==daily.get('selections') else 'price_rejected'
-        messages={'analysis_unavailable':'Güncel analiz hazırlanıyor; kalite şartları korunuyor.','no_today_candidates':'Bugün henüz başlamamış uygun maç bulunamadı.','quality_rejected':'Bugünkü seçimler %70 olasılık, %80 güvenilirlik ve %80 kalite şartlarını karşılamıyor.','price_rejected':'Kaliteli seçimler için güncel ve tam eşleşen oran bekleniyor.'}
-        return {'items':[],'status':'no_eligible_selections','reason':reason,'message':messages[reason],'diagnostics':diagnostics,'cache':cache,'data_updates':{'analysis_generated_at':cache.get('latest_generated_at') or cache.get('generated_at'),'price_observed_at':diagnostics.get('last_price_observed_at'),'checked_at':diagnostics.get('checked_at')}}
+        reason='analysis_unavailable' if cache.get('stale') else 'no_today_candidates' if not diagnostics.get('total_matches') else 'insufficient_prematch_data' if not daily.get('selections') else 'quality_rejected' if daily.get('quality_rejected')==daily.get('selections') else 'price_rejected'
+        messages={'insufficient_prematch_data':'Bugünkü maçların model adayları için yeterli örneklem yok; veri güncellemesi bekleniyor.','analysis_unavailable':'Güncel analiz hazırlanıyor; kalite şartları korunuyor.','no_today_candidates':'Bugün henüz başlamamış uygun maç bulunamadı.','quality_rejected':'Bugünkü seçimler %70 olasılık, %80 güvenilirlik ve %80 kalite şartlarını karşılamıyor.','price_rejected':'Kaliteli seçimler için güncel ve tam eşleşen oran bekleniyor.'}
+        return {'coupon_date':diagnostics.get('coupon_date'),'strategy':strategy,'target_matches':max_matches,'items':[],'status':'no_eligible_selections','reason':reason,'message':messages[reason],'diagnostics':diagnostics,'cache':cache,'data_updates':{'analysis_generated_at':cache.get('latest_generated_at') or cache.get('generated_at'),'price_observed_at':diagnostics.get('last_quality_price_observed_at'),'checked_at':diagnostics.get('checked_at')}}
 
 
 @router.get('/odds-coverage')
@@ -354,10 +357,12 @@ async def uncached_predictions(session,league,date,team=None,now=None,publish=Tr
     calculated = [];observations=[]
     session.info['count_availability']=[]
     session.info['engine_analysis']=[]
+    session.info['coupon_records']=[]
     for row in rows:
         await asyncio.sleep(0)  # Allow liveness and short requests between matches.
         result = await compute_statistics(session, row[0], match_response(row), now, rev)
         session.info['count_availability'].append((row[0].id,result['market_availability']))
+        session.info['coupon_records'].append(dict(match=match_response(row),candidates=result['candidates']))
         session.info['engine_analysis'].append(dict(match_id=row[0].id,
             market_engines=result['market_engines'], candidates=[c for c in result['candidates'] if c['market'] in ('result','goals','double_chance','btts')]))
         if result['recommendations']:
