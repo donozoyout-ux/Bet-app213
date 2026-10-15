@@ -94,9 +94,9 @@ def test_half_goal_settlement_rules():
     m_missing = SimpleNamespace(status='finished', ht_home=None, ht_away=0, ft_home=2, ft_away=1)
     assert settle(m_missing, None, {'selection': 'over_0_5', 'market': 'first_half_goals'}) == ('awaiting_data', None)
 
-    # Impossible combinations void
+    # Inconsistent source data must await a correction, not void a valid pick.
     m_bad = SimpleNamespace(status='finished', ht_home=3, ht_away=0, ft_home=2, ft_away=0)
-    assert settle(m_bad, None, {'selection': 'over_0_5', 'market': 'second_half_goals'}) == ('void', None)
+    assert settle(m_bad, None, {'selection': 'over_0_5', 'market': 'second_half_goals'}) == ('awaiting_data', None)
 
     # Cancelled/abandoned void
     m_canc = SimpleNamespace(status='cancelled', ht_home=1, ht_away=0, ft_home=1, ft_away=0)

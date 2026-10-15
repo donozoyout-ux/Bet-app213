@@ -31,7 +31,8 @@ def parse_scoreboard(payload):
         raise SourceError('Live scoreboard missing')
     page = Page(data['html'])
     # Scope to the primary scoreboard, never event/penalty/other-match scores.
-    half = next((n for n in page.root.walk() if {'half','end'} & set(n.attrs.get('class','').split())), None)
+    container=page.by_id('mScore') or page.root
+    half = next((n for n in container.walk() if {'half','end'} & set(n.attrs.get('class','').split())), None)
     scores = [n.text() for n in half.walk() if 'score' in n.attrs.get('class','').split()] if half else []
     if len(scores)!=2 and state in {-1,1,2,3,4,5}:
         raise SourceError('Live scoreboard schema changed')
@@ -44,13 +45,28 @@ def parse_scoreboard(payload):
     raw_minute = clock.text() if clock else ''
     # Source phase-start times and scheduled kickoff are NOT a reported minute.
     minute = re.fullmatch(r"(\d{1,3}(?:\+\d{1,2})?)\s*['′]?",raw_minute)
-    return dict(status=STATUSES[state],ft_home=home,ft_away=away,
+    # Goaloo's primary scoreboard explicitly labels the regulation half score.
+    # Never infer it from events, the current score or a missing value.
+    halves = [n.text() for n in half.walk() if n.attrs.get('title')=='Score 1st Half'] if half else []
+    ht = re.fullmatch(r'(\d{1,2})\s*-\s*(\d{1,2})', halves[0]) if len(halves)==1 else None
+    ht_home,ht_away = (int(ht[1]),int(ht[2])) if ht and state in {-1,2,3,4,5} else (None,None)
+    if ht_home is not None and (ht_home>home or ht_away>away):
+        ht_home=ht_away=None
+    return dict(status=STATUSES[state],ft_home=home,ft_away=away,ht_home=ht_home,ht_away=ht_away,
                 live_minute=minute[1] if minute and state>0 else None,
                 raw={'state':state,'score_html':data['html'],'reported_minute':raw_minute})
 
 
 async def fetch_live(client, match_id, league_id, home_id, away_id):
     source = await client.get_text(f'https://www.goaloo.com/match/live-{match_id}')
-    identity(source,match_id,league_id,home_id,away_id)
+    verified=identity(source,match_id,league_id,home_id,away_id)
     payload = await client.get('https://www.goaloo.com/Ajax/SoccerAjax/',params={'type':11,'id':match_id})
-    return parse_scoreboard(payload), source
+    observation=parse_scoreboard(payload)
+    # The page may contain the labelled half score even when AJAX omits it.
+    board=Page(source).by_id('mScore')
+    if board and verified.get('state')==-1 and observation['status']=='finished' and observation['ht_home'] is None:
+        try:page_score=parse_scoreboard({'ErrCode':0,'Data':{'state':-1,'html':source}})
+        except SourceError:page_score=None
+        if page_score and (page_score['ft_home'],page_score['ft_away'])==(observation['ft_home'],observation['ft_away']):
+            observation.update(ht_home=page_score['ht_home'],ht_away=page_score['ht_away'])
+    return observation, source

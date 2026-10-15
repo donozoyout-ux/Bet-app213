@@ -39,28 +39,25 @@ async def capture_many(session, observations, now):
     return result.rowcount > 0
 
 
-def settle(match, stats, pick):
+def settle(match, stats, pick, now=None):
+    if now is not None and getattr(match,'kickoff_at',None) and aware(match.kickoff_at)>now:return 'pending',None
     if match.status in {'cancelled','abandoned','postponed'}:return 'void',None
     if match.status != 'finished':return 'pending',None
+    from .settlement import missing_fields, FINAL_STATS
+    if missing_fields(match,stats,pick):return 'awaiting_data',None
     market,selection=pick['market'],pick['selection']
+    import re
+    if market in {'goals','corners','cards','yellow_cards','red_cards','first_half_goals','second_half_goals'} and not re.fullmatch(r'(over|under)_\d+_[05]',selection):return 'awaiting_data',None
+    if market=='asian_handicap' and not re.fullmatch(r'(home|away)_(plus|minus)_\d+_[05]',selection):return 'awaiting_data',None
+    if market in {'result','double_chance','btts'} and selection not in {'result':{'home','draw','away'},'double_chance':{'1x','x2','12'},'btts':{'yes','no'}}[market]:return 'awaiting_data',None
     if market in {'corners','cards','yellow_cards','red_cards'}:
-        fields=['home_corners','away_corners'] if market=='corners' else ['home_yellow_cards','away_yellow_cards','home_red_cards','away_red_cards']
-        if market in {'yellow_cards','red_cards'}:fields=['home_'+market,'away_'+market]
-        if not stats or not stats.is_final or any(getattr(stats,f) is None for f in fields):return 'awaiting_data',None
-        total=sum(getattr(stats,f) for f in fields)
+        total=sum(getattr(stats,f) for f in FINAL_STATS[market])
     elif market in {'first_half_goals','second_half_goals'}:
-        if match.ht_home is None or match.ht_away is None:
-            return 'awaiting_data',None
-        if match.ht_home < 0 or match.ht_away < 0:
-            return 'void',None
         if market == 'first_half_goals':
             total = match.ht_home + match.ht_away
         else:
-            if match.ft_home is None or match.ft_away is None:return 'awaiting_data',None
-            if match.ft_home < match.ht_home or match.ft_away < match.ht_away:return 'void',None
             total = (match.ft_home - match.ht_home) + (match.ft_away - match.ht_away)
     else:
-        if match.ft_home is None or match.ft_away is None:return 'awaiting_data',None
         home,away=match.ft_home,match.ft_away;total=home+away
     if market in {'goals','corners','cards','yellow_cards','red_cards','first_half_goals','second_half_goals'}:
         direction,a,b=selection.split('_');line=float(a+'.'+b)
@@ -119,9 +116,12 @@ def finish(result):
 
 
 async def performance(session, league=None, start=None, end=None, market='all', exact_market=None, confidence=None, limit=50, offset=0):
+    from .settlement import details
+    from src.models import utcnow
+    now=utcnow()
     from src.api.routes import match_query,match_response
     query,_,_=match_query()
-    query=query.add_columns(PredictionSnapshot,MatchStatistics).options(defer(Match.raw),defer(MatchStatistics.raw)).join(PredictionSnapshot,PredictionSnapshot.match_id==Match.id).outerjoin(MatchStatistics,MatchStatistics.match_id==Match.id).where(League.enabled.is_(True))
+    query=query.add_columns(Match.raw['_settlement_check'].label('settlement_audit'),PredictionSnapshot,MatchStatistics).options(defer(Match.raw),defer(MatchStatistics.raw)).join(PredictionSnapshot,PredictionSnapshot.match_id==Match.id).outerjoin(MatchStatistics,MatchStatistics.match_id==Match.id).where(League.enabled.is_(True))
     if league:query=query.where(League.id==int(league)) if league.isdigit() else query.where(League.name.ilike('%'+league+'%'))
     if start:query=query.where(PredictionSnapshot.captured_at>=start)
     if end:query=query.where(PredictionSnapshot.captured_at<end)
@@ -134,12 +134,12 @@ async def performance(session, league=None, start=None, end=None, market='all', 
         if not match.kickoff_at or aware(snapshot.captured_at)>=aware(match.kickoff_at):continue
         for pick in snapshot.picks:
             if not market_matches([pick],market) or exact_market and pick['id']!=exact_market or confidence and pick['confidence']!=confidence:continue
-            outcome,actual=settle(match,stats,pick)
+            outcome,actual=settle(match,stats,pick,now)
             add(summary,pick,outcome,snapshot.captured_at);add(families[pick['market']],pick,outcome,snapshot.captured_at);add(exact[pick['id']],pick,outcome,snapshot.captured_at);labels[pick['id']]=(pick['market'],pick['label'])
             gates={'probability_70':pick.get('probability',0)>=.7,'reliability_80':pick.get('reliability',0)>=.8,'quality_80':pick.get('score',0)>=.8}
             for name,accept in {'all_saved':True,**gates,'combined_70_80_80':all(gates.values())}.items():
                 if accept:add(cohorts[name],pick,outcome,snapshot.captured_at)
-            if offset<=count<offset+limit:items.append(dict(match=match_response(row[:5]),recommendation=pick,captured_at=aware(snapshot.captured_at),model_version=snapshot.model_version,outcome=outcome,actual=actual))
+            if offset<=count<offset+limit:items.append(dict(match=match_response(row[:5]),recommendation=pick,captured_at=aware(snapshot.captured_at),model_version=snapshot.model_version,outcome=outcome,actual=actual,**details(match,stats,pick,outcome,row[-3],now)))
             count+=1
     from src.diagnostics import statistics_coverage
     coverage=await statistics_coverage(session)

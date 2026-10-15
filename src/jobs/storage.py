@@ -40,8 +40,9 @@ async def store_match(session, league_id, season_name, data):
     fresh_live=observed is not None and observed>=utcnow()-timedelta(minutes=5)
     protect_score = fresh_live or (match.status == 'finished' and data['status'] != 'finished') or (
         match.status_observed_at is not None and match.status != 'scheduled' and data['status']=='scheduled')
-    if (match.raw or {}).get('live') is not None:
-        values['raw']={**values['raw'],'live':match.raw['live']}
+    for key in ('live','_settlement_check'):
+        if (match.raw or {}).get(key) is not None:
+            values['raw']={**values['raw'],key:match.raw[key]}
     for k, v in values.items():
         if protect_score and k in {'status','ft_home','ft_away','ht_home','ht_away'}:
             continue
@@ -64,8 +65,8 @@ async def store_live(session, match, observation, observed_at):
     if match.status in {'live','half_time','extra_time','penalties'} and status=='scheduled':return False
     match.status=status
     match.live_minute=observation['live_minute']
-    for field in ('ft_home','ft_away'):
-        if observation[field] is not None:setattr(match,field,observation[field])
+    for field in ('ft_home','ft_away','ht_home','ht_away'):
+        if observation.get(field) is not None:setattr(match,field,observation[field])
     match.status_observed_at=observed_at
     match.last_scraped_at=observed_at
     match.raw={**(match.raw or {}),'live':observation['raw']}
