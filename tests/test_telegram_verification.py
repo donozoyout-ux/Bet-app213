@@ -201,6 +201,7 @@ async def test_chromium_read_only_verify_button_and_safe_help(api, db, configure
         await page.route('http://test/**',forward)
         try:
             await page.goto('http://test/#coupon')
+            await page.locator('#coupon-tools > summary').click()
             await page.get_by_text('Telegram Yönetimi ve Manuel Paylaşım',exact=True).click()
             await page.locator('#telegram-verify').click()
             await expect(page.locator('#telegram-check-note')).to_contain_text('yönetim erişim anahtarı')

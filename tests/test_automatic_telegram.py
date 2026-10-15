@@ -241,6 +241,7 @@ async def test_chromium_automatic_edit_save_history_and_results(api,db,monkeypat
         await expect(page.locator('#coupon-saved-note')).to_contain_text('Otomatik')
         await expect(page.locator('#coupon-daily')).to_be_visible()
         assert not await page.locator('#coupon-edit-panel').evaluate('(el)=>el.open')
+        await page.locator('#coupon-tools > summary').click()
         await page.locator('#coupon-selected button').first.click()
         await expect(page.locator('#coupon-selected button')).to_have_count(3)
         await expect(page.locator('#coupon-telegram')).to_be_disabled()
@@ -263,7 +264,7 @@ async def test_chromium_automatic_edit_save_history_and_results(api,db,monkeypat
         await page.reload()
         await expect(page.locator('#coupon-selected button')).to_have_count(3)
         await expect(page.locator('#coupon-mode')).to_contain_text('Manuel')
-        await expect(page.locator('#coupon-daily p')).to_have_count(5)
+        await expect(page.locator('#coupon-daily .daily-selection')).to_have_count(4)
         await page.set_viewport_size({'width':390,'height':844})
         assert await page.evaluate('document.documentElement.scrollWidth<=innerWidth')
         assert errors==[]

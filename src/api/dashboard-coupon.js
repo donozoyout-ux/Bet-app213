@@ -15,7 +15,7 @@ const kickoff=i=>Date.parse(i?.match?.kickoff_at);
 const inWeek=i=>{const t=kickoff(i),now=Date.now();return Number.isFinite(t)&&t>now&&t<=now+7*24*60*60*1000&&i?.match?.status==='scheduled';};
 const byKickoff=(a,b)=>kickoff(a)-kickoff(b)||String(a?.match?.id).localeCompare(String(b?.match?.id))||String(a?.recommendation?.id).localeCompare(String(b?.recommendation?.id));
 const book=()=>$('coupon-bookmaker')?.value || 'Bet365';
-let busy=false,adding=false,copying=false,candidates=[],draftGeneration=0,pendingPick=null,saved=null,ownerKey=null,dirty=false,sharing=false,historyOffset=0,manualDraft=null,verifying=false;
+let busy=false,refreshPending=false,adding=false,copying=false,candidates=[],draftGeneration=0,pendingPick=null,saved=null,ownerKey=null,dirty=false,sharing=false,historyOffset=0,manualDraft=null,verifying=false;
 const draftKey='betapp-coupon-draft-v1';
 function persist(){
  if(saved?.kind==='automatic' && !dirty)return;
@@ -133,14 +133,15 @@ async function updateSelected(){
  draw();
 }
 async function refresh(){
- if(busy)return;busy=true;$('coupon-candidates')?.setAttribute('aria-busy','true');
+ if(busy){refreshPending=true;return;}busy=true;$('coupon-candidates')?.setAttribute('aria-busy','true');
  // Daily generation is independent of the optional manual candidate list.
  if($('coupon-automatic'))await generate(false);
+ if($('coupon-tools') && !$('coupon-tools').open){busy=false;$('coupon-candidates')?.setAttribute('aria-busy','false');return;}
  try{
   let items=[],offset=0,data;do{data=await api('/api/predictions/best?limit=100&offset='+offset+'&market=all&sort=ranking');items.push(...(data.items || []));offset+=100;}while(data.items?.length===100);
   render(items);
  }catch(_){const box=$('coupon-candidates');if(box){box.replaceChildren();const row=node('tr');td(row,'Fiyat listesi alınamadı. Oranları Yenile ile yeniden deneyin.').colSpan=6;box.append(row);}if(!$('coupon-automatic'))text('coupon-note','Bağlantı bekleniyor. Yeniden deneyin.');}
- finally{await updateSelected();await history();await management();busy=false;$('coupon-candidates')?.setAttribute('aria-busy','false');}
+ finally{await updateSelected();await history();await management();busy=false;$('coupon-candidates')?.setAttribute('aria-busy','false');if(refreshPending){refreshPending=false;await refresh();}}
 }
 async function copy(){
  if(!selected.size || copying)return;copying=true;draw();
@@ -165,12 +166,39 @@ function loadCoupon(data){
  for(const item of data.items || [])selected.set(key(item),item);
  draw();text('coupon-note',data.items?.length?'Kupon yüklendi; çıkarabilir veya uygun başka seçim ekleyebilirsiniz.':'Güncel, güçlü ve doğrulanmış seçim bulunamadı.');
 }
+function renderDaily(data){
+ const box=$('coupon-daily');if(!box)return;
+ box.replaceChildren();
+ const diagnostics=data.diagnostics || {}, updates=data.data_updates || {};
+ const summary=node('div');summary.className='daily-coupon-summary';
+ summary.append(node('strong',`Strateji: ${{balanced:'Dengeli',cautious:'Temkinli',value:'Değer odaklı'}[data.strategy || 'balanced']} · Hedef: ${data.target_matches ?? 4} maç`));
+ summary.append(node('span',`Uygun bulunan: ${diagnostics.eligible_matches ?? '—'} · Seçilen: ${data.items?.length ?? 0} · İncelenen toplam maç: ${diagnostics.inspected_matches ?? '—'}`));
+ box.append(summary);
+ const list=node('div');list.className='daily-selections';
+ for(const item of data.items || []){
+  const card=node('article'),m=item.match,r=item.recommendation,q=item.quote;
+  card.className='daily-selection';
+  card.append(node('p',`${date(m.kickoff_at)} · ${m.league || m.league_name || 'Lig bilgisi bekleniyor'}`));
+  card.append(node('h3',`${m.home_team} — ${m.away_team}`));
+  const price=node('div');price.className='daily-selection-price';price.append(node('strong',r.label),node('b',`${money(q.price)} · ${q.bookmaker}`));card.append(price);
+  card.append(node('p',`Model olasılığı: %${(100*r.probability).toFixed(1)} · Güven: ${confidence[r.confidence] || '—'} · Güvenilirlik: %${(100*r.reliability).toFixed(1)}`));
+  card.append(node('p',`Son fiyat gözlemi: ${date(q.observed_at)}`));list.append(card);
+ }
+ box.append(list);
+ box.append(node('p',data.items?.length?`Günlük kombine oran: ${money(data.combined_odds)} · Üst sınır yok`:data.message || 'Bugün doğrulanmış uygun seçim yok.'));
+ const labels={analysis_missing:'Analiz eksik / yeni analiz bekleniyor',analysis_stale:'Analiz güncel değil',insufficient_prematch_data:'Yeterli maç öncesi örneklem yok',quality_rejected:'Kalite eşikleri karşılanmadı',price_rejected:'Taze ve tam eşleşen oran yok',match_started_or_unavailable:'Maç başladı veya uygun durumda değil'};
+ const reasons=node('div');reasons.className='daily-rejections';
+ for(const [reason,count] of Object.entries(diagnostics.match_rejections || {}))reasons.append(node('span',`${labels[reason] || reason}: ${count}`));
+ box.append(reasons);
+ if(diagnostics.candidate_coverage_complete===false)box.append(node('p','Eski analiz kaydında tüm market adayları saklanmamış. Tam kapsam, worker yeni analizi yayımladığında doğrulanabilir.'));
+ box.append(node('p',`Son analiz: ${date(updates.analysis_generated_at || data.cache?.latest_generated_at || data.cache?.generated_at)} · Son fiyat gözlemi: ${date(updates.price_observed_at || diagnostics.last_price_observed_at)} · Son güncelleme: ${date(updates.checked_at || diagnostics.checked_at)}`));
+}
 async function generate(activate=true){
  const generation=draftGeneration;
  const button=$('coupon-automatic');if(button)button.disabled=true;
- try{const strategy=$('coupon-strategy')?.value || 'balanced';const count=$('coupon-target')?.value || '4';const data=await api('/api/coupons/automatic?'+new URLSearchParams({strategy,max_matches:count}),{});if(generation!==draftGeneration)return;text('coupon-day',data.coupon_date || new Date().toLocaleDateString('tr-TR',{timeZone:'Europe/Istanbul'}));const box=$('coupon-daily');if(box){box.replaceChildren();for(const item of data.items || [])box.append(node('p',`${date(item.match.kickoff_at)} · ${item.match.home_team} — ${item.match.away_team} · ${item.recommendation.label} · ${item.quote.bookmaker} ${money(item.quote.price)} · Gözlem: ${date(item.quote.observed_at)}`));box.append(node('p',data.items?.length?`Günlük kombine oran: ${money(data.combined_odds)} · Üst sınır yok`:data.message || 'Bugün doğrulanmış uygun seçim yok.'));if(!data.items?.length){const updates=data.data_updates || {};box.append(node('p',`Son analiz: ${date(updates.analysis_generated_at || data.cache?.latest_generated_at || data.cache?.generated_at)} · Son fiyat gözlemi: ${date(updates.price_observed_at || data.diagnostics?.last_price_observed_at)} · Kontrol: ${date(updates.checked_at || data.diagnostics?.checked_at)}`));}}
-  if(data.items?.length && (activate || !dirty && saved?.kind!=='manual')){if(activate && (dirty || saved?.kind==='manual'))manualDraft={items:[...selected.values()],saved,dirty};loadCoupon(data);}
-  else if(!data.items?.length){if(!dirty && saved?.kind==='automatic'){selected.clear();saved=null;text('coupon-saved-note','');draw();}text('coupon-note',data.message || 'Bugün kalite eşiğini geçen ve güncel oranı doğrulanmış seçim bulunamadı; manuel taslak korunuyor.');}historyOffset=0;await history();}
+ try{const strategy=$('coupon-strategy')?.value || 'balanced';const count=$('coupon-target')?.value || '4';const data=await api('/api/coupons/automatic?'+new URLSearchParams({strategy,max_matches:count}),{});if(generation!==draftGeneration)return;text('coupon-day',data.coupon_date || new Date().toLocaleDateString('tr-TR',{timeZone:'Europe/Istanbul'}));renderDaily(data);
+  if(data.items?.length && (activate || !dirty && saved?.kind!=='manual')){if(activate && (dirty || saved?.kind==='manual'))manualDraft={items:[...selected.values()],saved,dirty};loadCoupon(data);if($('coupon-tools') && !$('coupon-tools').open)text('coupon-note',`${data.items.length} maç seçildi · Hedef ${data.target_matches ?? 4} · Son kontrol: ${date(data.data_updates?.checked_at)}`);}
+  else if(!data.items?.length){if(!dirty && saved?.kind==='automatic'){selected.clear();saved=null;text('coupon-saved-note','');draw();}text('coupon-note',data.message || 'Bugün kalite eşiğini geçen ve güncel oranı doğrulanmış seçim bulunamadı; manuel taslak korunuyor.');}historyOffset=0;if(!$('coupon-tools') || $('coupon-tools').open)await history();}
  catch(_){text('coupon-day','Tarih doğrulanamadı');text('coupon-note','Otomatik kupon oluşturulamadı. Yeniden deneyin.');text('coupon-daily','Günlük kupon bağlantısı bekleniyor. Yeniden deneyin.');}
  finally{if(button)button.disabled=false;}
 }
@@ -226,5 +254,6 @@ if($('coupon-history-next'))$('coupon-history-next').onclick=()=>{historyOffset+
 if($('coupon-history-refresh'))$('coupon-history-refresh').onclick=history;
 if($('coupon-telegram'))$('coupon-telegram').onclick=share;
 if($('telegram-verify'))$('telegram-verify').onclick=verifyConnection;
+if($('coupon-tools'))$('coupon-tools').ontoggle=()=>{if($('coupon-tools').open)refresh();};
 globalThis.BetAppCoupon=Object.freeze({refresh});restore();draw();
 })();

@@ -91,10 +91,11 @@ class PriorityUpdater:
             matches={m.id:m for m in await session.scalars(select(Match).join(League).where(League.enabled.is_(True),Match.status=='scheduled',Match.kickoff_at>now,Match.kickoff_at<=now+timedelta(days=7)))}
             retries={r.key:r for r in await session.scalars(select(CollectorRetry).where(CollectorRetry.key.like('quotes:%')))}
             for board in await session.scalars(select(PredictionBoard).join(League).where(League.enabled.is_(True))):
-                for item in board.payload.get('items',[]):
+                records=board.payload.get('coupon_records',board.payload.get('items',[]))
+                for item in records:
                     match=matches.get(item['match']['id'])
                     if match is None:continue
-                    markets={r['market'] for r in item.get('recommendations',[]) if r.get('qualifies')}
+                    markets={r['market'] for r in item.get('candidates',item.get('recommendations',[])) if r.get('qualifies')}
                     endpoints=set()
                     if markets & {'result','goals','asian_handicap'}:endpoints.add('full_time')
                     if 'first_half_goals' in markets:endpoints.add('first_half_goals')
@@ -103,6 +104,16 @@ class PriorityUpdater:
                         key=f'quotes:{market}:{match.external_match_id}';retry=retries.get(key)
                         if retry and aware(retry.next_attempt_at)>now:continue
                         tasks.append((aware(match.kickoff_at),aware(retry.next_attempt_at) if retry else now-timedelta(days=1),key,market,match.id,match.external_match_id))
+            # Missing recommendations must not exclude today's source-accessible fixtures.
+            # One endpoint per tick, the existing retry ledger and five-minute cadence
+            # bound this work; failed/empty responses never become fresh observations.
+            today=now.astimezone(ZoneInfo(DISPLAY_TIMEZONE)).date()
+            present={t[2] for t in tasks}
+            for match in matches.values():
+                if aware(match.kickoff_at).astimezone(ZoneInfo(DISPLAY_TIMEZONE)).date()!=today:continue
+                key=f'quotes:full_time:{match.external_match_id}';retry=retries.get(key)
+                if key in present or retry and aware(retry.next_attempt_at)>now:continue
+                tasks.append((aware(match.kickoff_at),aware(retry.next_attempt_at) if retry else now-timedelta(days=1),key,'full_time',match.id,match.external_match_id))
         if not tasks:return
         # Today's candidates are first, then the longest waiting market. Never starve a bookmaker endpoint.
         today=now.astimezone(ZoneInfo(DISPLAY_TIMEZONE)).date()

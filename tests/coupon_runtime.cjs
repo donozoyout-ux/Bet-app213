@@ -39,6 +39,7 @@ async function scenario(mode){
   if(path.startsWith('/api/coupons/automatic?')){
    assert(path.includes('strategy=balanced') && path.includes('max_matches=4'));
    if(mode==='automatic-empty')return {ok:true,json:async()=>({items:[],message:'Tam eşleşen güncel oran bekleniyor.',data_updates:{analysis_generated_at:stamp,price_observed_at:stamp,checked_at:stamp}})};
+   if(mode==='automatic-diagnostics'){const data=saved([asSaved(items[0])]);return {ok:true,json:async()=>({...data,coupon_date:'2026-10-15',strategy:'balanced',target_matches:4,diagnostics:{inspected_matches:20,eligible_matches:1,match_rejections:{quality_rejected:19},candidate_coverage_complete:true},data_updates:{checked_at:stamp}})};}
    const data=saved(items.filter((_,index)=>index%2===0).map(asSaved));versions.set(data.id,data);return {ok:true,json:async()=>structuredClone(data)};
   }
   if(path.startsWith('/api/coupons')){
@@ -63,6 +64,7 @@ async function scenario(mode){
   ids.get('coupon-show-unpriced').checked=true;ids.get('coupon-show-unpriced').onchange();
   assert.equal(inputs().length,6);assert(inputs().every(e=>e.disabled));return;
  }
+ if(mode==='automatic-diagnostics'){const daily=ids.get('coupon-daily').text();assert(daily.includes('Hedef: 4 maç'));assert(daily.includes('Uygun bulunan: 1'));assert(daily.includes('İncelenen toplam maç: 20'));assert(daily.includes('Kalite eşikleri karşılanmadı: 19'));assert(daily.includes('Model olasılığı: %70.0'));return;}
  if(mode==='automatic-empty'){assert(ids.get('coupon-daily').text().includes('Tam eşleşen'));assert(ids.get('coupon-daily').text().includes('Son analiz:'));assert(ids.get('coupon-daily').text().includes('Son fiyat gözlemi:'));return;}
  if(mode!=='automatic-list-failed')assert.equal(inputs().length,6);
  if(mode.startsWith('automatic')){
@@ -95,4 +97,4 @@ async function scenario(mode){
  ids.get('coupon-clear').onclick();assert(ids.get('coupon-selected').text().includes('Henüz'));assert(ids.get('coupon-copy').disabled);
  assert(calls.includes('/api/coupon/quote') && calls.includes('/api/coupon/status'));
 }
-(async()=>{const modes=['populated','invalid','request-failed','server-rejected','copy-denied','clear-race','automatic','automatic-list-failed','automatic-empty'];for(const mode of modes)await scenario(mode);console.log(`coupon runtime: ${modes.length} scenarios passed`);})().catch(e=>{console.error(e);process.exitCode=1;});
+(async()=>{const modes=['populated','invalid','request-failed','server-rejected','copy-denied','clear-race','automatic','automatic-list-failed','automatic-empty','automatic-diagnostics'];for(const mode of modes)await scenario(mode);console.log(`coupon runtime: ${modes.length} scenarios passed`);})().catch(e=>{console.error(e);process.exitCode=1;});

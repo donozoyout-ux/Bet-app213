@@ -12,7 +12,6 @@ from fastapi.encoders import jsonable_encoder
 from sqlalchemy import select,text,or_
 from sqlalchemy.orm import defer
 from src.models import SavedCoupon,Match,MatchStatistics
-from src.analytics.board_cache import read_board
 from src.analytics.coupon import current_odds,quote_draft,combined_price,draft_pick,coupon_qualified
 from src.analytics.performance import settle
 from src.jobs.worker import aware
@@ -84,13 +83,9 @@ def strong(rec):
 
 
 async def automatic(session,now,strategy='balanced',max_matches=DEFAULT_COUPON_MATCHES):
-    records,_,_=await read_board(session,None,now.astimezone(COUPON_TZ).date(),None,now)
-    excluded=set(session.info['prediction_snapshot']['stale_leagues'])
-    records=[r for r in records if r['match']['league_id'] not in excluded]
-    groups={r['match']['id']:[deepcopy(c) for c in r['recommendations'][:2] if strong(c)] for r in records}
-    await current_odds(session,groups,now)
-    from src.analytics.odds_diagnostics import report
-    session.info['coupon_diagnostics']=report([{**r,'recommendations':groups[r['match']['id']]} for r in records],now)
+    from src.analytics.daily_pool import daily_pool
+    records=await daily_pool(session,now)
+    groups={r['match']['id']:[c for c in r['recommendations'] if c['id'] in {b['id'] for b in r['coupon_candidates']} and strong(c)] for r in records}
     items=[]
     for record in records:
         for rec in sorted(groups[record['match']['id']],key=lambda c:(-c['score'],-c['reliability'],c['id'])):
@@ -102,10 +97,14 @@ async def automatic(session,now,strategy='balanced',max_matches=DEFAULT_COUPON_M
             candidate=dict(match=record['match'],recommendation=rec,quote=quote,status='pending')
             if daily_candidates([candidate],now,strategy,1):
                 items.append(candidate)
+    diagnostics=session.info['coupon_diagnostics']
+    diagnostics['independence_rejected']=len(items)-len({i['match']['id'] for i in items})
+    diagnostics['target_matches']=max_matches
     items=daily_candidates(items,now,strategy,max_matches)
+    diagnostics['selected_matches']=len(items)
     if not items:return None
     await lock_coupons(session)
-    digest=hashlib.sha256(f'{strategy}:{max_matches}:{fingerprint(items)}'.encode()).hexdigest()
+    digest=hashlib.sha256(f'{now.astimezone(COUPON_TZ).date().isoformat()}:{strategy}:{max_matches}:{fingerprint(items)}'.encode()).hexdigest()
     existing=await session.scalar(select(SavedCoupon).where(SavedCoupon.automatic_fingerprint==digest))
     if existing:return existing
     id=str(uuid.uuid4());row=SavedCoupon(id=id,root_id=id,revision=1,kind='automatic',automatic_fingerprint=digest,owner_hash=None,created_at=now,payload={**payload(items),'coupon_date':now.astimezone(COUPON_TZ).date().isoformat(),'strategy':strategy,'target_matches':max_matches})
