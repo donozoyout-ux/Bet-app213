@@ -73,7 +73,7 @@ async def lifespan(app: FastAPI):
             pass
     await database.close()
 
-app = FastAPI(title='BetApp213', version='2.0.0', lifespan=lifespan)
+app = FastAPI(title='Kuponanalizii', version='2.0.0', lifespan=lifespan)
 # Gunicorn's module-only target resolves `application`; Uvicorn continues using :app.
 application = app
 
@@ -96,6 +96,12 @@ async def health():
 @app.get('/', include_in_schema=False)
 async def dashboard():
     return FileResponse(Path(__file__).resolve().with_name('dashboard.html'))
+
+
+@app.get('/assets/kuponanalizii-logo.png', include_in_schema=False)
+async def brand_logo():
+    return FileResponse(Path(__file__).resolve().parent / 'assets' / 'kuponanalizii-logo.png',
+                        media_type='image/png', headers={'Cache-Control': 'public, max-age=86400'})
 
 @app.get('/dashboard.js', include_in_schema=False)
 async def dashboard_script():

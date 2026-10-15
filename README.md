@@ -1,6 +1,6 @@
-# BetApp213
+# Kuponanalizii
 
-FastAPI serves the existing Stitch dashboard from `src/api/dashboard.html`.
+Kuponanalizii is the user-facing brand of BetApp213. FastAPI serves the existing vanilla dashboard from `src/api/dashboard.html`.
 The active Goaloo adapters use verified JSON/AJAX responses, SQLAlchemy async
 persists matches and bookmaker markets, and a durable database-backed worker
 collects verified global club and national-team competitions from 2024 onward.

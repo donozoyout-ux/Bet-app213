@@ -91,7 +91,7 @@
     cell(row,score(match.ft_home,match.ft_away)+ht);
     ['home','draw','away'].forEach(key => cell(row,movement(match,findMarket(match,'1x2'),key)));
     cell(row,asianMovement(match,findMarket(match,'ah'),['home','line','away']));cell(row,asianMovement(match,findMarket(match,'ou'),['over','line','under']));
-    row.dataset.matchId=String(match.id);row.tabIndex=0;row.setAttribute('aria-label',`${match.home_team} / ${match.away_team}, analizi aç`);row.onclick=()=>selectMatch(match.id);row.onkeydown=event=>{if(['Enter',' '].includes(event.key)){event.preventDefault();selectMatch(match.id);}};return row;
+    row.dataset.matchId=String(match.id);row.classList.toggle('is-live',live);row.tabIndex=0;row.setAttribute('aria-label',`${match.home_team} / ${match.away_team}, analizi aç`);row.onclick=()=>selectMatch(match.id);row.onkeydown=event=>{if(['Enter',' '].includes(event.key)){event.preventDefault();selectMatch(match.id);}};return row;
   }
   function emptyRows(text) {
     const body=$('matches-body');if (!body) return;body.replaceChildren();const row=document.createElement('tr');const td=cell(row,text);td.colSpan=9;body.append(row);
@@ -205,7 +205,7 @@
     }
     updateViewButtons();refreshPredictions();loadMatches();
   });
-  document.querySelectorAll('[data-bookmaker]').forEach(button=>button.onclick=()=>{state.bookmaker=button.dataset.bookmaker;if(state.selected)selectMatch(state.selected,false,true);loadMatches();});
+  document.querySelectorAll('[data-bookmaker]').forEach(button=>button.onclick=()=>{state.bookmaker=button.dataset.bookmaker;document.querySelectorAll('[data-bookmaker]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.bookmaker===state.bookmaker)));if(state.selected)selectMatch(state.selected,false,true);loadMatches();});
   if ($('league-select')) $('league-select').onchange=()=>changeLeague($('league-select').value);
   if ($('season-select')) $('season-select').onchange=()=>{state.season=$('season-select')?.value || '';state.offset=0;state.selected=null;clearDetail();fillRounds();loadMatches();};
   if ($('round-select')) $('round-select').onchange=()=>{state.round=$('round-select')?.value || '';state.offset=0;state.selected=null;clearDetail();loadMatches();};
