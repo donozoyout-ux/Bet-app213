@@ -107,7 +107,7 @@ def test_dark_market_markup_and_runtime():
     import shutil,subprocess
     html=Path('src/api/dashboard.html').read_text(encoding='utf-8')
     css=Path('src/api/dashboard-market.css').read_text(encoding='utf-8')
-    assert '--app-bg:#EFF3F8' in css and 'width:100vw' in css
+    assert '--app-bg:#060F25' in css and 'width:100vw' in css
     for id in ['market-picks','market-category-cards','performance-section','performance-markets','analysis-tab-summary']:
         assert f'id="{id}"' in html
     assert '<aside' not in html and 'Arsenal' not in html
