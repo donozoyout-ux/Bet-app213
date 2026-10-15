@@ -38,3 +38,20 @@ async def domestic_context(session,match,cutoff):
                 source_competitions=list(competitions.values()),match_ids=[r.id for r in history])
         output[side]=cache[key]
     return output
+
+
+async def uefa_team_coverage(session, match, cutoff):
+    """Coverage is evidence only; never feeds probabilities or quality gates."""
+    from .uefa_coverage import team_coverage
+    columns=(Match.id,Match.league_id,Match.home_team_id,Match.away_team_id)
+    rows=(await session.execute(select(*columns).join(League).where(
+        or_(Match.home_team_id.in_([match.home_team_id,match.away_team_id]),
+            Match.away_team_id.in_([match.home_team_id,match.away_team_id])),
+        Match.id!=match.id,Match.status=='finished',Match.ft_home>=0,Match.ft_away>=0,
+        Match.kickoff_at<=cutoff-timedelta(hours=3),Match.kickoff_at>=cutoff-timedelta(days=3*366),
+        Match.created_at<=cutoff,Match.updated_at<=cutoff,
+        or_(Match.last_scraped_at.is_(None),Match.last_scraped_at<=cutoff)))).mappings().all()
+    leagues={l.id:dict(id=l.id,external_id=l.external_id,name=l.name,enabled=l.enabled,schedule_format=l.schedule_format)
+        for l in await session.scalars(select(League))}
+    return {side:team_coverage(rows,dict(league_id=match.league_id),team,side,leagues)
+        for side,team in [('home',match.home_team_id),('away',match.away_team_id)]}
