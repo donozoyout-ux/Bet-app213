@@ -146,3 +146,6 @@ async def market_styles():return FileResponse(Path(__file__).resolve().with_name
 @app.get('/dashboard-coupon.js', include_in_schema=False)
 async def coupon_script():
     return FileResponse(Path(__file__).resolve().with_name('dashboard-coupon.js'), media_type='application/javascript')
+
+from src.api.learning import router as learning_router
+app.include_router(learning_router, prefix="/api")
