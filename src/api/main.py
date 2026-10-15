@@ -103,6 +103,12 @@ async def brand_logo():
     return FileResponse(Path(__file__).resolve().parent / 'assets' / 'kuponanalizii-logo.png',
                         media_type='image/png', headers={'Cache-Control': 'public, max-age=86400'})
 
+@app.get('/assets/kuponanalizii-player.svg', include_in_schema=False)
+async def hero_player():
+    return FileResponse(Path(__file__).resolve().parent / 'assets' / 'kuponanalizii-player.svg',
+                        media_type='image/svg+xml', headers={'Cache-Control': 'public, max-age=86400'})
+
+
 @app.get('/dashboard.js', include_in_schema=False)
 async def dashboard_script():
     return FileResponse(Path(__file__).resolve().with_name('dashboard.js'), media_type='application/javascript')
