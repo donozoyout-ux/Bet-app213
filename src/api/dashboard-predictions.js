@@ -123,6 +123,7 @@
     form(stats,`${m.home_team} • Son 10`,data.home_last_10);form(stats,`${m.away_team} • Son 10`,data.away_last_10);
     form(stats,`${m.home_team} • Ev sahibi tarafı (son 10)`,data.home_split);form(stats,`${m.away_team} • Deplasman tarafı (son 10)`,data.away_split);box.append(stats);}
     if(['form','h2h'].includes(state.tab)){
+    if(data.domestic_context){const domestic=node('section','','stats-block');domestic.append(node('h4','Yerel Lig Formu · Ayrı Bağlam'));domestic.append(node('p','Yerel lig formu ayrı değerlendirilir. Model olasılığı Avrupa kupası örneklemine dayanır.'));for(const [side,team] of [['home',m.home_team],['away',m.away_team]]){const context=data.domestic_context[side];if(!context)continue;form(domestic,`${team} · Yerel lig (son 10)`,context.form);line(domestic,'Kaynak ligler',context.source_competitions.map(l=>l.name).join(', ')||'Doğrulanmış yerel lig kaydı yok');}box.append(domestic);}
     const h2h=node('section','','stats-block');h2h.append(node('h4','Son Karşılaşmalar (H2H)','font-bold text-primary'));
     if(!data.h2h_summary.sufficient)h2h.append(node('p','Yeterli H2H verisi yok'));
     for(const match of data.h2h)h2h.append(node('p',`${date(match.date)} • ${match.home} ${match.home_goals}–${match.away_goals} ${match.away}`));

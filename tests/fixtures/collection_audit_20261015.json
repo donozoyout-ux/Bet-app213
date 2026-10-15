@@ -1,0 +1,340 @@
+{
+  "source_observed_at": "2026-10-15T11:37:58.303127+00:00",
+  "production_observed_at": "2026-10-15T11:35:16.613238Z",
+  "total_matches": 12904,
+  "new_24h": 0,
+  "last_new": "2026-10-13T12:02:46.974962Z",
+  "current_season_fixture_comparison": [
+    {
+      "identity_mismatches": 0,
+      "league": 8,
+      "missing": 0,
+      "source_fixtures": 306,
+      "stored_matches": 306
+    },
+    {
+      "identity_mismatches": 0,
+      "league": 11,
+      "missing": 0,
+      "source_fixtures": 306,
+      "stored_matches": 306
+    },
+    {
+      "identity_mismatches": 0,
+      "league": 16,
+      "missing": 0,
+      "source_fixtures": 306,
+      "stored_matches": 306
+    },
+    {
+      "identity_mismatches": 0,
+      "league": 23,
+      "missing": 0,
+      "source_fixtures": 306,
+      "stored_matches": 306
+    },
+    {
+      "identity_mismatches": 0,
+      "league": 30,
+      "missing": 0,
+      "source_fixtures": 306,
+      "stored_matches": 306
+    },
+    {
+      "identity_mismatches": 0,
+      "league": 31,
+      "missing": 0,
+      "source_fixtures": 380,
+      "stored_matches": 380
+    },
+    {
+      "identity_mismatches": 0,
+      "league": 34,
+      "missing": 0,
+      "source_fixtures": 380,
+      "stored_matches": 380
+    },
+    {
+      "identity_mismatches": 0,
+      "league": 36,
+      "missing": 0,
+      "source_fixtures": 380,
+      "stored_matches": 380
+    },
+    {
+      "identity_mismatches": 0,
+      "league": 103,
+      "missing": 0,
+      "source_fixtures": 234,
+      "stored_matches": 234
+    },
+    {
+      "identity_mismatches": 0,
+      "league": 113,
+      "missing": 0,
+      "source_fixtures": 224,
+      "stored_matches": 224
+    },
+    {
+      "identity_mismatches": 0,
+      "league": 2187,
+      "missing": 0,
+      "source_fixtures": 366,
+      "stored_matches": 366
+    }
+  ],
+  "source_omission_examples": [
+    {
+      "match": 3026754,
+      "missing": [
+        {
+          "bookmaker": "Sbobet",
+          "market": "1x2",
+          "stage": "opening",
+          "missing": [
+            "home",
+            "draw",
+            "away"
+          ]
+        },
+        {
+          "bookmaker": "Sbobet",
+          "market": "1x2",
+          "stage": "latest",
+          "missing": [
+            "home",
+            "draw",
+            "away"
+          ]
+        },
+        {
+          "bookmaker": "Sbobet",
+          "market": "ah",
+          "stage": "opening",
+          "missing": [
+            "line",
+            "home",
+            "away"
+          ]
+        },
+        {
+          "bookmaker": "Sbobet",
+          "market": "ah",
+          "stage": "latest",
+          "missing": [
+            "line",
+            "home",
+            "away"
+          ]
+        },
+        {
+          "bookmaker": "Sbobet",
+          "market": "ou",
+          "stage": "opening",
+          "missing": [
+            "line",
+            "over",
+            "under"
+          ]
+        },
+        {
+          "bookmaker": "Sbobet",
+          "market": "ou",
+          "stage": "latest",
+          "missing": [
+            "line",
+            "over",
+            "under"
+          ]
+        }
+      ]
+    },
+    {
+      "match": 3073151,
+      "missing": []
+    },
+    {
+      "match": 3073094,
+      "missing": [
+        {
+          "bookmaker": "Crown",
+          "market": "1x2",
+          "stage": "opening",
+          "missing": [
+            "home",
+            "draw",
+            "away"
+          ]
+        },
+        {
+          "bookmaker": "Crown",
+          "market": "1x2",
+          "stage": "latest",
+          "missing": [
+            "home",
+            "draw",
+            "away"
+          ]
+        },
+        {
+          "bookmaker": "Crown",
+          "market": "ah",
+          "stage": "opening",
+          "missing": [
+            "line",
+            "home",
+            "away"
+          ]
+        },
+        {
+          "bookmaker": "Crown",
+          "market": "ah",
+          "stage": "latest",
+          "missing": [
+            "line",
+            "home",
+            "away"
+          ]
+        },
+        {
+          "bookmaker": "Crown",
+          "market": "ou",
+          "stage": "opening",
+          "missing": [
+            "line",
+            "over",
+            "under"
+          ]
+        },
+        {
+          "bookmaker": "Crown",
+          "market": "ou",
+          "stage": "latest",
+          "missing": [
+            "line",
+            "over",
+            "under"
+          ]
+        }
+      ]
+    },
+    {
+      "match": 3073880,
+      "missing": [
+        {
+          "bookmaker": "Sbobet",
+          "market": "1x2",
+          "stage": "opening",
+          "missing": [
+            "home",
+            "draw",
+            "away"
+          ]
+        },
+        {
+          "bookmaker": "Sbobet",
+          "market": "1x2",
+          "stage": "latest",
+          "missing": [
+            "home",
+            "draw",
+            "away"
+          ]
+        }
+      ]
+    }
+  ],
+  "domestic_coverage": [
+    {
+      "max_history": 84,
+      "sides_with_min_five": 25,
+      "sides_without_supported_domestic_history": 47,
+      "team_sides": 72,
+      "uefa_fixtures": 36
+    }
+  ],
+  "upcoming_quote_coverage": [
+    {
+      "latest_complete": 122,
+      "latest_left_field_fresh": 36,
+      "market": "1x2",
+      "name": "Bet365",
+      "opening_complete": 122,
+      "stored_rows": 122,
+      "target_matches": 122
+    },
+    {
+      "latest_complete": 122,
+      "latest_left_field_fresh": 36,
+      "market": "ah",
+      "name": "Bet365",
+      "opening_complete": 122,
+      "stored_rows": 122,
+      "target_matches": 122
+    },
+    {
+      "latest_complete": 122,
+      "latest_left_field_fresh": 36,
+      "market": "ou",
+      "name": "Bet365",
+      "opening_complete": 122,
+      "stored_rows": 122,
+      "target_matches": 122
+    },
+    {
+      "latest_complete": 104,
+      "latest_left_field_fresh": 36,
+      "market": "1x2",
+      "name": "Crown",
+      "opening_complete": 104,
+      "stored_rows": 122,
+      "target_matches": 122
+    },
+    {
+      "latest_complete": 104,
+      "latest_left_field_fresh": 36,
+      "market": "ah",
+      "name": "Crown",
+      "opening_complete": 104,
+      "stored_rows": 122,
+      "target_matches": 122
+    },
+    {
+      "latest_complete": 104,
+      "latest_left_field_fresh": 36,
+      "market": "ou",
+      "name": "Crown",
+      "opening_complete": 104,
+      "stored_rows": 122,
+      "target_matches": 122
+    },
+    {
+      "latest_complete": 119,
+      "latest_left_field_fresh": 35,
+      "market": "1x2",
+      "name": "Sbobet",
+      "opening_complete": 119,
+      "stored_rows": 122,
+      "target_matches": 122
+    },
+    {
+      "latest_complete": 120,
+      "latest_left_field_fresh": 36,
+      "market": "ah",
+      "name": "Sbobet",
+      "opening_complete": 120,
+      "stored_rows": 122,
+      "target_matches": 122
+    },
+    {
+      "latest_complete": 120,
+      "latest_left_field_fresh": 36,
+      "market": "ou",
+      "name": "Sbobet",
+      "opening_complete": 120,
+      "stored_rows": 122,
+      "target_matches": 122
+    }
+  ],
+  "price_freshness_measure": "Only the left price field observation, not coupon eligibility; no claim about all side/line timestamps."
+}

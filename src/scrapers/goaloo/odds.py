@@ -76,6 +76,23 @@ def complete_odds(odds, final=True):
     return True
 
 
+def odds_gaps(odds,final=False):
+    """Source omissions, without treating an unpublished future close as an error."""
+    gaps=[]
+    for name in BOOKMAKERS.values():
+        for market,fields in [('1x2',('home','draw','away')),('ah',('line','home','away')),('ou',('line','over','under'))]:
+            row=odds.get(name,{}).get(market,{})
+            for stage in ('opening','closing' if final else 'latest'):
+                missing=[field for field in fields if row.get(stage+'_'+field) is None]
+                if missing:gaps.append(dict(bookmaker=name,market=market,stage=stage,missing=missing))
+    return gaps
+
+
+def has_source_prices(odds,stage):
+    return any(row.get(stage+'_'+side) is not None for markets in odds.values()
+               for row in markets.values() for side in ('home','draw','away','over','under'))
+
+
 async def fetch_odds(client, external_match_id, final=False):
     payload = await client.get('https://www.goaloo.com/ajax/soccerajax',
         {'type': 14, 't': 1, 'id': external_match_id, 'h': 0, 's': -1 if final else 0})

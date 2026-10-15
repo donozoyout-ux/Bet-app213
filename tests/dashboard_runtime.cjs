@@ -33,6 +33,7 @@ async function scenario(mode) {
       else if(/^\/api\/matches\/\d+(\/odds)?$/.test(path)){const id=Number(path.split('/')[3]);const match=recorded.page.items.find(item=>item.id===id);payload=path.endsWith('/odds')?match.odds:match;if(mode==='detail-race' && id===recorded.page.items[0].id)return await new Promise(resolve=>pending.push(()=>resolve({ok:true,json:async()=>payload})));}
       else if(path==='/api/scraper/status')payload={status:'idle',jobs:mode==='job-priority'?[{id:11,current_league:'Liga Portugal 1',kind:'stats_backfill',status:'queued',processed_matches:0,failed_matches:0,total_matches:30},{id:9,current_league:'English Premier League',kind:'stats_backfill',status:'running',processed_matches:3,failed_matches:0,total_matches:30}]:[]};
       else payload=[];
+      if(mode==='collection-health' && path==='/api/status')Object.assign(payload,{stale_fixture_leagues:0,failed_collection_items_24h:21,partial_collection_jobs_24h:3,active_collection_jobs:0,collection_retry_cooldowns:2,fixture_collection:[{name:'UEFA Champions League',last_successful_discovery_at:'2026-10-15T09:30:00Z',discovered:234,added:0,updated:27,errors:0,stale:false}]});
       return {ok:!unavailable,status:unavailable?503:200,json:async()=>payload};
     }};
   const listener=error=>failures.push(error);
@@ -45,7 +46,7 @@ async function scenario(mode) {
     await settle();
     assert.equal(failures.length,0,String(failures[0]));
     assert(calls.includes('/health'));
-    assert(calls.includes('/api/status'));
+    assert(calls.includes('/api/status'));if(mode==='collection-health'){assert.equal(elements.get('collection-summary').textContent,'Aktif liglerin keşfi güncel');assert(elements.get('collection-failures').textContent.includes('21 başarısız öğe'));assert.equal(elements.get('collection-leagues').children[0].children[0].textContent,'UEFA Champions League');assert.equal(elements.get('collection-leagues').children[0].children[3].textContent,'0');}
     assert(calls.includes('/api/scraper/status'));if(mode==='job-priority')assert(elements.get('collection-progress').textContent.includes('English Premier League'));
     if(['multi','detail-race'].includes(mode)) {
       if(mode==='detail-race'){const first=sandbox.BetAppDashboard.selectMatch(recorded.page.items[0].id);await sandbox.BetAppDashboard.selectMatch(recorded.page.items[1].id);pending.forEach(release=>release());await first;assert.equal(elements.get('detail-title').textContent,`${recorded.page.items[1].home_team} vs ${recorded.page.items[1].away_team}`);sandbox.BetAppDashboard.closeDetail();return;}
@@ -76,4 +77,4 @@ async function scenario(mode) {
     }
   } finally {process.off('unhandledRejection',listener);}
 }
-(async()=>{for(const mode of ['empty','unavailable','missing-controls','multi','detail-race','job-priority'])await scenario(mode);console.log('dashboard runtime: 6 scenarios passed');})().catch(error=>{console.error(error);process.exitCode=1;});
+(async()=>{for(const mode of ['empty','unavailable','missing-controls','multi','detail-race','job-priority','collection-health'])await scenario(mode);console.log('dashboard runtime: 7 scenarios passed');})().catch(error=>{console.error(error);process.exitCode=1;});

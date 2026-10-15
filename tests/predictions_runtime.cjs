@@ -23,6 +23,7 @@ async function scenario(mode){
       const fail=mode==='failed'||mode==='detail-failed' && path.includes('/statistics');
       let payload=path.includes('/api/predictions')?structuredClone(recorded.page):structuredClone(recorded.statistics);
       if(['one','two','three'].includes(mode) && path.includes('/api/predictions')){const count={one:1,two:2,three:3}[mode];payload.items[0].recommendations=[...payload.items[0].recommendations,recorded.page.items[1].recommendations[0]].slice(0,count);}
+      if(mode==='domestic' && path.includes('/statistics'))payload.domestic_context={home:{form:payload.home_last_10,source_competitions:[{name:'English Premier League'}]},away:{form:payload.away_last_10,source_competitions:[]}};
       if(path.includes('/best'))payload={...payload,items:recorded.page.items.flatMap(item=>item.recommendations.map(recommendation=>({match:item.match,recommendation})))};
       if(path.includes('market=cards'))payload.items=[];
       if(mode==='pagination' && path.includes('/best')){const offset=Number(new URLSearchParams(path.split('?')[1]).get('offset') || 0);const item=recorded.page.items[offset===0?0:1];const recommendation=item.recommendations.find(r=>r.confidence==='high');payload.items=Array.from({length:offset===0?100:1},()=>({match:item.match,recommendation}));}
@@ -161,6 +162,7 @@ async function scenario(mode){
     const yellow=all(box).find(el=>el.attrs['data-card-category']==='yellow_cards');yellow.onclick();
     assert(box.text().includes('2.00 / 3.00'));return;
   }
+  if(mode==='domestic'){tabs.find(tab=>tab.dataset.analysisTab==='form').onclick();assert(box.text().includes('Yerel Lig Formu'));assert(box.text().includes('English Premier League'));assert(box.text().includes('Avrupa kupası örneklemine dayanır'));}
   tabs[0].onkeydown({key:'ArrowRight',preventDefault(){}});assert(tabs[1].focused);
   tabs[0].onclick();
   assert(!box.text().includes('HAKEM'));
@@ -171,4 +173,4 @@ async function scenario(mode){
   ids.get('analysis-close').onclick();assert(box.hidden && !box.children.length && !ids.get('analysis-dialog').open);
   await api.select(firstId);ids.get('analysis-dialog').oncancel({preventDefault(){}});assert(!ids.get('analysis-dialog').open);
 }
-(async()=>{const modes=process.argv[2]?[process.argv[2]]:['populated','insufficient','empty','failed','detail-failed','missing','race','filter','best','one','two','three','confidence','pagination','card-categories','verified-odds','stale-odds','engines'];for(const mode of modes)await scenario(mode);console.log(`prediction runtime: ${modes.length} scenarios passed`);})().catch(error=>{console.error(error);process.exitCode=1;});
+(async()=>{const modes=process.argv[2]?[process.argv[2]]:['populated','insufficient','empty','failed','detail-failed','missing','race','filter','best','one','two','three','confidence','pagination','card-categories','verified-odds','stale-odds','engines','domestic'];for(const mode of modes)await scenario(mode);console.log(`prediction runtime: ${modes.length} scenarios passed`);})().catch(error=>{console.error(error);process.exitCode=1;});
