@@ -172,6 +172,38 @@ async def dispatch(db,now=None,coupon_id=None,transport=None):
     return dict(status=outcome,delivery_id=claim['delivery_id'],error_code=error)
 
 
+async def send_test_message(transport=None):
+    """Manual one-shot test; does not create coupon deliveries or consume a daily slot."""
+    token, chat, valid = configuration()
+    if not valid:
+        return dict(status='disabled')
+    try:
+        async with asyncio.timeout(12), httpx.AsyncClient(timeout=8, follow_redirects=False,
+                trust_env=False, transport=transport) as client:
+            response = await client.post(
+                f'https://api.telegram.org/bot{token}/sendMessage',
+                json={'chat_id': chat,
+                      'text': 'BetApp213 Telegram bağlantı testi başarılı. Bu bir test mesajıdır; kupon gönderimi değildir.'})
+            try:
+                body = response.json()
+            except ValueError:
+                body = {}
+            body = body if isinstance(body, dict) else {}
+            result = body.get('result')
+            if (response.is_success and body.get('ok') is True and
+                    isinstance(result, dict) and type(result.get('message_id')) is int
+                    and result['message_id'] > 0):
+                return dict(status='sent', message_id=result['message_id'])
+            if body.get('ok') is False and 400 <= response.status_code < 500:
+                return dict(status='failed',
+                    error_code=telegram_client_error(response.status_code, body.get('description')))
+            return dict(status='uncertain', error_code='unconfirmed_http_'+str(response.status_code))
+    except asyncio.CancelledError:
+        raise
+    except Exception as exc:
+        return dict(status='uncertain', error_code='transport_'+type(exc).__name__)
+
+
 async def status(session,now):
     _,_,configured=configuration();today=now.astimezone(TZ).date().isoformat()
     rows=(await session.scalars(select(TelegramDelivery).where(TelegramDelivery.slot.like(today+'%')).order_by(TelegramDelivery.slot))).all()
