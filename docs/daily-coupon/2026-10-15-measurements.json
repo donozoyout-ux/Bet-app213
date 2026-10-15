@@ -1815,115 +1815,115 @@
           "quality_metrics": [
             {
               "id": "over_1_5_goals",
+              "qualifies": true,
               "probability": 0.7416836124996433,
               "reliability": 0.78125,
-              "score": 0.7733367224999287,
-              "qualifies": true
+              "score": 0.7733367224999287
             },
             {
               "id": "under_3_5_goals",
+              "qualifies": true,
               "probability": 0.7255969922195296,
               "reliability": 0.78125,
-              "score": 0.7701193984439059,
-              "qualifies": true
+              "score": 0.7701193984439059
             },
             {
               "id": "12_double_chance",
+              "qualifies": true,
               "probability": 0.7424689514922441,
               "reliability": 0.8357707763604107,
-              "score": 0.7571104113867775,
-              "qualifies": true
+              "score": 0.7571104113867775
             },
             {
               "id": "home_result",
+              "qualifies": false,
               "probability": 0.442251512355651,
               "reliability": 0.827924956717966,
-              "score": 0.750790267845503,
-              "qualifies": false
+              "score": 0.750790267845503
             },
             {
               "id": "1x_double_chance",
+              "qualifies": true,
               "probability": 0.6997825608634065,
               "reliability": 0.8284041803575553,
-              "score": 0.7426798564587256,
-              "qualifies": true
+              "score": 0.7426798564587256
             },
             {
               "id": "yes_btts",
+              "qualifies": false,
               "probability": 0.5323148264906732,
               "reliability": 0.78125,
-              "score": 0.7314629652981346,
-              "qualifies": false
+              "score": 0.7314629652981346
             },
             {
               "id": "under_2_5_goals",
+              "qualifies": false,
               "probability": 0.5065330260518304,
               "reliability": 0.78125,
-              "score": 0.726306605210366,
-              "qualifies": false
+              "score": 0.726306605210366
             },
             {
               "id": "over_2_5_goals",
+              "qualifies": false,
               "probability": 0.4934669739481696,
               "reliability": 0.78125,
-              "score": 0.7236933947896339,
-              "qualifies": false
+              "score": 0.7236933947896339
             },
             {
               "id": "away_result",
+              "qualifies": false,
               "probability": 0.3002174391365931,
               "reliability": 0.8284041803575551,
-              "score": 0.7227668321133628,
-              "qualifies": false
+              "score": 0.7227668321133628
             },
             {
               "id": "draw_result",
+              "qualifies": false,
               "probability": 0.25753104850775554,
               "reliability": 0.8357707763604107,
-              "score": 0.7201228307898797,
-              "qualifies": false
+              "score": 0.7201228307898797
             },
             {
               "id": "no_btts",
+              "qualifies": false,
               "probability": 0.4676851735093268,
               "reliability": 0.78125,
-              "score": 0.7185370347018654,
-              "qualifies": false
+              "score": 0.7185370347018654
             },
             {
               "id": "x2_double_chance",
+              "qualifies": false,
               "probability": 0.5577484876443486,
               "reliability": 0.827924956717966,
-              "score": 0.7138896629032425,
-              "qualifies": false
+              "score": 0.7138896629032425
             },
             {
               "id": "over_3_5_goals",
+              "qualifies": false,
               "probability": 0.2744030077804705,
               "reliability": 0.78125,
-              "score": 0.6798806015560941,
-              "qualifies": false
+              "score": 0.6798806015560941
             },
             {
               "id": "under_1_5_goals",
+              "qualifies": false,
               "probability": 0.2583163875003567,
               "reliability": 0.78125,
-              "score": 0.6766632775000714,
-              "qualifies": false
+              "score": 0.6766632775000714
             },
             {
               "id": "under_9_5_corners",
+              "qualifies": true,
               "probability": 0.6781724466623912,
               "reliability": 0.8389423076923077,
-              "score": 0.8067883354863244,
-              "qualifies": true
+              "score": 0.8067883354863244
             },
             {
               "id": "under_2_5_first_half_goals",
+              "qualifies": true,
               "probability": 0.8569379918829743,
               "reliability": 0.81125,
-              "score": 0.8186531004058514,
-              "qualifies": true
+              "score": 0.8186531004058514
             }
           ],
           "eligible_candidates": 0,
@@ -2848,101 +2848,101 @@
           "quality_metrics": [
             {
               "id": "over_1_5_goals",
+              "qualifies": false,
               "probability": 0.8561978143092829,
               "reliability": 0.5468382352941177,
-              "score": 0.60716069751983,
-              "qualifies": false
+              "score": 0.60716069751983
             },
             {
               "id": "12_double_chance",
+              "qualifies": false,
               "probability": 0.7748098432648529,
               "reliability": 0.6010677699051944,
-              "score": 0.5758161845771261,
-              "qualifies": false
+              "score": 0.5758161845771261
             },
             {
               "id": "yes_btts",
+              "qualifies": false,
               "probability": 0.6716281093742977,
               "reliability": 0.5468382352941177,
-              "score": 0.5717962101101537,
-              "qualifies": false
+              "score": 0.5717962101101537
             },
             {
               "id": "over_2_5_goals",
+              "qualifies": false,
               "probability": 0.6654489493455812,
               "reliability": 0.5468382352941177,
-              "score": 0.5705603781044104,
-              "qualifies": false
+              "score": 0.5705603781044104
             },
             {
               "id": "under_3_5_goals",
+              "qualifies": false,
               "probability": 0.5524530233062509,
               "reliability": 0.5468382352941177,
-              "score": 0.5479611928965443,
-              "qualifies": false
+              "score": 0.5479611928965443
             },
             {
               "id": "home_result",
+              "qualifies": false,
               "probability": 0.4068058800782619,
               "reliability": 0.5778516797089053,
-              "score": 0.5436425197827767,
-              "qualifies": false
+              "score": 0.5436425197827767
             },
             {
               "id": "away_result",
+              "qualifies": false,
               "probability": 0.36800396318659095,
               "reliability": 0.577081214319982,
-              "score": 0.5352657640933038,
-              "qualifies": false
+              "score": 0.5352657640933038
             },
             {
               "id": "1x_double_chance",
+              "qualifies": false,
               "probability": 0.6319960368134093,
               "reliability": 0.577081214319982,
-              "score": 0.5280641788186675,
-              "qualifies": false
+              "score": 0.5280641788186675
             },
             {
               "id": "over_3_5_goals",
+              "qualifies": false,
               "probability": 0.4475469766937491,
               "reliability": 0.5468382352941177,
-              "score": 0.526979983574044,
-              "qualifies": false
+              "score": 0.526979983574044
             },
             {
               "id": "draw_result",
+              "qualifies": false,
               "probability": 0.22519015673514745,
               "reliability": 0.6010677699051944,
-              "score": 0.5258922472711851,
-              "qualifies": false
+              "score": 0.5258922472711851
             },
             {
               "id": "x2_double_chance",
+              "qualifies": false,
               "probability": 0.5931941199217384,
               "reliability": 0.5778516797089054,
-              "score": 0.5209201677514721,
-              "qualifies": false
+              "score": 0.5209201677514721
             },
             {
               "id": "under_2_5_goals",
+              "qualifies": false,
               "probability": 0.3345510506544188,
               "reliability": 0.5468382352941177,
-              "score": 0.5043807983661779,
-              "qualifies": false
+              "score": 0.5043807983661779
             },
             {
               "id": "no_btts",
+              "qualifies": false,
               "probability": 0.32837189062570227,
               "reliability": 0.5468382352941177,
-              "score": 0.5031449663604346,
-              "qualifies": false
+              "score": 0.5031449663604346
             },
             {
               "id": "under_1_5_goals",
+              "qualifies": false,
               "probability": 0.14380218569071712,
               "reliability": 0.5468382352941177,
-              "score": 0.4662310253734376,
-              "qualifies": false
+              "score": 0.4662310253734376
             }
           ],
           "eligible_candidates": 0,
@@ -4092,115 +4092,115 @@
           "quality_metrics": [
             {
               "id": "over_1_5_goals",
+              "qualifies": true,
               "probability": 0.752269573507529,
               "reliability": 0.89125,
-              "score": 0.8634539147015059,
-              "qualifies": true
+              "score": 0.8634539147015059
             },
             {
               "id": "under_3_5_goals",
+              "qualifies": true,
               "probability": 0.712960112833374,
               "reliability": 0.89125,
-              "score": 0.8555920225666749,
-              "qualifies": true
+              "score": 0.8555920225666749
             },
             {
               "id": "12_double_chance",
+              "qualifies": true,
               "probability": 0.7478210510950829,
               "reliability": 0.9331933499791635,
-              "score": 0.8361188902023473,
-              "qualifies": true
+              "score": 0.8361188902023473
             },
             {
               "id": "home_result",
+              "qualifies": false,
               "probability": 0.4636402541611598,
               "reliability": 0.91625,
-              "score": 0.825728050832232,
-              "qualifies": false
+              "score": 0.825728050832232
             },
             {
               "id": "yes_btts",
+              "qualifies": false,
               "probability": 0.5397340459324085,
               "reliability": 0.89125,
-              "score": 0.8209468091864818,
-              "qualifies": false
+              "score": 0.8209468091864818
             },
             {
               "id": "1x_double_chance",
+              "qualifies": true,
               "probability": 0.7158192030660768,
               "reliability": 0.9219510173017548,
-              "score": 0.8207246544546192,
-              "qualifies": true
+              "score": 0.8207246544546192
             },
             {
               "id": "over_2_5_goals",
+              "qualifies": false,
               "probability": 0.5076321621241381,
               "reliability": 0.89125,
-              "score": 0.8145264324248277,
-              "qualifies": false
+              "score": 0.8145264324248277
             },
             {
               "id": "under_2_5_goals",
+              "qualifies": false,
               "probability": 0.4923678378758619,
               "reliability": 0.89125,
-              "score": 0.8114735675751725,
-              "qualifies": false
+              "score": 0.8114735675751725
             },
             {
               "id": "no_btts",
+              "qualifies": false,
               "probability": 0.4602659540675915,
               "reliability": 0.89125,
-              "score": 0.8050531908135183,
-              "qualifies": false
+              "score": 0.8050531908135183
             },
             {
               "id": "draw_result",
+              "qualifies": false,
               "probability": 0.2521789489049171,
               "reliability": 0.9331933499791635,
-              "score": 0.7969904697643142,
-              "qualifies": false
+              "score": 0.7969904697643142
             },
             {
               "id": "away_result",
+              "qualifies": false,
               "probability": 0.2841807969339231,
               "reliability": 0.9219510173017548,
-              "score": 0.7943969732281885,
-              "qualifies": false
+              "score": 0.7943969732281885
             },
             {
               "id": "x2_double_chance",
+              "qualifies": false,
               "probability": 0.5363597458388403,
               "reliability": 0.91625,
-              "score": 0.7802719491677681,
-              "qualifies": false
+              "score": 0.7802719491677681
             },
             {
               "id": "over_3_5_goals",
+              "qualifies": false,
               "probability": 0.287039887166626,
               "reliability": 0.89125,
-              "score": 0.7704079774333252,
-              "qualifies": false
+              "score": 0.7704079774333252
             },
             {
               "id": "under_1_5_goals",
+              "qualifies": false,
               "probability": 0.247730426492471,
               "reliability": 0.89125,
-              "score": 0.7625460852984943,
-              "qualifies": false
+              "score": 0.7625460852984943
             },
             {
               "id": "over_0_5_second_half_goals",
+              "qualifies": true,
               "probability": 0.8107213015189252,
               "reliability": 0.9277870813397129,
-              "score": 0.9043739253755554,
-              "qualifies": true
+              "score": 0.9043739253755554
             },
             {
               "id": "over_7_5_corners",
+              "qualifies": true,
               "probability": 0.8365538619565585,
               "reliability": 0.9197787060078209,
-              "score": 0.9031337371975685,
-              "qualifies": true
+              "score": 0.9031337371975685
             }
           ],
           "eligible_candidates": 0,
@@ -6802,101 +6802,101 @@
           "quality_metrics": [
             {
               "id": "under_3_5_goals",
+              "qualifies": false,
               "probability": 0.7617628626315578,
               "reliability": 0.6900000000000001,
-              "score": 0.7043525725263116,
-              "qualifies": false
+              "score": 0.7043525725263116
             },
             {
               "id": "over_1_5_goals",
+              "qualifies": false,
               "probability": 0.7086514651867818,
               "reliability": 0.6900000000000001,
-              "score": 0.6937302930373564,
-              "qualifies": false
+              "score": 0.6937302930373564
             },
             {
               "id": "home_result",
+              "qualifies": false,
               "probability": 0.4718593622571112,
               "reliability": 0.744649415067297,
-              "score": 0.69009140450526,
-              "qualifies": false
+              "score": 0.69009140450526
             },
             {
               "id": "1x_double_chance",
+              "qualifies": false,
               "probability": 0.735279234189498,
               "reliability": 0.7429175387215468,
-              "score": 0.681389877815137,
-              "qualifies": false
+              "score": 0.681389877815137
             },
             {
               "id": "12_double_chance",
+              "qualifies": false,
               "probability": 0.736580128067613,
               "reliability": 0.7425669537888436,
-              "score": 0.6813695886445976,
-              "qualifies": false
+              "score": 0.6813695886445976
             },
             {
               "id": "under_2_5_goals",
+              "qualifies": false,
               "probability": 0.5488570011913054,
               "reliability": 0.6900000000000001,
-              "score": 0.6617714002382611,
-              "qualifies": false
+              "score": 0.6617714002382611
             },
             {
               "id": "no_btts",
+              "qualifies": false,
               "probability": 0.5087993916963431,
               "reliability": 0.6900000000000001,
-              "score": 0.6537598783392686,
-              "qualifies": false
+              "score": 0.6537598783392686
             },
             {
               "id": "yes_btts",
+              "qualifies": false,
               "probability": 0.4912006083036569,
               "reliability": 0.6900000000000001,
-              "score": 0.6502401216607314,
-              "qualifies": false
+              "score": 0.6502401216607314
             },
             {
               "id": "away_result",
+              "qualifies": false,
               "probability": 0.2647207658105017,
               "reliability": 0.7429175387215468,
-              "score": 0.6472781841393378,
-              "qualifies": false
+              "score": 0.6472781841393378
             },
             {
               "id": "draw_result",
+              "qualifies": false,
               "probability": 0.26341987193238675,
               "reliability": 0.7425669537888437,
-              "score": 0.6467375374175524,
-              "qualifies": false
+              "score": 0.6467375374175524
             },
             {
               "id": "over_2_5_goals",
+              "qualifies": false,
               "probability": 0.4511429988086946,
               "reliability": 0.6900000000000001,
-              "score": 0.642228599761739,
-              "qualifies": false
+              "score": 0.642228599761739
             },
             {
               "id": "x2_double_chance",
+              "qualifies": false,
               "probability": 0.5281406377428884,
               "reliability": 0.744649415067297,
-              "score": 0.6413476596024152,
-              "qualifies": false
+              "score": 0.6413476596024152
             },
             {
               "id": "under_1_5_goals",
+              "qualifies": false,
               "probability": 0.2913485348132182,
               "reliability": 0.6900000000000001,
-              "score": 0.6102697069626437,
-              "qualifies": false
+              "score": 0.6102697069626437
             },
             {
               "id": "over_3_5_goals",
+              "qualifies": false,
               "probability": 0.23823713736844215,
               "reliability": 0.6900000000000001,
-              "score": 0.5996474274736885,
-              "qualifies": false
+              "score": 0.5996474274736885
             }
           ],
           "eligible_candidates": 0,
@@ -7430,115 +7430,115 @@
           "quality_metrics": [
             {
               "id": "over_1_5_goals",
+              "qualifies": true,
               "probability": 0.8136199464735611,
               "reliability": 0.7842763157894737,
-              "score": 0.7901450419262912,
-              "qualifies": true
+              "score": 0.7901450419262912
             },
             {
               "id": "12_double_chance",
+              "qualifies": true,
               "probability": 0.76586800400117,
               "reliability": 0.8359946291482225,
-              "score": 0.761969304118812,
-              "qualifies": true
+              "score": 0.761969304118812
             },
             {
               "id": "under_3_5_goals",
+              "qualifies": true,
               "probability": 0.6275176809939959,
               "reliability": 0.7842763157894737,
-              "score": 0.7529245888303782,
-              "qualifies": true
+              "score": 0.7529245888303782
             },
             {
               "id": "yes_btts",
+              "qualifies": true,
               "probability": 0.6101729563874153,
               "reliability": 0.7842763157894737,
-              "score": 0.749455643909062,
-              "qualifies": true
+              "score": 0.749455643909062
             },
             {
               "id": "over_2_5_goals",
+              "qualifies": false,
               "probability": 0.5962404797707749,
               "reliability": 0.7842763157894737,
-              "score": 0.746669148585734,
-              "qualifies": false
+              "score": 0.746669148585734
             },
             {
               "id": "away_result",
+              "qualifies": false,
               "probability": 0.46826536392071,
               "reliability": 0.8157177683128479,
-              "score": 0.7462272874344205,
-              "qualifies": false
+              "score": 0.7462272874344205
             },
             {
               "id": "x2_double_chance",
+              "qualifies": false,
               "probability": 0.7023973599195401,
               "reliability": 0.8189994549540991,
-              "score": 0.7356790359471872,
-              "qualifies": false
+              "score": 0.7356790359471872
             },
             {
               "id": "draw_result",
+              "qualifies": false,
               "probability": 0.23413199599883006,
               "reliability": 0.8359946291482225,
-              "score": 0.7156221025183441,
-              "qualifies": false
+              "score": 0.7156221025183441
             },
             {
               "id": "home_result",
+              "qualifies": false,
               "probability": 0.29760264008046,
               "reliability": 0.8189994549540991,
-              "score": 0.7147200919793713,
-              "qualifies": false
+              "score": 0.7147200919793713
             },
             {
               "id": "under_2_5_goals",
+              "qualifies": false,
               "probability": 0.4037595202292251,
               "reliability": 0.7842763157894737,
-              "score": 0.708172956677424,
-              "qualifies": false
+              "score": 0.708172956677424
             },
             {
               "id": "no_btts",
+              "qualifies": false,
               "probability": 0.3898270436125847,
               "reliability": 0.7842763157894737,
-              "score": 0.7053864613540959,
-              "qualifies": false
+              "score": 0.7053864613540959
             },
             {
               "id": "over_3_5_goals",
+              "qualifies": false,
               "probability": 0.37248231900600415,
               "reliability": 0.7842763157894737,
-              "score": 0.7019175164327798,
-              "qualifies": false
+              "score": 0.7019175164327798
             },
             {
               "id": "1x_double_chance",
+              "qualifies": false,
               "probability": 0.5317346360792901,
               "reliability": 0.815717768312848,
-              "score": 0.6989211418661365,
-              "qualifies": false
+              "score": 0.6989211418661365
             },
             {
               "id": "under_1_5_goals",
+              "qualifies": false,
               "probability": 0.18638005352643894,
               "reliability": 0.7842763157894737,
-              "score": 0.6646970633368667,
-              "qualifies": false
+              "score": 0.6646970633368667
             },
             {
               "id": "under_9_5_corners",
+              "qualifies": true,
               "probability": 0.6014538385711773,
               "reliability": 0.8582848837209303,
-              "score": 0.8069186746909798,
-              "qualifies": true
+              "score": 0.8069186746909798
             },
             {
               "id": "away_plus_0_5_asian_handicap",
+              "qualifies": true,
               "probability": 0.70239735991954,
               "reliability": 0.8170484787390339,
-              "score": 0.7941182549751351,
-              "qualifies": true
+              "score": 0.7941182549751351
             }
           ],
           "eligible_candidates": 0,
@@ -7767,115 +7767,115 @@
           "quality_metrics": [
             {
               "id": "under_3_5_goals",
+              "qualifies": false,
               "probability": 0.776190942937876,
               "reliability": 0.7572727272727273,
-              "score": 0.7610563704057571,
-              "qualifies": false
+              "score": 0.7610563704057571
             },
             {
               "id": "home_result",
+              "qualifies": false,
               "probability": 0.6078781933285873,
               "reliability": 0.7976161730995696,
-              "score": 0.7596685771453731,
-              "qualifies": false
+              "score": 0.7596685771453731
             },
             {
               "id": "1x_double_chance",
+              "qualifies": false,
               "probability": 0.8446070868425459,
               "reliability": 0.799004685602559,
-              "score": 0.7481251658505563,
-              "qualifies": false
+              "score": 0.7481251658505563
             },
             {
               "id": "over_1_5_goals",
+              "qualifies": false,
               "probability": 0.6941831931672756,
               "reliability": 0.7572727272727273,
-              "score": 0.744654820451637,
-              "qualifies": false
+              "score": 0.744654820451637
             },
             {
               "id": "12_double_chance",
+              "qualifies": false,
               "probability": 0.7632711064860412,
               "reliability": 0.8108842147697379,
-              "score": 0.7413615931129987,
-              "qualifies": false
+              "score": 0.7413615931129987
             },
             {
               "id": "no_btts",
+              "qualifies": false,
               "probability": 0.5816803067658615,
               "reliability": 0.7572727272727273,
-              "score": 0.7221542431713542,
-              "qualifies": false
+              "score": 0.7221542431713542
             },
             {
               "id": "under_2_5_goals",
+              "qualifies": false,
               "probability": 0.5665517392929644,
               "reliability": 0.7572727272727273,
-              "score": 0.7191285296767749,
-              "qualifies": false
+              "score": 0.7191285296767749
             },
             {
               "id": "draw_result",
+              "qualifies": false,
               "probability": 0.23672889351395868,
               "reliability": 0.8108842147697379,
-              "score": 0.6960531505185822,
-              "qualifies": false
+              "score": 0.6960531505185822
             },
             {
               "id": "over_2_5_goals",
+              "qualifies": false,
               "probability": 0.4334482607070355,
               "reliability": 0.7572727272727273,
-              "score": 0.692507833959589,
-              "qualifies": false
+              "score": 0.692507833959589
             },
             {
               "id": "yes_btts",
+              "qualifies": false,
               "probability": 0.41831969323413853,
               "reliability": 0.7572727272727273,
-              "score": 0.6894821204650097,
-              "qualifies": false
+              "score": 0.6894821204650097
             },
             {
               "id": "away_result",
+              "qualifies": false,
               "probability": 0.155392913157454,
               "reliability": 0.799004685602559,
-              "score": 0.670282331113538,
-              "qualifies": false
+              "score": 0.670282331113538
             },
             {
               "id": "under_1_5_goals",
+              "qualifies": false,
               "probability": 0.3058168068327244,
               "reliability": 0.7572727272727273,
-              "score": 0.6669815431847268,
-              "qualifies": false
+              "score": 0.6669815431847268
             },
             {
               "id": "x2_double_chance",
+              "qualifies": false,
               "probability": 0.39212180667141266,
               "reliability": 0.7976161730995696,
-              "score": 0.6565172998139381,
-              "qualifies": false
+              "score": 0.6565172998139381
             },
             {
               "id": "over_3_5_goals",
+              "qualifies": false,
               "probability": 0.22380905706212395,
               "reliability": 0.7572727272727273,
-              "score": 0.6505799932306067,
-              "qualifies": false
+              "score": 0.6505799932306067
             },
             {
               "id": "over_2_5_yellow_cards",
+              "qualifies": true,
               "probability": 0.8353181678815108,
               "reliability": 0.8991451612903225,
-              "score": 0.8863797626085602,
-              "qualifies": true
+              "score": 0.8863797626085602
             },
             {
               "id": "over_7_5_corners",
+              "qualifies": true,
               "probability": 0.7466467391317386,
               "reliability": 0.8789438502673796,
-              "score": 0.8524844280402515,
-              "qualifies": true
+              "score": 0.8524844280402515
             }
           ],
           "eligible_candidates": 0,
@@ -8155,101 +8155,101 @@
           "quality_metrics": [
             {
               "id": "home_result",
+              "qualifies": false,
               "probability": 0.6808754506459178,
               "reliability": 0.6798302656846913,
-              "score": 0.6800393026769367,
-              "qualifies": false
+              "score": 0.6800393026769367
             },
             {
               "id": "over_1_5_goals",
+              "qualifies": false,
               "probability": 0.8866723904231772,
               "reliability": 0.63625,
-              "score": 0.6771663804788411,
-              "qualifies": false
+              "score": 0.6771663804788411
             },
             {
               "id": "1x_double_chance",
+              "qualifies": false,
               "probability": 0.8501079785833915,
               "reliability": 0.6836911045613933,
-              "score": 0.6569474847199451,
-              "qualifies": false
+              "score": 0.6569474847199451
             },
             {
               "id": "12_double_chance",
+              "qualifies": false,
               "probability": 0.8307674720625259,
               "reliability": 0.687389161123298,
-              "score": 0.6560648233111435,
-              "qualifies": false
+              "score": 0.6560648233111435
             },
             {
               "id": "over_3_5_goals",
+              "qualifies": false,
               "probability": 0.5124581359985498,
               "reliability": 0.6900950479807911,
-              "score": 0.6545676655843429,
-              "qualifies": false
+              "score": 0.6545676655843429
             },
             {
               "id": "over_2_5_goals",
+              "qualifies": false,
               "probability": 0.7199046036800357,
               "reliability": 0.63625,
-              "score": 0.6529809207360071,
-              "qualifies": false
+              "score": 0.6529809207360071
             },
             {
               "id": "under_3_5_goals",
+              "qualifies": false,
               "probability": 0.48754186400145016,
               "reliability": 0.6900950479807911,
-              "score": 0.6495844111849229,
-              "qualifies": false
+              "score": 0.6495844111849229
             },
             {
               "id": "yes_btts",
+              "qualifies": false,
               "probability": 0.6323493326131074,
               "reliability": 0.63625,
-              "score": 0.6354698665226215,
-              "qualifies": false
+              "score": 0.6354698665226215
             },
             {
               "id": "draw_result",
+              "qualifies": false,
               "probability": 0.16923252793747365,
               "reliability": 0.6873891611232981,
-              "score": 0.5837578344861332,
-              "qualifies": false
+              "score": 0.5837578344861332
             },
             {
               "id": "no_btts",
+              "qualifies": false,
               "probability": 0.36765066738689256,
               "reliability": 0.63625,
-              "score": 0.5825301334773785,
-              "qualifies": false
+              "score": 0.5825301334773785
             },
             {
               "id": "away_result",
+              "qualifies": false,
               "probability": 0.14989202141660804,
               "reliability": 0.6836911045613933,
-              "score": 0.5769312879324363,
-              "qualifies": false
+              "score": 0.5769312879324363
             },
             {
               "id": "under_2_5_goals",
+              "qualifies": false,
               "probability": 0.2800953963199643,
               "reliability": 0.63625,
-              "score": 0.5650190792639929,
-              "qualifies": false
+              "score": 0.5650190792639929
             },
             {
               "id": "x2_double_chance",
+              "qualifies": false,
               "probability": 0.3191245493540817,
               "reliability": 0.6798302656846914,
-              "score": 0.5476891224185696,
-              "qualifies": false
+              "score": 0.5476891224185696
             },
             {
               "id": "under_1_5_goals",
+              "qualifies": false,
               "probability": 0.11332760957682275,
               "reliability": 0.63625,
-              "score": 0.5316655219153645,
-              "qualifies": false
+              "score": 0.5316655219153645
             }
           ],
           "eligible_candidates": 0,
@@ -9364,101 +9364,101 @@
           "quality_metrics": [
             {
               "id": "over_1_5_goals",
+              "qualifies": false,
               "probability": 0.7842460775254901,
               "reliability": 0.59625,
-              "score": 0.633849215505098,
-              "qualifies": false
+              "score": 0.633849215505098
             },
             {
               "id": "12_double_chance",
+              "qualifies": false,
               "probability": 0.7527976879928401,
               "reliability": 0.6509483581313774,
-              "score": 0.6113182241036699,
-              "qualifies": false
+              "score": 0.6113182241036699
             },
             {
               "id": "under_3_5_goals",
+              "qualifies": false,
               "probability": 0.6712499768484441,
               "reliability": 0.59625,
-              "score": 0.6112499953696888,
-              "qualifies": false
+              "score": 0.6112499953696888
             },
             {
               "id": "away_result",
+              "qualifies": false,
               "probability": 0.41275528350271634,
               "reliability": 0.6500164221747532,
-              "score": 0.6025641944403459,
-              "qualifies": false
+              "score": 0.6025641944403459
             },
             {
               "id": "yes_btts",
+              "qualifies": false,
               "probability": 0.583013747668097,
               "reliability": 0.59625,
-              "score": 0.5936027495336194,
-              "qualifies": false
+              "score": 0.5936027495336194
             },
             {
               "id": "x2_double_chance",
+              "qualifies": false,
               "probability": 0.6599575955098764,
               "reliability": 0.6497147803061307,
-              "score": 0.5917633433468799,
-              "qualifies": false
+              "score": 0.5917633433468799
             },
             {
               "id": "home_result",
+              "qualifies": false,
               "probability": 0.34004240449012374,
               "reliability": 0.6497147803061307,
-              "score": 0.5877803051429293,
-              "qualifies": false
+              "score": 0.5877803051429293
             },
             {
               "id": "over_2_5_goals",
+              "qualifies": false,
               "probability": 0.5523520403537581,
               "reliability": 0.59625,
-              "score": 0.5874704080707516,
-              "qualifies": false
+              "score": 0.5874704080707516
             },
             {
               "id": "1x_double_chance",
+              "qualifies": false,
               "probability": 0.5872447164972838,
               "reliability": 0.6500164221747532,
-              "score": 0.5774620810392594,
-              "qualifies": false
+              "score": 0.5774620810392594
             },
             {
               "id": "draw_result",
+              "qualifies": false,
               "probability": 0.24720231200716003,
               "reliability": 0.6509483581313774,
-              "score": 0.5701991489065339,
-              "qualifies": false
+              "score": 0.5701991489065339
             },
             {
               "id": "under_2_5_goals",
+              "qualifies": false,
               "probability": 0.44764795964624193,
               "reliability": 0.59625,
-              "score": 0.5665295919292483,
-              "qualifies": false
+              "score": 0.5665295919292483
             },
             {
               "id": "no_btts",
+              "qualifies": false,
               "probability": 0.416986252331903,
               "reliability": 0.59625,
-              "score": 0.5603972504663806,
-              "qualifies": false
+              "score": 0.5603972504663806
             },
             {
               "id": "over_3_5_goals",
+              "qualifies": false,
               "probability": 0.32875002315155594,
               "reliability": 0.59625,
-              "score": 0.5427500046303112,
-              "qualifies": false
+              "score": 0.5427500046303112
             },
             {
               "id": "under_1_5_goals",
+              "qualifies": false,
               "probability": 0.21575392247450986,
               "reliability": 0.59625,
-              "score": 0.5201507844949019,
-              "qualifies": false
+              "score": 0.5201507844949019
             }
           ],
           "eligible_candidates": 0,
@@ -10041,108 +10041,108 @@
           "quality_metrics": [
             {
               "id": "home_result",
+              "qualifies": true,
               "probability": 0.7322188479079602,
               "reliability": 0.8647126102003114,
-              "score": 0.8382138577418412,
-              "qualifies": true
+              "score": 0.8382138577418412
             },
             {
               "id": "over_1_5_goals",
+              "qualifies": true,
               "probability": 0.8836205750336329,
               "reliability": 0.8197115384615384,
-              "score": 0.8240882020175491,
-              "qualifies": true
+              "score": 0.8240882020175491
             },
             {
               "id": "12_double_chance",
+              "qualifies": true,
               "probability": 0.847251990519969,
               "reliability": 0.8705796322446132,
-              "score": 0.8059141038996844,
-              "qualifies": true
+              "score": 0.8059141038996844
             },
             {
               "id": "1x_double_chance",
+              "qualifies": true,
               "probability": 0.8849668573879911,
               "reliability": 0.8688445164172366,
-              "score": 0.8033272702643898,
-              "qualifies": true
+              "score": 0.8033272702643898
             },
             {
               "id": "over_3_5_goals",
+              "qualifies": false,
               "probability": 0.5054388939925832,
               "reliability": 0.8724989567604031,
-              "score": 0.7990869442068391,
-              "qualifies": false
+              "score": 0.7990869442068391
             },
             {
               "id": "over_2_5_goals",
+              "qualifies": true,
               "probability": 0.7142361007497386,
               "reliability": 0.8197115384615384,
-              "score": 0.7986164509191785,
-              "qualifies": true
+              "score": 0.7986164509191785
             },
             {
               "id": "under_3_5_goals",
+              "qualifies": false,
               "probability": 0.49456110600741676,
               "reliability": 0.8724989567604031,
-              "score": 0.7969113866098059,
-              "qualifies": false
+              "score": 0.7969113866098059
             },
             {
               "id": "yes_btts",
+              "qualifies": false,
               "probability": 0.5895554923306782,
               "reliability": 0.8197115384615384,
-              "score": 0.7736803292353664,
-              "qualifies": false
+              "score": 0.7736803292353664
             },
             {
               "id": "no_btts",
+              "qualifies": false,
               "probability": 0.41044450766932183,
               "reliability": 0.8197115384615384,
-              "score": 0.7378581323030952,
-              "qualifies": false
+              "score": 0.7378581323030952
             },
             {
               "id": "draw_result",
+              "qualifies": false,
               "probability": 0.15274800948003087,
               "reliability": 0.8705796322446132,
-              "score": 0.7270133076916968,
-              "qualifies": false
+              "score": 0.7270133076916968
             },
             {
               "id": "away_result",
+              "qualifies": false,
               "probability": 0.11503314261200878,
               "reliability": 0.8688445164172366,
-              "score": 0.7180822416561911,
-              "qualifies": false
+              "score": 0.7180822416561911
             },
             {
               "id": "under_2_5_goals",
+              "qualifies": false,
               "probability": 0.28576389925026136,
               "reliability": 0.8197115384615384,
-              "score": 0.7129220106192831,
-              "qualifies": false
+              "score": 0.7129220106192831
             },
             {
               "id": "x2_double_chance",
+              "qualifies": false,
               "probability": 0.2677811520920397,
               "reliability": 0.8647126102003114,
-              "score": 0.6853263185786571,
-              "qualifies": false
+              "score": 0.6853263185786571
             },
             {
               "id": "under_1_5_goals",
+              "qualifies": false,
               "probability": 0.1163794249663671,
               "reliability": 0.8197115384615384,
-              "score": 0.6790451157625041,
-              "qualifies": false
+              "score": 0.6790451157625041
             },
             {
               "id": "over_2_5_yellow_cards",
+              "qualifies": true,
               "probability": 0.917485126482769,
               "reliability": 0.8650671262699564,
-              "score": 0.8586794446918268,
-              "qualifies": true
+              "score": 0.8586794446918268
             }
           ],
           "eligible_candidates": 1,
@@ -11270,101 +11270,101 @@
           "quality_metrics": [
             {
               "id": "under_3_5_goals",
+              "qualifies": false,
               "probability": 0.846575720482833,
               "reliability": 0.56125,
-              "score": 0.6183151440965666,
-              "qualifies": false
+              "score": 0.6183151440965666
             },
             {
               "id": "under_2_5_goals",
+              "qualifies": false,
               "probability": 0.6610795224837274,
               "reliability": 0.56125,
-              "score": 0.5812159044967455,
-              "qualifies": false
+              "score": 0.5812159044967455
             },
             {
               "id": "home_result",
+              "qualifies": false,
               "probability": 0.45656724085199224,
               "reliability": 0.6068403556260521,
-              "score": 0.5767857326712401,
-              "qualifies": false
+              "score": 0.5767857326712401
             },
             {
               "id": "1x_double_chance",
+              "qualifies": false,
               "probability": 0.7513641886253941,
               "reliability": 0.6063003761702099,
-              "score": 0.5753131386612467,
-              "qualifies": false
+              "score": 0.5753131386612467
             },
             {
               "id": "12_double_chance",
+              "qualifies": false,
               "probability": 0.705203052226598,
               "reliability": 0.6157100205441578,
-              "score": 0.573608626880646,
-              "qualifies": false
+              "score": 0.573608626880646
             },
             {
               "id": "over_1_5_goals",
+              "qualifies": false,
               "probability": 0.6093705535730175,
               "reliability": 0.56125,
-              "score": 0.5708741107146036,
-              "qualifies": false
+              "score": 0.5708741107146036
             },
             {
               "id": "no_btts",
+              "qualifies": false,
               "probability": 0.6017989370279718,
               "reliability": 0.56125,
-              "score": 0.5693597874055945,
-              "qualifies": false
+              "score": 0.5693597874055945
             },
             {
               "id": "draw_result",
+              "qualifies": false,
               "probability": 0.29479694777340193,
               "reliability": 0.6157100205441578,
-              "score": 0.5515274059900066,
-              "qualifies": false
+              "score": 0.5515274059900066
             },
             {
               "id": "away_result",
+              "qualifies": false,
               "probability": 0.2486358113746057,
               "reliability": 0.6063003761702099,
-              "score": 0.5347674632110891,
-              "qualifies": false
+              "score": 0.5347674632110891
             },
             {
               "id": "x2_double_chance",
+              "qualifies": false,
               "probability": 0.5434327591480076,
               "reliability": 0.6068403556260521,
-              "score": 0.5341588363304433,
-              "qualifies": false
+              "score": 0.5341588363304433
             },
             {
               "id": "yes_btts",
+              "qualifies": false,
               "probability": 0.3982010629720282,
               "reliability": 0.56125,
-              "score": 0.5286402125944057,
-              "qualifies": false
+              "score": 0.5286402125944057
             },
             {
               "id": "under_1_5_goals",
+              "qualifies": false,
               "probability": 0.3906294464269825,
               "reliability": 0.56125,
-              "score": 0.5271258892853966,
-              "qualifies": false
+              "score": 0.5271258892853966
             },
             {
               "id": "over_2_5_goals",
+              "qualifies": false,
               "probability": 0.3389204775162727,
               "reliability": 0.56125,
-              "score": 0.5167840955032545,
-              "qualifies": false
+              "score": 0.5167840955032545
             },
             {
               "id": "over_3_5_goals",
+              "qualifies": false,
               "probability": 0.153424279517167,
               "reliability": 0.56125,
-              "score": 0.47968485590343346,
-              "qualifies": false
+              "score": 0.47968485590343346
             }
           ],
           "eligible_candidates": 0,

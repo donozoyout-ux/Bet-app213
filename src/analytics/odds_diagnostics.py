@@ -67,6 +67,7 @@ async def source_report(session, now, match_ids=None):
 
 
 def report(records,now):
+    from src.analytics.coupon import coupon_qualified
     families=defaultdict(Counter);daily=Counter();today=now.astimezone(ZoneInfo('Europe/Istanbul')).date()
     for record in records:
         kickoff=record['match']['kickoff_at']
@@ -79,7 +80,7 @@ def report(records,now):
             else:bucket[vo.get('reason') or 'no_verified_odds']+=1
             if kickoff.astimezone(ZoneInfo('Europe/Istanbul')).date()!=today:continue
             daily['selections']+=1
-            if rec.get('probability',0)<.7 or rec.get('reliability',0)<.8 or rec.get('score',0)<.8:daily['quality_rejected']+=1
+            if not coupon_qualified(rec):daily['quality_rejected']+=1
             elif not vo.get('coupon_eligible'):daily['price_rejected']+=1
             else:daily['qualified_priced']+=1
     reason_keys=('no_source_rows','line_mismatch','stale','unsupported_bookmaker','missing_stage_price','source_market_unavailable','unknown_observation','observed_after_cutoff')

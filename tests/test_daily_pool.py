@@ -159,6 +159,17 @@ async def test_partial_api_reports_all_nineteen_rejections(api,db,monkeypatch):
     assert data['data_updates']['checked_at'] and data['data_updates']['analysis_generated_at']
 
 
+def test_candidate_diagnostics_use_the_same_quality_gate():
+    from src.analytics.odds_diagnostics import report
+    from src.analytics.daily_pool import quality_failures
+    candidate=dict(id='home_result',market='result',qualifies=False,probability=.9,reliability=.9,score=.9)
+    records=[dict(match=dict(kickoff_at=NOW),recommendations=[candidate])]
+    assert report(records,NOW)['daily']['quality_rejected']==1
+    candidate.update(qualifies=True,probability=float('nan'))
+    assert report(records,NOW)['daily']['quality_rejected']==1
+    assert 'coupon_probability' in quality_failures(candidate)
+
+
 async def test_worker_refresh_includes_unlisted_today_and_preserves_backoff(db,monkeypatch):
     from src.jobs.live import PriorityUpdater
     from src.models import CollectorRetry

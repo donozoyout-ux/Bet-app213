@@ -71,7 +71,9 @@ async def daily_pool(session, now):
         entry['candidate_count']=len(candidates)
         entry['quality_candidates']=sum(coupon_qualified(r) for r in candidates)
         entry['quality_failures']=dict(Counter(reason for c in candidates for reason in quality_failures(c)))
-        entry['quality_metrics']=[dict(id=c['id'],probability=c.get('probability'),reliability=c.get('reliability'),score=c.get('score'),qualifies=c.get('qualifies')) for c in candidates]
+        entry['quality_metrics']=[dict(id=c['id'],qualifies=c.get('qualifies'),**{
+            field:c.get(field) if type(c.get(field)) in (int,float) and isfinite(c[field]) else None
+            for field in ('probability','reliability','score')}) for c in candidates]
         if not candidates:
             analysis=next((r for r in board.payload.get('engine_analysis',[]) if r['match_id']==match.id),None)
             entry['reason']='insufficient_prematch_data' if analysis else 'analysis_missing'
