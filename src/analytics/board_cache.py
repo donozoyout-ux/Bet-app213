@@ -10,7 +10,7 @@ from fastapi.encoders import jsonable_encoder
 from sqlalchemy import select, or_, text, literal
 from sqlalchemy.orm import defer
 from src.query_profile import stage
-from src.models import League, Match, PredictionBoard, BoardHead, utcnow
+from src.models import League, Match, PredictionBoard, BoardHead, BoardReadPublication, utcnow
 from src.jobs.worker import aware
 from src.match_views import day_bounds, DISPLAY_TIMEZONE
 from src.api.read_cache import ReadCache
@@ -44,9 +44,13 @@ async def refresh_one(db, now=None, force_league=None):
                 inputs=await revision(session)
             session.info['board_revision']=inputs
             source=hashlib.sha256(json.dumps(jsonable_encoder(inputs),sort_keys=True).encode()).hexdigest()
-            query=select(League.id).outerjoin(PredictionBoard).outerjoin(BoardHead,BoardHead.league_id==League.id).where(League.enabled.is_(True))
+            query=(select(League.id).outerjoin(PredictionBoard)
+                .outerjoin(BoardHead,BoardHead.league_id==League.id)
+                .outerjoin(BoardReadPublication,BoardReadPublication.league_id==League.id)
+                .where(League.enabled.is_(True)))
             if force_league is not None:query=query.where(League.id==force_league)
-            else:query=query.where(or_(PredictionBoard.league_id.is_(None),PredictionBoard.expires_at<=now+timedelta(minutes=2),PredictionBoard.model_version!=MODEL_VERSION,PredictionBoard.source_revision!=source))
+            else:query=query.where(or_(PredictionBoard.league_id.is_(None),PredictionBoard.expires_at<=now+timedelta(minutes=2),PredictionBoard.model_version!=MODEL_VERSION,PredictionBoard.source_revision!=source,BoardReadPublication.league_id.is_(None),
+                BoardReadPublication.version!=BoardHead.version))
             league=await session.scalar(query.order_by(BoardHead.checked_at.asc().nullsfirst(),League.priority,League.id).limit(1))
             if league is None:return False
             # Renew a publication lease only after evaluating the current cutoff.
@@ -90,25 +94,34 @@ async def refresh_all(db, now=None):
 async def read_board(session,league,date,team,now,statistical_all=False,include_engine_analysis=False):
     from src.analytics.coupon import coupon_qualified as quality
     # Read small, current validity metadata before reusing publication JSON.
-    query=select(League.id,PredictionBoard,BoardHead.version
-    ).options(defer(PredictionBoard.payload)).outerjoin(PredictionBoard).outerjoin(BoardHead,BoardHead.league_id==League.id).where(League.enabled.is_(True))
+    postgres=session.bind.dialect.name=='postgresql'
+    query=(select(League.id,PredictionBoard,BoardHead.version,BoardReadPublication.version)
+        .options(defer(PredictionBoard.payload)).outerjoin(PredictionBoard)
+        .outerjoin(BoardHead,BoardHead.league_id==League.id)
+        .outerjoin(BoardReadPublication,BoardReadPublication.league_id==League.id)
+        .where(League.enabled.is_(True)))
     if league:query=query.where(League.id==int(league)) if league.isdigit() else query.where(League.name.ilike('%'+league+'%'))
     rows=(await session.execute(query)).all()
-    valid=[(id,b,v) for id,b,v in rows if b is not None and b.model_version==MODEL_VERSION
+    valid=[(id,b,v) for id,b,v,read_v in rows if b is not None and (not postgres or v is not None and read_v==v) and b.model_version==MODEL_VERSION
            and aware(b.expires_at)>now and aware(b.generated_at)<=now]
     async def load_payloads():
+        if postgres:
+            # Each column is already JSON: no JSON -> JSONB conversion, no
+            # coupon/engine evidence read for the normal strip/list request.
+            p=BoardReadPublication
+            records=await session.execute(select(p.league_id,p.items,p.availability,p.evaluated,
+                p.coupon_records if statistical_all else literal(None),
+                p.engine_analysis if include_engine_analysis else literal(None)).where(or_(*[
+                    (p.league_id==id)&(p.version==v) for id,b,v in valid])))
+            return {id:dict(items=items,availability=available,evaluated=evaluated,coupon_records=coupons,engine_analysis=analysis)
+                    for id,items,available,evaluated,coupons,analysis in records}
+        # SQLite compatibility for historical test/import boards without heads.
         data=PredictionBoard.payload
-        if session.bind.dialect.name=='postgresql':
-            from sqlalchemy.dialects.postgresql import JSONB
-            data=data.cast(JSONB)
         base=select(PredictionBoard.league_id,data.label('data'))\
             .outerjoin(BoardHead,BoardHead.league_id==PredictionBoard.league_id)\
             .where(or_(*[(PredictionBoard.league_id==id) & (PredictionBoard.source_revision==b.source_revision)
                 & (PredictionBoard.generated_at==b.generated_at)
                 & (BoardHead.version==v if v else BoardHead.version.is_(None)) for id,b,v in valid])).cte('publication_json')
-        # JSON columns otherwise get parsed independently for every extraction.
-        # Materialize the JSONB conversion once; send only requested fields.
-        base=base.prefix_with('MATERIALIZED',dialect='postgresql')
         data=base.c.data
         records=await session.execute(select(base.c.league_id,data['items'],data['availability'],data['evaluated'],
             data['coupon_records'] if statistical_all else literal(None),
@@ -116,11 +129,12 @@ async def read_board(session,league,date,team,now,statistical_all=False,include_
         return {id:dict(items=items,availability=available,evaluated=evaluated,coupon_records=coupons,engine_analysis=analysis)
                 for id,items,available,evaluated,coupons,analysis in records}
     key=(statistical_all,include_engine_analysis,tuple(sorted((id,v or b.source_revision,b.generated_at) for id,b,v in valid)))
-    payloads=await payload_cache.get(session.bind,key,load_payloads) if valid else {}
+    with stage('board_payload'):
+        payloads=await payload_cache.get(session.bind,key,load_payloads) if valid else {}
     # Current statuses prevent a cached prematch pick appearing after kickoff or completion.
     eligible=dict((await session.execute(select(Match.id,Match.kickoff_at).join(League).where(League.enabled.is_(True),Match.status=='scheduled',Match.kickoff_at>now,Match.kickoff_at<=now+timedelta(days=7)))).all())
     items=[];availability=[];engine_analysis=[];times=[];expiries=[];revisions={};missing=[];stale=[];evaluated=0;versions={}
-    for id,board,version in rows:
+    for id,board,version,read_version in rows:
         if board is None or board.model_version!=MODEL_VERSION:missing.append(id);continue
         expired=aware(board.expires_at)<=now or aware(board.generated_at)>now
         if expired:

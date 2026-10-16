@@ -85,6 +85,25 @@ def stable(value):
     return value
 
 
+async def publish_board_read_model(session,board,version,data):
+    """Split large evidence documents on the writer, never cast them in HTTP.
+
+    Only one current projection per league; unchanged versions do not rewrite
+    JSON. An old installation is warmed by the next normal worker checkpoint.
+    """
+    from src.models import BoardReadPublication
+    with session.no_autoflush:
+        row=await session.get(BoardReadPublication,board.league_id)
+    if row is not None and row.version==version:return
+    if row is None:
+        row=BoardReadPublication(league_id=board.league_id)
+        session.add(row)
+    row.version=version
+    for field in ('items','availability','coupon_records','engine_analysis'):
+        setattr(row,field,deepcopy(data.get(field) or []))
+    row.evaluated=data.get('evaluated',0)
+
+
 async def publish_board(session,board,now,candidate_payload=None,model_version=None):
     data=board.payload if candidate_payload is None else candidate_payload
     model=model_version or board.model_version
@@ -97,6 +116,7 @@ async def publish_board(session,board,now,candidate_payload=None,model_version=N
         # edition's ordering and generation time, while renewing validation TTL.
         previous=inspect(board).attrs.payload.history.deleted
         if previous:board.payload=previous[0]
+        await publish_board_read_model(session,board,version,board.payload)
         return version
     board.model_version=model
     board.payload=data
@@ -109,6 +129,7 @@ async def publish_board(session,board,now,candidate_payload=None,model_version=N
     else:board.generated_at=edition.created_at
     if head:head.version=version
     else:session.add(BoardHead(league_id=board.league_id,version=version,checked_at=now))
+    await publish_board_read_model(session,board,version,data)
     return version
 
 
