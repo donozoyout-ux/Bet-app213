@@ -47,3 +47,5 @@ jobs:
           node tests/predictions_runtime.cjs
           node tests/market_runtime.cjs
           node tests/coupon_runtime.cjs
+          node --check src/api/dashboard-home.js
+          node tests/home_runtime.cjs
