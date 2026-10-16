@@ -30,9 +30,10 @@ async def test_pg_concurrent_publication_reads_fresh_guards_and_http(monkeypatch
         # against direct split columns. Production EXPLAIN ANALYZE is forbidden.
         from src.models import BoardReadPublication
         async with db.session() as s:
-            statement=select(PredictionBoard.payload)
             from sqlalchemy.dialects.postgresql import JSONB
             data=PredictionBoard.payload.cast(JSONB)
+            legacy_document=select(data.label('data')).cte('legacy_publication_json').prefix_with('MATERIALIZED')
+            data=legacy_document.c.data
             legacy=select(data['items'],data['availability'],data['evaluated'])
             start=time.perf_counter();old=(await s.execute(legacy)).one()
             legacy_ms=(time.perf_counter()-start)*1000
