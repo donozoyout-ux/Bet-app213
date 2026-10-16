@@ -188,14 +188,15 @@
       else {state.items=[];state.board=null;state.fingerprint=null;empty(error.message==='HTTP 504'?'Tahmin sunucusu iki kez zaman aşımına uğradı. Yeniden deneyin.':'Maç verileri kontrol edilemedi. Bağlantıyı yeniden deneyin.');}
     }} finally {if(state.listController===controller){state.listController=null;$('match-analysis').setAttribute('aria-busy','false');}}
   }
-  async function select(id) {
+  async function select(id,background=false) {
     const item=state.items.find(i=>i.match.id===id);
     if(!item || !boardFresh() || !future(item.match))return;
     state.openBlock=state.selected===id?state.openBlock:'main';state.detailController?.abort();state.detailController=new AbortController();const controller=state.detailController;
-    const generation=++state.detailGeneration;state.selected=id;state.detail=null;state.rec=null;renderStrip();
+    const generation=++state.detailGeneration;state.selected=id;
+    if(!background){state.detail=null;state.rec=null;renderStrip();}
     $('analysis-selected').hidden=false;write('analysis-selected-title',`${item.match.home_team} / ${item.match.away_team}`);
     write('analysis-selected-meta',`${item.match.league} · ${date(item.match.kickoff_at)} · Europe/Istanbul`);
-    $('analysis-blocks').replaceChildren(node('p','Seçilen maçın kanıtları yükleniyor…','analysis-empty'));
+    if(!background)$('analysis-blocks').replaceChildren(node('p','Seçilen maçın kanıtları yükleniyor…','analysis-empty'));
     try {
       const data=await api(`/api/matches/${id}/statistics`,controller);
       if(controller.signal.aborted || generation!==state.detailGeneration || state.selected!==id || !active())return;
@@ -208,7 +209,7 @@
         !boardFresh() || !rec || !Number.isFinite(Date.parse(data.as_of)) || Date.parse(data.as_of)>now() ||
         !(data.cache_seconds>0) || Date.parse(data.as_of)+data.cache_seconds*1000<=now())throw new Error('Invalid analysis evidence');
       state.detail=data;state.rec=rec;state.detailExpires=Date.parse(data.as_of)+data.cache_seconds*1000;renderDetail();
-    } catch (error) {if(!controller.signal.aborted && generation===state.detailGeneration && active())
+    } catch (error) {if(background && state.detail && state.detailExpires>now())return;if(!controller.signal.aborted && generation===state.detailGeneration && active())
       $('analysis-blocks').replaceChildren(node('p',error.code==='analysis_archive_missing'?'Kayıtlı maç öncesi analiz yok; geçmişe dönük tahmin üretilmez.':error.code==='analysis_publication_pending'?'Kaydedilmiş analiz henüz hazır değil. Arka plan yayını bekleniyor; sayfa hesaplama başlatmaz.':error.message==='HTTP 504'?'Analiz API 504 zaman aşımı. Yeniden maç seçerek deneyin.':error.message==='Invalid analysis evidence'?'Eski veya eşleşmeyen analiz. Güncel kanıt bekleniyor.':'Analiz bağlantısı kurulamadı. Yeniden deneyin.','analysis-empty'));}
   }
   function block(key,title,teaser,build,open=false) {
@@ -345,6 +346,12 @@
        !Object.entries(known).every(([key,value])=>boards[key]?.valid && boards[key].version===value))return;
     state.board.cache.expires_at=new Date(Math.min(...Object.keys(known).map(key=>Date.parse(boards[key].expires_at)))).toISOString();
     persist(state.board);
+    const detail=meta.analyses?.[String(state.selected)];
+    const expiry=Date.parse(detail?.expires_at);
+    if(detail?.valid && Number.isFinite(expiry) && expiry>now() && active()){
+      if(state.detail?.publication?.version===detail.version){state.detailExpires=Math.min(expiry,Date.parse(state.board.cache.expires_at));}
+      else select(state.selected,true);
+    }
   }
   globalThis.BetAppMatchAnalysis=Object.freeze({refresh,deactivate,acceptRevision});
   setInterval(tick,1000);

@@ -6,7 +6,7 @@ import asyncio
 import logging
 from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from sqlalchemy import select, func, or_, text
-from sqlalchemy.orm import aliased
+from sqlalchemy.orm import aliased, defer
 from src.config import settings
 from src.db import database
 from src.models import League, Season, Team, Match, Bookmaker, Odds1X2, AsianHandicap, AsianTotals, MarketOdds, ScraperJob, MatchStatistics
@@ -433,8 +433,13 @@ async def global_predictions(league: str | None=None,date: Date | None=None,team
 
 @router.get('/matches/{match_id}/statistics', response_model=Statistics)
 async def match_statistics(match_id: int, session=Depends(session_dependency)):
+    with profile('analysis_read'):
+        return await read_published_statistics(match_id,session)
+
+
+async def read_published_statistics(match_id,session):
     query, _, _ = match_query()
-    row = (await session.execute(query.where(Match.id == match_id, League.enabled.is_(True)))).first()
+    row = (await session.execute(query.options(defer(Match.raw)).where(Match.id == match_id, League.enabled.is_(True)))).first()
     if not row:
         raise HTTPException(404, 'Match not found')
     from src.analytics.publications import read_match_analysis

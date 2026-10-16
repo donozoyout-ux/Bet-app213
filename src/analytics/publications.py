@@ -13,12 +13,19 @@ from src.models import (BoardEdition, BoardHead, DailyCouponPublication, Predict
 from src.jobs.worker import aware
 
 
+def analysis_evidence(value):
+    # Moving the inspection cutoff alone is not a new statistical observation.
+    if isinstance(value,dict):return {k:analysis_evidence(v) for k,v in value.items() if k!='cutoff'}
+    if isinstance(value,list):return [analysis_evidence(v) for v in value]
+    return value
+
+
 async def publish_match_analyses(session,analyses,board_version,model_version,now,expires):
     from src.models import PublishedMatchAnalysis
     existing={r.match_id:r for r in await session.scalars(select(PublishedMatchAnalysis).where(PublishedMatchAnalysis.match_id.in_(analyses)))} if analyses else {}
     for match_id,data in analyses.items():
         payload=jsonable_encoder(data)
-        evidence=stable(payload);evidence.pop('engine_context',None)
+        evidence=analysis_evidence(stable(payload));evidence.pop('engine_context',None)
         version=digest(evidence)
         row=existing.get(match_id)
         if row is None:
@@ -72,7 +79,7 @@ def digest(value):
 def stable(value):
     if isinstance(value,dict):
         return {k:stable(v) for k,v in value.items() if k not in
-                {'verified_odds','as_of','generated_at','expires_at','checked_at','observed_at','updated_at','last_scraped_at','status_observed_at','live_checked_at'}}
+                {'verified_odds','as_of','generated_at','expires_at','checked_at','observed_at','updated_at','last_scraped_at','status_observed_at','live_checked_at','duration_ms'}}
     if isinstance(value,list):return [stable(v) for v in value]
     return value
 
@@ -115,10 +122,20 @@ async def revisions(session,now):
     board_meta={str(a):dict(version=b or c,expires_at=aware(d) if d is not None else None,
         valid=d is not None and aware(d)>now and g is not None and aware(g)<=now and model==MODEL_VERSION)
         for a,b,c,d,g,model in boards}
-    matches=(await session.execute(select(Match.id,Match.kickoff_at,Match.updated_at).join(League)
+    matches=(await session.execute(select(Match.id,Match.kickoff_at,Match.updated_at,Match.league_id).join(League)
         .where(League.enabled.is_(True),Match.status=='scheduled',Match.kickoff_at>now,
                Match.kickoff_at<=now+timedelta(days=7)).order_by(Match.id))).all()
     ids=[r.id for r in matches]
+    from src.models import PublishedMatchAnalysis
+    analysis_rows=(await session.execute(select(PublishedMatchAnalysis.match_id,PublishedMatchAnalysis.version,
+        PublishedMatchAnalysis.board_version,PublishedMatchAnalysis.model_version,PublishedMatchAnalysis.kickoff_at,
+        PublishedMatchAnalysis.checked_at,PublishedMatchAnalysis.expires_at).where(PublishedMatchAnalysis.match_id.in_(ids)))).all() if ids else []
+    fixtures={r.id:r for r in matches}
+    analyses={str(r.match_id):dict(version=r.version,checked_at=aware(r.checked_at),expires_at=aware(r.expires_at),
+        valid=r.model_version==MODEL_VERSION and aware(r.checked_at)<=now<aware(r.expires_at)
+            and aware(r.kickoff_at)==aware(fixtures[r.match_id].kickoff_at)
+            and board_meta.get(str(fixtures[r.match_id].league_id),{}).get('valid')
+            and board_meta.get(str(fixtures[r.match_id].league_id),{}).get('version')==r.board_version) for r in analysis_rows}
     prices=[]
     for model in (Odds1X2,AsianTotals,AsianHandicap,MarketOdds):
         rows=(await session.execute(select(model.id,model.updated_at)
@@ -139,7 +156,7 @@ async def revisions(session,now):
         deadlines += [board_meta[str(i['match']['league_id'])]['expires_at'] for i in (items or [])
             if str(i['match'].get('league_id')) in board_meta and board_meta[str(i['match']['league_id'])]['expires_at'] is not None]
         daily_meta[strategy]=dict(version=version,valid=valid,valid_until=min(deadlines) if deadlines else None)
-    return dict(day=day,checked_at=now,boards=board_meta,daily=daily_meta,
+    return dict(day=day,checked_at=now,boards=board_meta,analyses=analyses,daily=daily_meta,
         predictions=digest([board_token,price_token]),coupon_input=digest([day,board_token,price_token]),
         coupons=digest([day,[(key,value['version'],value['valid']) for key,value in daily_meta.items()]]))
 
