@@ -32,8 +32,8 @@ def owner_hash(key):
     return hashlib.sha256(key.encode()).hexdigest()
 
 
-def fingerprint(items):
-    economic=[(i['match']['id'],i['recommendation']['id'],i['quote']['bookmaker'],i['quote']['price'],i['quote']['observed_at'],
+def fingerprint(items, include_observation=True):
+    economic=[(i['match']['id'],i['recommendation']['id'],i['quote']['bookmaker'],i['quote']['price'],i['quote']['observed_at'] if include_observation else None,
         i['recommendation']['probability'],i['recommendation']['confidence'],i['recommendation'].get('reliability'),i['recommendation'].get('score'),jsonable_encoder(i['match']['kickoff_at']),i['match']['home_team'],i['match']['away_team']) for i in items]
     return hashlib.sha256(json.dumps(sorted(economic),separators=(',',':')).encode()).hexdigest()
 
@@ -49,7 +49,7 @@ def strong(rec):
     return coupon_qualified(rec)
 
 
-async def automatic(session,now,strategy='balanced'):
+async def automatic(session,now,strategy='balanced',display_limit=None):
     from src.analytics.daily_pool import daily_pool
     records=await daily_pool(session,now)
     groups={r['match']['id']:[c for c in r['recommendations'] if c['id'] in {b['id'] for b in r['coupon_candidates']} and strong(c)] for r in records}
@@ -64,15 +64,26 @@ async def automatic(session,now,strategy='balanced'):
             candidate=dict(match=record['match'],recommendation=rec,quote=quote,status='pending')
             items.append(candidate)
     diagnostics=session.info['coupon_diagnostics']
-    items,selection=select_portfolio(items,now,strategy)
+    items,selection=select_portfolio(items,now,strategy,limit=display_limit)
+    if display_limit is not None:
+        selection={**selection,'display_limit':display_limit}
     diagnostics['selection']=selection
     diagnostics['selected_matches']=len(items)
     session.info['coupon_selection_explanations']={(i['match']['id'],i['recommendation']['id']):i['selection_explanation'] for i in items}
+    session.info['automatic_current_payload']=payload(items) if items else None
     if not items:return None
     await lock_coupons(session)
-    digest=hashlib.sha256(f'{now.astimezone(COUPON_TZ).date().isoformat()}:{strategy}:{POLICY_VERSION}:{fingerprint(items)}'.encode()).hexdigest()
+    publication_policy=POLICY_VERSION if display_limit is None else f'{POLICY_VERSION}-daily-{display_limit}'
+    digest=hashlib.sha256(f'{now.astimezone(COUPON_TZ).date().isoformat()}:{strategy}:{publication_policy}:{fingerprint(items,include_observation=display_limit is None)}'.encode()).hexdigest()
     existing=await session.scalar(select(SavedCoupon).where(SavedCoupon.automatic_fingerprint==digest))
     if existing:return existing
+    if display_limit is not None:
+        start=now.astimezone(COUPON_TZ).replace(hour=0,minute=0,second=0,microsecond=0)
+        previous=await session.scalars(select(SavedCoupon).where(SavedCoupon.kind=='automatic',
+            SavedCoupon.created_at>=start,SavedCoupon.created_at<=now).order_by(SavedCoupon.created_at.desc()))
+        for previous_coupon in previous:
+            if previous_coupon.payload.get('strategy','balanced')==strategy and fingerprint(previous_coupon.payload['items'],include_observation=False)==fingerprint(items,include_observation=False):
+                return previous_coupon
     id=str(uuid.uuid4());row=SavedCoupon(id=id,root_id=id,revision=1,kind='automatic',automatic_fingerprint=digest,owner_hash=None,created_at=now,payload={**payload(items),'coupon_date':now.astimezone(COUPON_TZ).date().isoformat(),'strategy':strategy,'selection_mode':'dynamic','selection_policy':selection})
     session.add(row);await session.flush();return row
 

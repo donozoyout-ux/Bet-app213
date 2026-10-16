@@ -4,7 +4,7 @@ from sqlalchemy import text
 
 async def install_prediction_guards(conn):
     if conn.dialect.name == 'sqlite':
-        for table in ('prediction_snapshots', 'prediction_settlements', 'learning_reports', 'learning_slices', 'learning_lessons', 'learning_ai_explanations'):
+        for table in ('prediction_snapshots', 'prediction_settlements', 'learning_reports', 'learning_slices', 'learning_lessons', 'learning_ai_explanations', 'board_editions'):
             operations = ('UPDATE', 'DELETE')
             for operation in operations:
                 await conn.execute(text(f"CREATE TRIGGER IF NOT EXISTS immutable_{table}_{operation.lower()} BEFORE {operation} ON {table} BEGIN SELECT RAISE(ABORT, 'immutable prediction history'); END"))
@@ -18,7 +18,7 @@ async def install_prediction_guards(conn):
             await conn.execute(text(f'ALTER TABLE {prefix}prediction_snapshots ALTER COLUMN model_version TYPE VARCHAR(100)'))
         function = prefix + 'reject_prediction_history_change'
         await conn.execute(text(f"CREATE OR REPLACE FUNCTION {function}() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'immutable prediction history'; END $$"))
-        for table in ('prediction_snapshots', 'prediction_settlements', 'learning_reports', 'learning_slices', 'learning_lessons', 'learning_ai_explanations'):
+        for table in ('prediction_snapshots', 'prediction_settlements', 'learning_reports', 'learning_slices', 'learning_lessons', 'learning_ai_explanations', 'board_editions'):
             target = prefix + table
             await conn.execute(text(f'DROP TRIGGER IF EXISTS immutable_history ON {target}'))
             await conn.execute(text(f'CREATE TRIGGER immutable_history BEFORE UPDATE OR DELETE ON {target} FOR EACH ROW EXECUTE FUNCTION {function}()'))
