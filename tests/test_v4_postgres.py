@@ -23,12 +23,27 @@ async def test_pg_concurrent_publication_reads_fresh_guards_and_http(monkeypatch
         await db.initialize();await many_matches(db,4)
         async with db.session() as s:
             board=await s.scalar(select(PredictionBoard));data=deepcopy(board.payload)
-            data['unused_evidence']=[{'index':i,'detail':str(uuid.uuid4())*8} for i in range(1000)]
-            board.payload=data;await s.commit()
+            data['unused_evidence']=[{'index':i,'detail':str(uuid.uuid4())*8} for i in range(32000)]
+            from src.analytics.publications import publish_board
+            await publish_board(s,board,NOW,candidate_payload=data);await s.commit()
+        # Same isolated publication: measure the former whole-document cast
+        # against direct split columns. Production EXPLAIN ANALYZE is forbidden.
+        from src.models import BoardReadPublication
+        async with db.session() as s:
+            statement=select(PredictionBoard.payload)
+            from sqlalchemy.dialects.postgresql import JSONB
+            data=PredictionBoard.payload.cast(JSONB)
+            legacy=select(data['items'],data['availability'],data['evaluated'])
+            start=time.perf_counter();old=(await s.execute(legacy)).one()
+            legacy_ms=(time.perf_counter()-start)*1000
+            start=time.perf_counter();new=(await s.execute(select(BoardReadPublication.items,BoardReadPublication.availability,BoardReadPublication.evaluated))).one()
+            split_ms=(time.perf_counter()-start)*1000
+            assert old==new
+            print('SPLIT_PUBLICATION_BENCHMARK '+json.dumps(dict(legacy_cast_ms=round(legacy_ms,3),split_ms=round(split_ms,3),basis='same isolated ~10MB evidence publication; no production speed claim')))
         queries=[];payload_statement=[]
         def collect(conn,cursor,statement,*args):
             queries.append(statement)
-            if 'publication_json' in statement and not payload_statement:payload_statement.append((statement,args[0]))
+            if 'board_read_publications.items' in statement and not payload_statement:payload_statement.append((statement,args[0]))
         event.listen(db.engine.sync_engine,'before_cursor_execute',collect)
         async def read():
             async with db.session() as s:return await read_board(s,None,None,None,NOW)
@@ -40,7 +55,8 @@ async def test_pg_concurrent_publication_reads_fresh_guards_and_http(monkeypatch
         warm_sql=len(queries)
         payload_cache.databases.clear();queries.clear()
         await asyncio.gather(*(read() for _ in range(8)))
-        assert sum('prediction_boards.payload' in q for q in queries)==1
+        assert sum('board_read_publications.items' in q for q in queries)==1
+        assert not any('CAST(' in q or 'prediction_boards.payload' in q for q in queries)
         event.remove(db.engine.sync_engine,'before_cursor_execute',collect)
         # Explain while these bound publication values are still current. The
         # later version-change test intentionally invalidates the old version.
@@ -50,6 +66,16 @@ async def test_pg_concurrent_publication_reads_fresh_guards_and_http(monkeypatch
         if isinstance(plan,str):plan=json.loads(plan)
         assert plan[0]['Plan']['Actual Rows']==1
         from src.analytics.publications import publish_board
+        async with db.session() as s:
+            projection=await s.scalar(select(BoardReadPublication))
+            await s.delete(projection);await s.commit()
+        async with db.session() as s:
+            assert (await read_board(s,None,None,None,NOW))[0]==[]
+            assert s.info['prediction_snapshot']['status']=='warming'
+        async with db.session() as s:
+            b=await s.scalar(select(PredictionBoard))
+            await publish_board(s,b,NOW);await s.commit()
+        assert len((await read())[0])==4
         async with db.session() as s:
             b=await s.scalar(select(PredictionBoard));changed=deepcopy(b.payload)
             changed['items'][0]['recommendations'][0]['probability']-=.001

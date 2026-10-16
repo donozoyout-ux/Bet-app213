@@ -10,7 +10,7 @@ from fastapi.encoders import jsonable_encoder
 from sqlalchemy import select, or_, text, literal
 from sqlalchemy.orm import defer
 from src.query_profile import stage
-from src.models import League, Match, PredictionBoard, BoardHead, utcnow
+from src.models import League, Match, PredictionBoard, BoardHead, BoardReadPublication, utcnow
 from src.jobs.worker import aware
 from src.match_views import day_bounds, DISPLAY_TIMEZONE
 from src.api.read_cache import ReadCache
@@ -90,13 +90,25 @@ async def refresh_all(db, now=None):
 async def read_board(session,league,date,team,now,statistical_all=False,include_engine_analysis=False):
     from src.analytics.coupon import coupon_qualified as quality
     # Read small, current validity metadata before reusing publication JSON.
-    query=select(League.id,PredictionBoard,BoardHead.version
-    ).options(defer(PredictionBoard.payload)).outerjoin(PredictionBoard).outerjoin(BoardHead,BoardHead.league_id==League.id).where(League.enabled.is_(True))
+    postgres=session.bind.dialect.name=='postgresql'
+    query=select(League.id,PredictionBoard,BoardHead.version,BoardReadPublication.version
+    ).options(defer(PredictionBoard.payload)).outerjoin(PredictionBoard).outerjoin(BoardHead,BoardHead.league_id==League.id)        .outerjoin(BoardReadPublication,BoardReadPublication.league_id==League.id).where(League.enabled.is_(True))
     if league:query=query.where(League.id==int(league)) if league.isdigit() else query.where(League.name.ilike('%'+league+'%'))
     rows=(await session.execute(query)).all()
-    valid=[(id,b,v) for id,b,v in rows if b is not None and b.model_version==MODEL_VERSION
+    valid=[(id,b,v) for id,b,v,read_v in rows if b is not None and (not postgres or v is not None and read_v==v) and b.model_version==MODEL_VERSION
            and aware(b.expires_at)>now and aware(b.generated_at)<=now]
     async def load_payloads():
+        if postgres:
+            # Each column is already JSON: no JSON -> JSONB conversion, no
+            # coupon/engine evidence read for the normal strip/list request.
+            p=BoardReadPublication
+            records=await session.execute(select(p.league_id,p.items,p.availability,p.evaluated,
+                p.coupon_records if statistical_all else literal(None),
+                p.engine_analysis if include_engine_analysis else literal(None)).where(or_(*[
+                    (p.league_id==id)&(p.version==v) for id,b,v in valid])))
+            return {id:dict(items=items,availability=available,evaluated=evaluated,coupon_records=coupons,engine_analysis=analysis)
+                    for id,items,available,evaluated,coupons,analysis in records}
+        # SQLite compatibility for historical test/import boards without heads.
         data=PredictionBoard.payload
         if session.bind.dialect.name=='postgresql':
             from sqlalchemy.dialects.postgresql import JSONB
@@ -116,11 +128,12 @@ async def read_board(session,league,date,team,now,statistical_all=False,include_
         return {id:dict(items=items,availability=available,evaluated=evaluated,coupon_records=coupons,engine_analysis=analysis)
                 for id,items,available,evaluated,coupons,analysis in records}
     key=(statistical_all,include_engine_analysis,tuple(sorted((id,v or b.source_revision,b.generated_at) for id,b,v in valid)))
-    payloads=await payload_cache.get(session.bind,key,load_payloads) if valid else {}
+    with stage('board_payload'):
+        payloads=await payload_cache.get(session.bind,key,load_payloads) if valid else {}
     # Current statuses prevent a cached prematch pick appearing after kickoff or completion.
     eligible=dict((await session.execute(select(Match.id,Match.kickoff_at).join(League).where(League.enabled.is_(True),Match.status=='scheduled',Match.kickoff_at>now,Match.kickoff_at<=now+timedelta(days=7)))).all())
     items=[];availability=[];engine_analysis=[];times=[];expiries=[];revisions={};missing=[];stale=[];evaluated=0;versions={}
-    for id,board,version in rows:
+    for id,board,version,read_version in rows:
         if board is None or board.model_version!=MODEL_VERSION:missing.append(id);continue
         expired=aware(board.expires_at)<=now or aware(board.generated_at)>now
         if expired:

@@ -470,3 +470,15 @@ class PublishedMatchAnalysis(Base):
     checked_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     payload: Mapped[dict] = mapped_column(JSON,deferred=True)
+
+
+class BoardReadPublication(Base):
+    """Worker-built split read model; atomically follows one immutable edition."""
+    __tablename__ = 'board_read_publications'
+    league_id: Mapped[int] = mapped_column(ForeignKey('leagues.id'), primary_key=True)
+    version: Mapped[str] = mapped_column(ForeignKey('board_editions.version'))
+    items: Mapped[list] = mapped_column(JSON, deferred=True)
+    availability: Mapped[list] = mapped_column(JSON, deferred=True)
+    evaluated: Mapped[int] = mapped_column()
+    coupon_records: Mapped[list] = mapped_column(JSON, deferred=True)
+    engine_analysis: Mapped[list] = mapped_column(JSON, deferred=True)
