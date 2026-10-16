@@ -22,7 +22,7 @@ def teams(match):
             for side in ('home','away')} - {''}
 
 
-def select_portfolio(records,now,strategy='balanced'):
+def select_portfolio(records,now,strategy='balanced',limit=None):
     if strategy not in AVERSION:raise ValueError('Unsupported coupon strategy')
     today=now.astimezone(ZoneInfo('Europe/Istanbul')).date()
     candidates=[];decisions=[]
@@ -61,7 +61,7 @@ def select_portfolio(records,now,strategy='balanced'):
     candidates.sort(key=lambda c:(c['item']['match']['id'],c['item']['recommendation']['id'],c['item']['quote'].get('bookmaker','')))
     chosen=[];matches=set();used_teams=set();leagues=Counter();families=Counter()
     risk=0.;quality_total=0.;evaluations=0;remaining=list(candidates);budget_hit=False
-    while remaining:
+    while remaining and (limit is None or len(chosen)<limit):
         best=None
         # A round is atomic: never choose from only the first part of a round.
         if evaluations+len(remaining)>MAX_EVALUATIONS:
@@ -93,6 +93,7 @@ def select_portfolio(records,now,strategy='balanced'):
     # Re-evaluate final hard conflicts for alternatives left after the last round.
     for c in candidates:
         if c['decision']['selected']:continue
+        if limit is not None and len(chosen)>=limit and c in remaining:c['decision']['reason']='daily_limit'
         if c['item']['match']['id'] in matches:c['decision']['reason']='same_match'
         elif c['teams'] & used_teams:c['decision']['reason']='shared_team'
     audit=dict(policy_version=POLICY_VERSION,strategy=strategy,selection_mode='dynamic',

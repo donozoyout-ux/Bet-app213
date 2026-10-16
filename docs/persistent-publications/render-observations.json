@@ -1,0 +1,145 @@
+{
+  "scope": "Read-only Render logs; no query values, client IPs or credentials retained",
+  "logs": [
+    {
+      "timestamp": "2026-10-16T12:29:38.403088212Z",
+      "message": "WARNING:src.db:[DB] slow query operation=SELECT duration_ms=995.2"
+    },
+    {
+      "timestamp": "2026-10-16T12:29:43.507088012Z",
+      "message": "WARNING:src.db:[DB] slow query operation=SELECT duration_ms=704.5"
+    },
+    {
+      "timestamp": "2026-10-16T12:29:51.407561014Z",
+      "message": "WARNING:src.db:[DB] slow query operation=SELECT duration_ms=700.7"
+    },
+    {
+      "timestamp": "2026-10-16T12:30:00.010087953Z",
+      "message": "WARNING:src.db:[DB] slow query operation=SELECT duration_ms=963.8"
+    },
+    {
+      "timestamp": "2026-10-16T12:30:05.505846917Z",
+      "message": "WARNING:src.db:[DB] slow query operation=SELECT duration_ms=907.3"
+    },
+    {
+      "timestamp": "2026-10-16T12:30:14.204583384Z",
+      "message": "WARNING:src.db:[DB] slow query operation=SELECT duration_ms=907.8"
+    },
+    {
+      "timestamp": "2026-10-16T12:30:22.307867577Z",
+      "message": "WARNING:src.db:[DB] slow query operation=SELECT duration_ms=896.3"
+    },
+    {
+      "timestamp": "2026-10-16T12:30:27.407989431Z",
+      "message": "WARNING:src.db:[DB] slow query operation=SELECT duration_ms=698.2"
+    },
+    {
+      "timestamp": "2026-10-16T12:30:36.223259809Z",
+      "message": "2026-10-16 12:30:36,223 WARNING src.db [DB] slow query operation=SELECT duration_ms=301.9"
+    },
+    {
+      "timestamp": "2026-10-16T12:30:36.525846417Z",
+      "message": "2026-10-16 12:30:36,525 WARNING src.db [DB] slow query operation=SELECT duration_ms=301.5"
+    },
+    {
+      "timestamp": "2026-10-16T12:30:37.121419174Z",
+      "message": "WARNING:src.db:[DB] slow query operation=SELECT duration_ms=1718.7"
+    },
+    {
+      "timestamp": "2026-10-16T12:30:37.818505848Z",
+      "message": "2026-10-16 12:30:37,818 WARNING src.db [DB] slow query operation=SELECT duration_ms=398.7"
+    },
+    {
+      "timestamp": "2026-10-16T12:30:37.92242397Z",
+      "message": "WARNING:src.db:[DB] slow query operation=SELECT duration_ms=294.3"
+    },
+    {
+      "timestamp": "2026-10-16T12:30:38.435601116Z",
+      "message": "2026-10-16 12:30:38,433 WARNING src.db [DB] slow query operation=SELECT duration_ms=632.0"
+    },
+    {
+      "timestamp": "2026-10-16T12:30:39.720459718Z",
+      "message": "2026-10-16 12:30:39,718 WARNING src.db [DB] slow query operation=SELECT duration_ms=2960.6"
+    },
+    {
+      "timestamp": "2026-10-16T12:30:40.031056229Z",
+      "message": "2026-10-16 12:30:40,030 WARNING src.api.main [API] bounded timeout path=/api/predictions/best"
+    },
+    {
+      "timestamp": "2026-10-16T12:30:40.328224473Z",
+      "message": "2026-10-16 12:30:40,327 WARNING src.db [DB] slow query operation=SELECT duration_ms=502.0"
+    },
+    {
+      "timestamp": "2026-10-16T12:30:40.722827632Z",
+      "message": "2026-10-16 12:30:40,722 WARNING src.api.main [API] bounded timeout path=/api/predictions"
+    },
+    {
+      "timestamp": "2026-10-16T12:30:40.818353883Z",
+      "message": "2026-10-16 12:30:40,818 WARNING src.db [DB] slow query operation=SELECT duration_ms=284.1"
+    },
+    {
+      "timestamp": "2026-10-16T12:30:40.901358888Z",
+      "message": "2026-10-16 12:30:40,901 WARNING src.db [DB] slow query operation=SELECT duration_ms=2075.3"
+    },
+    {
+      "timestamp": "2026-10-16T12:30:41.218534889Z",
+      "message": "2026-10-16 12:30:41,218 WARNING src.db [DB] slow query operation=SELECT duration_ms=399.0"
+    },
+    {
+      "timestamp": "2026-10-16T12:30:41.324777924Z",
+      "message": "2026-10-16 12:30:41,324 WARNING src.api.main [API] bounded timeout path=/api/predictions"
+    },
+    {
+      "timestamp": "2026-10-16T12:30:41.815772264Z",
+      "message": "2026-10-16 12:30:41,815 WARNING src.db [DB] slow query operation=SELECT duration_ms=494.4"
+    },
+    {
+      "timestamp": "2026-10-16T12:30:43.118267029Z",
+      "message": "WARNING:src.db:[DB] slow query operation=SELECT duration_ms=1081.1"
+    },
+    {
+      "timestamp": "2026-10-16T12:30:43.827372488Z",
+      "message": "WARNING:src.db:[DB] slow query operation=SELECT duration_ms=618.9"
+    },
+    {
+      "timestamp": "2026-10-16T12:30:51.321874414Z",
+      "message": "WARNING:src.db:[DB] slow query operation=UPDATE duration_ms=323.6"
+    },
+    {
+      "timestamp": "2026-10-16T12:30:51.32826233Z",
+      "message": "INFO:src.analytics.board_cache:[PREDICTIONS] cached league=32 evaluated=18 generated_at=2026-10-16T12:30:42.021849+00:00"
+    },
+    {
+      "timestamp": "2026-10-16T12:30:52.118962421Z",
+      "message": "2026-10-16 12:30:52,118 WARNING src.db [DB] slow query operation=SELECT duration_ms=3022.1"
+    },
+    {
+      "timestamp": "2026-10-16T12:30:55.497994851Z",
+      "message": "WARNING:src.db:[DB] slow query operation=SELECT duration_ms=832.1"
+    },
+    {
+      "timestamp": "2026-10-16T12:31:01.004689675Z",
+      "message": "WARNING:src.db:[DB] slow query operation=SELECT duration_ms=902.9"
+    },
+    {
+      "timestamp": "2026-10-16T12:31:02.405222239Z",
+      "message": "WARNING:src.db:[DB] slow query operation=SELECT duration_ms=589.0"
+    },
+    {
+      "timestamp": "2026-10-16T12:31:07.106276315Z",
+      "message": "WARNING:src.db:[DB] slow query operation=SELECT duration_ms=892.3"
+    },
+    {
+      "timestamp": "2026-10-16T12:31:15.599907377Z",
+      "message": "WARNING:src.db:[DB] slow query operation=SELECT duration_ms=904.0"
+    },
+    {
+      "timestamp": "2026-10-16T12:31:20.902090582Z",
+      "message": "WARNING:src.db:[DB] slow query operation=SELECT duration_ms=903.2"
+    },
+    {
+      "timestamp": "2026-10-16T12:31:28.898224255Z",
+      "message": "WARNING:src.db:[DB] slow query operation=SELECT duration_ms=876.0"
+    }
+  ]
+}

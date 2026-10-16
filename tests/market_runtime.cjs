@@ -11,7 +11,7 @@ else if(path.startsWith('/api/predictions?'))payload={...recorded.page,items:mod
 vm.createContext(sandbox);vm.runInContext(fs.readFileSync('src/api/dashboard-market.js','utf8'),sandbox);const settle=async()=>{for(let i=0;i<10;i++)await new Promise(resolve=>setImmediate(resolve));};await settle();
 assert(!calls.some(p=>p.startsWith('/api/market-performance')));assert(!calls.some(p=>p.includes('/statistics')));
 if(mode==='populated'){const card=elements.get('prediction-cards').children[0];assert(card.text().includes('Arsenal'));assert(card.text().includes('1,75'));card.onclick();assert.equal(clicked[0],recorded.page.items[0].match.id);}
-sandbox.BetAppUI.navigate('predictions');await settle();const body=elements.get('market-picks');
+elements.get('analysis-advanced').open=true;sandbox.BetAppUI.navigate('predictions');await settle();const body=elements.get('market-picks');
 if(mode==='race'){elements.get('pred-market').value='cards';await sandbox.BetAppMarket.refresh();releaseFirst();await settle();assert(!body.text().includes('Arsenal'));return;}
 if(mode==='empty'){assert(body.text().includes('nitelikli tahmin yok'));return;}
 if(mode==='failed-board'){assert(body.text().includes('PostgreSQL'));sandbox.BetAppUI.navigate('performance');await settle();assert(elements.get('performance-picks').text().includes('kaydedilmiş tahmin yok'));return;}

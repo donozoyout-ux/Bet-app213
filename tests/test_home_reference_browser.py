@@ -35,6 +35,7 @@ async def test_reference_home_layout_and_real_interactions(api, db, monkeypatch,
         row.opening_home=1.8;row.latest_home=1.9;row.latest_draw=3.2;row.latest_away=4.1
         row.updated_at=NOW;row.raw=observed_prices(NOW,'latest_home','latest_draw','latest_away')
         await session.commit()
+    await api.post('/api/coupons/automatic')
     async with async_playwright() as p:
         browser = await p.chromium.launch()
         page = await browser.new_page(viewport={'width':width,'height':height},

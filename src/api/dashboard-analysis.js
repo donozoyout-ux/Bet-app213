@@ -103,6 +103,7 @@
     return {text:q ? reasons[q.reason] || 'Kupon uygunluğu doğrulanmadı' : 'Kupon uygunluğu kontrol ediliyor',eligible:false};
   }
   function renderStrip() {
+    state.quoteSignature=quoteSignature();
     const strip=$('analysis-match-strip');strip.replaceChildren();
     for(const item of state.items) {
       const m=item.match,r=item.recommendation,status=coupon(item);
@@ -179,6 +180,7 @@
       else {renderStrip();select(selected);}
       quote(generation);
     } catch (error) {if(!controller.signal.aborted && generation===state.generation && active()){
+      globalThis.BetAppRevision?.failed('predictions');
       const message=error.message==='HTTP 504'?'API 504 zaman aşımı. Mevcut doğrulanmış liste korunuyor.':'Veri kontrolü başarısız. Mevcut doğrulanmış liste korunuyor.';
       if(state.items.length && boardFresh())write('match-analysis-status',message);
       else {state.items=[];state.board=null;state.fingerprint=null;empty(error.message==='HTTP 504'?'Tahmin sunucusu iki kez zaman aşımına uğradı. Yeniden deneyin.':'Maç verileri kontrol edilemedi. Bağlantıyı yeniden deneyin.');}
@@ -300,6 +302,7 @@
     }
   }
   function renderDetail() {
+    state.quoteSignature=quoteSignature();
     if(!state.detail || !state.rec || !future(state.detail.match) || !boardFresh())return;
     const data=state.detail,r=state.rec,box=$('analysis-blocks');
     const focused=document.activeElement?.closest?.('[data-analysis-block]')?.dataset.analysisBlock;
@@ -317,6 +320,7 @@
     if(focused)box.querySelector(`[data-analysis-block="${focused}"] > summary`)?.focus({preventScroll:true});
   }
   function deactivate() {state.items=[];state.board=null;state.fingerprint=null;state.quotes.clear();$('analysis-match-strip').replaceChildren();state.generation++;state.listController?.abort();state.listController=null;state.quoteController?.abort();clearDetail();}
+  const quoteSignature=()=>state.items.map(i=>coupon(i).eligible+':'+priceFresh(i.recommendation.verified_odds)).join('|')+':'+priceFresh(state.rec?.verified_odds)+':'+Object.values(state.rec?.verified_odds?.bookmakers || {}).map(b=>Date.parse(b.expires_at)>now()).join(',');
   function tick() {
     if(!active())return;
     if(state.board && !boardFresh()){state.items=[];empty('Analiz süresi doldu. Yeni veri kontrolü bekleniyor.');return;}
@@ -326,13 +330,20 @@
     if(state.detail && state.detailExpires<=now()) {state.detail=null;state.rec=null;
       $('analysis-blocks').replaceChildren(node('p','Detay verisinin süresi doldu. Yeni analiz bekleniyor.','analysis-empty'));}
     // Only rerender when a quote transitions to expired, preserving accordion focus.
-    const signature=state.items.map(i=>coupon(i).eligible+':'+priceFresh(i.recommendation.verified_odds)).join('|')+':'+priceFresh(state.rec?.verified_odds)+':'+Object.values(state.rec?.verified_odds?.bookmakers || {}).map(b=>Date.parse(b.expires_at)>now()).join(',');
+    const signature=quoteSignature();
     if(signature!==state.quoteSignature){state.quoteSignature=signature;renderStrip();if(state.detail)renderDetail();}
   }
   $('analysis-strip-previous').onclick=()=>$('analysis-match-strip').scrollBy({left:-320,behavior:'smooth'});
   $('analysis-strip-next').onclick=()=>$('analysis-match-strip').scrollBy({left:320,behavior:'smooth'});
   $('analysis-refresh').onclick=()=>{state.listController?.abort();state.listController=null;refresh();};
   document.addEventListener('visibilitychange',()=>{if(!document.hidden && active()){tick();if(!state.board || !boardFresh())refresh();}});
-  globalThis.BetAppMatchAnalysis=Object.freeze({refresh,deactivate});
+  function acceptRevision(meta){
+    const known=state.board?.cache?.publication_versions,boards=meta.boards;
+    if(!known || !boards || Object.keys(known).length!==Object.values(boards).filter(b=>b.valid).length ||
+       !Object.entries(known).every(([key,value])=>boards[key]?.valid && boards[key].version===value))return;
+    state.board.cache.expires_at=new Date(Math.min(...Object.keys(known).map(key=>Date.parse(boards[key].expires_at)))).toISOString();
+    persist(state.board);
+  }
+  globalThis.BetAppMatchAnalysis=Object.freeze({refresh,deactivate,acceptRevision});
   setInterval(tick,1000);
 })();

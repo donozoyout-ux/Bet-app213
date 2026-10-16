@@ -18,7 +18,9 @@ from src.diagnostics import database_summary
 from src.analytics.service import statistics as compute_statistics, revision as prediction_revision
 from .prediction_schemas import PredictionPage, Statistics, GlobalPicks
 from src.analytics.recommendations import market_matches, summarize_availability
-from .read_cache import summary_cache, prediction_cache, performance_cache
+from .read_cache import summary_cache, prediction_cache, performance_cache, revision_cache
+
+from src.query_profile import profile,stage
 
 router = APIRouter()
 
@@ -226,11 +228,14 @@ async def predictions(league: str | None = None, date: Date | None = None,
 async def calculate_predictions(session,league,date,team=None,statistical_all=False,include_engine_analysis=False):
     from src.analytics.board_cache import read_board
     from src.analytics.coupon import current_odds
-    async with asyncio.timeout(4):
-        result=await read_board(session,league,date,team,utcnow(),statistical_all=statistical_all,include_engine_analysis=include_engine_analysis)
+    with profile('predictions'):
+      async with asyncio.timeout(4):
+        with stage('board_read'):
+            result=await read_board(session,league,date,team,utcnow(),statistical_all=statistical_all,include_engine_analysis=include_engine_analysis)
         items,now,_=result
         for item in items:item['recommendations']=[dict(r) for r in (item['recommendations'] if statistical_all else item['recommendations'][:2])]
-        await current_odds(session,{i['match']['id']:i['recommendations'] for i in items},now)
+        with stage('current_quotes'):
+            await current_odds(session,{i['match']['id']:i['recommendations'] for i in items},now)
         return result
 
 
@@ -254,19 +259,27 @@ from src.models import SavedCoupon
 @router.post('/coupons/automatic')
 async def automatic_coupon(strategy: Literal['balanced','cautious','value']='balanced', max_matches: str | None=Query(default=None,include_in_schema=False),session=Depends(session_dependency)):
     if max_matches is not None:raise HTTPException(422,'Automatic coupon size is determined by the dynamic engine; remove max_matches')
-    async with asyncio.timeout(10):
-        row=await automatic(session,utcnow(),strategy=strategy)
+    from src.analytics.publications import publish_daily
+    with profile('daily_evaluation'):
+      async with asyncio.timeout(10):
+        result=await publish_daily(session,utcnow(),strategy)
         await session.commit()
-        if row:
-            data=await coupon_detail(session,row)
-            diagnostics=session.info.get('coupon_diagnostics',{})
-            for item in data['items']:
-                item['selection_explanation']=session.info['coupon_selection_explanations'][(item['match']['id'],item['recommendation']['id'])]
-            return {**data,'selection_policy':diagnostics.get('selection'),'diagnostics':diagnostics,'data_updates':{'checked_at':diagnostics.get('checked_at'),'analysis_generated_at':diagnostics.get('last_analysis_generated_at'),'price_observed_at':diagnostics.get('last_quality_price_observed_at')}}
-        diagnostics=session.info.get('coupon_diagnostics',{});cache=session.info.get('prediction_snapshot',{});daily=diagnostics.get('daily',{})
-        reason='portfolio_rejected' if diagnostics.get('selection',{}).get('qualified_candidates') else 'analysis_unavailable' if cache.get('stale') else 'no_today_candidates' if not diagnostics.get('total_matches') else 'insufficient_prematch_data' if not daily.get('selections') else 'quality_rejected' if daily.get('quality_rejected')==daily.get('selections') else 'price_rejected'
-        messages={'portfolio_rejected':'Güncel kaliteli adayların ek katkısı veya birleşik risk göstergesi uygun kupon oluşturmuyor.','insufficient_prematch_data':'Bugünkü maçların model adayları için yeterli örneklem yok; veri güncellemesi bekleniyor.','analysis_unavailable':'Güncel analiz hazırlanıyor; kalite şartları korunuyor.','no_today_candidates':'Bugün henüz başlamamış uygun maç bulunamadı.','quality_rejected':'Bugünkü seçimler %70 olasılık, %80 güvenilirlik ve %80 kalite şartlarını karşılamıyor.','price_rejected':'Kaliteli seçimler için güncel ve tam eşleşen oran bekleniyor.'}
-        return {'coupon_date':diagnostics.get('coupon_date'),'strategy':strategy,'selection_mode':'dynamic','selection_policy':diagnostics.get('selection'),'items':[],'status':'no_eligible_selections','reason':reason,'message':messages[reason],'diagnostics':diagnostics,'cache':cache,'data_updates':{'analysis_generated_at':cache.get('latest_generated_at') or cache.get('generated_at'),'price_observed_at':diagnostics.get('last_quality_price_observed_at'),'checked_at':diagnostics.get('checked_at')}}
+        from src.analytics.publications import read_daily
+        return await read_daily(session,utcnow(),strategy)
+
+
+@router.get('/coupons/daily')
+async def daily_coupon(strategy: Literal['balanced','cautious','value']='balanced',session=Depends(session_dependency)):
+    from src.analytics.publications import read_daily
+    with profile('daily_read'):
+        return await read_daily(session,utcnow(),strategy)
+
+
+@router.get('/dashboard/revision')
+async def dashboard_revision(session=Depends(session_dependency)):
+    from src.analytics.publications import revisions
+    async with asyncio.timeout(4):
+        return await revision_cache.get(session.bind,'publication_manifest',lambda:revisions(session,utcnow()))
 
 
 @router.get('/odds-coverage')
@@ -358,7 +371,7 @@ async def uncached_predictions(session,league,date,team=None,now=None,publish=Tr
     rows = (await session.execute(query.order_by(Match.kickoff_at.asc(), Match.id.asc()))).all()
     from src.analytics.service import prefetch_markets
     await prefetch_markets(session, [row[0] for row in rows])
-    rev = await prediction_revision(session)
+    rev = session.info.get('board_revision') or await prediction_revision(session)
     calculated = [];observations=[]
     session.info['count_availability']=[]
     session.info['engine_analysis']=[]

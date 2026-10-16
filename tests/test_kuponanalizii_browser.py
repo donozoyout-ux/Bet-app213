@@ -28,6 +28,7 @@ async def test_brand_navigation_coupon_and_accessible_motion(api, db, monkeypatc
     import src.api.routes as routes
     monkeypatch.setattr(routes, 'utcnow', lambda: NOW)
     await many_matches(db, 4)
+    await api.post('/api/coupons/automatic')
     async with async_playwright() as p:
         browser = await p.chromium.launch()
         page = await browser.new_page(viewport={'width': width, 'height': 960}, reduced_motion='reduce')
@@ -73,10 +74,10 @@ async def test_brand_navigation_coupon_and_accessible_motion(api, db, monkeypatc
                     '(el)=>getComputedStyle(el).gridTemplateColumns.split(" ").length') == 5
             await expect(page.locator('a:has-text("Premium"),a:has-text("Hesabım"),a:has-text("AI Tahmin")')).to_have_count(0)
             await capture('home')
-            # Hero action reaches the existing automatic coupon API, not a demo state.
+            # Hero action reads the worker-published daily record without generating a coupon.
             # Navigation is synchronous, but coupon creation is a server request
             # with a 10s budget. Wait for that response before checking its DOM.
-            async with page.expect_response(lambda r: '/api/coupons/automatic?strategy=balanced' in r.url, timeout=15000) as created:
+            async with page.expect_response(lambda r: '/api/coupons/daily?strategy=balanced' in r.url, timeout=15000) as created:
                 await page.locator('.hero-actions .primary-button').click()
             response=await created.value
             assert response.status==200
@@ -87,7 +88,7 @@ async def test_brand_navigation_coupon_and_accessible_motion(api, db, monkeypatc
             await expect(page.locator('#coupon-total')).to_contain_text('23,43')
             await expect(page.locator('#coupon-target')).to_have_count(0)
             await expect(page.locator('#coupon-strategy')).to_have_value('balanced')
-            assert any('/api/coupons/automatic?strategy=balanced' in path for path in calls)
+            assert any('/api/coupons/daily?strategy=balanced' in path for path in calls)
             await capture('coupon')
             assert await page.evaluate('document.documentElement.scrollWidth<=innerWidth')
             # Editing stays accessible outside the default daily view.
@@ -129,6 +130,7 @@ async def test_tablet_coupon_waits_for_slow_automatic_response(api,db,monkeypatc
     import src.api.routes as routes
     monkeypatch.setattr(routes,'utcnow',lambda:NOW)
     await many_matches(db,4)
+    await api.post('/api/coupons/automatic')
     async with async_playwright() as p:
         browser=await p.chromium.launch()
         page=await browser.new_page(viewport={'width':768,'height':960},reduced_motion='reduce')
@@ -136,7 +138,7 @@ async def test_tablet_coupon_waits_for_slow_automatic_response(api,db,monkeypatc
         async def forward(route):
             path=route.request.url.removeprefix('http://test')
             assert 'api.telegram.org' not in route.request.url
-            if path.startswith('/api/coupons/automatic') and '#coupon' in page.url:
+            if path.startswith('/api/coupons/daily') and '#coupon' in page.url:
                 # A valid response can exceed Playwright's default 5s assertion
                 # window while still meeting the endpoint's 10s server budget.
                 await asyncio.sleep(5.25)
@@ -148,7 +150,7 @@ async def test_tablet_coupon_waits_for_slow_automatic_response(api,db,monkeypatc
         try:
             await page.goto('http://test/')
             await page.wait_for_load_state('networkidle')
-            async with page.expect_response(lambda r:'/api/coupons/automatic?strategy=balanced' in r.url,timeout=15000) as created:
+            async with page.expect_response(lambda r:'/api/coupons/daily?strategy=balanced' in r.url,timeout=15000) as created:
                 await page.locator('.hero-actions .primary-button').click()
             response=await created.value
             assert response.status==200 and len((await response.json())['items'])==4
@@ -170,6 +172,7 @@ async def test_live_scores_bookmaker_controls_and_pulse(api, db, monkeypatch, mo
     import src.api.routes as routes
     monkeypatch.setattr(routes, 'utcnow', lambda: NOW)
     await many_matches(db, 4)
+    await api.post('/api/coupons/automatic')
     async with db.session() as session:
         match = await session.scalar(select(Match).where(Match.status == 'scheduled'))
         match.status = 'live'

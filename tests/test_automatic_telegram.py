@@ -236,6 +236,7 @@ async def test_chromium_automatic_edit_save_history_and_results(api,db,monkeypat
     import src.api.routes as routes
     monkeypatch.setattr(routes,'utcnow',lambda:NOW)
     await many_matches(db,4)
+    await api.post('/api/coupons/automatic')
     async with async_playwright() as p:
         browser=await p.chromium.launch();page=await browser.new_page(viewport={'width':1280,'height':900})
         await page.clock.install(time=NOW)
