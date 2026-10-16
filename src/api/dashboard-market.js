@@ -102,7 +102,7 @@ function closeMatch(){state.lastMatch=null;if(globalThis.history?.state?.betMatc
 function navigate(page){if(!pages.includes(page))return;globalThis.history?.pushState(null,'',`#${page}`);restore();}
 function tabs(selector,action){document.querySelectorAll(selector).forEach(b=>{b.onclick=()=>action(b);b.onkeydown=e=>{const items=[...document.querySelectorAll(selector)],i=items.indexOf(b);let next;if(e.key==='ArrowRight')next=(i+1)%items.length;else if(e.key==='ArrowLeft')next=(i+items.length-1)%items.length;else if(e.key==='Home')next=0;else if(e.key==='End')next=items.length-1;else return;e.preventDefault();items[next].focus();action(items[next]);};});}
 globalThis.BetAppUI=Object.freeze({active:p=>state.page===p || p==='matches' && state.page==='bulletin',openMatch,closeMatch,restore,navigate,refresh:()=>{leagues();loadPage();},isArctic:true});
-globalThis.BetAppMarket=Object.freeze({refresh,refreshPerformance,activate,homeSnapshot:()=>homeSnapshot});
+globalThis.BetAppMarket=Object.freeze({refresh,refreshPerformance,activate,oddsReason,homeSnapshot:()=>homeSnapshot});
 document.querySelectorAll('[data-page-link],.brand,.primary-button,.secondary-button,.text-link,.coverage-link').forEach(link=>link.onclick=e=>{e.preventDefault();navigate(link.getAttribute('href').slice(1));});
 globalThis.addEventListener?.('popstate',restore);globalThis.addEventListener?.('hashchange',restore);
 const changed=()=>{state.offset=0;refresh();};for(const id of ['pred-view','pred-date','pred-league','pred-market','prediction-confidence','min-probability','market-sort','pred-bookmaker'])if($(id))$(id).onchange=changed;
