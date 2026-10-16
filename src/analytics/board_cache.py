@@ -49,6 +49,9 @@ async def refresh_one(db, now=None, force_league=None):
             else:query=query.where(or_(PredictionBoard.league_id.is_(None),PredictionBoard.expires_at<=now+timedelta(minutes=2),PredictionBoard.model_version!=MODEL_VERSION,PredictionBoard.source_revision!=source))
             league=await session.scalar(query.order_by(BoardHead.checked_at.asc().nullsfirst(),League.priority,League.id).limit(1))
             if league is None:return False
+            # Renew a publication lease only after evaluating the current cutoff.
+            # The HTTP-era model cache may still contain an older time window.
+            session.info['force_model_refresh']=True
             with stage('model_calculation'):
                 items,generated,evaluated=await uncached_predictions(session,str(league),None,now=now,publish=False)
             board=await session.get(PredictionBoard,league)

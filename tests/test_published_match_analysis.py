@@ -7,14 +7,17 @@ from src.models import PublishedMatchAnalysis,Match,BoardHead
 from tests.test_predictions import seed,NOW
 
 
-async def test_same_evidence_renews_lease_without_payload_rewrite(db):
+async def test_same_evidence_renews_lease_without_payload_rewrite(db,monkeypatch):
     from src.analytics.board_cache import refresh_one
-    from src.analytics.service import _cache
+    import src.analytics.service as service
     target,league,*_=await seed(db)
     async with db.session() as s:
         first=await s.get(PublishedMatchAnalysis,target);version=first.version;generated=first.generated_at
         board_version=(await s.get(BoardHead,league)).version
-    _cache.clear();updates=[]
+    calls=[];predict=service.predict
+    def observe(*a,**k):calls.append(1);return predict(*a,**k)
+    monkeypatch.setattr(service,'predict',observe)
+    updates=[]
     def trace(conn,cursor,statement,*a):
         if statement.startswith('UPDATE published_match_analyses'):updates.append(statement)
     event.listen(db.engine.sync_engine,'before_cursor_execute',trace)
@@ -25,6 +28,7 @@ async def test_same_evidence_renews_lease_without_payload_rewrite(db):
         assert row.version==version and row.generated_at==generated
         assert (await s.get(BoardHead,league)).version==board_version
     assert updates and all('payload' not in statement for statement in updates)
+    assert calls  # A renewed lease must not merely extend a cached old cutoff.
 
 
 async def test_detail_is_persisted_read_only_and_fails_closed(api,db,monkeypatch):

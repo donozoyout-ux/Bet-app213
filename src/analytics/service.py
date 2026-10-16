@@ -96,7 +96,7 @@ async def statistics(session, match, context, now, data_revision=None):
            context['competition_type'], aware(match.kickoff_at), match.status, historical, time_key, data_revision,
            __import__('os').getenv('DISABLED_MARKET_ENGINES', ''))
     cached = _cache.get(key)
-    if cached and time.monotonic() - cached[0] < CACHE_SECONDS:
+    if cached and not session.info.get('force_model_refresh') and time.monotonic() - cached[0] < CACHE_SECONDS:
         _cache.move_to_end(key)
         return cached[1]
     home, away = aliased(Team), aliased(Team)
