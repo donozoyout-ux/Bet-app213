@@ -7,7 +7,7 @@ import asyncio
 from collections import OrderedDict
 from copy import deepcopy
 import time
-from weakref import WeakKeyDictionary
+from weakref import WeakKeyDictionary, WeakValueDictionary
 
 
 class ReadCache:
@@ -19,7 +19,7 @@ class ReadCache:
         # Local SQLite tests deliberately see writes immediately.
         if engine.dialect.name != 'postgresql':
             return await compute()
-        state = self.databases.setdefault(engine, ({}, OrderedDict()))
+        state = self.databases.setdefault(engine, (WeakValueDictionary(), OrderedDict()))
         locks, entries = state
         lock = locks.setdefault(key, asyncio.Lock())
         cached = entries.get(key)
@@ -35,8 +35,7 @@ class ReadCache:
                 entries[key] = (time.monotonic(), deepcopy(result))
                 while len(entries) > self.limit:
                     old_key, _ = entries.popitem(last=False)
-                    # Waiting callers may still reference the evicted lock.
-                    # Keep it until process restart; cache contents stay bounded.
+                    # Weak lock references disappear once no request holds or awaits them.
                 return result
 
 
