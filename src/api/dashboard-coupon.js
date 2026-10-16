@@ -192,6 +192,8 @@ function renderDaily(data){
  const labels={analysis_missing:'Analiz eksik / yeni analiz bekleniyor',analysis_stale:'Analiz güncel değil',insufficient_prematch_data:'Yeterli maç öncesi örneklem yok',quality_rejected:'Kalite eşikleri karşılanmadı',price_rejected:'Taze ve tam eşleşen oran yok',match_started_or_unavailable:'Maç başladı veya uygun durumda değil'};
  const reasons=node('div');reasons.className='daily-rejections';
  for(const [reason,count] of Object.entries(diagnostics.match_rejections || {}))reasons.append(node('span',`${labels[reason] || reason}: ${count}`));
+ const priceReasons={no_source_rows:'Kaynak market satırı yok',source_market_unavailable:'Kaynak marketi desteklemiyor',line_mismatch:'Market/çizgi eşleşmiyor',odds_stale:'Fiyat eskimiş',odds_unknown:'Fiyat zamanı doğrulanmamış',missing_stage_price:'Seçim fiyatı eksik',observed_after_cutoff:'Gelecekteki kanıt zamanı'};
+ for(const [reason,count] of Object.entries(diagnostics.price_rejections || {}))reasons.append(node('span',`${priceReasons[reason] || reason}: ${count} seçim`));
  box.append(reasons);
  const policy=data.selection_policy || diagnostics.selection;
  if(policy){

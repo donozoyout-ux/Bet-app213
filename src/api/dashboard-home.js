@@ -61,6 +61,7 @@
     const duplicates=new Set(items.map(i=>i.match?.id)).size!==items.length;
     if (!items.length || duplicates || !items.every(eligible)) {
       message('home-coupon-list',!items.length ? data.message || 'Bugün kalite şartlarını geçen, taze fiyatlı seçim bulunamadı.' : 'Seçimlerin güncel fiyat doğrulaması bekleniyor.', refresh);
+      if(data.diagnostics){const d=data.diagnostics;const info=element('p',`İncelenen: ${d.inspected_matches ?? '—'} · Kaliteli adaylı maç: ${d.quality_matches ?? '—'} · Taze eşleşen fiyatlı maç: ${d.eligible_matches ?? '—'} · Kaliteden elenen: ${d.match_rejections?.quality_rejected ?? 0}`,'panel-footnote');box.append(info);}
       write('home-coupon-observed',data.data_updates?.checked_at ? `Son kontrol: ${time(data.data_updates.checked_at)}` : 'Kalite eşikleri korunur; kupon zorla doldurulmaz.');
       return;
     }

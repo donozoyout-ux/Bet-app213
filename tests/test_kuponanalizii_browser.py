@@ -5,6 +5,7 @@ import asyncio
 
 import pytest
 from playwright.async_api import async_playwright, expect
+from sqlalchemy import select
 
 from tests.test_automatic_telegram import NOW, many_matches
 
@@ -28,6 +29,16 @@ async def test_brand_navigation_coupon_and_accessible_motion(api, db, monkeypatc
     import src.api.routes as routes
     monkeypatch.setattr(routes, 'utcnow', lambda: NOW)
     await many_matches(db, 4)
+    # This fixture hand-authors the coupon board; explicitly publish its detail
+    # side as a worker would. Navigation GETs must not fill that missing state.
+    from src.models import Match,BoardHead,PredictionBoard
+    from src.analytics.publications import publish_match_analyses
+    async with db.session() as session:
+        match=await session.scalar(select(Match).where(Match.status=='scheduled'))
+        await routes.uncached_predictions(session,str(match.league_id),None,now=NOW,publish=False)
+        head=await session.get(BoardHead,match.league_id);board=await session.get(PredictionBoard,match.league_id)
+        await publish_match_analyses(session,session.info['match_analyses'],head.version,board.model_version,NOW,board.expires_at)
+        await session.commit()
     await api.post('/api/coupons/automatic')
     async with async_playwright() as p:
         browser = await p.chromium.launch()
@@ -65,7 +76,7 @@ async def test_brand_navigation_coupon_and_accessible_motion(api, db, monkeypatc
             logo = page.locator('.brand-symbol img')
             await expect(logo).to_be_visible()
             assert await logo.evaluate('(el)=>el.complete && el.naturalWidth>0')
-            assert await page.locator('body').evaluate('(el)=>getComputedStyle(el).color') == 'rgb(242, 247, 243)'
+            assert await page.locator('body').evaluate('(el)=>getComputedStyle(el).color') == 'rgb(243, 248, 255)'
             assert await page.locator('.prediction-card').first.evaluate('(el)=>getComputedStyle(el).transitionDuration') == '0s'
             assert await page.locator('.brand').get_attribute('aria-label') == 'Kuponanalizii Ana Sayfa'
             assert await page.locator('link[rel=icon]').get_attribute('href') == '/assets/kuponanalizii-logo.png'
