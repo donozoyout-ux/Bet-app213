@@ -1596,3 +1596,41 @@ body:has([data-page=predictions]:not([hidden])) .desktop-nav {background:#0c1712
   .app-sidebar {background:#0c1712;border-right:1px solid var(--border);}
   .desktop-nav {background:#0c1712;border-color:var(--border);}
 }
+
+/* Compact layout: retain the sidebar while using the remaining viewport. */
+#dashboard-shell {max-width:none;width:100%;}
+.platform-intro {min-height:0;padding:.7rem 1.5rem;}
+.platform-intro h1 {font-size:clamp(2.5rem,3.2vw,3.2rem);margin:.5rem 0;}
+.hero-copy>p {margin:.65rem 0;}
+.hero-actions {margin:1rem 0;}
+.hero-features {gap:1rem;}
+.minimal-analysis {padding:1rem;}
+.analysis-match-card {min-height:12rem;gap:.35rem;padding:.85rem;}
+.analysis-block summary {min-height:5.5rem;padding:1rem 2.4rem 1rem 1rem;}
+#statistics-detail {min-height:0;}
+.stats-block:empty {display:none;}
+.learning-cards {grid-template-columns:repeat(auto-fit,minmax(min(100%,24rem),1fr));align-items:start;}
+.learning-card {line-height:1.6;}
+.learning-facts {gap:.6rem 1rem;}
+@media(min-width:768px){:root {--page-gutter:clamp(1rem,1.5vw,2rem);}}
+@media(max-width:767px){.platform-intro {padding:1.3rem 1rem;}.hero-features {display:none;}.platform-intro h1{font-size:2.5rem;}.minimal-analysis{padding:.8rem;}}
+
+.live-fixture,.panel-empty,.probability-ring>div,.home-results .prediction-card {background:#101d17;border-color:var(--border);}
+.live-teams strong,.movement-prices strong,.model-featured {background:#193426;border-color:#365a42;}
+.model-featured span,.model-note,.model-counts>div,.probability-ring small,.panel-empty {color:var(--muted);}
+.probability-ring {background:conic-gradient(var(--primary) calc(var(--probability)*1%),#20392c 0);box-shadow:none;}
+.home-coupon .panel-empty {min-height:7rem;}
+.daily-selection {background:#13231c;border-color:var(--border);}
+.daily-selection-price b {color:var(--primary);}
+.insight-note,.coverage-link,.empty-state,.skeleton {background:#101d17;border-color:var(--border);}
+.metric-icon {background:#193b29;color:var(--primary);}
+.coupon-rationale,.coupon-empty-reason {background:#11261b;border-color:var(--border);}
+
+#detail-home[data-initials]::before,#detail-away[data-initials]::before {content:attr(data-initials);display:inline-flex;align-items:center;justify-content:center;min-width:2rem;height:2rem;margin-right:.5rem;border:1px solid var(--border);border-radius:50%;background:#193426;color:var(--primary);font-size:.75rem;}
+
+.pick-primary,.coupon-totals {background:#11261b;border-color:var(--border);}
+.pick-line strong {color:var(--primary);}
+.odds-badge.odds-negative {background:#391f24;color:var(--danger);}
+.stats-line {border-color:var(--border);}
+.analysis-tabs [aria-selected=true],.card-analysis-tabs [aria-selected=true] {background:#193d29;color:var(--primary);}
+.metric-icon {border-color:var(--border);box-shadow:none;}

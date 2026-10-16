@@ -159,8 +159,8 @@
         !boardFresh() || !rec || !Number.isFinite(Date.parse(data.as_of)) || Date.parse(data.as_of)>now() ||
         !(data.cache_seconds>0) || Date.parse(data.as_of)+data.cache_seconds*1000<=now())throw new Error('Invalid analysis evidence');
       state.detail=data;state.rec=rec;state.detailExpires=Date.parse(data.as_of)+data.cache_seconds*1000;renderDetail();
-    } catch (_) {if(!controller.signal.aborted && generation===state.detailGeneration && active())
-      $('analysis-blocks').replaceChildren(node('p','Bu maçın güncel analiz kanıtı doğrulanamadı. Sonraki veri kontrolünü bekleyin.','analysis-empty'));}
+    } catch (error) {if(!controller.signal.aborted && generation===state.detailGeneration && active())
+      $('analysis-blocks').replaceChildren(node('p',error.message==='HTTP 504'?'Analiz API 504 zaman aşımı. Yeniden maç seçerek deneyin.':error.message==='Invalid analysis evidence'?'Eski veya eşleşmeyen analiz. Güncel kanıt bekleniyor.':'Analiz bağlantısı kurulamadı. Yeniden deneyin.','analysis-empty'));}
   }
   function block(key,title,teaser,build,open=false) {
     const details=node('details','','analysis-block');details.dataset.analysisBlock=key;details.name='match-analysis-evidence';details.open=open;
@@ -183,7 +183,7 @@
     row(box,'Atılan / yenilen gol ort.',`${num(stats.avg_goals_for)} / ${num(stats.avg_goals_against)} · ${stats.sample_size} maç`);
     const threshold=(r.selection || '').match(/(?:over|under)_(\d+)_(\d+)/);
     const key=threshold?`over_${threshold[1]}${threshold[2]}`:null;
-    if(r.market==='btts')row(box,'KG Var geçmişi',pct(stats.btts_rate));
+    if(r.market==='btts'){row(box,'KG Var geçmişi',pct(stats.btts_rate));row(box,'KG Yok geçmişi',pct(validNumber(stats.btts_rate)?1-stats.btts_rate:null));}
     else if(key)row(box,`${threshold[1]}.${threshold[2]} Üst geçmişi`,pct(stats[key+'_rate']));
     else {row(box,'G / B / M',`${stats.wins} / ${stats.draws} / ${stats.losses}`);row(box,'Galibiyet oranı',pct(stats.win_rate));}
     body.append(box);

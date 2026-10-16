@@ -223,11 +223,11 @@ async def predictions(league: str | None = None, date: Date | None = None,
     return {'availability':summarize_availability(session.info.get('count_availability',[]),market,len(chosen)), 'items':chosen[:limit],'window_hours':72 if enough and not date else 168,'generated_at':session.info['prediction_snapshot']['generated_at'],'cache':session.info['prediction_snapshot']}
 
 
-async def calculate_predictions(session,league,date,team=None,statistical_all=False):
+async def calculate_predictions(session,league,date,team=None,statistical_all=False,include_engine_analysis=False):
     from src.analytics.board_cache import read_board
     from src.analytics.coupon import current_odds
     async with asyncio.timeout(4):
-        result=await read_board(session,league,date,team,utcnow(),statistical_all=statistical_all)
+        result=await read_board(session,league,date,team,utcnow(),statistical_all=statistical_all,include_engine_analysis=include_engine_analysis)
         items,now,_=result
         for item in items:item['recommendations']=[dict(r) for r in (item['recommendations'] if statistical_all else item['recommendations'][:2])]
         await current_odds(session,{i['match']['id']:i['recommendations'] for i in items},now)
@@ -272,7 +272,7 @@ async def automatic_coupon(strategy: Literal['balanced','cautious','value']='bal
 @router.get('/odds-coverage')
 async def odds_coverage(session=Depends(session_dependency)):
     from src.analytics.odds_diagnostics import report, source_report
-    records,now,_=await calculate_predictions(session,None,None)
+    records,now,_=await calculate_predictions(session,None,None,include_engine_analysis=True)
     from copy import deepcopy
     from src.analytics.coupon import current_odds
     from src.analytics.engines import attach_coverage

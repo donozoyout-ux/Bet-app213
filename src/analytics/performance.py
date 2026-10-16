@@ -149,6 +149,7 @@ async def performance(session, league=None, start=None, end=None, market='all', 
     query=query.order_by(PredictionSnapshot.captured_at.desc(),Match.id.desc()).execution_options(yield_per=200)
     from src.analytics.settlements import decisions_many
     frozen_rows=await decisions_many(session,query.with_only_columns(Match.id).order_by(None))
+    duplicates=0
     summary=tally();families=defaultdict(tally);exact=defaultdict(tally);labels={};items=[];count=0
     cohorts={name:tally() for name in ('all_saved','probability_70','reliability_80','quality_80','combined_70_80_80')}
     async for row in await session.stream(query):
@@ -156,7 +157,13 @@ async def performance(session, league=None, start=None, end=None, market='all', 
         # Never accept a record captured at/after kickoff, including imported bad rows.
         if not match.kickoff_at or aware(snapshot.captured_at)>=aware(match.kickoff_at):continue
         frozen=frozen_rows.get(match.id,{})
+        seen=set()
         for index,pick in enumerate(snapshot.picks):
+            identity=(pick.get('market'),pick.get('selection'))
+            if identity in seen:
+                duplicates+=1
+                continue
+            seen.add(identity)
             if not market_matches([pick],market) or exact_market and pick['id']!=exact_market or confidence and pick['confidence']!=confidence:continue
             saved=frozen.get(index)
             outcome,actual=(saved.outcome,saved.actual['value']) if saved else settle(match,stats,pick)
@@ -168,7 +175,7 @@ async def performance(session, league=None, start=None, end=None, market='all', 
             count+=1
     from src.diagnostics import statistics_coverage
     coverage=await statistics_coverage(session)
-    return dict(threshold_comparison={name:finish(value) for name,value in cohorts.items()},price_basis='immutable_fresh_prematch_snapshot',stats_coverage_by_league=coverage,availability='saved_prematch_picks' if count else 'no_saved_prematch_picks',summary=finish(summary),families=[dict(market=key,**finish(value)) for key,value in families.items()],markets=[dict(id=key,market=labels[key][0],label=labels[key][1],**finish(value)) for key,value in exact.items()],items=items,total=count,offset=offset,limit=limit,basis='saved_prematch_picks',card_basis='yellow_plus_red_requires_all_four',card_market_definitions={'cards':'yellow_plus_red_requires_all_four','yellow_cards':'yellow_only_requires_both_teams','red_cards':'red_only_requires_both_teams'})
+    return dict(duplicate_picks_excluded=duplicates,threshold_comparison={name:finish(value) for name,value in cohorts.items()},price_basis='immutable_fresh_prematch_snapshot',stats_coverage_by_league=coverage,availability='saved_prematch_picks' if count else 'no_saved_prematch_picks',summary=finish(summary),families=[dict(market=key,**finish(value)) for key,value in families.items()],markets=[dict(id=key,market=labels[key][0],label=labels[key][1],**finish(value)) for key,value in exact.items()],items=items,total=count,offset=offset,limit=limit,basis='saved_prematch_picks',card_basis='yellow_plus_red_requires_all_four',card_market_definitions={'cards':'yellow_plus_red_requires_all_four','yellow_cards':'yellow_only_requires_both_teams','red_cards':'red_only_requires_both_teams'})
 
 
 async def capture_upcoming(session,league_id):

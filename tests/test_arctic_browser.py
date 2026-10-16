@@ -87,7 +87,7 @@ async def test_arctic_navigation_filters_analysis_and_responsive_layout(api,db,m
             await expect(page.locator('#analysis-dialog')).to_be_visible()
             await expect(page.locator('#detail-title')).to_have_text('Test team 0 vs Test team 1')
             assert '?match='+str(target) in page.url
-            await expect(page.locator('[data-analysis-tab]')).to_have_count(10)
+            await expect(page.locator('[data-analysis-tab]')).to_have_count(11)
             for tab in ['summary','predictions','goals','first_half_goals','second_half_goals','corners','cards','handicap','odds','form']:
                 await page.locator(f'[data-analysis-tab="{tab}"]').click()
                 await expect(page.locator(f'[data-analysis-tab="{tab}"]')).to_have_attribute('aria-selected','true')
@@ -111,7 +111,7 @@ async def test_arctic_navigation_filters_analysis_and_responsive_layout(api,db,m
             await page.locator('[data-view="live"]').click();await expect(page.locator('#matches-body')).to_contain_text('canlı maç yok')
             await page.locator('[data-view="today"]').focus();await page.keyboard.press('ArrowRight')
             await expect(page.locator('[data-view="upcoming"]')).to_have_attribute('aria-selected','true')
-            await go('performance');await expect(page.locator('#daily-summary .summary-card')).to_have_count(5)
+            await go('performance');await expect(page.locator('#daily-summary .summary-card')).to_have_count(7)
             await go('home');await page.go_back();await expect(page.locator('[data-page="performance"]')).to_be_visible()
             await page.go_forward();await expect(page.locator('[data-page="home"]')).to_be_visible()
             await page.locator(f'{nav} [data-page-link="bulletin"]').click()

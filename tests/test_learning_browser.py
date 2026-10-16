@@ -174,12 +174,12 @@ async def test_ai_explanation_real_api_background_and_disabled_states(api,db,mon
         await page.route('**/*',forward)
         try:
             await page.goto('http://test/#lessons')
-            await page.locator('.learning-ai > summary').click()
-            await expect(page.locator('.learning-ai')).to_contain_text('AI açıklaması devre dışı')
+            await expect(page.locator('.learning-ai')).to_have_count(0)
+            await expect(page.locator('#learning-coverage')).to_contain_text('AI anlatımı hazır değil')
             monkeypatch.setattr(ai,'config',lambda:CFG)
             await page.locator('#learning-refresh').click()
-            await page.locator('.learning-ai > summary').click()
-            await expect(page.locator('.learning-ai')).to_contain_text('AI açıklaması hazırlanmadı')
+            await expect(page.locator('.learning-ai')).to_have_count(0)
+            await expect(page.locator('#learning-coverage')).to_contain_text('AI anlatımı hazır değil')
             def provider(request):calls.append(request);return success(request)
             assert not calls
             assert await ai.run_once(db,CFG,httpx.MockTransport(provider))=='completed'

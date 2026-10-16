@@ -146,7 +146,7 @@ async function scenario(mode){
   }
   await api.select(firstId,true);
   const box=ids.get('statistics-detail');
-  if(mode==='detail-failed'){assert(box.text().includes('Bağlantı bekleniyor'));return;}
+  if(mode==='detail-failed'){assert(box.text().includes('Analiz bağlantısı kurulamadı'));return;}
   assert(!box.hidden && box.scrolled);
   assert(ids.get('analysis-dialog').open);
   assert(box.text().includes('Seçilen Güçlü Tahminler'));
