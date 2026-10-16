@@ -1654,3 +1654,7 @@ body:has([data-page=predictions]:not([hidden])) .desktop-nav {background:#091A30
 .quality-tag,.movement-change {background:var(--primary-soft);color:var(--secondary);border-color:var(--border);}
 .analysis-eligible {color:var(--success);}
 [data-page],.analysis-match-card,.prediction-card,.skeleton,.live-dot {animation:none;}
+
+.live-count {color:var(--secondary);}
+#latest-new-match,.panel-caption,.panel-date,.panel-heading .text-link,.hero-footnote,
+.fixture-context small,.fixture-pick small,.fixture-price small,.fixture-quality small {font-size:.8rem;}
