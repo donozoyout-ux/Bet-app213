@@ -42,6 +42,13 @@ async def test_pg_concurrent_publication_reads_fresh_guards_and_http(monkeypatch
         await asyncio.gather(*(read() for _ in range(8)))
         assert sum('prediction_boards.payload' in q for q in queries)==1
         event.remove(db.engine.sync_engine,'before_cursor_execute',collect)
+        # Explain while these bound publication values are still current. The
+        # later version-change test intentionally invalidates the old version.
+        async with db.engine.connect() as conn:
+            statement,parameters=payload_statement[0]
+            plan=(await conn.exec_driver_sql('EXPLAIN (ANALYZE,BUFFERS,FORMAT JSON) '+statement,parameters)).scalar()
+        if isinstance(plan,str):plan=json.loads(plan)
+        assert plan[0]['Plan']['Actual Rows']==1
         from src.analytics.publications import publish_board
         async with db.session() as s:
             b=await s.scalar(select(PredictionBoard));changed=deepcopy(b.payload)
@@ -74,10 +81,6 @@ async def test_pg_concurrent_publication_reads_fresh_guards_and_http(monkeypatch
                 monkeypatch.setattr(routes,'utcnow',lambda:NOW+timedelta(hours=1))
                 assert (await api.get('/api/predictions')).json()['items']==[]
         finally:app.dependency_overrides.clear()
-        async with db.engine.connect() as conn:
-            statement,parameters=payload_statement[0]
-            plan=(await conn.exec_driver_sql('EXPLAIN (ANALYZE,BUFFERS,FORMAT JSON) '+statement,parameters)).scalar()
-        if isinstance(plan,str):plan=json.loads(plan)
         print('V4_PUBLICATION_BENCHMARK '+json.dumps(dict(basis='isolated PostgreSQL synthetic evidence fixture; not deployed production',cold_ms=round(cold_ms,3),warm_ms=round(warm_ms,3),cold_sql=cold_sql,warm_sql=warm_sql,concurrent_readers=8,concurrent_payload_reads=1,http_total_ms=round(http_ms,3),responses=responses,plan=plan)))
     finally:
         async with db.engine.begin() as conn:await conn.execute(DropSchema(schema,cascade=True))
