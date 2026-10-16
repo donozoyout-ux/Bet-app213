@@ -38,6 +38,8 @@ class Database:
             @event.listens_for(self.engine.sync_engine, 'after_cursor_execute')
             def query_end(conn, cursor, statement, parameters, context, executemany):
                 elapsed = time.monotonic() - context.betapp_started
+                from src.query_profile import record
+                record(statement,elapsed)
                 if elapsed >= .25:
                     # Never log SQL parameter values or connection credentials.
                     log.warning('[DB] slow query operation=%s duration_ms=%.1f', statement.split()[0], elapsed * 1000)
