@@ -6,7 +6,7 @@
   // A reload always revalidates the strip; never restore a legacy match query blindly.
   if(globalThis.location?.hash.startsWith('#predictions?')){const query=new URLSearchParams(globalThis.location.hash.split('?')[1]);query.delete('match');globalThis.history.replaceState(null,'','#predictions'+(query.size?'?'+query:''));}
   const state = {items:[], selected:null, detail:null, rec:null, quotes:new Map(), generation:0,
-    detailGeneration:0, board:null, clock:null, listController:null, detailController:null, quoteController:null};
+    detailGeneration:0, board:null, clock:null, listController:null, detailController:null, quoteController:null, fingerprint:null};
   const now = () => state.clock ? state.clock.stamp + Date.now() - state.clock.received : Date.now();
   const validNumber = v => typeof v === 'number' && Number.isFinite(v);
   const pct = v => validNumber(v) ? `%${(v*100).toFixed(1)}` : 'Veri yok';
@@ -65,6 +65,36 @@
     return [...unique.values()].map(item=>({...item,recommendation:strongest(item.recommendations)}))
       .filter(item=>item.recommendation).slice(0,8);
   }
+  // Session-scoped published display snapshot survives F5, never overrides live evidence.
+  // It is accepted only while the server-provided board TTL still holds.
+  const STORAGE_KEY='kuponanalizii.predictionStrip.v1';
+  function persist(page) {
+    try {sessionStorage.setItem(STORAGE_KEY,JSON.stringify({savedAt:Date.now(),page}));}
+    catch (_) { /* blocked storage or quota: live API remains authoritative */ }
+  }
+  function restoreSnapshot() {
+    if(state.items.length || state.board) return;
+    try {
+      const saved=JSON.parse(sessionStorage.getItem(STORAGE_KEY)||'null');
+      if(!saved || Date.now()-saved.savedAt>600000 || !saved.page) return;
+      state.board=saved.page;
+      if(!boardFresh()){state.board=null;return;}
+      state.items=items(saved.page);
+      if(!state.items.length){state.board=null;return;}
+      state.fingerprint=fingerprint(saved.page,state.items);
+      const selected=state.items[0].match.id;
+      state.selected=selected;
+      renderStrip();
+      write('match-analysis-status','Son doğrulanmış liste gösteriliyor · arka planda güncelleme kontrol ediliyor.');
+      write('analysis-check-time',`Son doğrulanmış analiz: ${date(saved.page.generated_at)} · Yeniden kontrol bekleniyor`);
+      // Details need a fresh validation; no persisted quote eligibility is trusted.
+      select(selected);
+    } catch (_) {state.board=null;state.items=[];}
+  }
+  function fingerprint(page,listing) {
+    return JSON.stringify([page.generated_at,page.cache?.model_version,
+      listing.map(i=>[i.match.id,i.match.kickoff_at,i.match.status,i.recommendation])]);
+  }
   function coupon(item) {
     const q=state.quotes.get(item.match.id),r=item.recommendation;
     if(!priceFresh(r.verified_odds))return {text:'İstatistiksel tahmin · '+reason(r.verified_odds),eligible:false};
@@ -112,7 +142,9 @@
   async function refresh() {
     if(!active() || state.listController && !state.listController.signal.aborted)return;
     const generation=++state.generation,controller=new AbortController(),started=Date.now();state.listController=controller;
-    $('match-analysis').setAttribute('aria-busy','true');write('match-analysis-status','Güncel maçlar kontrol ediliyor…');
+    restoreSnapshot();
+    $('match-analysis').setAttribute('aria-busy','true');
+    write('match-analysis-status',state.items.length?'Mevcut maçlar korunuyor · güncelleme kontrol ediliyor…':'Güncel maçlar kontrol ediliyor…');
     try {
       let page;
       try {
@@ -127,16 +159,29 @@
         page=await api('/api/predictions?limit=8',controller);
       }
       if(controller.signal.aborted || generation!==state.generation || !active())return;
-      clock(page,started);state.board=page;state.quotes.clear();
+      clock(page,started);
+      if(!page.cache || page.cache.stale!==false || !(Date.parse(page.cache.expires_at)>now())){
+        if(state.items.length && boardFresh())write('match-analysis-status','Yeni analiz henüz hazır değil · mevcut doğrulanmış liste korunuyor.');
+        else {state.items=[];state.board=page;state.fingerprint=null;empty('Analiz güncel değil. Yeni veri bekleniyor.');}
+        return;
+      }
+      const nextItems=items(page),nextFingerprint=fingerprint(page,nextItems);
+      const changed=nextFingerprint!==state.fingerprint;
+      state.board=page;
       write('analysis-check-time',`Veri kontrolü: ${date(page.cache?.checked_at)} · Analiz: ${date(page.generated_at)}`);
-      if(!boardFresh()){state.items=[];empty('Analiz güncel değil veya güncelliği doğrulanamıyor. Yeni veri bekleniyor.');return;}
-      state.items=items(page);
-      if(!state.items.length){empty('Kalite eşiklerini geçen yaklaşan maç yok. Listeyi doldurmak için eşikler düşürülmez.');return;}
-      write('match-analysis-status','Yalnızca yaklaşan ve kalite kontrolünü geçen maçlar.');
+      if(!nextItems.length){state.items=[];state.fingerprint=null;empty('Kalite eşiklerini geçen yaklaşan maç yok. Listeyi doldurmak için eşikler düşürülmez.');return;}
+      state.items=nextItems;state.fingerprint=nextFingerprint;persist(page);
+      write('match-analysis-status',changed?'Güncel analiz doğrulandı.':'Değişiklik yok · maçlar aynı sırada korunuyor.');
+      if(!changed){if(!state.quotes.size)quote(generation);return;} // Keep selected match, accordion and scroll.
+      state.quotes.clear();
       const selected=state.items.find(i=>i.match.id===state.selected)?.match.id || state.items[0].match.id;
-      renderStrip();select(selected);quote(generation);
+      if(state.selected!==selected){renderStrip();select(selected);}
+      else {renderStrip();select(selected);}
+      quote(generation);
     } catch (error) {if(!controller.signal.aborted && generation===state.generation && active()){
-      state.items=[];state.board=null;empty(error.message==='HTTP 504' ? 'Tahmin sunucusu iki kez zaman aşımına uğradı. Yeniden deneyin.' : 'Maç verileri kontrol edilemedi. Bağlantıyı yeniden deneyin.');
+      const message=error.message==='HTTP 504'?'API 504 zaman aşımı. Mevcut doğrulanmış liste korunuyor.':'Veri kontrolü başarısız. Mevcut doğrulanmış liste korunuyor.';
+      if(state.items.length && boardFresh())write('match-analysis-status',message);
+      else {state.items=[];state.board=null;state.fingerprint=null;empty(error.message==='HTTP 504'?'Tahmin sunucusu iki kez zaman aşımına uğradı. Yeniden deneyin.':'Maç verileri kontrol edilemedi. Bağlantıyı yeniden deneyin.');}
     }} finally {if(state.listController===controller){state.listController=null;$('match-analysis').setAttribute('aria-busy','false');}}
   }
   async function select(id) {
@@ -271,13 +316,13 @@
       },open==='why'));
     if(focused)box.querySelector(`[data-analysis-block="${focused}"] > summary`)?.focus({preventScroll:true});
   }
-  function deactivate() {state.items=[];state.board=null;state.quotes.clear();$('analysis-match-strip').replaceChildren();state.generation++;state.listController?.abort();state.listController=null;state.quoteController?.abort();clearDetail();}
+  function deactivate() {state.items=[];state.board=null;state.fingerprint=null;state.quotes.clear();$('analysis-match-strip').replaceChildren();state.generation++;state.listController?.abort();state.listController=null;state.quoteController?.abort();clearDetail();}
   function tick() {
     if(!active())return;
     if(state.board && !boardFresh()){state.items=[];empty('Analiz süresi doldu. Yeni veri kontrolü bekleniyor.');return;}
     const remaining=state.items.filter(i=>future(i.match));
     if(remaining.length!==state.items.length){state.items=remaining;renderStrip();
-      if(!remaining.length)empty('Yaklaşan uygun maç kalmadı.');else if(!remaining.some(i=>i.match.id===state.selected))select(remaining[0].match.id);}
+      if(!remaining.length){state.fingerprint=null;empty('Yaklaşan uygun maç kalmadı.');}else if(!remaining.some(i=>i.match.id===state.selected))select(remaining[0].match.id);}
     if(state.detail && state.detailExpires<=now()) {state.detail=null;state.rec=null;
       $('analysis-blocks').replaceChildren(node('p','Detay verisinin süresi doldu. Yeni analiz bekleniyor.','analysis-empty'));}
     // Only rerender when a quote transitions to expired, preserving accordion focus.
@@ -287,7 +332,7 @@
   $('analysis-strip-previous').onclick=()=>$('analysis-match-strip').scrollBy({left:-320,behavior:'smooth'});
   $('analysis-strip-next').onclick=()=>$('analysis-match-strip').scrollBy({left:320,behavior:'smooth'});
   $('analysis-refresh').onclick=()=>{state.listController?.abort();state.listController=null;refresh();};
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden && active()){tick();refresh();}});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden && active()){tick();if(!state.board || !boardFresh())refresh();}});
   globalThis.BetAppMatchAnalysis=Object.freeze({refresh,deactivate});
   setInterval(tick,1000);
 })();
