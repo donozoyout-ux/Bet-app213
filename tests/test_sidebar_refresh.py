@@ -138,6 +138,7 @@ async def test_negative_value_quote_evidence_expiry_and_view_query(api):
         try:
             await page.clock.install(time=NOW)
             await page.goto('http://test/#predictions')
+            await page.locator('#analysis-advanced > summary').click()
             await expect(page.locator('#market-picks .negative-value')).to_contain_text('-16.0%')
             await expect(page.locator('#market-picks')).to_contain_text('Avantajlı bahis değil')
             await expect(page.locator('#market-picks')).to_contain_text('Kanıt:')

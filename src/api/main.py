@@ -154,3 +154,8 @@ app.include_router(learning_router, prefix="/api")
 @app.get('/dashboard-learning.js', include_in_schema=False)
 async def learning_script():
     return FileResponse(Path(__file__).resolve().with_name('dashboard-learning.js'), media_type='application/javascript')
+
+
+@app.get('/dashboard-analysis.js', include_in_schema=False)
+async def match_analysis_script():
+    return FileResponse(Path(__file__).resolve().with_name('dashboard-analysis.js'), media_type='application/javascript')
