@@ -1,0 +1,53 @@
+[
+  {
+    "path": "/api/predictions?limit=8",
+    "status": 504,
+    "ms": 5110.3,
+    "renderable_matches": 0,
+    "cache": null,
+    "code": "api_timeout"
+  },
+  {
+    "path": "/api/predictions/best?limit=20",
+    "status": 504,
+    "ms": 4995.6,
+    "renderable_matches": 0,
+    "cache": null,
+    "code": "api_timeout"
+  },
+  {
+    "path": "/api/telegram/status",
+    "status": 200,
+    "ms": 898.1,
+    "configuration": {
+      "configured": true,
+      "configuration_status": "configured",
+      "connection_verified": false,
+      "times": [
+        "12:00",
+        "18:00"
+      ],
+      "automatic_daily_limit": 2,
+      "today": [
+        {
+          "slot": "2026-10-16T12:00:00+03:00",
+          "status": "no_eligible_selections",
+          "error_code": null
+        },
+        {
+          "slot": "2026-10-16T18:00:00+03:00",
+          "status": "not_due",
+          "error_code": null
+        }
+      ]
+    }
+  },
+  {
+    "path": "/api/coupons/daily",
+    "status": 404,
+    "ms": 896.2,
+    "renderable_matches": 0,
+    "cache": null,
+    "code": null
+  }
+]

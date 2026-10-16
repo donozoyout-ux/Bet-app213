@@ -1463,7 +1463,7 @@ body {margin:0;background:radial-gradient(ellipse at 65% 0%,#12336355,transparen
 .learning-ai h3 {font-size:.9rem;color:var(--text);margin:1rem 0 .35rem;}
 
 /* Sidebar uses existing route links and keeps the mobile navigation accessible. */
-:root {--primary:#39ed87;--primary-soft:#123528;--electric:#39ed87;--app-bg:#070d18;--surface:#101b29;}
+:root {--primary:#2684FF;--primary-soft:#153558;--electric:#2684FF;--app-bg:#070d18;--surface:#101b29;}
 #sidebar-toggle {display:none;}
 @media(min-width:768px) {
  body {padding-left:15rem;}
@@ -1472,9 +1472,9 @@ body {margin:0;background:radial-gradient(ellipse at 65% 0%,#12336355,transparen
  .desktop-nav {position:fixed;inset:0 auto 0 0;width:15rem;padding:6rem .7rem 1rem;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:.5rem;background:#08121f;border-right:1px solid var(--border);border-top:0;overflow-y:auto;z-index:30;}
  .desktop-nav a {min-height:3.3rem;font-size:.9rem;padding:.8rem;}
  .desktop-nav a>span:first-child {display:inline-block;width:1.5rem;font-size:1.3rem;}
- .desktop-nav a[aria-current=page] {background:#133825;border-color:var(--primary);box-shadow:inset 3px 0 var(--primary);}
+ .desktop-nav a[aria-current=page] {background:#173E6A;border-color:var(--primary);box-shadow:inset 3px 0 var(--primary);}
  .header-tools {margin-left:auto;}
- #sidebar-toggle {display:block;position:fixed;bottom:1rem;left:1rem;z-index:32;background:#183323;color:var(--primary);width:3rem;min-height:2.75rem;}
+ #sidebar-toggle {display:block;position:fixed;bottom:1rem;left:1rem;z-index:32;background:#173553;color:var(--primary);width:3rem;min-height:2.75rem;}
  .desktop-nav {padding-bottom:5rem;}
  body.sidebar-collapsed {padding-left:5rem;}
  .sidebar-collapsed .desktop-nav {width:5rem;}
@@ -1487,7 +1487,7 @@ body {margin:0;background:radial-gradient(ellipse at 65% 0%,#12336355,transparen
  .desktop-nav {display:none;}
  .bottom-nav {display:flex;overflow-x:auto;position:fixed;bottom:0;left:0;right:0;z-index:25;background:#08121ff5;}
  .bottom-nav a {flex:1 0 4.2rem;min-height:3.8rem;}
- .bottom-nav a[aria-current=page] {border-color:var(--primary);background:#133825;}
+ .bottom-nav a[aria-current=page] {border-color:var(--primary);background:#173E6A;}
 }
 
 @media(min-width:768px){.app-sidebar{position:fixed;inset:0 auto 0 0;width:15rem;z-index:30;background:#08121f;}.sidebar-collapsed .app-sidebar{width:5rem;}}
@@ -1506,7 +1506,7 @@ body {margin:0;background:radial-gradient(ellipse at 65% 0%,#12336355,transparen
 .analysis-match-strip {display:flex;gap:.8rem;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity;padding:.2rem .2rem .9rem;scrollbar-color:#527361 #151b1b;touch-action:pan-x pan-y;}
 .analysis-match-card {flex:0 0 16.5rem;display:flex;flex-direction:column;align-items:flex-start;gap:.5rem;white-space:normal;scroll-snap-align:start;text-align:left;background:var(--analysis-panel);border:1px solid var(--analysis-border);border-radius:.8rem;padding:1rem;box-shadow:none;min-height:14rem;color:#e7f0ea;}
 .analysis-match-card:hover {background:#1b2922;border-color:#688873;}
-.analysis-match-card[aria-pressed=true] {border-color:#39ed87;background:#16271d;box-shadow:inset 0 3px #39ed87;}
+.analysis-match-card[aria-pressed=true] {border-color:#2684FF;background:#16271d;box-shadow:inset 0 3px #2684FF;}
 .analysis-card-meta {font-size:.69rem;color:#aebdb4;}
 .analysis-card-teams {font-size:1rem;line-height:1.35;}
 .analysis-card-pick {font-size:.85rem;margin-top:auto;}
@@ -1551,50 +1551,50 @@ body:has([data-page=predictions]:not([hidden])) .terminal-header,body:has([data-
 #predictions-section>.section-heading #prediction-window {display:none;}
 .analysis-block[data-analysis-block=why] {grid-column:1/-1;}
 
-/* Unified Kuponanalizii palette — all pages, one dark/green visual system.
+/* Unified Kuponanalizii palette — all pages, one navy/blue visual system.
    Keep warning/negative/positive semantics and the original image assets. */
 :root {
-  --app-bg:#080f0e;--surface:#111d19;--surface-raised:#182923;
-  --primary:#39ed87;--electric:#39ed87;--primary-soft:#143826;
-  --text:#f2f7f3;--muted:#afc2b6;--border:#2c4438;
-  --success:#39ed87;--danger:#ff8590;--warning:#f2c876;
+  --app-bg:#071426;--surface:#10243D;--surface-raised:#16304E;
+  --primary:#2684FF;--electric:#2684FF;--primary-soft:#153558;
+  --text:#F3F8FF;--muted:#ADC2DA;--border:#274665;
+  --success:#21D69A;--danger:#ff8590;--warning:#f2c876;
 }
 body {background:var(--app-bg);}
 .terminal-header,.app-sidebar,.desktop-nav,.bottom-nav {
-  background:#0c1712;border-color:var(--border);
+  background:#091A30;border-color:var(--border);
 }
 .desktop-nav a,.bottom-nav a {color:var(--muted);}
-.desktop-nav a:hover,.bottom-nav a:hover {background:#172b21;color:var(--text);}
+.desktop-nav a:hover,.bottom-nav a:hover {background:#173553;color:var(--text);}
 .desktop-nav a[aria-current=page],.bottom-nav a[aria-current=page] {
-  background:#153a27;border-color:var(--primary);box-shadow:inset 3px 0 var(--primary);
+  background:#173E6A;border-color:var(--primary);box-shadow:inset 3px 0 var(--primary);
 }
 .desktop-nav a>span:first-child,.desktop-nav a[aria-current=page]>span:first-child {color:var(--primary);}
-#sidebar-toggle {background:#143825;border-color:var(--border);color:var(--primary);}
-.platform-intro {background:#0c1817;}
-.platform-intro::after {background:linear-gradient(90deg,#081410e8,#08141078 46%,#08141040 76%,#081410de);}
+#sidebar-toggle {background:#153558;border-color:var(--border);color:var(--primary);}
+.platform-intro {background:#10243D;}
+.platform-intro::after {background:linear-gradient(90deg,#071426e8,#07142678 46%,#07142640 76%,#071426de);}
 .platform-intro h1 span,.brand-accent,.eyebrow,.text-link {color:var(--primary);}
-.platform-intro p {color:#c2d3c8;}
+.platform-intro p {color:#C2D4EA;}
 .home-summary article,.dashboard-panel,.prediction-card,.market-card,.stats-block,
 .learning-card,.learning-metric,.analysis-block,.analysis-match-card {
-  background:#13231c;border-color:var(--border);
+  background:#10243D;border-color:var(--border);
 }
 .home-summary p,.dashboard-panel p {color:var(--muted);}
-.primary-button {background:#26b96b;color:#06140d;border-color:#45e890;}
-.primary-button:hover {background:#42dc83;color:#06140d;}
-.secondary-button {background:#142a20;color:var(--text);border-color:#3c6650;}
-.secondary-button:hover {background:#1d3b2b;}
+.primary-button {background:#2684FF;color:#F3F8FF;border-color:#35C7FF;}
+.primary-button:hover {background:#3796FF;color:#F3F8FF;}
+.secondary-button {background:#153558;color:var(--text);border-color:#274665;}
+.secondary-button:hover {background:#1C436A;}
 .connection i,.live-dot {background:var(--success);}
-.minimal-analysis {background:#0a1510;border-color:var(--border);}
-.analysis-match-card[aria-pressed=true] {background:#193827;border-color:var(--primary);}
+.minimal-analysis {background:#0A1B30;border-color:var(--border);}
+.analysis-match-card[aria-pressed=true] {background:#173E6A;border-color:var(--primary);}
 .analysis-card-probability,.analysis-eligible,[data-page=predictions] .eyebrow {color:var(--primary);}
 .analysis-strip-heading button,.analysis-strip-tools button {border-color:var(--border);}
 body:has([data-page=predictions]:not([hidden])) {background:var(--app-bg);}
 body:has([data-page=predictions]:not([hidden])) .terminal-header,
 body:has([data-page=predictions]:not([hidden])) .app-sidebar,
-body:has([data-page=predictions]:not([hidden])) .desktop-nav {background:#0c1712;border-color:var(--border);}
+body:has([data-page=predictions]:not([hidden])) .desktop-nav {background:#091A30;border-color:var(--border);}
 @media(min-width:768px) {
-  .app-sidebar {background:#0c1712;border-right:1px solid var(--border);}
-  .desktop-nav {background:#0c1712;border-color:var(--border);}
+  .app-sidebar {background:#091A30;border-right:1px solid var(--border);}
+  .desktop-nav {background:#091A30;border-color:var(--border);}
 }
 
 /* Compact layout: retain the sidebar while using the remaining viewport. */
@@ -1615,22 +1615,42 @@ body:has([data-page=predictions]:not([hidden])) .desktop-nav {background:#0c1712
 @media(min-width:768px){:root {--page-gutter:clamp(1rem,1.5vw,2rem);}}
 @media(max-width:767px){.platform-intro {padding:1.3rem 1rem;}.hero-features {display:none;}.platform-intro h1{font-size:2.5rem;}.minimal-analysis{padding:.8rem;}}
 
-.live-fixture,.panel-empty,.probability-ring>div,.home-results .prediction-card {background:#101d17;border-color:var(--border);}
-.live-teams strong,.movement-prices strong,.model-featured {background:#193426;border-color:#365a42;}
+.live-fixture,.panel-empty,.probability-ring>div,.home-results .prediction-card {background:#10243D;border-color:var(--border);}
+.live-teams strong,.movement-prices strong,.model-featured {background:#173553;border-color:#274665;}
 .model-featured span,.model-note,.model-counts>div,.probability-ring small,.panel-empty {color:var(--muted);}
-.probability-ring {background:conic-gradient(var(--primary) calc(var(--probability)*1%),#20392c 0);box-shadow:none;}
+.probability-ring {background:conic-gradient(var(--primary) calc(var(--probability)*1%),#203E5C 0);box-shadow:none;}
 .home-coupon .panel-empty {min-height:7rem;}
-.daily-selection {background:#13231c;border-color:var(--border);}
+.daily-selection {background:#10243D;border-color:var(--border);}
 .daily-selection-price b {color:var(--primary);}
-.insight-note,.coverage-link,.empty-state,.skeleton {background:#101d17;border-color:var(--border);}
-.metric-icon {background:#193b29;color:var(--primary);}
-.coupon-rationale,.coupon-empty-reason {background:#11261b;border-color:var(--border);}
+.insight-note,.coverage-link,.empty-state,.skeleton {background:#10243D;border-color:var(--border);}
+.metric-icon {background:#173E6A;color:var(--primary);}
+.coupon-rationale,.coupon-empty-reason {background:#112B49;border-color:var(--border);}
 
-#detail-home[data-initials]::before,#detail-away[data-initials]::before {content:attr(data-initials);display:inline-flex;align-items:center;justify-content:center;min-width:2rem;height:2rem;margin-right:.5rem;border:1px solid var(--border);border-radius:50%;background:#193426;color:var(--primary);font-size:.75rem;}
+#detail-home[data-initials]::before,#detail-away[data-initials]::before {content:attr(data-initials);display:inline-flex;align-items:center;justify-content:center;min-width:2rem;height:2rem;margin-right:.5rem;border:1px solid var(--border);border-radius:50%;background:#173553;color:var(--primary);font-size:.75rem;}
 
-.pick-primary,.coupon-totals {background:#11261b;border-color:var(--border);}
+.pick-primary,.coupon-totals {background:#112B49;border-color:var(--border);}
 .pick-line strong {color:var(--primary);}
 .odds-badge.odds-negative {background:#391f24;color:var(--danger);}
 .stats-line {border-color:var(--border);}
-.analysis-tabs [aria-selected=true],.card-analysis-tabs [aria-selected=true] {background:#193d29;color:var(--primary);}
+.analysis-tabs [aria-selected=true],.card-analysis-tabs [aria-selected=true] {background:#173E6A;color:var(--primary);}
 .metric-icon {border-color:var(--border);box-shadow:none;}
+
+/* V4 shared navy system: readable text and stable compact panels on every route. */
+:root {--app-bg:#071426;--surface:#10243D;--surface-raised:#16304E;--primary:#2684FF;--electric:#2684FF;--secondary:#35C7FF;--primary-soft:#153558;--text:#F3F8FF;--muted:#ADC2DA;--border:#274665;font-size:16px;}
+.terminal-header,.app-sidebar,.desktop-nav,.bottom-nav {background:#091A30;border-color:var(--border);}
+.platform-intro {padding:1.2rem;}.platform-intro h1 {font-size:clamp(1.8rem,3vw,2.8rem);}
+.hero-backdrop {opacity:.2;}.platform-intro::after {background:linear-gradient(90deg,#071426ed,#071426a0);}
+.eyebrow,.card-meta,.pick-meta,.panel-footnote,.model-note,.home-results .card-meta,.home-results .pick-meta {font-size:.8rem;letter-spacing:.02em;}
+.home-summary p,.home-summary small,.board-controls label,.section-heading p {font-size:.875rem;}
+.home-summary {gap:.75rem;}.home-summary article {min-width:0;}
+.analysis-block summary {min-height:4rem;}.analysis-match-card {min-height:11rem;}
+.prediction-card:hover {transform:none;}.home-coupon .panel-empty {min-height:0;}
+.publication-health {display:flex;flex-wrap:wrap;gap:.5rem 1.4rem;padding:.8rem 1rem;margin:1rem 0;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--muted);font-size:.9rem;}
+.learning-progress {width:100%;height:.7rem;accent-color:var(--primary);}
+@media(max-width:767px){.platform-intro {padding:1rem;}.hero-actions {margin:.65rem 0;}.platform-intro h1 {font-size:1.9rem;}.home-summary {grid-template-columns:repeat(2,minmax(0,1fr));}.home-summary article {padding:.75rem;}.home-summary strong {font-size:1.3rem;}.bottom-nav a {font-size:.75rem;}.board-controls label {font-size:.85rem;}}
+
+.home-board {grid-template-rows:auto auto;align-items:start;}
+.home-coupon .coupon-list {flex:0;}.coupon-panel-footer {margin-top:1rem;}
+.quality-tag,.movement-change {background:var(--primary-soft);color:var(--secondary);border-color:var(--border);}
+.analysis-eligible {color:var(--success);}
+[data-page],.analysis-match-card,.prediction-card,.skeleton,.live-dot {animation:none;}

@@ -236,6 +236,8 @@ async def calculate_predictions(session,league,date,team=None,statistical_all=Fa
         for item in items:item['recommendations']=[dict(r) for r in (item['recommendations'] if statistical_all else item['recommendations'][:2])]
         with stage('current_quotes'):
             await current_odds(session,{i['match']['id']:i['recommendations'] for i in items},now)
+        session.info['prediction_snapshot']['verified_price_matches']=len({i['match']['id'] for i in items
+            if any((r.get('verified_odds') or {}).get('coupon_eligible') for r in i['recommendations'])})
         return result
 
 

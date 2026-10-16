@@ -7,12 +7,17 @@ import os
 from datetime import datetime, timedelta
 
 from fastapi.encoders import jsonable_encoder
-from sqlalchemy import select, or_, text, literal
+from sqlalchemy import select, or_, text
 from sqlalchemy.orm import defer
 from src.query_profile import stage
 from src.models import League, Match, PredictionBoard, BoardHead, utcnow
 from src.jobs.worker import aware
 from src.match_views import day_bounds, DISPLAY_TIMEZONE
+from src.api.read_cache import ReadCache
+
+# Only model JSON is reused. Match state, publication expiry and bookmaker
+# observations are always read again; this cache cannot renew evidence.
+payload_cache=ReadCache(ttl=600,limit=4)
 
 MODEL_VERSION='quality-poisson-v3-specialist-adapters-v1'
 _DISABLED=','.join(sorted(filter(None,os.getenv('DISABLED_MARKET_ENGINES','').split(','))))
@@ -78,25 +83,37 @@ async def refresh_all(db, now=None):
 
 
 async def read_board(session,league,date,team,now,statistical_all=False,include_engine_analysis=False):
-    # HTTP display requests must not deserialize coupon context and engine
-    # evidence for every league. Project only the JSON fields this reader uses.
-    query=select(League.id,PredictionBoard,
-        PredictionBoard.payload['items'],PredictionBoard.payload['availability'],
-        PredictionBoard.payload['evaluated'],
-        PredictionBoard.payload['coupon_records'] if statistical_all else literal(None),
-        PredictionBoard.payload['engine_analysis'] if include_engine_analysis else literal(None),BoardHead.version
+    from src.analytics.coupon import coupon_qualified as quality
+    # Read small, current validity metadata before reusing publication JSON.
+    query=select(League.id,PredictionBoard,BoardHead.version
     ).options(defer(PredictionBoard.payload)).outerjoin(PredictionBoard).outerjoin(BoardHead,BoardHead.league_id==League.id).where(League.enabled.is_(True))
     if league:query=query.where(League.id==int(league)) if league.isdigit() else query.where(League.name.ilike('%'+league+'%'))
     rows=(await session.execute(query)).all()
+    valid=[(id,b,v) for id,b,v in rows if b is not None and b.model_version==MODEL_VERSION
+           and aware(b.expires_at)>now and aware(b.generated_at)<=now]
+    async def load_payloads():
+        return dict((await session.execute(select(PredictionBoard.league_id,PredictionBoard.payload)
+            .where(or_(*[(PredictionBoard.league_id==id) & (PredictionBoard.source_revision==b.source_revision)
+                & (PredictionBoard.generated_at==b.generated_at) for id,b,v in valid])))).all())
+    key=tuple(sorted((id,v or b.source_revision,b.generated_at) for id,b,v in valid))
+    payloads=await payload_cache.get(session.bind,key,load_payloads) if valid else {}
     # Current statuses prevent a cached prematch pick appearing after kickoff or completion.
     eligible=dict((await session.execute(select(Match.id,Match.kickoff_at).join(League).where(League.enabled.is_(True),Match.status=='scheduled',Match.kickoff_at>now,Match.kickoff_at<=now+timedelta(days=7)))).all())
     items=[];availability=[];engine_analysis=[];times=[];expiries=[];revisions={};missing=[];stale=[];evaluated=0;versions={}
-    for id,board,source,board_availability,board_evaluated,coupon_records,analysis_rows,version in rows:
+    for id,board,version in rows:
         if board is None or board.model_version!=MODEL_VERSION:missing.append(id);continue
         expired=aware(board.expires_at)<=now or aware(board.generated_at)>now
         if expired:
             stale.append(id)
             continue  # One delayed league must not erase other fresh publications.
+        if id not in payloads:missing.append(id);continue  # publication changed between reads
+        # One JSON decode per source publication, rather than repeated JSON
+        # extraction/TOAST reads for every visitor and every display field.
+        payload=payloads[id]
+        source=payload.get('items',[]);board_availability=payload.get('availability',[])
+        board_evaluated=payload.get('evaluated',0)
+        coupon_records=payload.get('coupon_records',[])
+        analysis_rows=payload.get('engine_analysis',[]) if include_engine_analysis else []
         versions[str(id)]=version or board.source_revision
         times.append(aware(board.generated_at));expiries.append(aware(board.expires_at));revisions[str(id)]=board.source_revision
         evaluated+=board_evaluated
@@ -124,5 +141,8 @@ async def read_board(session,league,date,team,now,statistical_all=False,include_
         'checked_at':now,'stale':not bool(times),'generated_at':min(times) if times else None,
         'latest_generated_at':max(times) if times else None,
         'expires_at':min(expiries) if expiries else None,'model_version':MODEL_VERSION,
-        'publication_versions':versions,'source_revisions':revisions,'missing_leagues':missing,'stale_leagues':stale}
+        'publication_versions':versions,'source_revisions':revisions,'missing_leagues':missing,'stale_leagues':stale,
+        'scheduled_matches':len(eligible),
+        'statistical_matches':len({i['match']['id'] for i in items}),
+        'quality_matches':len({i['match']['id'] for i in items if any(quality(r) for r in i['recommendations'])})}
     return items,now,evaluated

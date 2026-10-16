@@ -163,12 +163,14 @@
       clock(page,started);
       if(!page.cache || page.cache.stale!==false || !(Date.parse(page.cache.expires_at)>now())){
         if(state.items.length && boardFresh())write('match-analysis-status','Yeni analiz henüz hazır değil · mevcut doğrulanmış liste korunuyor.');
-        else {state.items=[];state.board=page;state.fingerprint=null;empty('Analiz güncel değil. Yeni veri bekleniyor.');}
+        else {state.items=[];state.board=page;
+      write('analysis-publication-health',`Planlı maç: ${page.cache?.scheduled_matches ?? '—'} · Kaliteli tahmin bulunan maç: ${page.cache?.quality_matches ?? '—'} · Doğrulanmış oranlı maç: ${page.cache?.verified_price_matches ?? '—'} · Yayın: ${page.cache?.status || 'bilinmiyor'}`);state.fingerprint=null;empty('Analiz güncel değil. Yeni veri bekleniyor.');}
         return;
       }
       const nextItems=items(page),nextFingerprint=fingerprint(page,nextItems);
       const changed=nextFingerprint!==state.fingerprint;
       state.board=page;
+      write('analysis-publication-health',`Planlı maç: ${page.cache?.scheduled_matches ?? '—'} · Kaliteli tahmin bulunan maç: ${page.cache?.quality_matches ?? '—'} · Doğrulanmış oranlı maç: ${page.cache?.verified_price_matches ?? '—'} · Yayın: ${page.cache?.status || 'bilinmiyor'}`);
       write('analysis-check-time',`Veri kontrolü: ${date(page.cache?.checked_at)} · Analiz: ${date(page.generated_at)}`);
       if(!nextItems.length){state.items=[];state.fingerprint=null;empty('Kalite eşiklerini geçen yaklaşan maç yok. Listeyi doldurmak için eşikler düşürülmez.');return;}
       state.items=nextItems;state.fingerprint=nextFingerprint;persist(page);
