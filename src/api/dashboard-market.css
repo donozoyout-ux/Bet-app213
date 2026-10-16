@@ -1658,3 +1658,6 @@ body:has([data-page=predictions]:not([hidden])) .desktop-nav {background:#091A30
 .live-count {color:var(--secondary);}
 #latest-new-match,.panel-caption,.panel-date,.panel-heading .text-link,.hero-footnote,
 .fixture-context small,.fixture-pick small,.fixture-price small,.fixture-quality small {font-size:.8rem;}
+
+.panel-caption,.panel-heading {flex-wrap:wrap;}
+.panel-caption>span {min-width:0;overflow-wrap:anywhere;}
