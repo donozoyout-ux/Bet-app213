@@ -65,6 +65,7 @@ class Competition:
     season_counts: dict | None = None
     verified_at: str | None = None
     error: str | None = None
+    sample_match_ids: dict | None = None
 
 
 def parse_catalog(source):
@@ -94,8 +95,8 @@ def parse_catalog(source):
 # before they can be seeded. No new league is automatically enabled.
 EUROPEAN_COUNTRIES = frozenset({
     'Albania','Andorra','Armenia','Austria','Azerbaijan','Belarus','Belgium',
-    'Bosnia and Herzegovina','Bulgaria','Croatia','Cyprus','Czech Republic',
-    'Czechia','Denmark','England','Estonia','Faroe Islands','Finland','France',
+    'Bosnia','Bosnia and Herzegovina','Bulgaria','Croatia','Cyprus','Czech Republic',
+    'Czechia','Denmark','England','Estonia','Faroe','Faroe Islands','Finland','France',
     'Georgia','Germany','Gibraltar','Greece','Hungary','Iceland','Ireland',
     'Israel','Italy','Kazakhstan','Kosovo','Latvia','Liechtenstein','Lithuania',
     'Luxembourg','Malta','Moldova','Montenegro','Netherlands','Northern Ireland',
@@ -152,15 +153,16 @@ def validate_identity(competition, payload, season):
         raise SourceError('Competition identity schema changed') from exc
 
 
-async def verify_competition(client, competition):
+async def verify_competition(client, competition, include_overlapping=False):
     competition.error = None
     try:
-        seasons = await discover_seasons(client, competition.external_id, 2024, overlap=competition.competition_type == 'national')
+        seasons = await discover_seasons(client, competition.external_id, 2024, overlap=include_overlapping or competition.competition_type == 'national')
         if not seasons:
             raise SourceError('No available tournaments overlapping 2024 onward')
         competition.seasons, competition.latest_season = seasons, seasons[-1]
         all_ids, sample = set(), None
         competition.season_counts = {}
+        competition.sample_match_ids = {}
         for season in seasons:
             payload = await season_data(client, competition.external_id, season, competition.schedule_format)
             competition.name = validate_identity(competition, payload, season)
@@ -175,7 +177,10 @@ async def verify_competition(client, competition):
                     ids.add(match['external_match_id'])
                     if sample is None or match['status'] == 'finished' and sample['status'] != 'finished':
                         sample = match
+                if errors:
+                    raise SourceError('Schedule contains unparsed fixtures; verification is incomplete')
             competition.season_counts[season] = len(ids)
+            if ids:competition.sample_match_ids[season]=min(ids)
             if ids and competition.schedule_format == 'cup':
                 dated = [match for section in discover_rounds(payload) for match in parse_matches(payload, section, []) if match['kickoff_at'] is not None]
                 if not any(int(season[:4]) <= match['kickoff_at'].year <= int(season[-4:]) + 1 for match in dated):
