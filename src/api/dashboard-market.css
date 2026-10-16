@@ -1550,3 +1550,49 @@ body:has([data-page=predictions]:not([hidden])) .terminal-header,body:has([data-
 
 #predictions-section>.section-heading #prediction-window {display:none;}
 .analysis-block[data-analysis-block=why] {grid-column:1/-1;}
+
+/* Unified Kuponanalizii palette — all pages, one dark/green visual system.
+   Keep warning/negative/positive semantics and the original image assets. */
+:root {
+  --app-bg:#080f0e;--surface:#111d19;--surface-raised:#182923;
+  --primary:#39ed87;--electric:#39ed87;--primary-soft:#143826;
+  --text:#f2f7f3;--muted:#afc2b6;--border:#2c4438;
+  --success:#39ed87;--danger:#ff8590;--warning:#f2c876;
+}
+body {background:var(--app-bg);}
+.terminal-header,.app-sidebar,.desktop-nav,.bottom-nav {
+  background:#0c1712;border-color:var(--border);
+}
+.desktop-nav a,.bottom-nav a {color:var(--muted);}
+.desktop-nav a:hover,.bottom-nav a:hover {background:#172b21;color:var(--text);}
+.desktop-nav a[aria-current=page],.bottom-nav a[aria-current=page] {
+  background:#153a27;border-color:var(--primary);box-shadow:inset 3px 0 var(--primary);
+}
+.desktop-nav a>span:first-child,.desktop-nav a[aria-current=page]>span:first-child {color:var(--primary);}
+#sidebar-toggle {background:#143825;border-color:var(--border);color:var(--primary);}
+.platform-intro {background:#0c1817;}
+.platform-intro::after {background:linear-gradient(90deg,#081410e8,#08141078 46%,#08141040 76%,#081410de);}
+.platform-intro h1 span,.brand-accent,.eyebrow,.text-link {color:var(--primary);}
+.platform-intro p {color:#c2d3c8;}
+.home-summary article,.dashboard-panel,.prediction-card,.market-card,.stats-block,
+.learning-card,.learning-metric,.analysis-block,.analysis-match-card {
+  background:#13231c;border-color:var(--border);
+}
+.home-summary p,.dashboard-panel p {color:var(--muted);}
+.primary-button {background:#26b96b;color:#06140d;border-color:#45e890;}
+.primary-button:hover {background:#42dc83;color:#06140d;}
+.secondary-button {background:#142a20;color:var(--text);border-color:#3c6650;}
+.secondary-button:hover {background:#1d3b2b;}
+.connection i,.live-dot {background:var(--success);}
+.minimal-analysis {background:#0a1510;border-color:var(--border);}
+.analysis-match-card[aria-pressed=true] {background:#193827;border-color:var(--primary);}
+.analysis-card-probability,.analysis-eligible,[data-page=predictions] .eyebrow {color:var(--primary);}
+.analysis-strip-heading button,.analysis-strip-tools button {border-color:var(--border);}
+body:has([data-page=predictions]:not([hidden])) {background:var(--app-bg);}
+body:has([data-page=predictions]:not([hidden])) .terminal-header,
+body:has([data-page=predictions]:not([hidden])) .app-sidebar,
+body:has([data-page=predictions]:not([hidden])) .desktop-nav {background:#0c1712;border-color:var(--border);}
+@media(min-width:768px) {
+  .app-sidebar {background:#0c1712;border-right:1px solid var(--border);}
+  .desktop-nav {background:#0c1712;border-color:var(--border);}
+}
