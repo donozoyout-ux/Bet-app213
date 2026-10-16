@@ -131,3 +131,27 @@ async def test_board_display_query_does_not_load_coupon_context(api,db,monkeypat
         assert diagnostic.json()['engine_analysis']
     finally:
         event.remove(db.engine.sync_engine,'before_cursor_execute',trace)
+
+
+async def test_home_model_distinguishes_expired_analysis_and_connection_error(api):
+    from playwright.async_api import async_playwright,expect
+    async with async_playwright() as p:
+        browser=await p.chromium.launch();page=await browser.new_page()
+        async def forward(route):
+            path=route.request.url.removeprefix('http://test')
+            if path.startswith('/api/') or path=='/health':
+                await route.fulfill(status=503,json={'detail':'isolated test'});return
+            response=await api.get(path)
+            await route.fulfill(status=response.status_code,body=response.content,
+                content_type=response.headers.get('content-type','application/json'))
+        await page.route('http://test/**',forward)
+        try:
+            await page.goto('http://test/#home')
+            await page.evaluate("BetAppHome.renderModel({items:[],cache:{stale:false,expires_at:'2020-01-01T00:00:00Z'}})")
+            await expect(page.locator('#home-model-body')).to_contain_text('Analiz güncel değil')
+            await page.evaluate("BetAppHome.renderModel({items:[],error:'API 504 zaman aşımı'})")
+            await expect(page.locator('#home-model-body')).to_contain_text('API 504')
+            await page.evaluate('BetAppHome.renderModel({items:[],cache:{stale:false}})')
+            await expect(page.locator('#home-model-body')).to_contain_text('Kalite eşiklerini')
+        finally:
+            await page.unroute_all(behavior='ignoreErrors');await browser.close()

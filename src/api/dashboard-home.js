@@ -121,7 +121,7 @@
   function renderModel(data) {
     const box=$('home-model-body'); if (!box) return;
     const recs=(data.items || []).flatMap(i=>(i.recommendations || []).map(r=>({match:i.match,...r})));
-    if (!recs.length) { message('home-model-body',data.cache?.stale?'Analiz güncel değil. Yeni veri kontrolü bekleniyor.':'Kalite eşiklerini geçen yaklaşan istatistiksel tahmin bulunmuyor. Oran eksikliği ayrı değerlendirilir.'); return; }
+    if (!recs.length) { message('home-model-body',data.error || ((data.cache?.stale || data.cache?.expires_at && Date.parse(data.cache.expires_at)<=Date.now())?'Analiz güncel değil. Yeni veri kontrolü bekleniyor.':'Kalite eşiklerini geçen yaklaşan istatistiksel tahmin bulunmuyor. Oran eksikliği ayrı değerlendirilir.')); return; }
     const r=recs[0];box.replaceChildren();
     const top=element('div','','model-overview');
     const ring=element('div','','probability-ring');ring.style.setProperty('--probability',String(r.probability*100));
