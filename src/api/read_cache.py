@@ -31,17 +31,12 @@ class ReadCache:
                 if cached and time.monotonic() - cached[0] < self.ttl:
                     entries.move_to_end(key)
                     return deepcopy(cached[1])
-                try:
-                    result = await compute()
-                finally:
-                    # Keep lock identity stable while there are waiters; idle keys
-                    # are bounded by the same cache eviction policy.
-                    pass
+                result = await compute()
                 entries[key] = (time.monotonic(), deepcopy(result))
                 while len(entries) > self.limit:
                     old_key, _ = entries.popitem(last=False)
-                    if old_key != key and not locks[old_key].locked():
-                        locks.pop(old_key, None)
+                    # Waiting callers may still reference the evicted lock.
+                    # Keep it until process restart; cache contents stay bounded.
                 return result
 
 
