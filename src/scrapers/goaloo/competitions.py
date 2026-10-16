@@ -88,6 +88,37 @@ def parse_catalog(source):
     return entries
 
 
+
+# Source catalog region names, not fabricated Goaloo competition identifiers.
+# European domestic leagues are discovered, then independently source-verified
+# before they can be seeded. No new league is automatically enabled.
+EUROPEAN_COUNTRIES = frozenset({
+    'Albania','Andorra','Armenia','Austria','Azerbaijan','Belarus','Belgium',
+    'Bosnia and Herzegovina','Bulgaria','Croatia','Cyprus','Czech Republic',
+    'Czechia','Denmark','England','Estonia','Faroe Islands','Finland','France',
+    'Georgia','Germany','Gibraltar','Greece','Hungary','Iceland','Ireland',
+    'Israel','Italy','Kazakhstan','Kosovo','Latvia','Liechtenstein','Lithuania',
+    'Luxembourg','Malta','Moldova','Montenegro','Netherlands','Northern Ireland',
+    'North Macedonia','Norway','Poland','Portugal','Romania','Russia',
+    'San Marino','Scotland','Serbia','Slovakia','Slovenia','Spain','Sweden',
+    'Switzerland','Turkey','Turkiye','Türkiye','Ukraine','Wales',
+})
+def select_european_leagues(entries):
+    """Catalog discovery only: leagues, not cups; no invented IDs or activation."""
+    countries={normalize_name(name) for name in EUROPEAN_COUNTRIES}
+    found={}
+    for row in entries:
+        if row.get('schedule_format')!='league' or normalize_name(row.get('country','')) not in countries:
+            continue
+        competition_id=row.get('external_id')
+        if not isinstance(competition_id,int) or competition_id <= 0:
+            raise SourceError('Invalid European league catalog ID')
+        if competition_id in found and found[competition_id]!=row:
+            raise SourceError(f'Ambiguous European league ID: {competition_id}')
+        found[competition_id]=row
+    return [Competition(**row,competition_type='club',priority=500+index)
+            for index,row in enumerate(sorted(found.values(),key=lambda row:(normalize_name(row['country']),normalize_name(row['catalog_name']),row['external_id'])),1)]
+
 def select_targets(entries):
     targets = []
     for index, (country, name) in enumerate(CLUB_TARGETS + NATIONAL_TARGETS, 1):
