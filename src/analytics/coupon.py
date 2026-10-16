@@ -54,7 +54,11 @@ async def current_odds(session, groups, now):
     for model in (Odds1X2,AsianTotals,AsianHandicap,MarketOdds):
         rows[model]={id:[] for id in ids}
         if not needed[model]:continue
-        for row in await session.execute(select(model,Bookmaker.name,model.raw['_field_observed_at'],model.raw['_field_lines']).options(defer(model.raw)).join(Bookmaker).where(model.match_id.in_(needed[model]))):
+        query=select(model,Bookmaker.name,model.raw['_field_observed_at'],model.raw['_field_lines']).options(defer(model.raw)).join(Bookmaker).where(model.match_id.in_(needed[model]))
+        if model is MarketOdds:
+            requested={rec.get('market') for match_id in needed[model] for rec in groups[match_id]}
+            query=query.where(MarketOdds.market.in_(requested & {'first_half_goals','corners'}))
+        for row in await session.execute(query):
             row[0]._matching_meta={'_field_observed_at':row[2],'_field_lines':row[3]}
             rows[model][row[0].match_id].append((row[0],row[1]))
     for id,recommendations in groups.items():
