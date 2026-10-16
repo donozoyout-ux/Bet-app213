@@ -7,7 +7,7 @@ import os
 from datetime import datetime, timedelta
 
 from fastapi.encoders import jsonable_encoder
-from sqlalchemy import select, or_, text
+from sqlalchemy import select, or_, text, literal
 from sqlalchemy.orm import defer
 from src.query_profile import stage
 from src.models import League, Match, PredictionBoard, BoardHead, utcnow
@@ -92,10 +92,23 @@ async def read_board(session,league,date,team,now,statistical_all=False,include_
     valid=[(id,b,v) for id,b,v in rows if b is not None and b.model_version==MODEL_VERSION
            and aware(b.expires_at)>now and aware(b.generated_at)<=now]
     async def load_payloads():
-        return dict((await session.execute(select(PredictionBoard.league_id,PredictionBoard.payload)
+        data=PredictionBoard.payload
+        if session.bind.dialect.name=='postgresql':
+            from sqlalchemy.dialects.postgresql import JSONB
+            data=data.cast(JSONB)
+        base=select(PredictionBoard.league_id,data.label('data'))\
             .where(or_(*[(PredictionBoard.league_id==id) & (PredictionBoard.source_revision==b.source_revision)
-                & (PredictionBoard.generated_at==b.generated_at) for id,b,v in valid])))).all())
-    key=tuple(sorted((id,v or b.source_revision,b.generated_at) for id,b,v in valid))
+                & (PredictionBoard.generated_at==b.generated_at) for id,b,v in valid])).cte('publication_json')
+        # JSON columns otherwise get parsed independently for every extraction.
+        # Materialize the JSONB conversion once; send only requested fields.
+        base=base.prefix_with('MATERIALIZED',dialect='postgresql')
+        data=base.c.data
+        records=await session.execute(select(base.c.league_id,data['items'],data['availability'],data['evaluated'],
+            data['coupon_records'] if statistical_all else literal(None),
+            data['engine_analysis'] if include_engine_analysis else literal(None)))
+        return {id:dict(items=items,availability=available,evaluated=evaluated,coupon_records=coupons,engine_analysis=analysis)
+                for id,items,available,evaluated,coupons,analysis in records}
+    key=(statistical_all,include_engine_analysis,tuple(sorted((id,v or b.source_revision,b.generated_at) for id,b,v in valid)))
     payloads=await payload_cache.get(session.bind,key,load_payloads) if valid else {}
     # Current statuses prevent a cached prematch pick appearing after kickoff or completion.
     eligible=dict((await session.execute(select(Match.id,Match.kickoff_at).join(League).where(League.enabled.is_(True),Match.status=='scheduled',Match.kickoff_at>now,Match.kickoff_at<=now+timedelta(days=7)))).all())

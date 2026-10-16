@@ -25,8 +25,10 @@ async def test_pg_concurrent_publication_reads_fresh_guards_and_http(monkeypatch
             board=await s.scalar(select(PredictionBoard));data=deepcopy(board.payload)
             data['unused_evidence']=[{'index':i,'detail':str(uuid.uuid4())*8} for i in range(1000)]
             board.payload=data;await s.commit()
-        queries=[]
-        def collect(conn,cursor,statement,*args):queries.append(statement)
+        queries=[];payload_statement=[]
+        def collect(conn,cursor,statement,*args):
+            queries.append(statement)
+            if 'publication_json' in statement and not payload_statement:payload_statement.append((statement,args[0]))
         event.listen(db.engine.sync_engine,'before_cursor_execute',collect)
         async def read():
             async with db.session() as s:return await read_board(s,None,None,None,NOW)
@@ -61,7 +63,8 @@ async def test_pg_concurrent_publication_reads_fresh_guards_and_http(monkeypatch
                 assert (await api.get('/api/predictions')).json()['items']==[]
         finally:app.dependency_overrides.clear()
         async with db.engine.connect() as conn:
-            plan=await conn.scalar(text(f'EXPLAIN (ANALYZE,BUFFERS,FORMAT JSON) SELECT payload FROM "{schema}".prediction_boards WHERE league_id=1'))
+            statement,parameters=payload_statement[0]
+            plan=(await conn.exec_driver_sql('EXPLAIN (ANALYZE,BUFFERS,FORMAT JSON) '+statement,parameters)).scalar()
         if isinstance(plan,str):plan=json.loads(plan)
         print('V4_PUBLICATION_BENCHMARK '+json.dumps(dict(basis='isolated PostgreSQL synthetic evidence fixture; not deployed production',cold_ms=round(cold_ms,3),warm_ms=round(warm_ms,3),cold_sql=cold_sql,warm_sql=warm_sql,concurrent_readers=8,concurrent_payload_reads=1,http_total_ms=round(http_ms,3),responses=responses,plan=plan)))
     finally:
