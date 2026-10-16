@@ -1,0 +1,236 @@
+[
+  {
+    "path": "/api/predictions?limit=8",
+    "status": 200,
+    "elapsed_ms": 3219.1,
+    "summary": null,
+    "total": null,
+    "availability": {
+      "status": "available",
+      "markets": {
+        "corners": {
+          "evaluated_matches": 122,
+          "model_ready_matches": 86,
+          "selected_matches": 53
+        },
+        "cards": {
+          "evaluated_matches": 122,
+          "model_ready_matches": 43,
+          "selected_matches": 0
+        },
+        "yellow_cards": {
+          "evaluated_matches": 122,
+          "model_ready_matches": 86,
+          "selected_matches": 18
+        },
+        "red_cards": {
+          "evaluated_matches": 122,
+          "model_ready_matches": 43,
+          "selected_matches": 0
+        },
+        "first_half_goals": {
+          "evaluated_matches": 122,
+          "model_ready_matches": 86,
+          "selected_matches": 21
+        },
+        "second_half_goals": {
+          "evaluated_matches": 122,
+          "model_ready_matches": 86,
+          "selected_matches": 36
+        }
+      }
+    },
+    "cache": {
+      "status": "fresh",
+      "checked_at": "2026-10-16T10:15:25.435100Z",
+      "stale": false,
+      "generated_at": "2026-10-16T10:09:08.361912Z",
+      "latest_generated_at": "2026-10-16T10:14:50.021679Z",
+      "expires_at": "2026-10-16T10:19:08.361912Z",
+      "model_version": "quality-poisson-v3-specialist-adapters-v1",
+      "source_revisions": {
+        "31": "b4771d3adfae6b6ac695890cd3d9a9b013e9b140fb47d24d5079967908ad5883",
+        "32": "da666cbbb45f5254b5e09aca26b873704758650e886e81e785bc031cc21c492d",
+        "33": "141ec04f8215b7dd93947681004615346d6d23619631cbb0da01adcd4731a025",
+        "1": "90bfd5ed563c43d46f2e5dea9676940de00d28f5ad0b2755d4f11d2698f4e2b7",
+        "2": "37fe5a254779cde755bd7405cb0147bed6792fac800583d57cea70e2999be991",
+        "3": "1eed6c070ff54f63df8f79fe4bff9887cea72145fb2a24d214f3d4971d5de59e",
+        "4": "974335f670c9c34493e5f6d32cddbae83a41074ced271df498bf432aad530cf1",
+        "5": "974335f670c9c34493e5f6d32cddbae83a41074ced271df498bf432aad530cf1",
+        "6": "3516ccbb7d728ee690c710d4707f16a37f00f497060f829f7fd497296147131e",
+        "7": "63664d5690d8f3372f1101a6e40745f7f957be1b436f28563db2e9cfa31d2bda",
+        "8": "64733505ef759d6d170eb8d03961ba97461dc9dae30bf45e9d1bce5fcea7ac5b"
+      },
+      "missing_leagues": [],
+      "stale_leagues": []
+    },
+    "items_returned": 8
+  },
+  {
+    "path": "/api/predictions/best?market=btts&statistical_all=true&limit=1",
+    "status": 200,
+    "elapsed_ms": 2589.9,
+    "summary": null,
+    "total": 172,
+    "availability": {
+      "status": "available",
+      "markets": {
+        "corners": {
+          "evaluated_matches": 122,
+          "model_ready_matches": 86,
+          "selected_matches": 53
+        },
+        "cards": {
+          "evaluated_matches": 122,
+          "model_ready_matches": 43,
+          "selected_matches": 0
+        },
+        "yellow_cards": {
+          "evaluated_matches": 122,
+          "model_ready_matches": 86,
+          "selected_matches": 18
+        },
+        "red_cards": {
+          "evaluated_matches": 122,
+          "model_ready_matches": 43,
+          "selected_matches": 0
+        },
+        "first_half_goals": {
+          "evaluated_matches": 122,
+          "model_ready_matches": 86,
+          "selected_matches": 21
+        },
+        "second_half_goals": {
+          "evaluated_matches": 122,
+          "model_ready_matches": 86,
+          "selected_matches": 36
+        }
+      }
+    },
+    "cache": {
+      "status": "fresh",
+      "checked_at": "2026-10-16T10:15:28.384432Z",
+      "stale": false,
+      "generated_at": "2026-10-16T10:09:08.361912Z",
+      "latest_generated_at": "2026-10-16T10:14:50.021679Z",
+      "expires_at": "2026-10-16T10:19:08.361912Z",
+      "model_version": "quality-poisson-v3-specialist-adapters-v1",
+      "source_revisions": {
+        "31": "b4771d3adfae6b6ac695890cd3d9a9b013e9b140fb47d24d5079967908ad5883",
+        "32": "da666cbbb45f5254b5e09aca26b873704758650e886e81e785bc031cc21c492d",
+        "33": "141ec04f8215b7dd93947681004615346d6d23619631cbb0da01adcd4731a025",
+        "1": "90bfd5ed563c43d46f2e5dea9676940de00d28f5ad0b2755d4f11d2698f4e2b7",
+        "2": "37fe5a254779cde755bd7405cb0147bed6792fac800583d57cea70e2999be991",
+        "3": "1eed6c070ff54f63df8f79fe4bff9887cea72145fb2a24d214f3d4971d5de59e",
+        "4": "974335f670c9c34493e5f6d32cddbae83a41074ced271df498bf432aad530cf1",
+        "5": "974335f670c9c34493e5f6d32cddbae83a41074ced271df498bf432aad530cf1",
+        "6": "3516ccbb7d728ee690c710d4707f16a37f00f497060f829f7fd497296147131e",
+        "7": "63664d5690d8f3372f1101a6e40745f7f957be1b436f28563db2e9cfa31d2bda",
+        "8": "64733505ef759d6d170eb8d03961ba97461dc9dae30bf45e9d1bce5fcea7ac5b"
+      },
+      "missing_leagues": [],
+      "stale_leagues": []
+    },
+    "items_returned": 1
+  },
+  {
+    "path": "/api/market-performance?limit=1",
+    "status": 200,
+    "elapsed_ms": 416.2,
+    "summary": {
+      "total": 286,
+      "settled": 130,
+      "won": 100,
+      "lost": 30,
+      "pending": 155,
+      "awaiting_data": 0,
+      "void": 1,
+      "last_10": [
+        "pending",
+        "pending",
+        "pending",
+        "pending",
+        "pending",
+        "pending",
+        "pending",
+        "pending",
+        "pending",
+        "pending"
+      ],
+      "calibrated_samples": 130,
+      "calibration": [
+        {
+          "lower": 0.6,
+          "upper": 0.7,
+          "samples": 11,
+          "observed_rate": 0.6363636363636364,
+          "mean_probability": 0.6382279087641981
+        },
+        {
+          "lower": 0.7,
+          "upper": 0.8,
+          "samples": 60,
+          "observed_rate": 0.7833333333333333,
+          "mean_probability": 0.7635199462792691
+        },
+        {
+          "lower": 0.8,
+          "upper": 0.9,
+          "samples": 50,
+          "observed_rate": 0.76,
+          "mean_probability": 0.8402526072471016
+        },
+        {
+          "lower": 0.9,
+          "upper": 1.0,
+          "samples": 9,
+          "observed_rate": 0.8888888888888888,
+          "mean_probability": 0.9195157789109776
+        }
+      ],
+      "priced_samples": 0,
+      "profit": 0,
+      "success_rate": 0.7692307692307693,
+      "average_reliability": 0.8834839515469248,
+      "average_sample_size": 28.884615384615383,
+      "mean_probability": 0.7932305857362784,
+      "brier_score": 0.17836811040509865,
+      "roi": null
+    },
+    "total": 286,
+    "availability": "saved_prematch_picks",
+    "cache": null,
+    "items_returned": 1
+  },
+  {
+    "path": "/api/market-performance?market=btts&limit=1",
+    "status": 200,
+    "elapsed_ms": 1118.0,
+    "summary": {
+      "total": 0,
+      "settled": 0,
+      "won": 0,
+      "lost": 0,
+      "pending": 0,
+      "awaiting_data": 0,
+      "void": 0,
+      "reliability_sum": 0,
+      "sample_sum": 0,
+      "last_10": [],
+      "calibrated_samples": 0,
+      "calibration": [],
+      "priced_samples": 0,
+      "profit": 0,
+      "success_rate": null,
+      "average_reliability": null,
+      "average_sample_size": null,
+      "mean_probability": null,
+      "brier_score": null,
+      "roi": null
+    },
+    "total": 0,
+    "availability": "no_saved_prematch_picks",
+    "cache": null,
+    "items_returned": 0
+  }
+]

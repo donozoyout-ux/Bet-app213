@@ -18,6 +18,7 @@
     line(box,'Form (en yeni önce)',data.form.join(' '));line(box,'Maç / G / B / M',`${data.sample_size} / ${data.wins} / ${data.draws} / ${data.losses}`);
     line(box,'Atılan / yenilen gol',`${data.goals_for} / ${data.goals_against}`);line(box,'Ortalama atılan / yenilen',`${num(data.avg_goals_for)} / ${num(data.avg_goals_against)}`);
     for(const [label,key] of [['Gol yememe','clean_sheet_rate'],['KG Var','btts_rate'],['1.5 Üst','over_15_rate'],['2.5 Üst','over_25_rate'],['3.5 Üst','over_35_rate']])line(box,label,pct(data[key]));
+    if(Number.isFinite(data.btts_rate))line(box,'KG Yok',pct(1-data.btts_rate));
     line(box,'Ortalama toplam gol',num(data.avg_total_goals));parent.append(box);
   }
   function extraStatistics(box,data,wanted){
@@ -85,7 +86,12 @@
       }
       box.append(all);
     }
-    if(['summary','predictions'].includes(state.tab) && !data.recommendations?.length)box.append(node('p','Yetersiz veri'));
+    if(['summary','predictions'].includes(state.tab) && !data.recommendations?.length){
+      const missing=node('section','','stats-block');missing.append(node('h4',p.status==='ok'?'Kalite eşiğini geçen seçim yok':'Model için yetersiz veri'));
+      for(const [side,name] of [['home',m.home_team],['away',m.away_team]])line(missing,name,`${p[side+'_sample_size'] ?? 0} takım / 5 gerekli · ${p[side+'_venue_sample_size'] ?? 0} saha / 3 gerekli`);
+      line(missing,'Yarışma',`${p.league_sample_size ?? 0} / 20 gerekli`);
+      missing.append(node('p',p.status==='ok'?'Model hesaplandı; güven, örneklem veya kalite koşulları uygun seçim üretmedi.':'Eksik örneklemle yeni tahmin üretilmedi. Mevcut gözlemler ilgili sekmelerde gösterilir.'));box.append(missing);
+    }
     if(['summary','predictions'].includes(state.tab) && data.recommendations?.length){
       const chosen=node('section','','stats-block');chosen.append(node('h4','Seçilen Güçlü Tahminler','font-bold text-primary'));
       for(const rec of data.recommendations.slice(0,2)){
@@ -119,12 +125,33 @@
     line(model,'Veri kesim zamanı',date(data.as_of));
     box.append(model);}
     if(['summary','predictions','goals'].includes(state.tab) && data.uefa_coverage){const coverage=node('section','','uefa-coverage');coverage.append(node('h4','Avrupa ve Yerel Lig Veri Kapsamı'));for(const [side,name] of [['home',m.home_team],['away',m.away_team]]){const c=data.uefa_coverage[side];if(!c)continue;line(coverage,name,`Avrupa: ${c.europe_matches} (ev ${c.europe_home}, deplasman ${c.europe_away}) · Yerel lig: ${c.domestic_matches} (ev ${c.domestic_home}, deplasman ${c.domestic_away})`);for(const reason of c.missing_reasons||[])coverage.append(node('p',reason));}coverage.append(node('p','Kullanılabilir, tahmin öncesi gözlemlenmiş sonuçlar. Yerel veriler canlı model olasılığını değiştirmez.'));box.append(coverage);}
-    if(['form','goals'].includes(state.tab)){
+    if(state.tab==='btts'){
+      const model=node('section','','stats-block');model.append(node('h4','KG Var / KG Yok'));
+      if(p.status==='ok'){line(model,'KG Var',pct(p.btts_probability));line(model,'KG Yok',pct(p.no_btts_probability));}
+      else model.append(node('p','KG modeli için yeterli doğrulanmış örneklem yok. Yeni tahmin üretilmedi.'));
+      for(const [side,name] of [['home',m.home_team],['away',m.away_team]])line(model,name,`${p[side+'_sample_size'] ?? 0} takım maçı / en az 5 · ${p[side+'_venue_sample_size'] ?? 0} ilgili saha maçı / en az 3`);
+      line(model,'Yarışma örneklemi',`${p.league_sample_size ?? 0} / en az 20`);
+      for(const selection of ['yes','no']){
+        const rec=[...(data.candidates||[]),...(data.recommendations||[])].find(r=>r.market==='btts' && r.selection===selection);
+        const title=selection==='yes'?'KG Var':'KG Yok';
+        if(!rec){line(model,title+' fiyatı','Model adayı yok; doğrulanmış KG fiyat kanıtı sunulmuyor');continue;}
+        const vo=rec.verified_odds;
+        for(const name of ['Crown','Bet365','Sbobet']){
+          const b=vo?.bookmakers?.[name];
+          const valid=vo?.match_id===m.id && vo.market==='btts' && vo.selection===selection && vo.period==='full_time' && vo.line==null && b?.line==null && vo.coupon_eligible && vo.freshness==='fresh' && b?.coupon_eligible && b.freshness==='fresh' && Number.isFinite(b.current_odds) && b.current_odds>1 && Date.parse(b.expires_at)>Date.now() && Date.parse(b.observed_at)<=Date.now() && Date.parse(b.observed_at)>=Date.now()-900000;
+          line(model,title+' · '+name,valid?`${num(b.current_odds)} · Tam maç · Gözlem ${date(b.observed_at)}`:(globalThis.BetAppMarket?.oddsReason?.(vo)||vo?.message||'Kaynakta doğrulanmış KG fiyatı yok'));
+        }
+      }
+      const meetings=(data.h2h||[]).filter(g=>Number.isFinite(g.home_goals)&&Number.isFinite(g.away_goals));
+      line(model,'H2H KG Var',meetings.length?`${pct(meetings.filter(g=>g.home_goals>0&&g.away_goals>0).length/meetings.length)} · ${meetings.length} gerçek maç`:'Doğrulanmış H2H örneklemi yok');
+      box.append(model);
+    }
+    if(['form','goals','btts'].includes(state.tab)){
     const stats=node('div','','statistics-grid');
     form(stats,`${m.home_team} • Son 5`,data.home_form);form(stats,`${m.away_team} • Son 5`,data.away_form);
     form(stats,`${m.home_team} • Son 10`,data.home_last_10);form(stats,`${m.away_team} • Son 10`,data.away_last_10);
     form(stats,`${m.home_team} • Ev sahibi tarafı (son 10)`,data.home_split);form(stats,`${m.away_team} • Deplasman tarafı (son 10)`,data.away_split);box.append(stats);}
-    if(['form','h2h'].includes(state.tab)){
+    if(['form','h2h','btts'].includes(state.tab)){
     if(data.domestic_context){const domestic=node('section','','stats-block');domestic.append(node('h4','Yerel Lig Formu · Ayrı Bağlam'));domestic.append(node('p','Yerel lig formu ayrı değerlendirilir. Model olasılığı Avrupa kupası örneklemine dayanır.'));for(const [side,team] of [['home',m.home_team],['away',m.away_team]]){const context=data.domestic_context[side];if(!context)continue;form(domestic,`${team} · Yerel lig (son 10)`,context.form);line(domestic,'Kaynak ligler',context.source_competitions.map(l=>l.name).join(', ')||'Doğrulanmış yerel lig kaydı yok');}box.append(domestic);}
     const h2h=node('section','','stats-block');h2h.append(node('h4','Son Karşılaşmalar (H2H)','font-bold text-primary'));
     if(!data.h2h_summary.sufficient)h2h.append(node('p','Yeterli H2H verisi yok'));
@@ -175,7 +202,7 @@
     state.selected=id;state.detailData=null;state.detailLoadedAt=0;const generation=++state.detailGeneration;
     if(box){box.hidden=false;box.replaceChildren();box.append(node('p','Veri hazırlanıyor','analysis-loading'));}
     try {const data=await api(`/api/matches/${id}/statistics`,detailController?.signal);if(state.selected!==id || generation!==state.detailGeneration)return;if(data.match.id!==id)throw new Error('Match identity mismatch');renderStatistics(data);state.detailData=data;state.detailLoadedAt=Date.now();if(scroll)box?.scrollIntoView?.({behavior:'smooth',block:'start'});return data;}
-    catch(_){if(generation!==state.detailGeneration)return;if(box){box.replaceChildren();box.append(node('p','Veri hazırlanıyor • Bağlantı bekleniyor'));}}
+    catch(error){if(generation!==state.detailGeneration)return;if(box){box.replaceChildren();box.append(node('p',error.message==='HTTP 504'?'Analiz API 504 zaman aşımı. Yeniden deneyin.':'Analiz bağlantısı kurulamadı. Yeniden deneyin.'));}}
   }
   function card(item){
     const m=item.match,recs=item.recommendations.slice(0,2),element=node('article','','prediction-card');

@@ -7,7 +7,8 @@ import os
 from datetime import datetime, timedelta
 
 from fastapi.encoders import jsonable_encoder
-from sqlalchemy import select, or_, text
+from sqlalchemy import select, or_, text, literal
+from sqlalchemy.orm import defer
 from src.models import League, Match, PredictionBoard, utcnow
 from src.jobs.worker import aware
 from src.match_views import day_bounds, DISPLAY_TIMEZONE
@@ -67,22 +68,28 @@ async def refresh_all(db, now=None):
 
 
 
-async def read_board(session,league,date,team,now,statistical_all=False):
-    query=select(League.id,PredictionBoard).outerjoin(PredictionBoard).where(League.enabled.is_(True))
+async def read_board(session,league,date,team,now,statistical_all=False,include_engine_analysis=False):
+    # HTTP display requests must not deserialize coupon context and engine
+    # evidence for every league. Project only the JSON fields this reader uses.
+    query=select(League.id,PredictionBoard,
+        PredictionBoard.payload['items'],PredictionBoard.payload['availability'],
+        PredictionBoard.payload['evaluated'],
+        PredictionBoard.payload['coupon_records'] if statistical_all else literal(None),
+        PredictionBoard.payload['engine_analysis'] if include_engine_analysis else literal(None)
+    ).options(defer(PredictionBoard.payload)).outerjoin(PredictionBoard).where(League.enabled.is_(True))
     if league:query=query.where(League.id==int(league)) if league.isdigit() else query.where(League.name.ilike('%'+league+'%'))
     rows=(await session.execute(query)).all()
     # Current statuses prevent a cached prematch pick appearing after kickoff or completion.
     eligible=dict((await session.execute(select(Match.id,Match.kickoff_at).join(League).where(League.enabled.is_(True),Match.status=='scheduled',Match.kickoff_at>now,Match.kickoff_at<=now+timedelta(days=7)))).all())
     items=[];availability=[];engine_analysis=[];times=[];revisions={};missing=[];stale=[];evaluated=0
-    for id,board in rows:
+    for id,board,source,board_availability,board_evaluated,coupon_records,analysis_rows in rows:
         if board is None or board.model_version!=MODEL_VERSION:missing.append(id);continue
         times.append(aware(board.generated_at));revisions[str(id)]=board.source_revision
         expired=aware(board.expires_at)<=now or aware(board.generated_at)>now
         if expired:stale.append(id)
-        evaluated+=board.payload['evaluated']
-        source=board.payload['items']
+        evaluated+=board_evaluated
         if statistical_all:
-            source=[{'match':r['match'],'recommendations':r['candidates'],'as_of':board.generated_at} for r in board.payload.get('coupon_records',[])]
+            source=[{'match':r['match'],'recommendations':r['candidates'],'as_of':board.generated_at} for r in (coupon_records or [])]
         for item in source:
             item={**item,'match':dict(item['match'])}
             m=item['match'];kickoff=aware(datetime.fromisoformat(m['kickoff_at']))
@@ -95,8 +102,8 @@ async def read_board(session,league,date,team,now,statistical_all=False):
             if team and team.casefold() not in (m['home_team']+' '+m['away_team']).casefold():continue
             m['kickoff_at']=kickoff
             items.append(item)
-        engine_analysis.extend(r for r in board.payload.get('engine_analysis',[]) if r['match_id'] in eligible)
-        availability.extend((id,a) for id,a in board.payload['availability'] if id in eligible)
+        engine_analysis.extend(r for r in (analysis_rows or []) if r['match_id'] in eligible)
+        availability.extend((id,a) for id,a in (board_availability or []) if id in eligible)
     items.sort(key=lambda i:(i['match']['kickoff_at'],i['match']['id']))
     session.info['engine_analysis']=engine_analysis
     session.info['count_availability']=availability

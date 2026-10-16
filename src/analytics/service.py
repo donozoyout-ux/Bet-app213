@@ -34,13 +34,19 @@ def discard_model_changes(session):
     session.info.pop('model_changed', None)
 
 
-async def revision(session):
+async def revision(session, match_id=None):
     base = select(func.count(Match.id), func.max(Match.updated_at), func.max(Match.last_scraped_at)).subquery()
     source, columns = base, list(base.c)
     for model, pk in [(Odds1X2, Odds1X2.id), (MatchStatistics, MatchStatistics.match_id),
                       (AsianHandicap, AsianHandicap.id), (AsianTotals, AsianTotals.id),
                       (MarketOdds, MarketOdds.id)]:
-        aggregate = select(func.count(pk), func.max(model.updated_at)).subquery()
+        aggregate_query = select(func.count(pk), func.max(model.updated_at))
+        # Detail models consume prices only for this match. Keep global score/stat
+        # revisions for league and UEFA domestic history, but avoid scanning every
+        # bookmaker table before even a warm detail-cache lookup.
+        if match_id is not None and model is not MatchStatistics:
+            aggregate_query = aggregate_query.where(model.match_id == match_id)
+        aggregate = aggregate_query.subquery()
         source = source.join(aggregate, true())
         columns.extend(aggregate.c)
     return tuple((await session.execute(select(*columns).select_from(source))).one())
@@ -84,7 +90,7 @@ async def market_rows(session, model, match_id):
 async def statistics(session, match, context, now, data_revision=None):
     cutoff = min(now, aware(match.kickoff_at)) if match.kickoff_at else now
     historical = match.kickoff_at is not None and aware(match.kickoff_at) <= now
-    data_revision = data_revision if data_revision is not None else await revision(session)
+    data_revision = data_revision if data_revision is not None else await revision(session, match.id)
     time_key = aware(match.kickoff_at).isoformat() if historical else int(cutoff.timestamp() // CACHE_SECONDS)
     key = (session.bind, match.id, match.league_id, match.home_team_id, match.away_team_id,
            context['competition_type'], aware(match.kickoff_at), match.status, historical, time_key, data_revision,

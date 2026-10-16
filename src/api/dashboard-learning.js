@@ -27,7 +27,7 @@
   function metric(label,value){const n=el('article','','learning-metric');n.append(el('span',label),el('strong',value));$('learning-summary').append(n);}
   function renderSummary(){const {summary:s,coverage:c,meta:m}=state.data;$('learning-summary').replaceChildren();
     for(const [name,value] of [['Kaydedilen tahmin',num(c.saved_predictions)],['Sonuçlanan',num(c.recorded_terminal)],['Gerçekleşen başarı',pct(s.success_rate)],['Beklenen başarı',pct(s.mean_probability)],['Brier skoru',num(s.brier_score)],['Öğrenme durumu',state.data.lessons.some(r=>r.status==='supported_candidate')?'Ders adayı var':'Gözlem aşaması']])metric(name,value);
-    put('learning-coverage',`${num(s.predictions)} geçerli sonuç · ${num(s.matches)} maç · Maç bekleyen: ${num(c.match_pending)} · Sonuç verisi bekleyen: ${num(c.result_data_pending)} · Geçersiz: ${num(c.exclusions?.void)} · Log loss: ${num(s.log_loss)}`);
+    put('learning-coverage',`${state.data.lessons.some(r=>r.ai?.status==='ready')?'':'AI anlatımı hazır değil; kayıtlı istatistiksel kanıt gösteriliyor. '}${num(s.predictions)} geçerli sonuç · ${num(s.matches)} maç · Maç bekleyen: ${num(c.match_pending)} · Sonuç verisi bekleyen: ${num(c.result_data_pending)} · Geçersiz: ${num(c.exclusions?.void)} · Log loss: ${num(s.log_loss)}`);
     put('learning-status',`${m.stale?'Eski rapor · Güncelleme bekleniyor. ':''}${$('learning-report').value?'Arşiv raporu · ':''}Rapor #${m.report_id} · ${date(m.created_at)} · Son kaynak kontrolü: ${date(m.checked_at)}`);
   }
   function scopes(){const box=$('learning-scope');box.replaceChildren();option(box,'','Tümü');const filter=$('learning-kind').value;
@@ -51,7 +51,7 @@
       const f=a.facts || {};
       ai.append(el('p',`Backend tarafından rapordan eklenen sayılar: ${num(f.predictions)} tahmin / ${num(f.matches)} maç · Beklenen ${pct(f.expected_success)} · Gerçekleşen ${pct(f.observed_success)} · Fark aralığı ${Array.isArray(f.gap_interval)?f.gap_interval.map(pct).join(' – '):'—'}`));
     }else ai.append(el('p',a?.status==='disabled'?'AI açıklaması devre dışı':'AI açıklaması hazırlanmadı'));
-    n.append(ai);return n;
+    if(ready)n.append(ai);return n;
   }
   function render(){if(!state.data)return;const filter=$('learning-kind').value,scope=$('learning-scope').value;
     const rows=state.data.lessons.filter(r=>(filter==='all' || kind(r)===filter) && (!scope || r.scope_key===scope));const box=$('learning-lessons');box.replaceChildren();

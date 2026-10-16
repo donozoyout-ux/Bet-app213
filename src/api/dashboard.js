@@ -121,6 +121,7 @@
   }
   function clearDetail() {
     state.detailGeneration++;detailController?.abort();globalThis.BetAppPredictions?.clear();
+    for(const id of ['detail-home','detail-away'])if($(id)?.dataset)delete $(id).dataset.initials;
     write('detail-title',empty);write('detail-home',empty);write('detail-away',empty);write('detail-home-score','—');write('detail-away-score','—');write('detail-ht','İY: —');write('detail-league','Veri bekleniyor');write('detail-time','');write('detail-status','');write('odds-updated','Veri bekleniyor');
     for(const key of ['1x2','ah','ou']){write(`odds-${key}-opening`,'—');write(`odds-${key}-latest`,'—');}
   }
@@ -137,6 +138,9 @@
       if(matchResult.status!=='fulfilled'){write('detail-status','Bağlantı bekleniyor');return;}
       const match=matchResult.value,allOdds=oddsResult.status==='fulfilled'?oddsResult.value:(match.odds || []);
       write('detail-title',`${match.home_team} vs ${match.away_team}`);write('detail-home',match.home_team);write('detail-away',match.away_team);
+      for(const [id,name] of [['detail-home',match.home_team],['detail-away',match.away_team]]){
+        const target=$(id);if(target?.dataset)target.dataset.initials=String(name||'?').trim().split(/\s+/).slice(0,2).map(word=>word[0]).join('').toLocaleUpperCase('tr-TR');
+      }
       write('detail-league',`${match.league} • ${match.season} • ${match.round_label || `${match.round}. Hafta`}`);write('detail-time',date(match.kickoff_at)+' • Europe/Istanbul');write('detail-status',(statuses[match.status] || match.status)+(liveStates.includes(match.status) && match.live_minute ? ' • '+match.live_minute+'′' : ''));
       write('detail-home-score',number(match.ft_home));write('detail-away-score',number(match.ft_away));write('detail-ht',`İY: ${score(match.ht_home,match.ht_away)}`);
       const markets=allOdds.filter(odds=>odds.bookmaker === state.bookmaker);

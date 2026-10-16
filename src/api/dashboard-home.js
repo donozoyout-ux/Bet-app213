@@ -27,9 +27,9 @@
       const response = await fetch(path, {method, signal:AbortSignal.timeout(15000)});
       if (!response.ok) throw new Error(String(response.status));
       const data = await response.json(); if (active()) render(data);
-    } catch (_) {
+    } catch (error) {
       if (active()) {
-        message(key, 'Veri bağlantısı bekleniyor. Diğer panelleri kullanabilirsiniz.', refresh);
+        message(key, error.message==='504'?'API 504 zaman aşımı. Yeniden deneyin.':'Veri bağlantısı bekleniyor. Diğer panelleri kullanabilirsiniz.', refresh);
         if (key==='home-coupon-list') { write('home-coupon-total','—'); write('home-coupon-date','Tarih doğrulanamadı'); }
         if (key==='home-live-list') write('home-live-count','Durum bekleniyor');
       }
@@ -121,7 +121,7 @@
   function renderModel(data) {
     const box=$('home-model-body'); if (!box) return;
     const recs=(data.items || []).flatMap(i=>(i.recommendations || []).map(r=>({match:i.match,...r})));
-    if (!recs.length) { message('home-model-body','Güncel ve fiyatlı model seçimi bulunmuyor. Analiz ve kaynak fiyatları bekleniyor.'); return; }
+    if (!recs.length) { message('home-model-body',data.error || ((data.cache?.stale || data.cache?.expires_at && Date.parse(data.cache.expires_at)<=Date.now())?'Analiz güncel değil. Yeni veri kontrolü bekleniyor.':'Kalite eşiklerini geçen yaklaşan istatistiksel tahmin bulunmuyor. Oran eksikliği ayrı değerlendirilir.')); return; }
     const r=recs[0];box.replaceChildren();
     const top=element('div','','model-overview');
     const ring=element('div','','probability-ring');ring.style.setProperty('--probability',String(r.probability*100));

@@ -1,0 +1,241 @@
+{
+  "captured_at": "2026-10-16T13:18:54.084849+03:00",
+  "basis": "Actual deployed API responses; no seeded matches, odds or samples",
+  "prediction_generated_at": "2026-10-16T10:09:08.361912Z",
+  "cache": {
+    "status": "fresh",
+    "checked_at": "2026-10-16T10:18:38.747293Z",
+    "stale": false,
+    "generated_at": "2026-10-16T10:09:08.361912Z",
+    "latest_generated_at": "2026-10-16T10:14:50.021679Z",
+    "expires_at": "2026-10-16T10:19:08.361912Z",
+    "model_version": "quality-poisson-v3-specialist-adapters-v1",
+    "source_revisions": {
+      "31": "b4771d3adfae6b6ac695890cd3d9a9b013e9b140fb47d24d5079967908ad5883",
+      "32": "da666cbbb45f5254b5e09aca26b873704758650e886e81e785bc031cc21c492d",
+      "33": "141ec04f8215b7dd93947681004615346d6d23619631cbb0da01adcd4731a025",
+      "1": "90bfd5ed563c43d46f2e5dea9676940de00d28f5ad0b2755d4f11d2698f4e2b7",
+      "2": "37fe5a254779cde755bd7405cb0147bed6792fac800583d57cea70e2999be991",
+      "3": "1eed6c070ff54f63df8f79fe4bff9887cea72145fb2a24d214f3d4971d5de59e",
+      "4": "974335f670c9c34493e5f6d32cddbae83a41074ced271df498bf432aad530cf1",
+      "5": "974335f670c9c34493e5f6d32cddbae83a41074ced271df498bf432aad530cf1",
+      "6": "3516ccbb7d728ee690c710d4707f16a37f00f497060f829f7fd497296147131e",
+      "7": "63664d5690d8f3372f1101a6e40745f7f957be1b436f28563db2e9cfa31d2bda",
+      "8": "64733505ef759d6d170eb8d03961ba97461dc9dae30bf45e9d1bce5fcea7ac5b"
+    },
+    "missing_leagues": [],
+    "stale_leagues": []
+  },
+  "matches": [
+    {
+      "id": 824,
+      "home": "Manchester City",
+      "away": "Ipswich Town",
+      "kickoff_at": "2026-10-17T14:00:00Z",
+      "status": "scheduled"
+    },
+    {
+      "id": 6903,
+      "home": "SC Telstar",
+      "away": "Feyenoord",
+      "kickoff_at": "2026-10-17T18:00:00Z",
+      "status": "scheduled"
+    },
+    {
+      "id": 5975,
+      "home": "Istanbul Basaksehir",
+      "away": "Gazisehir Gaziantep",
+      "kickoff_at": "2026-10-18T16:00:00Z",
+      "status": "scheduled"
+    },
+    {
+      "id": 6901,
+      "home": "SC Heerenveen",
+      "away": "Excelsior SBV",
+      "kickoff_at": "2026-10-16T18:00:00Z",
+      "status": "scheduled"
+    },
+    {
+      "id": 4078,
+      "home": "Eintracht Frankfurt",
+      "away": "FC Koln",
+      "kickoff_at": "2026-10-16T18:30:00Z",
+      "status": "scheduled"
+    },
+    {
+      "id": 821,
+      "home": "Everton",
+      "away": "Chelsea",
+      "kickoff_at": "2026-10-17T11:30:00Z",
+      "status": "scheduled"
+    },
+    {
+      "id": 1982,
+      "home": "RCD Espanyol",
+      "away": "Atletico Madrid",
+      "kickoff_at": "2026-10-17T12:00:00Z",
+      "status": "scheduled"
+    },
+    {
+      "id": 3102,
+      "home": "Venezia",
+      "away": "Napoli",
+      "kickoff_at": "2026-10-17T13:00:00Z",
+      "status": "scheduled"
+    }
+  ],
+  "requests": [
+    {
+      "method": "GET",
+      "path": "/api/predictions?limit=8",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/matches/824/statistics",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/matches/6903/statistics",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/matches/5975/statistics",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/matches/6901/statistics",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/matches/4078/statistics",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/matches/821/statistics",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/matches/1982/statistics",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/matches/3102/statistics",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/leagues",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/matches/824",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/health",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/matches/824/odds",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/bookmakers",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/coupon/quote",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/predictions/yesterday-winners",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/matches?view=live&include_odds=true&limit=3",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/predictions/best?statistical_all=true&priced_only=false&limit=20&offset=0&market=all&sort=ranking&min_probability=0.6",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/matches?view=upcoming&include_odds=true&limit=12",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/status",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/predictions?limit=6&priced_only=true",
+      "status": 504
+    },
+    {
+      "method": "GET",
+      "path": "/api/matches?view=live&limit=1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/matches?view=today&display_timezone=Europe%2FIstanbul&limit=1",
+      "status": 200
+    }
+  ],
+  "screens": [
+    {
+      "baseline": true,
+      "width": 1536,
+      "overflow": false
+    },
+    {
+      "baseline": true,
+      "width": 390,
+      "overflow": false
+    },
+    {
+      "baseline": false,
+      "width": 320,
+      "overflow": false
+    },
+    {
+      "baseline": false,
+      "width": 390,
+      "overflow": false
+    },
+    {
+      "baseline": false,
+      "width": 768,
+      "overflow": false
+    },
+    {
+      "baseline": false,
+      "width": 1024,
+      "overflow": false
+    },
+    {
+      "baseline": false,
+      "width": 1536,
+      "overflow": false
+    }
+  ]
+}

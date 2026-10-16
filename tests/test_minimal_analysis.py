@@ -95,7 +95,7 @@ async def test_unique_strip_and_single_match_blocks(api,db,monkeypatch,width,cou
             await page.unroute_all(behavior='ignoreErrors');await browser.close()
 
 
-@pytest.mark.parametrize('market',['goals','cards','corners','result','first_half_goals','second_half_goals','asian_handicap'])
+@pytest.mark.parametrize('market',['goals','cards','corners','result','first_half_goals','second_half_goals','asian_handicap','btts'])
 async def test_only_relevant_market_and_missing_prices(api,db,monkeypatch,market):
     import src.api.routes as routes
     monkeypatch.setattr(routes,'utcnow',lambda:NOW)
