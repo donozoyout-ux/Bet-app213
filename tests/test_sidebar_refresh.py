@@ -167,7 +167,7 @@ async def test_capture_review_screenshots(api, db, monkeypatch):
             page=await browser.new_page(viewport={'width':width,'height':960},reduced_motion='reduce')
             async def forward(route):
                 path=route.request.url.removeprefix('http://test')
-                    # Resolve the actual asset basename without external resources.
+                # Resolve the actual asset basename without external resources.
                 if baseline and (path=='/' or path.endswith('/dashboard-market.css') or path.endswith('/dashboard-market.js')):
                     name='dashboard.html' if path=='/' else path.rsplit('/',1)[-1]
                     body=subprocess.check_output(['git','show','origin/master:src/api/'+name])

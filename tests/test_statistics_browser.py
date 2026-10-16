@@ -38,9 +38,11 @@ async def test_browser_count_markets_coverage_dialog_and_failed_request(api,db,m
         await page.locator('#upcoming-board').click()
         for metric in ('corners','cards'):
             await page.locator('#pred-market').select_option(metric)
-            await expect(page.locator('#market-picks tr[data-match-id]')).to_have_count(1)
+            expected=(await api.get(f'/api/predictions/best?statistical_all=true&market={metric}&min_probability=0.6')).json()['total']
+            assert expected>1  # All statistical lines, not just the selected recommendation.
+            await expect(page.locator('#market-picks tr[data-match-id]')).to_have_count(expected)
             await expect(page.locator('#market-picks')).to_contain_text('Test team')
-        await page.locator('#market-picks tr[data-match-id]').click()
+        await page.locator('#market-picks tr[data-match-id]').first.click()
         await expect(page.locator('#analysis-dialog')).to_be_visible()
         await page.keyboard.press('Escape')
         await expect(page.locator('#analysis-dialog')).not_to_be_visible()
@@ -52,7 +54,7 @@ async def test_browser_count_markets_coverage_dialog_and_failed_request(api,db,m
         await page.locator('#performance-market').select_option('cards')
         await expect(page.locator('#performance-summary')).to_contain_text('PostgreSQL')
         await page.locator('.desktop-nav [data-page-link=predictions]').click()
-        await expect(page.locator('#market-picks tr[data-match-id]')).to_have_count(1)
+        await expect(page.locator('#market-picks tr[data-match-id]')).to_have_count(expected)
         # An honest empty state explains the filter rather than inventing a pick.
         await page.locator('#min-probability').fill('100')
         await page.locator('#min-probability').dispatch_event('change')
