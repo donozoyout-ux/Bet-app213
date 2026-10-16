@@ -23,6 +23,13 @@ async def scope_check(db, monkeypatch):
     import src.api.routes as routes
     monkeypatch.setattr(routes, 'utcnow', lambda: NOW)
     ids = await coupon_seed(db)
+    # The fixture edits legacy board JSON directly. Simulate the writer's atomic
+    # publication before auditing HTTP; reads must not repair modified test data.
+    from src.analytics.publications import publish_board
+    async with db.session() as session:
+        board=await session.scalar(select(PredictionBoard))
+        await publish_board(session,board,NOW)
+        await session.commit()
     async with db.session() as session:
         historical = await session.scalar(select(Match).where(Match.status == 'finished'))
         book = await session.scalar(select(Bookmaker).where(Bookmaker.name == 'Bet365'))
