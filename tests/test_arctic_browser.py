@@ -114,9 +114,9 @@ async def test_arctic_navigation_filters_analysis_and_responsive_layout(api,db,m
             await go('performance');await expect(page.locator('#daily-summary .summary-card')).to_have_count(7)
             await go('home');await page.go_back();await expect(page.locator('[data-page="performance"]')).to_be_visible()
             await page.go_forward();await expect(page.locator('[data-page="home"]')).to_be_visible()
-            await page.locator(f'{nav} [data-page-link="bulletin"]').click()
-            await expect(page.locator('[data-page="matches"]')).to_be_visible()
-            assert page.url.endswith('#bulletin')
+            assert await page.locator(f'{nav} [data-page-link="bulletin"]').count()==0
+            await go('matches');await expect(page.locator('[data-page="matches"]')).to_be_visible()
+            assert page.url.endswith('#matches')
             await go('coupon');await go('lessons')
             mode='empty';await go('predictions');await expect(page.locator('#market-picks')).to_contain_text('yaklaşan maç yok')
             mode='db-down';await page.locator('#pred-market').select_option('corners');await expect(page.locator('#market-picks')).to_contain_text('PostgreSQL')
