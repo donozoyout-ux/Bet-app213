@@ -147,6 +147,9 @@ async def test_home_model_distinguishes_expired_analysis_and_connection_error(ap
         await page.route('http://test/**',forward)
         try:
             await page.goto('http://test/#home')
+            # Let the initial simulated 503 response settle before manual render assertions.
+            # Otherwise its asynchronous fallback can overwrite the test's model state.
+            await expect(page.locator('#home-model-body')).to_contain_text('PostgreSQL verileri')
             await page.evaluate("BetAppHome.renderModel({items:[],cache:{stale:false,expires_at:'2020-01-01T00:00:00Z'}})")
             await expect(page.locator('#home-model-body')).to_contain_text('Analiz güncel değil')
             await page.evaluate("BetAppHome.renderModel({items:[],error:'API 504 zaman aşımı'})")
