@@ -19,8 +19,9 @@ class ReadCache:
         # Local SQLite tests deliberately see writes immediately.
         if engine.dialect.name != 'postgresql':
             return await compute()
-        state = self.databases.setdefault(engine, (asyncio.Lock(), OrderedDict()))
-        lock, entries = state
+        state = self.databases.setdefault(engine, ({}, OrderedDict()))
+        locks, entries = state
+        lock = locks.setdefault(key, asyncio.Lock())
         cached = entries.get(key)
         if cached and time.monotonic() - cached[0] < self.ttl:
             return deepcopy(cached[1])
@@ -30,10 +31,17 @@ class ReadCache:
                 if cached and time.monotonic() - cached[0] < self.ttl:
                     entries.move_to_end(key)
                     return deepcopy(cached[1])
-                result = await compute()
+                try:
+                    result = await compute()
+                finally:
+                    # Keep lock identity stable while there are waiters; idle keys
+                    # are bounded by the same cache eviction policy.
+                    pass
                 entries[key] = (time.monotonic(), deepcopy(result))
                 while len(entries) > self.limit:
-                    entries.popitem(last=False)
+                    old_key, _ = entries.popitem(last=False)
+                    if old_key != key and not locks[old_key].locked():
+                        locks.pop(old_key, None)
                 return result
 
 
