@@ -67,7 +67,7 @@ async def refresh_all(db, now=None):
 
 
 
-async def read_board(session,league,date,team,now):
+async def read_board(session,league,date,team,now,statistical_all=False):
     query=select(League.id,PredictionBoard).outerjoin(PredictionBoard).where(League.enabled.is_(True))
     if league:query=query.where(League.id==int(league)) if league.isdigit() else query.where(League.name.ilike('%'+league+'%'))
     rows=(await session.execute(query)).all()
@@ -80,7 +80,10 @@ async def read_board(session,league,date,team,now):
         expired=aware(board.expires_at)<=now or aware(board.generated_at)>now
         if expired:stale.append(id)
         evaluated+=board.payload['evaluated']
-        for item in board.payload['items']:
+        source=board.payload['items']
+        if statistical_all:
+            source=[{'match':r['match'],'recommendations':r['candidates'],'as_of':board.generated_at} for r in board.payload.get('coupon_records',[])]
+        for item in source:
             item={**item,'match':dict(item['match'])}
             m=item['match'];kickoff=aware(datetime.fromisoformat(m['kickoff_at']))
             if m['id'] not in eligible:continue
@@ -99,7 +102,7 @@ async def read_board(session,league,date,team,now):
     session.info['count_availability']=availability
     session.info['prediction_snapshot']={
         'status':'warming' if missing and not times else 'partial' if missing else 'stale' if stale else 'fresh',
-        'stale':bool(stale or missing),'generated_at':min(times) if times else None,
+        'checked_at':now,'stale':bool(stale or missing),'generated_at':min(times) if times else None,
         'latest_generated_at':max(times) if times else None,
         'expires_at':min(times)+TTL if times else None,'model_version':MODEL_VERSION,
         'source_revisions':revisions,'missing_leagues':missing,'stale_leagues':stale}

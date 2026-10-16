@@ -233,6 +233,7 @@ class GlobalPick(BaseModel):
 
 
 class GlobalPicks(BaseModel):
+    total: int = 0
     availability: dict = Field(default_factory=dict)
     items: list[GlobalPick]
     generated_at: datetime | None

@@ -9,7 +9,7 @@ from tests.odds_fixture import observed_prices
 from tests.test_predictions import seed, NOW
 
 
-@pytest.mark.parametrize('width',[1440,768,390])
+@pytest.mark.parametrize('width',[320,390,768,1024,1536])
 async def test_arctic_navigation_filters_analysis_and_responsive_layout(api,db,monkeypatch,width):
     import src.api.routes as routes
     monkeypatch.setattr(routes,'utcnow',lambda:NOW)
@@ -63,9 +63,9 @@ async def test_arctic_navigation_filters_analysis_and_responsive_layout(api,db,m
             release.set()
             await expect(page.locator('#prediction-cards .prediction-card')).to_have_count(2)
             columns=await page.locator('#prediction-cards').evaluate('(el)=>getComputedStyle(el).gridTemplateColumns.split(" ").length')
-            assert columns=={1440:3,768:2,390:1}[width]
+            assert columns=={320:1,390:1,768:2,1024:2,1536:3}[width]
             assert await page.locator('.prediction-card').first.evaluate('(el)=>getComputedStyle(el).transitionDuration')=='0s'
-            nav='.bottom-nav' if width==390 else '.desktop-nav'
+            nav='.bottom-nav' if width<768 else '.desktop-nav'
             async def go(name):
                 await page.locator(f'{nav} [data-page-link="{name}"]').click()
                 await expect(page.locator('[data-page]:visible')).to_have_count(1)
@@ -82,7 +82,7 @@ async def test_arctic_navigation_filters_analysis_and_responsive_layout(api,db,m
             await page.wait_for_function('document.getElementById("market-picks").getAttribute("aria-busy")==="false"')
             assert any('league='+str(league) in path and 'market=cards' in path for path in calls)
             # Keyboard opens the exact selected fixture, with all eight relevant tabs.
-            row=page.locator(f'#market-picks tr[data-match-id="{target}"]');await row.focus();await page.keyboard.press('Enter')
+            row=page.locator(f'#market-picks tr[data-match-id="{target}"]').first;await row.focus();await page.keyboard.press('Enter')
             await expect(page.locator('#analysis-dialog')).to_be_visible()
             await expect(page.locator('#detail-title')).to_have_text('Test team 0 vs Test team 1')
             assert '?match='+str(target) in page.url
@@ -92,11 +92,11 @@ async def test_arctic_navigation_filters_analysis_and_responsive_layout(api,db,m
                 await expect(page.locator(f'[data-analysis-tab="{tab}"]')).to_have_attribute('aria-selected','true')
             await page.locator('[data-analysis-tab="summary"]').focus();await page.keyboard.press('ArrowRight')
             await expect(page.locator('[data-analysis-tab="predictions"]')).to_be_focused()
-            if width==390:assert await page.locator('#analysis-dialog').evaluate('(el)=>Math.abs(el.getBoundingClientRect().width-innerWidth)<2')
+            if width<768:assert await page.locator('#analysis-dialog').evaluate('(el)=>Math.abs(el.getBoundingClientRect().width-innerWidth)<2')
             await page.go_back();await expect(page.locator('#analysis-dialog')).not_to_be_visible()
             await page.go_forward();await expect(page.locator('#analysis-dialog')).to_be_visible()
             await page.keyboard.press('Escape');await expect(page.locator('#analysis-dialog')).not_to_be_visible()
-            await page.locator(f'#market-picks tr[data-match-id="{second_id}"]').click()
+            await page.locator(f'#market-picks tr[data-match-id="{second_id}"]').first.click()
             await expect(page.locator('#detail-title')).to_have_text('Test team 1 vs Test team 0')
             await page.locator('#analysis-close').click();await expect(page.locator('#analysis-dialog')).not_to_be_visible()
             await go('markets');await page.locator('[data-market-family="corners"]').click()
@@ -113,6 +113,10 @@ async def test_arctic_navigation_filters_analysis_and_responsive_layout(api,db,m
             await go('performance');await expect(page.locator('#daily-summary .summary-card')).to_have_count(5)
             await go('home');await page.go_back();await expect(page.locator('[data-page="performance"]')).to_be_visible()
             await page.go_forward();await expect(page.locator('[data-page="home"]')).to_be_visible()
+            await page.locator(f'{nav} [data-page-link="bulletin"]').click()
+            await expect(page.locator('[data-page="matches"]')).to_be_visible()
+            assert page.url.endswith('#bulletin')
+            await go('coupon');await go('lessons')
             mode='empty';await go('predictions');await expect(page.locator('#market-picks')).to_contain_text('yaklaşan maç yok')
             mode='db-down';await page.locator('#pred-market').select_option('corners');await expect(page.locator('#market-picks')).to_contain_text('PostgreSQL')
             mode='timeout';await page.locator('#pred-market').select_option('goals');await expect(page.locator('#market-picks')).to_contain_text('zaman aşımına')

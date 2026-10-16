@@ -1,0 +1,9 @@
+{
+  "sql": "SELECT m.id,m.external_match_id,m.kickoff_at,m.status,m.raw FROM matches m WHERE m.id IN (824,4084)",
+  "result": [
+    {
+      "type": "text",
+      "text": "[{\"external_match_id\":3003915,\"id\":824,\"kickoff_at\":\"2026-10-17T14:00:00Z\",\"raw\":{\"schedule\":[3003915,36,0,\"2026-10-17 22:00\",26,68,\"\",\"\",\"1\",\"10\",\"2\",\"1\",\"3.5\",\"1.5\",1,1,1,1,0,0,\"\",\"1\",\"10\"],\"source_timezone\":\"UTC+08:00\",\"stage_key\":\"R_7\"},\"status\":\"scheduled\"},{\"external_match_id\":3018832,\"id\":4084,\"kickoff_at\":\"2026-10-17T16:30:00Z\",\"raw\":{\"schedule\":[3018832,8,0,\"2026-10-18 00:30\",88,13201,\"\",\"\",\"3\",\"5\",\"2.25\",\"1\",\"4.5\",\"2\",1,1,1,1,0,0,\"\",\"3\",\"5\"],\"source_timezone\":\"UTC+08:00\",\"stage_key\":\"R_6\"},\"status\":\"scheduled\"}]"
+    }
+  ]
+}

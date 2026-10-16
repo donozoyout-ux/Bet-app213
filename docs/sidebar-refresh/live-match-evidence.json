@@ -1,0 +1,9 @@
+{
+  "sql": "SELECT now() checked_at,m.id,m.external_match_id,h.name home,a.name away,m.status,m.kickoff_at FROM matches m JOIN teams h ON h.id=m.home_team_id JOIN teams a ON a.id=m.away_team_id WHERE m.id IN (824,4084,14,3727,3547) ORDER BY m.id",
+  "result": [
+    {
+      "type": "text",
+      "text": "[{\"away\":\"Ipswich Town\",\"checked_at\":\"2026-10-16T07:49:57.327466Z\",\"external_match_id\":2590914,\"home\":\"Manchester City\",\"id\":14,\"kickoff_at\":\"2024-08-24T14:00:00Z\",\"status\":\"finished\"},{\"away\":\"Ipswich Town\",\"checked_at\":\"2026-10-16T07:49:57.327466Z\",\"external_match_id\":3003915,\"home\":\"Manchester City\",\"id\":824,\"kickoff_at\":\"2026-10-17T14:00:00Z\",\"status\":\"scheduled\"},{\"away\":\"RB Leipzig\",\"checked_at\":\"2026-10-16T07:49:57.327466Z\",\"external_match_id\":2607373,\"home\":\"Bayern Munchen\",\"id\":3547,\"kickoff_at\":\"2024-12-20T19:30:00Z\",\"status\":\"finished\"},{\"away\":\"RB Leipzig\",\"checked_at\":\"2026-10-16T07:49:57.327466Z\",\"external_match_id\":2799407,\"home\":\"Bayern Munchen\",\"id\":3727,\"kickoff_at\":\"2025-08-22T18:30:00Z\",\"status\":\"finished\"},{\"away\":\"RB Leipzig\",\"checked_at\":\"2026-10-16T07:49:57.327466Z\",\"external_match_id\":3018832,\"home\":\"Bayern Munchen\",\"id\":4084,\"kickoff_at\":\"2026-10-17T16:30:00Z\",\"status\":\"scheduled\"}]"
+    }
+  ]
+}

@@ -91,7 +91,7 @@
       for(const rec of data.recommendations.slice(0,2)){
         line(chosen,rec.label,`${pct(rec.probability)} • ${confidence[rec.confidence]} Güven • ${rec.sample_size} maç`);
         const vo=rec.verified_odds;
-        if(vo && vo.has_odds && vo.coupon_eligible && vo.freshness==='fresh'){
+        if(vo && vo.has_odds && (data.historical || vo.coupon_eligible && vo.freshness==='fresh') && vo.coupon_eligible && vo.freshness==='fresh'){
           line(chosen,'  └ En İyi Oran / Değer',`${num(vo.best_price)} (${vo.best_bookmaker}) • Değer: ${vo.best_value>=0?'+':''}${(100*vo.best_value).toFixed(1)} puan • İma: %${(100*vo.best_implied_probability).toFixed(1)}`);
           for(const bName of ['Crown','Bet365','Sbobet']){
             const b=vo.bookmakers?.[bName];
@@ -100,7 +100,7 @@
             }
           }
         } else {
-          line(chosen,'  └ Doğrulanmış Oran',vo?.message || 'Oran henüz doğrulanmadı');
+          line(chosen,'  └ Doğrulanmış Oran',globalThis.BetAppMarket?.oddsReason?.(vo) || vo?.message || 'Oran henüz doğrulanmadı');
         }
       }
       box.append(chosen);
@@ -137,7 +137,7 @@
     const market=node('section','','stats-block');market.append(node('h4','1X2 • Model / Piyasa Karşılaştırması','font-bold text-primary'));
     for(const name of ['Crown','Bet365','Sbobet']){
       const book=data.bookmakers.find(item=>item.bookmaker===name);const block=node('div','','stats-book');block.append(node('h5',name,'font-bold'));
-      if(!book){block.append(node('p','—'));market.append(block);continue;}
+      if(!book){block.append(node('p','Kaynakta doğrulanmış 1X2 fiyatı yok'));market.append(block);continue;}
       const prices=kind=>['home','draw','away'].map(key=>num(book[kind]?.[key])).join(' / ');
       line(block,'Açılış',prices('opening'));line(block,book.stage==='closing'?'Kapanış':'Güncel maç öncesi',prices('prices'));
       const probs=book.implied_probabilities;
@@ -152,7 +152,7 @@
       recOdds.append(node('h5','Seçilen Tahminlerin Oranları','font-bold text-primary'));
       for(const rec of data.recommendations.slice(0,2)){
         const vo=rec.verified_odds;
-        line(recOdds,rec.label,vo&&vo.has_odds?`En iyi: ${num(vo.best_price)} (${vo.best_bookmaker}) • Değer: ${vo.best_value>=0?'+':''}${(100*vo.best_value).toFixed(1)} puan`:(vo?.message || 'Oran henüz doğrulanmadı'));
+        line(recOdds,rec.label,vo&&vo.has_odds&&(data.historical || vo.coupon_eligible && vo.freshness==='fresh')?`En iyi: ${num(vo.best_price)} (${vo.best_bookmaker}) • Değer: ${vo.best_value>=0?'+':''}${(100*vo.best_value).toFixed(1)} puan`:(globalThis.BetAppMarket?.oddsReason?.(vo) || vo?.message || 'Oran henüz doğrulanmadı'));
       }
       market.append(recOdds);
     }
