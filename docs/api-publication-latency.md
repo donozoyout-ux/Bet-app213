@@ -4,10 +4,14 @@ Production observations after merged #83/#84 (read-only, no deploy):
 
 - Concurrent GET predictions limit=8: 504 / 4474 ms; best limit=8: 504 / 4959 ms. Daily coupon: 200 / 978 ms; revision: 200 / 1822 ms; Telegram status: 200 / 1259 ms. These include external network time.
 - Server logs for these requests: board_read 4014.5 / 4431.7 ms, only one completed SQL (metadata, 437.8 / 300.5 ms). The next payload read never completed before the existing four-second budget. No current_quotes stage was reached.
+- A second isolated live GET returned 504 / 5343 ms. A concurrent pg_stat_activity sample caught betapp-web actively executing publication_json_cast for 3055 ms, no wait event and zero blocking PIDs (query hash 1cd347708c821750a8349cac2d36f0d4). This directly identifies the in-flight expensive SQL, rather than attributing the timeout from averages.
 - Eleven valid boards total roughly 9.7 MB uncompressed JSON. Per-board payloads: 0.12–1.25 MB; normal strip items are only 6.7–67.5 KB. Former HTTP query cast the entire evidence document to JSONB before projecting small fields. Coupon and engine evidence were parsed even for a list read.
 - Worker profiles: board checkpoints 8.0–11.4 seconds / 25–91 SQL, SQL time 1.5–2.4 seconds; global input_revision 646–1176 ms. Most checkpoint wall time is outside completed SQL; this is a shared-resource contributor, not proof of a database lock.
 - Connection sample: web one idle, scraper two idle + one idle-in-transaction. A second sample found scraper idle-in-transaction 538 ms, ClientRead, zero blocking PIDs. No connection exhaustion or blocker was observed in these samples; they cannot exclude intermittent saturation.
 - Telegram scheduler logged a deferred TimeoutError during worker activity. GET status is safe; no getMe/sendMessage or NVIDIA request was made.
+
+- Render 18:10–18:25 UTC minute averages: service CPU 0.088–0.139 of 0.15 CPU (59–93%); RAM 243–252 MB of 537 MB. PostgreSQL CPU 0.021–0.037 of 0.1 CPU; active connections 4–8. No memory exhaustion was observed. Minute averages do not measure short CPU bursts.
+- Existing indexes include board/head league primary keys, match (league_id,status,kickoff_at,id), price match IDs and market (match_id,market). Read-only EXPLAIN of the former projection shows a materialized CTE over 11 board rows; another index cannot remove per-row whole-document JSONB conversion. EXPLAIN ANALYZE is restricted to the isolated PostgreSQL test schema.
 
 ## Change
 

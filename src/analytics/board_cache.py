@@ -91,8 +91,11 @@ async def read_board(session,league,date,team,now,statistical_all=False,include_
     from src.analytics.coupon import coupon_qualified as quality
     # Read small, current validity metadata before reusing publication JSON.
     postgres=session.bind.dialect.name=='postgresql'
-    query=select(League.id,PredictionBoard,BoardHead.version,BoardReadPublication.version
-    ).options(defer(PredictionBoard.payload)).outerjoin(PredictionBoard).outerjoin(BoardHead,BoardHead.league_id==League.id)        .outerjoin(BoardReadPublication,BoardReadPublication.league_id==League.id).where(League.enabled.is_(True))
+    query=(select(League.id,PredictionBoard,BoardHead.version,BoardReadPublication.version)
+        .options(defer(PredictionBoard.payload)).outerjoin(PredictionBoard)
+        .outerjoin(BoardHead,BoardHead.league_id==League.id)
+        .outerjoin(BoardReadPublication,BoardReadPublication.league_id==League.id)
+        .where(League.enabled.is_(True)))
     if league:query=query.where(League.id==int(league)) if league.isdigit() else query.where(League.name.ilike('%'+league+'%'))
     rows=(await session.execute(query)).all()
     valid=[(id,b,v) for id,b,v,read_v in rows if b is not None and (not postgres or v is not None and read_v==v) and b.model_version==MODEL_VERSION
@@ -110,17 +113,11 @@ async def read_board(session,league,date,team,now,statistical_all=False,include_
                     for id,items,available,evaluated,coupons,analysis in records}
         # SQLite compatibility for historical test/import boards without heads.
         data=PredictionBoard.payload
-        if session.bind.dialect.name=='postgresql':
-            from sqlalchemy.dialects.postgresql import JSONB
-            data=data.cast(JSONB)
         base=select(PredictionBoard.league_id,data.label('data'))\
             .outerjoin(BoardHead,BoardHead.league_id==PredictionBoard.league_id)\
             .where(or_(*[(PredictionBoard.league_id==id) & (PredictionBoard.source_revision==b.source_revision)
                 & (PredictionBoard.generated_at==b.generated_at)
                 & (BoardHead.version==v if v else BoardHead.version.is_(None)) for id,b,v in valid])).cte('publication_json')
-        # JSON columns otherwise get parsed independently for every extraction.
-        # Materialize the JSONB conversion once; send only requested fields.
-        base=base.prefix_with('MATERIALIZED',dialect='postgresql')
         data=base.c.data
         records=await session.execute(select(base.c.league_id,data['items'],data['availability'],data['evaluated'],
             data['coupon_records'] if statistical_all else literal(None),
