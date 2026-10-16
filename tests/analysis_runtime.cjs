@@ -41,6 +41,15 @@ async function run(mode) {
   assert.equal(strip.children.length,mode==='duplicate'?1:8);
   if(mode==='race'){strip.children[1].onclick();await settle();release();await settle();
     assert.equal(strip.children[1].getAttribute('aria-pressed'),'true');assert.equal(strip.children[0].getAttribute('aria-pressed'),'false');}
+  if(mode==='stable'){
+    const originalCard=strip.children[0],originalBlocks=blocks.children[0];
+    const originalDetailCalls=calls.filter(([url])=>url.startsWith('/api/matches/')).length;
+    await sandbox.BetAppMatchAnalysis.refresh();await settle();
+    assert.equal(strip.children[0],originalCard,'unchanged published snapshot must not recreate cards');
+    assert.equal(blocks.children[0],originalBlocks,'unchanged snapshot must preserve open details');
+    assert.equal(calls.filter(([url])=>url.startsWith('/api/matches/')).length,originalDetailCalls,
+      'unchanged snapshot must not refetch selected match evidence');
+  }
   assert.equal(blocks.querySelectorAll('details').length,5);
   assert(blocks.text().includes('Model olasılığı'));assert(blocks.text().includes('Crown'));
   if(mode==='quoted')assert(blocks.text().includes('Kupon kontrolünü geçti'));
@@ -48,5 +57,5 @@ async function run(mode) {
   assert(calls.every(([path,method])=>method==='GET'||path==='/api/coupon/quote'),'No save/send endpoint is called');
   stamp+=86400001;ticks.forEach(t=>t());assert.equal(strip.children.length,0);assert.equal(elements.get('analysis-selected').hidden,true);
 }
-(async()=>{for(const mode of ['eight','duplicate','empty','unqualified','stale','error','race','quoted','quote-mismatch'])await run(mode);
+(async()=>{for(const mode of ['eight','duplicate','empty','unqualified','stale','error','race','quoted','quote-mismatch','stable'])await run(mode);
   console.log('minimal analysis runtime: 9 scenarios passed');})().catch(e=>{console.error(e);process.exitCode=1;});
