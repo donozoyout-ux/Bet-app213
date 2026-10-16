@@ -44,9 +44,13 @@ async def refresh_one(db, now=None, force_league=None):
                 inputs=await revision(session)
             session.info['board_revision']=inputs
             source=hashlib.sha256(json.dumps(jsonable_encoder(inputs),sort_keys=True).encode()).hexdigest()
-            query=select(League.id).outerjoin(PredictionBoard).outerjoin(BoardHead,BoardHead.league_id==League.id).where(League.enabled.is_(True))
+            query=(select(League.id).outerjoin(PredictionBoard)
+                .outerjoin(BoardHead,BoardHead.league_id==League.id)
+                .outerjoin(BoardReadPublication,BoardReadPublication.league_id==League.id)
+                .where(League.enabled.is_(True)))
             if force_league is not None:query=query.where(League.id==force_league)
-            else:query=query.where(or_(PredictionBoard.league_id.is_(None),PredictionBoard.expires_at<=now+timedelta(minutes=2),PredictionBoard.model_version!=MODEL_VERSION,PredictionBoard.source_revision!=source))
+            else:query=query.where(or_(PredictionBoard.league_id.is_(None),PredictionBoard.expires_at<=now+timedelta(minutes=2),PredictionBoard.model_version!=MODEL_VERSION,PredictionBoard.source_revision!=source,BoardReadPublication.league_id.is_(None),
+                BoardReadPublication.version!=BoardHead.version))
             league=await session.scalar(query.order_by(BoardHead.checked_at.asc().nullsfirst(),League.priority,League.id).limit(1))
             if league is None:return False
             # Renew a publication lease only after evaluating the current cutoff.

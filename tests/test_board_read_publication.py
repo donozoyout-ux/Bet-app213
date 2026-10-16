@@ -43,3 +43,15 @@ async def test_existing_edition_is_warmed_without_new_version(db):
         await s.commit()
         assert (await s.get(BoardReadPublication,league)).version==version
         assert b.generated_at==generated
+
+
+async def test_worker_warms_missing_projection_before_lease_expiry(db):
+    from src.analytics.board_cache import refresh_one
+    _,league,*_=await seed(db)
+    async with db.session() as s:
+        row=await s.get(BoardReadPublication,league)
+        version=row.version
+        await s.delete(row);await s.commit()
+    assert await refresh_one(db,now=NOW+timedelta(minutes=1))
+    async with db.session() as s:
+        assert (await s.get(BoardReadPublication,league)).version==version
