@@ -35,6 +35,7 @@ async def test_browser_count_markets_coverage_dialog_and_failed_request(api,db,m
         await page.route('http://test/**',forward)
         await page.goto('http://test/')
         await page.locator('.desktop-nav [data-page-link=predictions]').click()
+        await page.locator('#analysis-advanced > summary').click()
         await page.locator('#upcoming-board').click()
         for metric in ('corners','cards'):
             await page.locator('#pred-market').select_option(metric)

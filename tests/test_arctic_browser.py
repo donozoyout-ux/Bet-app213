@@ -73,6 +73,7 @@ async def test_arctic_navigation_filters_analysis_and_responsive_layout(api,db,m
                 assert page.url.endswith('#'+name)
                 assert await page.evaluate('document.documentElement.scrollWidth<=innerWidth')
             await go('predictions')
+            await page.locator('#analysis-advanced > summary').click()
             await expect(page.locator('#market-picks tr[data-match-id]')).not_to_have_count(0)
             await page.locator('#pred-market').select_option('cards')
             await expect(page.locator('#market-picks')).to_contain_text('Kart')
