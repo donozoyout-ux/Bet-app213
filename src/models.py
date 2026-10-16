@@ -430,3 +430,29 @@ class LearningAIGate(Base):
     __tablename__ = 'learning_ai_gates'
     provider: Mapped[str] = mapped_column(String(20), primary_key=True)
     next_attempt_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class BoardEdition(Base):
+    """Content-addressed publication history; never rewritten by an HTTP read."""
+    __tablename__ = 'board_editions'
+    version: Mapped[str] = mapped_column(String(64), primary_key=True)
+    league_id: Mapped[int] = mapped_column(ForeignKey('leagues.id'), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    payload: Mapped[dict] = mapped_column(JSON, deferred=True)
+
+
+class BoardHead(Base):
+    __tablename__ = 'board_heads'
+    league_id: Mapped[int] = mapped_column(ForeignKey('leagues.id'), primary_key=True)
+    version: Mapped[str] = mapped_column(ForeignKey('board_editions.version'))
+    checked_at: Mapped[datetime] = mapped_column(DateTime(timezone=True),default=utcnow)
+
+
+class DailyCouponPublication(Base):
+    __tablename__ = 'daily_coupon_publications'
+    day: Mapped[str] = mapped_column(String(10), primary_key=True)
+    strategy: Mapped[str] = mapped_column(String(16), primary_key=True)
+    input_revision: Mapped[str] = mapped_column(String(64))
+    version: Mapped[str] = mapped_column(String(64))
+    checked_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    payload: Mapped[dict] = mapped_column(JSON, deferred=True)
