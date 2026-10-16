@@ -16,6 +16,7 @@
 * Canlı şemada #80'in `board_editions`, `board_heads`, `daily_coupon_publications` tabloları yok ve `/api/coupons/daily` **404**. Dolayısıyla #80'in CI'ı geçmesi üretimde günlük yayının kurulduğu anlamına gelmez. Bu PR deploy etmez; birleştirme/yayın kararı sonrasında normal uygulama şema başlangıcı ve worker ilk yayını ayrıca doğrulanmalıdır.
 * Bağlantı örnekleminde 5 idle, 1 idle-in-transaction ve inceleme bağlantısının 1 active oturumu görüldü; lock wait yakalanmadı. Bu tek görüntü aralıklı kilit/havuz sorunlarını dışlamaz. Uygulama web havuzu 5, scraper havuzu 2 bağlantıyla ve overflow=0 ile sınırlı; havuz boyutu veya timeout artırılmadı.
 * Canlı loglarda SELECT 700,9 / 789,5 / 803,0 ms görüldü; eski logger sadece `SELECT` yazdığı için kesin SQL veya kilit kök nedeni bunlardan atanamaz. #80'in faz/sorgu hash telemetrisi henüz deploy edilmemiştir. Kaynakta HTTP okuyucusunun JSON sütunundan ayrı ayrı alanlar çıkardığı doğrulandı; tekrarlayan ziyaretçi okumasını kaldıran değişiklik test PostgreSQL'de ölçülür. Üretim 504'lerinin tamamen çözüldüğü iddia edilmez.
+* `pg_extension` salt okunur kontrolünde `pg_stat_statements` kurulu değil; geçmiş SQL sürelerini bu uzantıdan doğrulama olanağı yok. Üretime uzantı kurulmadı veya ayar yazılmadı. Yayın sonrası faz/sorgu hash logları ile gerçek sorgu, havuz beklemesi ve CPU/JSON çözümleme süreleri ayrılmalıdır.
 
 ## Değişiklikler
 

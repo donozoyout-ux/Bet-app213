@@ -89,9 +89,11 @@ async def test_reference_home_layout_and_real_interactions(api, db, monkeypatch,
                 assert metrics['board']['width']>=(width-metrics['board']['x'])*.90
                 assert metrics['coupon']['width']/metrics['board']['width']>=.40
                 assert metrics['hero']['height']<=height*.45
-                assert metrics['coupon']['bottom']<=height
-                assert metrics['titleSize']>=40 if width<3840 else metrics['titleSize']>=100
-                assert metrics['bodySize']>=14 if width<3840 else metrics['bodySize']>=28
+                # Readable four-leg content may scroll; the panel must start above the fold.
+                assert metrics['coupon']['y']<height*.8
+                assert metrics['coupon']['height']<=height*.8
+                assert 28<=metrics['titleSize']<=48  # compact V4 hero, including wide screens
+                assert 16<=metrics['bodySize']<=20
             if label!='before':
                 await page.locator('#home-coupon-open').click()
                 await expect(page.locator('[data-page=coupon]')).to_be_visible()

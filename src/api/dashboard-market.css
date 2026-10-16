@@ -1661,3 +1661,10 @@ body:has([data-page=predictions]:not([hidden])) .desktop-nav {background:#091A30
 
 .panel-caption,.panel-heading {flex-wrap:wrap;}
 .panel-caption>span {min-width:0;overflow-wrap:anywhere;}
+
+@media(min-width:1200px){
+ .platform-intro {grid-template-columns:2fr 1fr;padding:.75rem 1.5rem;gap:1.5rem;}
+ .hero-features {grid-column:2;}.platform-intro h1 {font-size:clamp(1.8rem,2.6vw,2.5rem);line-height:1.08;margin:.35rem 0;}
+ .hero-copy>p {margin:.35rem 0;line-height:1.4;}.hero-actions {margin:.65rem 0;}
+ .hero-actions a {min-height:2.5rem;padding:.5rem 1rem;}.hero-footnote {margin-top:.35rem;}
+}
