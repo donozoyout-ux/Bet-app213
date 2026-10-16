@@ -11,6 +11,7 @@ async def test_daily_coupon_default_and_tools(api, db, monkeypatch, width, heigh
     import src.api.routes as routes
     monkeypatch.setattr(routes, 'utcnow', lambda: NOW)
     await many_matches(db, 20)
+    await api.post('/api/coupons/automatic')
     async with async_playwright() as p:
         browser=await p.chromium.launch()
         page=await browser.new_page(viewport={'width':width,'height':height},device_scale_factor=1,reduced_motion='reduce')
