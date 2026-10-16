@@ -45,9 +45,16 @@ async def current_odds(session, groups, now):
     ids=list(groups)
     if not ids:return
     rows={}
+    market_tables={'result':Odds1X2,'goals':AsianTotals,'asian_handicap':AsianHandicap,'first_half_goals':MarketOdds,'corners':MarketOdds}
+    needed={model:set() for model in (Odds1X2,AsianTotals,AsianHandicap,MarketOdds)}
+    for match_id,recs in groups.items():
+        for rec in recs:
+            model=market_tables.get(rec.get('market'))
+            if model is not None:needed[model].add(match_id)
     for model in (Odds1X2,AsianTotals,AsianHandicap,MarketOdds):
         rows[model]={id:[] for id in ids}
-        for row in await session.execute(select(model,Bookmaker.name,model.raw['_field_observed_at'],model.raw['_field_lines']).options(defer(model.raw)).join(Bookmaker).where(model.match_id.in_(ids))):
+        if not needed[model]:continue
+        for row in await session.execute(select(model,Bookmaker.name,model.raw['_field_observed_at'],model.raw['_field_lines']).options(defer(model.raw)).join(Bookmaker).where(model.match_id.in_(needed[model]))):
             row[0]._matching_meta={'_field_observed_at':row[2],'_field_lines':row[3]}
             rows[model][row[0].match_id].append((row[0],row[1]))
     for id,recommendations in groups.items():
