@@ -6,7 +6,7 @@ import hashlib
 import json
 from zoneinfo import ZoneInfo
 from fastapi.encoders import jsonable_encoder
-from sqlalchemy import select, func, text, or_
+from sqlalchemy import select, func, text, or_, inspect
 from sqlalchemy.orm import undefer,defer
 from src.models import (BoardEdition, BoardHead, DailyCouponPublication, PredictionBoard,
                         Match, League, Odds1X2, AsianTotals, AsianHandicap, MarketOdds, SavedCoupon)
@@ -25,19 +25,28 @@ def stable(value):
     return value
 
 
-async def publish_board(session,board,now):
-    version=digest([board.league_id,board.model_version,stable(board.payload)])
-    head=await session.get(BoardHead,board.league_id)
+async def publish_board(session,board,now,candidate_payload=None,model_version=None):
+    data=board.payload if candidate_payload is None else candidate_payload
+    model=model_version or board.model_version
+    version=digest([board.league_id,model,stable(data)])
+    with session.no_autoflush:
+        head=await session.get(BoardHead,board.league_id)
     if head:head.checked_at=now
     if head and head.version==version:
         # The complete model was revalidated against current inputs. Preserve the
         # edition's ordering and generation time, while renewing validation TTL.
-        old=await session.get(BoardEdition,version)
-        board.generated_at=old.created_at
+        previous=inspect(board).attrs.payload.history.deleted
+        if previous:board.payload=previous[0]
         return version
-    if not await session.get(BoardEdition,version):
-        session.add(BoardEdition(version=version,league_id=board.league_id,created_at=now,payload=stable(deepcopy(board.payload))))
+    board.model_version=model
+    board.payload=data
+    board.generated_at=now
+    with session.no_autoflush:
+        edition=await session.get(BoardEdition,version)
+    if edition is None:
+        session.add(BoardEdition(version=version,league_id=board.league_id,created_at=now,payload=stable(deepcopy(data))))
         await session.flush()
+    else:board.generated_at=edition.created_at
     if head:head.version=version
     else:session.add(BoardHead(league_id=board.league_id,version=version,checked_at=now))
     return version

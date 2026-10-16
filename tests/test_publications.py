@@ -257,3 +257,31 @@ async def test_same_content_metadata_does_not_create_an_edition(db):
         assert await publish_board(session,board,NOW+timedelta(minutes=1))==first
         await session.commit()
         assert await session.scalar(select(func.count()).select_from(BoardEdition))==1
+
+
+async def test_unchanged_worker_does_not_rewrite_large_payload(db):
+    _,league,*_=await seed(db)
+    queries=[]
+    def trace(conn,cursor,statement,*args):queries.append(statement)
+    event.listen(db.engine.sync_engine,'before_cursor_execute',trace)
+    try:
+        await refresh_one(db,now=NOW+timedelta(minutes=1),force_league=league)
+        updates=[q for q in queries if q.startswith('UPDATE prediction_boards')]
+        assert updates and all('payload' not in q for q in updates)
+    finally:event.remove(db.engine.sync_engine,'before_cursor_execute',trace)
+
+
+async def test_stage_profile_logs_counts_without_sql_or_bind_values(api,db,monkeypatch,caplog):
+    import logging,json
+    import src.api.routes as routes
+    monkeypatch.setattr(routes,'utcnow',lambda:NOW)
+    await seed(db)
+    caplog.set_level(logging.INFO,logger='src.query_profile');caplog.clear()
+    assert (await api.get('/api/predictions?limit=8')).status_code==200
+    assert (await api.get('/api/coupons/daily')).status_code==200
+    messages=[r.getMessage() for r in caplog.records if r.name=='src.query_profile']
+    assert any('stage=board_read' in m for m in messages)
+    assert any('stage=current_quotes' in m for m in messages)
+    assert any('stage=daily_read' in m and 'sql_count=' in m for m in messages)
+    assert not any('SELECT ' in m or 'Pool team' in m or 'TEST_SECRET' in m for m in messages)
+    print('PUBLICATION_PHASES '+json.dumps(messages))

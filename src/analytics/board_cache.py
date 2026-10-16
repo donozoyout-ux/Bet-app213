@@ -47,12 +47,14 @@ async def refresh_one(db, now=None, force_league=None):
             with stage('model_calculation'):
                 items,generated,evaluated=await uncached_predictions(session,str(league),None,now=now,publish=False)
             board=await session.get(PredictionBoard,league)
-            if board is None:board=PredictionBoard(league_id=league);session.add(board)
-            board.model_version=MODEL_VERSION;board.generated_at=generated;board.expires_at=generated+TTL
-            board.source_revision=source
-            board.payload=jsonable_encoder(dict(items=items,availability=session.info.get('count_availability',[]),evaluated=evaluated,engine_analysis=session.info.get('engine_analysis',[]),coupon_records=session.info.get('coupon_records',[])))
+            if board is None:
+                board=PredictionBoard(league_id=league,model_version=MODEL_VERSION,generated_at=generated,
+                    expires_at=generated+TTL,source_revision=source)
+                session.add(board)
+            candidate_payload=jsonable_encoder(dict(items=items,availability=session.info.get('count_availability',[]),evaluated=evaluated,engine_analysis=session.info.get('engine_analysis',[]),coupon_records=session.info.get('coupon_records',[])))
             from src.analytics.publications import publish_board
-            await publish_board(session,board,now)
+            await publish_board(session,board,now,candidate_payload=candidate_payload,model_version=MODEL_VERSION)
+            board.model_version=MODEL_VERSION;board.expires_at=generated+TTL;board.source_revision=source
             # Publish the immutable picks and board together, after a complete calculation.
             from src.analytics.performance import capture_many
             await capture_many(session,session.info.get('board_observations',[]),now)
