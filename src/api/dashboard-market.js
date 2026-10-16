@@ -121,5 +121,9 @@ let expiredQuotes=new Set();
 let day=today();
 function tick(){expireVisible();if(homeSnapshot){write('home-prediction-note',snapshotNote(homeSnapshot));if(homeSnapshot.cache?.expires_at && Date.parse(homeSnapshot.cache.expires_at)<=now()){homeSnapshot={...homeSnapshot,items:[]};renderCards('prediction-cards',[],'Analiz güncel değil; yeni veri bekleniyor.');globalThis.BetAppHome?.renderModel(homeSnapshot);}}if(picksSnapshot && state.page==='predictions')write('prediction-window',snapshotNote(picksSnapshot));const quotes=[...(homeSnapshot?.items || []).flatMap(i=>i.recommendations || []),...displayedPicks.map(i=>i.recommendation)];let changed=false;for(const r of quotes){const expiry=r.verified_odds?.expires_at;if(expiry && Date.parse(expiry)<=now() && !expiredQuotes.has(expiry)){expiredQuotes.add(expiry);changed=true;}}if(changed){if(homeSnapshot)renderCards('prediction-cards',homeSnapshot.items);if(state.page==='predictions')renderPicks(displayedPicks.filter(i=>upcoming(i.match)));}const next=today();if(next!==day){day=next;state.controllers.get('home')?.abort();loadPage();}}
 document.addEventListener?.('visibilitychange',()=>{if(!document.hidden){tick();loadPage();}});
-leagues();restore();setInterval(loadPage,30000);setInterval(tick,1000);
+leagues();restore();
+// Do not refetch and rebuild every visible page each 30 seconds.
+// Explicit navigation, user refresh, and the day rollover remain triggers.
+// The 1s tick only expires visible evidence; it makes no network requests.
+setInterval(tick,1000);
 })();
