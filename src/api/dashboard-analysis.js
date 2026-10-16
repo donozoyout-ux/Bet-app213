@@ -114,7 +114,18 @@
     const generation=++state.generation,controller=new AbortController(),started=Date.now();state.listController=controller;
     $('match-analysis').setAttribute('aria-busy','true');write('match-analysis-status','Güncel maçlar kontrol ediliyor…');
     try {
-      const page=await api('/api/predictions?limit=8',controller);
+      let page;
+      try {
+        page=await api('/api/predictions?limit=8',controller);
+      } catch (error) {
+        // The API occasionally times out while refreshing board odds. Retry only
+        // this read-only request once; never retry coupon quote or mutate data.
+        if (error.message!=='HTTP 504' || controller.signal.aborted) throw error;
+        write('match-analysis-status','Tahmin sunucusu gecikti; bir kez daha deneniyor…');
+        await new Promise(resolve=>setTimeout(resolve,1200));
+        if (controller.signal.aborted || generation!==state.generation || !active()) return;
+        page=await api('/api/predictions?limit=8',controller);
+      }
       if(controller.signal.aborted || generation!==state.generation || !active())return;
       clock(page,started);state.board=page;state.quotes.clear();
       write('analysis-check-time',`Veri kontrolü: ${date(page.cache?.checked_at)} · Analiz: ${date(page.generated_at)}`);
@@ -124,8 +135,8 @@
       write('match-analysis-status','Yalnızca yaklaşan ve kalite kontrolünü geçen maçlar.');
       const selected=state.items.find(i=>i.match.id===state.selected)?.match.id || state.items[0].match.id;
       renderStrip();select(selected);quote(generation);
-    } catch (_) {if(!controller.signal.aborted && generation===state.generation && active()){
-      state.items=[];state.board=null;empty('Maç verileri kontrol edilemedi. Bağlantıyı yeniden deneyin.');
+    } catch (error) {if(!controller.signal.aborted && generation===state.generation && active()){
+      state.items=[];state.board=null;empty(error.message==='HTTP 504' ? 'Tahmin sunucusu iki kez zaman aşımına uğradı. Yeniden deneyin.' : 'Maç verileri kontrol edilemedi. Bağlantıyı yeniden deneyin.');
     }} finally {if(state.listController===controller){state.listController=null;$('match-analysis').setAttribute('aria-busy','false');}}
   }
   async function select(id) {
