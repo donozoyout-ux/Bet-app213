@@ -64,7 +64,7 @@ async def test_brand_navigation_coupon_and_accessible_motion(api, db, monkeypatc
             logo = page.locator('.brand-symbol img')
             await expect(logo).to_be_visible()
             assert await logo.evaluate('(el)=>el.complete && el.naturalWidth>0')
-            assert await page.locator('body').evaluate('(el)=>getComputedStyle(el).color') == 'rgb(244, 247, 255)'
+            assert await page.locator('body').evaluate('(el)=>getComputedStyle(el).color') == 'rgb(242, 247, 243)'
             assert await page.locator('.prediction-card').first.evaluate('(el)=>getComputedStyle(el).transitionDuration') == '0s'
             assert await page.locator('.brand').get_attribute('aria-label') == 'Kuponanalizii Ana Sayfa'
             assert await page.locator('link[rel=icon]').get_attribute('href') == '/assets/kuponanalizii-logo.png'
