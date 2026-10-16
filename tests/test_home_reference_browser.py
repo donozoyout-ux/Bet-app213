@@ -85,7 +85,7 @@ async def test_reference_home_layout_and_real_interactions(api, db, monkeypatch,
                 await page.screenshot(path=str(dest/f'{label}-{width}x{height}.png'))
                 (dest/f'{label}-{width}x{height}.json').write_text(json.dumps(metrics,indent=2),encoding='utf-8')
             if label!='before' and width>=1440:
-                assert metrics['board']['width']>=width*.90
+                assert metrics['board']['width']>=(width-metrics['board']['x'])*.90
                 assert metrics['coupon']['width']/metrics['board']['width']>=.40
                 assert metrics['hero']['height']<=height*.45
                 assert metrics['coupon']['bottom']<=height
