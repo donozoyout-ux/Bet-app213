@@ -109,6 +109,9 @@ async def daily_pool(session, now):
         match_rejections={k:v for k,v in reasons.items() if k!='eligible'},matches=states,
         last_analysis_generated_at=max((s for s in stamps if s<=now),default=None),
         candidate_coverage_complete=all(not e['legacy_candidate_coverage'] for e in states if e['reason'] not in ('analysis_missing','analysis_stale','match_started_or_unavailable')))
+    price_rejections=Counter()
+    for entry in states:price_rejections.update(entry.get('price_rejections',{}))
+    diagnostics['price_rejections']=dict(price_rejections)
     session.info['prediction_snapshot']=dict(stale=bool(missing or stale),missing_leagues=sorted(set(missing)),stale_leagues=sorted(set(stale)),latest_generated_at=diagnostics['last_analysis_generated_at'])
     session.info['coupon_diagnostics']=diagnostics
     return records

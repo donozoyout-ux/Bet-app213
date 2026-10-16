@@ -123,7 +123,7 @@ async def test_board_display_query_does_not_load_coupon_context(api,db,monkeypat
         response=await api.get('/api/predictions?limit=8')
         assert response.status_code==200 and response.json()['items']
         board_sql=[q for q,args in statements if 'prediction_boards' in q]
-        assert len(board_sql)==1
+        assert len(board_sql)==2  # validity metadata, then a cold publication projection
         assert ', prediction_boards.payload,' not in board_sql[0]
         assert all('coupon_records' not in str(args) for q,args in statements)
         diagnostic=await api.get('/api/odds-coverage')

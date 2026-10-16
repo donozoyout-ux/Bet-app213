@@ -130,7 +130,11 @@ async def test_historical_observation_cutoff_and_late_market_exclusion(api,db,mo
         # This prior result was only observed AFTER the historical target kickoff.
         row=await session.get(Match,history[0]);row.updated_at=NOW;row.ft_home=99
         await session.commit()
-    result=(await api.get(f'/api/matches/{match_id}/statistics')).json()
+    assert (await api.get(f'/api/matches/{match_id}/statistics')).status_code==404
+    # Historical cutoff remains an algorithm contract, not an on-demand HTTP forecast.
+    async with db.session() as session:
+        row=(await session.execute(routes.match_query()[0].where(Match.id==match_id))).first()
+        result=await statistics(session,row[0],routes.match_response(row),NOW)
     assert result['historical']
     assert result['bookmaker_consensus'] is None
     assert not any(book['available_as_of'] for book in result['bookmakers'])
@@ -180,10 +184,13 @@ async def test_predictions_nearest_window_league_date_and_insufficient(api,db,mo
 async def test_cache_invalidates_after_score_update(api,db,monkeypatch):
     import src.api.routes as routes
     monkeypatch.setattr(routes,'utcnow',lambda:NOW)
-    match_id,_,_,_,history=await seed(db)
+    match_id,league,_,_,history=await seed(db)
     first=(await api.get(f'/api/matches/{match_id}/statistics')).json()
     async with db.session() as session:
         row=await session.get(Match,history[0]);row.ft_home=4;row.updated_at=NOW-timedelta(minutes=1);await session.commit()
+    assert (await api.get(f'/api/matches/{match_id}/statistics')).json()['prediction']==first['prediction']
+    from src.analytics.board_cache import refresh_one
+    await refresh_one(db,now=NOW,force_league=league)
     second=(await api.get(f'/api/matches/{match_id}/statistics')).json()
     assert first['prediction']['expected_home_goals']!=second['prediction']['expected_home_goals']
 
@@ -197,9 +204,9 @@ async def test_cache_reuses_calculation_without_mutation(api,db,monkeypatch):
     original=service.predict;calls=[]
     def count(*args,**kwargs):calls.append(1);return original(*args,**kwargs)
     monkeypatch.setattr(service,'predict',count)
-    await api.get(f'/api/matches/{match_id}/statistics')
-    await api.get(f'/api/matches/{match_id}/statistics')
-    assert len(calls)==1
+    assert (await api.get(f'/api/matches/{match_id}/statistics')).status_code==200
+    assert (await api.get(f'/api/matches/{match_id}/statistics')).status_code==200
+    assert len(calls)==0  # HTTP reads the worker publication, even after process cache loss
 
 
 
@@ -225,6 +232,8 @@ async def test_national_prediction_and_h2h_not_required(api,db,monkeypatch):
             match.updated_at=NOW-timedelta(minutes=10)
         target=await session.get(Match,match_id);target.league_id,target.season_id=league.id,season.id
         await session.commit()
+    from src.analytics.board_cache import refresh_one
+    await refresh_one(db,now=NOW,force_league=league.id)
     data=(await api.get(f'/api/matches/{match_id}/statistics')).json()
     assert data['match']['competition_type']=='national'
     assert data['prediction']['status']=='ok'

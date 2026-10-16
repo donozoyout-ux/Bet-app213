@@ -6,7 +6,7 @@ import asyncio
 import logging
 from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from sqlalchemy import select, func, or_, text
-from sqlalchemy.orm import aliased
+from sqlalchemy.orm import aliased, defer
 from src.config import settings
 from src.db import database
 from src.models import League, Season, Team, Match, Bookmaker, Odds1X2, AsianHandicap, AsianTotals, MarketOdds, ScraperJob, MatchStatistics
@@ -236,6 +236,8 @@ async def calculate_predictions(session,league,date,team=None,statistical_all=Fa
         for item in items:item['recommendations']=[dict(r) for r in (item['recommendations'] if statistical_all else item['recommendations'][:2])]
         with stage('current_quotes'):
             await current_odds(session,{i['match']['id']:i['recommendations'] for i in items},now)
+        session.info['prediction_snapshot']['verified_price_matches']=len({i['match']['id'] for i in items
+            if any((r.get('verified_odds') or {}).get('coupon_eligible') for r in i['recommendations'])})
         return result
 
 
@@ -376,9 +378,11 @@ async def uncached_predictions(session,league,date,team=None,now=None,publish=Tr
     session.info['count_availability']=[]
     session.info['engine_analysis']=[]
     session.info['coupon_records']=[]
+    session.info['match_analyses']={}
     for row in rows:
         await asyncio.sleep(0)  # Allow liveness and short requests between matches.
         result = await compute_statistics(session, row[0], match_response(row), now, rev)
+        session.info['match_analyses'][row[0].id]=result
         session.info['count_availability'].append((row[0].id,result['market_availability']))
         session.info['coupon_records'].append(dict(match=match_response(row),candidates=result['candidates']))
         session.info['engine_analysis'].append(dict(match_id=row[0].id,
@@ -429,11 +433,23 @@ async def global_predictions(league: str | None=None,date: Date | None=None,team
 
 @router.get('/matches/{match_id}/statistics', response_model=Statistics)
 async def match_statistics(match_id: int, session=Depends(session_dependency)):
+    with profile('analysis_read'):
+        return await read_published_statistics(match_id,session)
+
+
+async def read_published_statistics(match_id,session):
     query, _, _ = match_query()
-    row = (await session.execute(query.where(Match.id == match_id, League.enabled.is_(True)))).first()
+    row = (await session.execute(query.options(defer(Match.raw)).where(Match.id == match_id, League.enabled.is_(True)))).first()
     if not row:
         raise HTTPException(404, 'Match not found')
-    return await compute_statistics(session, row[0], match_response(row), utcnow())
+    from src.analytics.publications import read_match_analysis
+    data=await read_match_analysis(session,row[0],utcnow())
+    if data is None:
+        if row[0].kickoff_at and aware(row[0].kickoff_at)<=utcnow():
+            raise HTTPException(404,dict(code='analysis_archive_missing',message='Kayıtlı maç öncesi analiz yok; geçmişe dönük tahmin üretilmez.'))
+        raise HTTPException(503,dict(code='analysis_publication_pending',message='Kaydedilmiş maç analizi henüz güncel değil; arka plan yayını bekleniyor.'))
+    data['match']=match_response(row)
+    return data
 
 
 async def odds_data(session, match_id):

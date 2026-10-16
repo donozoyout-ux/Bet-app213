@@ -123,7 +123,7 @@ async def test_persist_idempotent_snapshot_zero_null_and_events(db):
 async def test_additional_statistics_api_splits_and_no_future_leakage(api,db,monkeypatch):
     import src.api.routes as routes
     monkeypatch.setattr(routes,'utcnow',lambda:NOW)
-    target_id,_,_,_,history=await seed(db)
+    target_id,league,_,_,history=await seed(db)
     data=captured(75)
     async with db.session() as session:
         for id in history:
@@ -131,6 +131,8 @@ async def test_additional_statistics_api_splits_and_no_future_leakage(api,db,mon
             row=MatchStatistics(match_id=id,**data['statistics'],is_final=True,updated_at=NOW-timedelta(days=1),raw={})
             session.add(row)
         await session.commit()
+    from src.analytics.board_cache import refresh_one
+    await refresh_one(db,now=NOW,force_league=league)
     first=(await api.get(f'/api/matches/{target_id}/statistics')).json()
     assert first['prediction']['corners_status']==first['prediction']['cards_status']=='ok'
     extra=first['additional_statistics']
@@ -140,6 +142,7 @@ async def test_additional_statistics_api_splits_and_no_future_leakage(api,db,mon
     async with db.session() as session:
         row=await session.get(MatchStatistics,history[0]);row.home_corners=999;row.updated_at=NOW+timedelta(days=1)
         await session.commit()
+    await refresh_one(db,now=NOW,force_league=league)
     second=(await api.get(f'/api/matches/{target_id}/statistics')).json()
     assert second['additional_statistics']['corners']['home']['last_5']['matches_considered']==5
     assert second['additional_statistics']['corners']['home']['last_5']['sample_size']==4
@@ -177,7 +180,7 @@ async def test_stats_backfill_failure_and_resume_skips_completed(db,monkeypatch)
 async def test_referee_minimums_from_stored_history_only(api,db,monkeypatch,n):
     import src.api.routes as routes
     monkeypatch.setattr(routes,'utcnow',lambda:NOW)
-    target,_,_,_,history=await seed(db)
+    target,league,_,_,history=await seed(db)
     async with db.session() as session:
         # Synthetic identity only for unit-testing aggregation; the live parser
         # has no verified identity and emits None for all six captured sources.
@@ -187,6 +190,8 @@ async def test_referee_minimums_from_stored_history_only(api,db,monkeypatch,n):
             match=await session.get(Match,id);match.referee_id=referee.id;match.referee_observed_at=NOW-timedelta(days=1);match.updated_at=NOW-timedelta(hours=1)
             if id!=target:session.add(MatchStatistics(match_id=id,**captured(75)['statistics'],is_final=True,updated_at=NOW-timedelta(days=1),raw={}))
         await session.commit()
+    from src.analytics.board_cache import refresh_one
+    await refresh_one(db,now=NOW,force_league=league)
     result=(await api.get(f'/api/matches/{target}/statistics')).json()['additional_statistics']['referee']
     assert result['matches_officiated']==n
     assert result['average_total_yellow_cards']==(3 if n==10 else None)

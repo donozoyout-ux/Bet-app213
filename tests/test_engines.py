@@ -97,13 +97,15 @@ async def test_statistics_exposes_engines_and_disabled_candidates(api, db, monke
     from .test_predictions import seed
     import src.api.routes as routes
     monkeypatch.setattr(routes, 'utcnow', lambda: NOW)
-    match_id, *_ = await seed(db)
+    match_id, league, *_ = await seed(db)
     response = await api.get(f'/api/matches/{match_id}/statistics')
     assert response.status_code == 200
     data = response.json()
     assert len(data['market_engines']) == 4
     assert data['engine_context']['match_id'] == match_id
     monkeypatch.setenv('DISABLED_MARKET_ENGINES', 'double_chance')
+    from src.analytics.board_cache import refresh_one
+    await refresh_one(db,now=NOW,force_league=league)
     disabled = (await api.get(f'/api/matches/{match_id}/statistics')).json()
     assert disabled['market_engines']['double_chance']['missing_reason']=='engine_disabled'
     assert not any(c['market']=='double_chance' for c in disabled['candidates'])

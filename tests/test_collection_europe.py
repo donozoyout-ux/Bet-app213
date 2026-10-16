@@ -195,6 +195,8 @@ async def verify_domestic(db):
         assert result['home']['source_competitions'][0]['external_id']==36
         assert not set(bad)&set(result['home']['match_ids'])
         assert not result['affects_model_probability'] and not result['confidence_uplift']
+    from src.analytics.board_cache import refresh_one
+    await refresh_one(db,now=NOW,force_league=european.id)
     return target
 
 
