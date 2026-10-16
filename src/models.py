@@ -456,3 +456,17 @@ class DailyCouponPublication(Base):
     version: Mapped[str] = mapped_column(String(64))
     checked_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     payload: Mapped[dict] = mapped_column(JSON, deferred=True)
+
+
+class PublishedMatchAnalysis(Base):
+    """Worker-built current analysis; separate from the lightweight strip JSON."""
+    __tablename__ = 'published_match_analyses'
+    match_id: Mapped[int] = mapped_column(ForeignKey('matches.id'),primary_key=True)
+    version: Mapped[str] = mapped_column(String(64))
+    board_version: Mapped[str] = mapped_column(String(64))
+    model_version: Mapped[str] = mapped_column(String(100))
+    kickoff_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    generated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    checked_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    payload: Mapped[dict] = mapped_column(JSON,deferred=True)

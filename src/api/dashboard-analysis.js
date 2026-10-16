@@ -44,7 +44,7 @@
   async function api(path,controller,body) {
     const response=await fetch(path,{signal:AbortSignal.any([controller.signal,AbortSignal.timeout(15000)]),
       ...(body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{})});
-    if(!response.ok)throw new Error(`HTTP ${response.status}`);
+    if(!response.ok){const error=new Error(`HTTP ${response.status}`);try{error.code=(await response.json()).detail?.code;}catch(_){}throw error;}
     return response.json();
   }
   function clock(page,started) {
@@ -209,7 +209,7 @@
         !(data.cache_seconds>0) || Date.parse(data.as_of)+data.cache_seconds*1000<=now())throw new Error('Invalid analysis evidence');
       state.detail=data;state.rec=rec;state.detailExpires=Date.parse(data.as_of)+data.cache_seconds*1000;renderDetail();
     } catch (error) {if(!controller.signal.aborted && generation===state.detailGeneration && active())
-      $('analysis-blocks').replaceChildren(node('p',error.message==='HTTP 504'?'Analiz API 504 zaman aşımı. Yeniden maç seçerek deneyin.':error.message==='Invalid analysis evidence'?'Eski veya eşleşmeyen analiz. Güncel kanıt bekleniyor.':'Analiz bağlantısı kurulamadı. Yeniden deneyin.','analysis-empty'));}
+      $('analysis-blocks').replaceChildren(node('p',error.code==='analysis_archive_missing'?'Kayıtlı maç öncesi analiz yok; geçmişe dönük tahmin üretilmez.':error.code==='analysis_publication_pending'?'Kaydedilmiş analiz henüz hazır değil. Arka plan yayını bekleniyor; sayfa hesaplama başlatmaz.':error.message==='HTTP 504'?'Analiz API 504 zaman aşımı. Yeniden maç seçerek deneyin.':error.message==='Invalid analysis evidence'?'Eski veya eşleşmeyen analiz. Güncel kanıt bekleniyor.':'Analiz bağlantısı kurulamadı. Yeniden deneyin.','analysis-empty'));}
   }
   function block(key,title,teaser,build,open=false) {
     const details=node('details','','analysis-block');details.dataset.analysisBlock=key;details.name='match-analysis-evidence';details.open=open;

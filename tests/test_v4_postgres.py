@@ -59,6 +59,17 @@ async def test_pg_concurrent_publication_reads_fresh_guards_and_http(monkeypatch
         import src.api.routes as routes
         from src.api.routes import session_dependency
         monkeypatch.setattr(routes,'database',db);monkeypatch.setattr(routes,'utcnow',lambda:NOW)
+        from src.analytics.publications import publish_match_analyses
+        from src.models import BoardHead,PublishedMatchAnalysis
+        async with db.session() as s:
+            target=await s.get(Match,warm[0][0]['match']['id'])
+            row=(await s.execute(routes.match_query()[0].where(Match.id==target.id))).first()
+            result=await routes.compute_statistics(s,row[0],routes.match_response(row),NOW)
+            head=await s.get(BoardHead,target.league_id);board=await s.get(PredictionBoard,target.league_id)
+            await publish_match_analyses(s,{target.id:result},head.version,board.model_version,NOW,board.expires_at)
+            await s.commit();detail_id=target.id
+        async def forbidden(*a,**k):raise AssertionError('HTTP calculated a model')
+        monkeypatch.setattr(routes,'compute_statistics',forbidden)
         async def session():
             async with db.session() as s:yield s
         app.dependency_overrides[session_dependency]=session
@@ -69,6 +80,9 @@ async def test_pg_concurrent_publication_reads_fresh_guards_and_http(monkeypatch
                     r=await api.get(path);responses.append(dict(path=path,status=r.status_code,rendered=len(r.json().get('items',[]))))
                 http_ms=(time.perf_counter()-start)*1000
                 assert all(r['status']==200 and r['rendered']>0 for r in responses)
+                detail=await api.get(f'/api/matches/{detail_id}/statistics')
+                assert detail.status_code==200 and detail.json()['publication']['status']=='current'
+                assert (await api.get(f'/api/matches/{detail_id}/statistics')).json()['publication']==detail.json()['publication']
                 from tests.odds_fixture import move_observations
                 async with db.session() as s:
                     for price in await s.scalars(select(MarketOdds)):move_observations(price,NOW-timedelta(seconds=901))

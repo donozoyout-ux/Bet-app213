@@ -13,6 +13,58 @@ from src.models import (BoardEdition, BoardHead, DailyCouponPublication, Predict
 from src.jobs.worker import aware
 
 
+async def publish_match_analyses(session,analyses,board_version,model_version,now,expires):
+    from src.models import PublishedMatchAnalysis
+    existing={r.match_id:r for r in await session.scalars(select(PublishedMatchAnalysis).where(PublishedMatchAnalysis.match_id.in_(analyses)))} if analyses else {}
+    for match_id,data in analyses.items():
+        payload=jsonable_encoder(data)
+        evidence=stable(payload);evidence.pop('engine_context',None)
+        version=digest(evidence)
+        row=existing.get(match_id)
+        if row is None:
+            row=PublishedMatchAnalysis(match_id=match_id,version=version,payload=payload,generated_at=now)
+            session.add(row)
+        elif row.version!=version:
+            row.version=version;row.payload=payload;row.generated_at=now
+        row.board_version=board_version;row.model_version=model_version
+        row.kickoff_at=aware(datetime.fromisoformat(payload['match']['kickoff_at']))
+        row.checked_at=now;row.expires_at=expires
+
+
+async def read_match_analysis(session,match,now):
+    from src.models import PublishedMatchAnalysis
+    from src.analytics.board_cache import MODEL_VERSION
+    historical=bool(match.kickoff_at and aware(match.kickoff_at)<=now)
+    query=select(PublishedMatchAnalysis).options(undefer(PublishedMatchAnalysis.payload)).where(
+        PublishedMatchAnalysis.match_id==match.id,PublishedMatchAnalysis.checked_at<=now,
+        PublishedMatchAnalysis.kickoff_at==match.kickoff_at)
+    if not historical:
+        if match.status!='scheduled':return None
+        query=query.join(BoardHead,(BoardHead.league_id==match.league_id)&(BoardHead.version==PublishedMatchAnalysis.board_version))\
+            .join(PredictionBoard,PredictionBoard.league_id==BoardHead.league_id)\
+            .where(PublishedMatchAnalysis.model_version==MODEL_VERSION,PublishedMatchAnalysis.expires_at>now,
+                PredictionBoard.model_version==MODEL_VERSION,PredictionBoard.expires_at>now,PredictionBoard.generated_at<=now)
+    row=await session.scalar(query)
+    if row is None:return None
+    data=deepcopy(row.payload)
+    context=data.get('engine_context',{})
+    if context and (context.get('home_team_id')!=match.home_team_id or context.get('away_team_id')!=match.away_team_id):return None
+    data['as_of']=aware(row.checked_at)
+    data['publication']=dict(version=row.version,generated_at=aware(row.generated_at),checked_at=aware(row.checked_at),status='archived' if historical else 'current')
+    data['historical']=historical
+    data['cache_seconds']=0 if historical else max(1,int((aware(row.expires_at)-aware(row.checked_at)).total_seconds()))
+    if historical:
+        for rec in data.get('candidates',[])+data.get('recommendations',[]):
+            vo=rec.get('verified_odds') or {};vo.update(coupon_eligible=False,reason='match_not_scheduled',freshness='stale')
+            for price in vo.get('bookmakers',{}).values():price.update(coupon_eligible=False,freshness='stale')
+        return data
+    from src.analytics.coupon import current_odds
+    await current_odds(session,{match.id:data.get('candidates',[])},now)
+    current={r['id']:r for r in data.get('candidates',[])}
+    data['recommendations']=[current.get(r['id'],r) for r in data.get('recommendations',[])]
+    return data
+
+
 def digest(value):
     return hashlib.sha256(json.dumps(jsonable_encoder(value),sort_keys=True,separators=(',',':')).encode()).hexdigest()
 

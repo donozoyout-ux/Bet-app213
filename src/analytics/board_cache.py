@@ -58,8 +58,10 @@ async def refresh_one(db, now=None, force_league=None):
                 session.add(board)
             candidate_payload=jsonable_encoder(dict(items=items,availability=session.info.get('count_availability',[]),evaluated=evaluated,engine_analysis=session.info.get('engine_analysis',[]),coupon_records=session.info.get('coupon_records',[])))
             from src.analytics.publications import publish_board
-            await publish_board(session,board,now,candidate_payload=candidate_payload,model_version=MODEL_VERSION)
+            version=await publish_board(session,board,now,candidate_payload=candidate_payload,model_version=MODEL_VERSION)
             board.model_version=MODEL_VERSION;board.expires_at=generated+TTL;board.source_revision=source
+            from src.analytics.publications import publish_match_analyses
+            await publish_match_analyses(session,session.info.get('match_analyses',{}),version,MODEL_VERSION,now,board.expires_at)
             # Publish the immutable picks and board together, after a complete calculation.
             from src.analytics.performance import capture_many
             await capture_many(session,session.info.get('board_observations',[]),now)

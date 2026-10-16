@@ -378,9 +378,11 @@ async def uncached_predictions(session,league,date,team=None,now=None,publish=Tr
     session.info['count_availability']=[]
     session.info['engine_analysis']=[]
     session.info['coupon_records']=[]
+    session.info['match_analyses']={}
     for row in rows:
         await asyncio.sleep(0)  # Allow liveness and short requests between matches.
         result = await compute_statistics(session, row[0], match_response(row), now, rev)
+        session.info['match_analyses'][row[0].id]=result
         session.info['count_availability'].append((row[0].id,result['market_availability']))
         session.info['coupon_records'].append(dict(match=match_response(row),candidates=result['candidates']))
         session.info['engine_analysis'].append(dict(match_id=row[0].id,
@@ -435,7 +437,14 @@ async def match_statistics(match_id: int, session=Depends(session_dependency)):
     row = (await session.execute(query.where(Match.id == match_id, League.enabled.is_(True)))).first()
     if not row:
         raise HTTPException(404, 'Match not found')
-    return await compute_statistics(session, row[0], match_response(row), utcnow())
+    from src.analytics.publications import read_match_analysis
+    data=await read_match_analysis(session,row[0],utcnow())
+    if data is None:
+        if row[0].kickoff_at and aware(row[0].kickoff_at)<=utcnow():
+            raise HTTPException(404,dict(code='analysis_archive_missing',message='Kayıtlı maç öncesi analiz yok; geçmişe dönük tahmin üretilmez.'))
+        raise HTTPException(503,dict(code='analysis_publication_pending',message='Kaydedilmiş maç analizi henüz güncel değil; arka plan yayını bekleniyor.'))
+    data['match']=match_response(row)
+    return data
 
 
 async def odds_data(session, match_id):

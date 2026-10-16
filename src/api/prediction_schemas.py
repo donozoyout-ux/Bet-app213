@@ -177,6 +177,7 @@ class Recommendation(BaseModel):
 
 
 class Statistics(BaseModel):
+    publication: dict = Field(default_factory=dict)
     domestic_context: dict | None = None
     uefa_coverage: dict | None = None
     market_engines: dict = Field(default_factory=dict)
