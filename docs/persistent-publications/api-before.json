@@ -1,0 +1,20 @@
+[
+  {
+    "path": "/api/predictions?limit=8",
+    "status": 504,
+    "ms": 5653.2,
+    "items": 0,
+    "cache_status": null,
+    "stale": null,
+    "stale_leagues": null
+  },
+  {
+    "path": "/api/predictions/best?limit=20",
+    "status": 504,
+    "ms": 5368.7,
+    "items": 0,
+    "cache_status": null,
+    "stale": null,
+    "stale_leagues": null
+  }
+]

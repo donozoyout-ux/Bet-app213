@@ -159,3 +159,8 @@ async def learning_script():
 @app.get('/dashboard-analysis.js', include_in_schema=False)
 async def match_analysis_script():
     return FileResponse(Path(__file__).resolve().with_name('dashboard-analysis.js'), media_type='application/javascript')
+
+
+@app.get('/dashboard-revision.js',include_in_schema=False)
+async def revision_script():
+    return FileResponse(Path(__file__).resolve().with_name('dashboard-revision.js'),media_type='application/javascript')

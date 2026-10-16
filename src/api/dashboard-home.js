@@ -11,7 +11,7 @@
   const books = ['Crown', 'Bet365', 'Sbobet'];
   const active = () => !document.hidden && globalThis.BetAppUI?.active('home');
   const pending = new Map();
-  let expiryTimer;
+  let expiryTimer,lastDaily;
 
   function message(id, text, retry) {
     const box = $(id); if (!box) return;
@@ -29,6 +29,8 @@
       const data = await response.json(); if (active()) render(data);
     } catch (error) {
       if (active()) {
+        if(key==='home-coupon-list')globalThis.BetAppRevision?.failed('coupons');
+        if(key==='home-coupon-list' && lastDaily?.items?.length && lastDaily.items.every(eligible) && (!lastDaily.valid_until || Date.parse(lastDaily.valid_until)>Date.now())){write('home-coupon-observed','API hatası · Henüz geçerli kaydedilmiş kupon korunuyor.');return;}
         message(key, error.message==='504'?'API 504 zaman aşımı. Yeniden deneyin.':'Veri bağlantısı bekleniyor. Diğer panelleri kullanabilirsiniz.', refresh);
         if (key==='home-coupon-list') { write('home-coupon-total','—'); write('home-coupon-date','Tarih doğrulanamadı'); }
         if (key==='home-live-list') write('home-live-count','Durum bekleniyor');
@@ -50,6 +52,8 @@
       books.includes(q?.bookmaker) && Number.isFinite(q.price) && q.price>1 && fresh(q.observed_at,q.expires_at);
   }
   function renderCoupon(data) {
+    if(data.publication_version && data.publication_version===lastDaily?.publication_version && data.items?.length===lastDaily.items?.length){lastDaily=data;return;}
+    lastDaily=data;
     clearTimeout(expiryTimer);
     const items=data.items || [], box=$('home-coupon-list'); if (!box) return;
     write('home-coupon-date',data.coupon_date || 'Bugünün kuponu');
@@ -135,11 +139,12 @@
     box.append(element('p',`Bu görünümde ${recs.length} seçim · ${r.sample_size} maçlık örneklem. Model olasılığı gerçekleşmiş başarı oranı değildir.`,'model-note'));
   }
   function refresh() {
-    request('home-coupon-list','/api/coupons/automatic?strategy=balanced',renderCoupon,'POST');
+    request('home-coupon-list','/api/coupons/daily?strategy=balanced',renderCoupon);
     request('home-live-list','/api/matches?view=live&include_odds=true&limit=3',renderLive);
     request('home-movement-list','/api/matches?view=upcoming&include_odds=true&limit=12',renderMovements);
     const snapshot=globalThis.BetAppMarket?.homeSnapshot?.();if(snapshot)renderModel(snapshot);
   }
-  globalThis.BetAppHome=Object.freeze({refresh,renderModel});
+  globalThis.setInterval?.(()=>{if(lastDaily?.items?.length && (lastDaily.valid_until && Date.parse(lastDaily.valid_until)<=Date.now() || lastDaily.items.some(i=>!eligible(i)))){renderCoupon({...lastDaily,items:[],message:'Kaydedilmiş kuponun maç veya fiyat geçerliliği sona erdi. Yeni doğrulama bekleniyor.'});}},1000);
+  globalThis.BetAppHome=Object.freeze({refresh,renderModel,acceptRevision:meta=>{const fresh=meta.daily?.balanced;if(fresh?.valid && fresh.version===lastDaily?.publication_version)lastDaily.valid_until=fresh.valid_until;},refreshCoupon:()=>request('home-coupon-list','/api/coupons/daily?strategy=balanced',renderCoupon)});
   refresh();
 })();

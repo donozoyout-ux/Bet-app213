@@ -9,7 +9,7 @@ class Element{
  text(){return [this.textContent,...this.children.map(c=>c.text())].join(' ');}
 }
 const all=e=>[e,...e.children.flatMap(all)];
-async function scenario(mode){
+async function scenario(mode){let dailyData;
  const ids=new Map(['coupon-selected','coupon-total','coupon-copy','coupon-clear','coupon-reload','coupon-note','coupon-candidates','coupon-bookmaker','coupon-show-unpriced'].map(id=>[id,new Element()]));ids.get('coupon-bookmaker').value='Bet365';
  if(mode.startsWith('automatic'))for(const id of ['coupon-daily','coupon-mode','coupon-manual','coupon-automatic','coupon-save','coupon-saved-note','coupon-history','coupon-history-refresh','coupon-telegram','telegram-status','telegram-schedule','telegram-admin-token','telegram-verify','telegram-check-note'])ids.set(id,new Element());
  const now=Date.now(),stamp=new Date(now-60000).toISOString(),expiry=new Date(now+60000).toISOString();
@@ -36,11 +36,13 @@ async function scenario(mode){
   if(path==='/api/telegram/verify'){assert.equal(options.headers.Authorization,'Bearer management-test-only');return {ok:true,json:async()=>({connection_verified:true,message:'Kimlik ve grup izinleri doğrulandı; mesaj gönderilmedi.',checked_at:stamp})};}
   if(path==='/api/telegram/status')return {ok:true,json:async()=>({configured:true,today:[{slot:new Date(now).toISOString(),status:'failed',error_code:'telegram_400'}]})};
   if(path.startsWith('/api/coupons?'))return {ok:true,json:async()=>({items:[...versions.values()].map(v=>({...v,selections:v.items.length}))})};
-  if(path.startsWith('/api/coupons/automatic?')){
+  if(path.startsWith('/api/coupons/automatic?') || path.startsWith('/api/coupons/daily?')){
+   if(path.includes('/daily?'))assert(!options.method);
+   if(dailyData)return {ok:true,json:async()=>structuredClone(dailyData)};
    assert(path.includes('strategy=balanced') && !path.includes('max_matches'));
    if(mode==='automatic-empty')return {ok:true,json:async()=>({items:[],message:'Tam eşleşen güncel oran bekleniyor.',data_updates:{analysis_generated_at:stamp,price_observed_at:stamp,checked_at:stamp}})};
    if(mode==='automatic-diagnostics'){const data=saved([asSaved(items[0])]);return {ok:true,json:async()=>({...data,coupon_date:'2026-10-15',strategy:'balanced',selection_mode:'dynamic',selection_policy:{risk_indicator:.4,risk_budget:1.6,rejections:{shared_team:2,combined_risk_budget:3}},diagnostics:{inspected_matches:20,eligible_matches:1,match_rejections:{quality_rejected:19},candidate_coverage_complete:true},data_updates:{checked_at:stamp}})};}
-   const data=saved(items.filter((_,index)=>index%2===0).map(asSaved));versions.set(data.id,data);return {ok:true,json:async()=>structuredClone(data)};
+   const data=saved(items.filter((_,index)=>index%2===0).map(asSaved));versions.set(data.id,data);dailyData=data;return {ok:true,json:async()=>structuredClone(data)};
   }
   if(path.startsWith('/api/coupons')){
    if(!options.method)return {ok:true,json:async()=>structuredClone(versions.get(path.split('/').at(-1)))};

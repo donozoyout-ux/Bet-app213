@@ -9,7 +9,8 @@ from datetime import datetime, timedelta
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy import select, or_, text, literal
 from sqlalchemy.orm import defer
-from src.models import League, Match, PredictionBoard, utcnow
+from src.query_profile import stage
+from src.models import League, Match, PredictionBoard, BoardHead, utcnow
 from src.jobs.worker import aware
 from src.match_views import day_bounds, DISPLAY_TIMEZONE
 
@@ -34,18 +35,26 @@ async def refresh_one(db, now=None, force_league=None):
         async with db.session() as session:
             if session.bind.dialect.name=='postgresql':
                 if not await session.scalar(text('SELECT pg_try_advisory_xact_lock(:id)'),{'id':REFRESH_LOCK}):return False
-            query=select(League.id).outerjoin(PredictionBoard).where(League.enabled.is_(True))
+            with stage('input_revision'):
+                inputs=await revision(session)
+            session.info['board_revision']=inputs
+            source=hashlib.sha256(json.dumps(jsonable_encoder(inputs),sort_keys=True).encode()).hexdigest()
+            query=select(League.id).outerjoin(PredictionBoard).outerjoin(BoardHead,BoardHead.league_id==League.id).where(League.enabled.is_(True))
             if force_league is not None:query=query.where(League.id==force_league)
-            else:query=query.where(or_(PredictionBoard.league_id.is_(None),PredictionBoard.expires_at<=now,PredictionBoard.model_version!=MODEL_VERSION))
-            league=await session.scalar(query.order_by(PredictionBoard.generated_at.asc().nullsfirst(),League.priority,League.id).limit(1))
+            else:query=query.where(or_(PredictionBoard.league_id.is_(None),PredictionBoard.expires_at<=now+timedelta(minutes=2),PredictionBoard.model_version!=MODEL_VERSION,PredictionBoard.source_revision!=source))
+            league=await session.scalar(query.order_by(BoardHead.checked_at.asc().nullsfirst(),League.priority,League.id).limit(1))
             if league is None:return False
-            source=hashlib.sha256(json.dumps(jsonable_encoder(await revision(session)),sort_keys=True).encode()).hexdigest()
-            items,generated,evaluated=await uncached_predictions(session,str(league),None,now=now,publish=False)
+            with stage('model_calculation'):
+                items,generated,evaluated=await uncached_predictions(session,str(league),None,now=now,publish=False)
             board=await session.get(PredictionBoard,league)
-            if board is None:board=PredictionBoard(league_id=league);session.add(board)
-            board.model_version=MODEL_VERSION;board.generated_at=generated;board.expires_at=generated+TTL
-            board.source_revision=source
-            board.payload=jsonable_encoder(dict(items=items,availability=session.info.get('count_availability',[]),evaluated=evaluated,engine_analysis=session.info.get('engine_analysis',[]),coupon_records=session.info.get('coupon_records',[])))
+            if board is None:
+                board=PredictionBoard(league_id=league,model_version=MODEL_VERSION,generated_at=generated,
+                    expires_at=generated+TTL,source_revision=source)
+                session.add(board)
+            candidate_payload=jsonable_encoder(dict(items=items,availability=session.info.get('count_availability',[]),evaluated=evaluated,engine_analysis=session.info.get('engine_analysis',[]),coupon_records=session.info.get('coupon_records',[])))
+            from src.analytics.publications import publish_board
+            await publish_board(session,board,now,candidate_payload=candidate_payload,model_version=MODEL_VERSION)
+            board.model_version=MODEL_VERSION;board.expires_at=generated+TTL;board.source_revision=source
             # Publish the immutable picks and board together, after a complete calculation.
             from src.analytics.performance import capture_many
             await capture_many(session,session.info.get('board_observations',[]),now)
@@ -75,18 +84,21 @@ async def read_board(session,league,date,team,now,statistical_all=False,include_
         PredictionBoard.payload['items'],PredictionBoard.payload['availability'],
         PredictionBoard.payload['evaluated'],
         PredictionBoard.payload['coupon_records'] if statistical_all else literal(None),
-        PredictionBoard.payload['engine_analysis'] if include_engine_analysis else literal(None)
-    ).options(defer(PredictionBoard.payload)).outerjoin(PredictionBoard).where(League.enabled.is_(True))
+        PredictionBoard.payload['engine_analysis'] if include_engine_analysis else literal(None),BoardHead.version
+    ).options(defer(PredictionBoard.payload)).outerjoin(PredictionBoard).outerjoin(BoardHead,BoardHead.league_id==League.id).where(League.enabled.is_(True))
     if league:query=query.where(League.id==int(league)) if league.isdigit() else query.where(League.name.ilike('%'+league+'%'))
     rows=(await session.execute(query)).all()
     # Current statuses prevent a cached prematch pick appearing after kickoff or completion.
     eligible=dict((await session.execute(select(Match.id,Match.kickoff_at).join(League).where(League.enabled.is_(True),Match.status=='scheduled',Match.kickoff_at>now,Match.kickoff_at<=now+timedelta(days=7)))).all())
-    items=[];availability=[];engine_analysis=[];times=[];revisions={};missing=[];stale=[];evaluated=0
-    for id,board,source,board_availability,board_evaluated,coupon_records,analysis_rows in rows:
+    items=[];availability=[];engine_analysis=[];times=[];expiries=[];revisions={};missing=[];stale=[];evaluated=0;versions={}
+    for id,board,source,board_availability,board_evaluated,coupon_records,analysis_rows,version in rows:
         if board is None or board.model_version!=MODEL_VERSION:missing.append(id);continue
-        times.append(aware(board.generated_at));revisions[str(id)]=board.source_revision
         expired=aware(board.expires_at)<=now or aware(board.generated_at)>now
-        if expired:stale.append(id)
+        if expired:
+            stale.append(id)
+            continue  # One delayed league must not erase other fresh publications.
+        versions[str(id)]=version or board.source_revision
+        times.append(aware(board.generated_at));expiries.append(aware(board.expires_at));revisions[str(id)]=board.source_revision
         evaluated+=board_evaluated
         if statistical_all:
             source=[{'match':r['match'],'recommendations':r['candidates'],'as_of':board.generated_at} for r in (coupon_records or [])]
@@ -108,9 +120,9 @@ async def read_board(session,league,date,team,now,statistical_all=False,include_
     session.info['engine_analysis']=engine_analysis
     session.info['count_availability']=availability
     session.info['prediction_snapshot']={
-        'status':'warming' if missing and not times else 'partial' if missing else 'stale' if stale else 'fresh',
-        'checked_at':now,'stale':bool(stale or missing),'generated_at':min(times) if times else None,
+        'status':('warming' if missing else 'stale') if not times else 'partial' if missing or stale else 'fresh',
+        'checked_at':now,'stale':not bool(times),'generated_at':min(times) if times else None,
         'latest_generated_at':max(times) if times else None,
-        'expires_at':min(times)+TTL if times else None,'model_version':MODEL_VERSION,
-        'source_revisions':revisions,'missing_leagues':missing,'stale_leagues':stale}
+        'expires_at':min(expiries) if expiries else None,'model_version':MODEL_VERSION,
+        'publication_versions':versions,'source_revisions':revisions,'missing_leagues':missing,'stale_leagues':stale}
     return items,now,evaluated

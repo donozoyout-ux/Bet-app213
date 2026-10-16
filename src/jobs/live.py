@@ -266,7 +266,14 @@ async def priority_cycle(db,client):
     db.next_prediction_refresh=time.monotonic()+10
     try:
         from src.analytics.board_cache import refresh_one
-        await refresh_one(db)
+        from src.query_profile import profile
+        with profile('board_worker'):
+            await refresh_one(db)
+        from src.analytics.publications import publish_daily
+        async with db.session() as publication_session:
+            with profile('daily_worker'):
+                await publish_daily(publication_session,utcnow())
+            await publication_session.commit()
     except asyncio.CancelledError:raise
     except Exception as exc:
         db.next_prediction_refresh=time.monotonic()+60

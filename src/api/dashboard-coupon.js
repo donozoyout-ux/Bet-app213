@@ -1,7 +1,7 @@
 /* Verified quotes, in-memory draft, read-only settlement. */
 (() => {
 'use strict';
-const $=id=>document.getElementById(id),selected=new Map();
+const $=id=>document.getElementById(id),selected=new Map();let dailyPublication=null;
 const money=n=>n==null?'—':!Number.isFinite(Number(n))?String(n):Number(n).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});
 const date=s=>s?new Date(s).toLocaleString('tr-TR',{timeZone:'Europe/Istanbul'}):'Gözlem zamanı bilinmiyor';
 const confidence={high:'Yüksek',medium:'Orta',low:'Düşük'};
@@ -167,6 +167,7 @@ function loadCoupon(data){
  draw();text('coupon-note',data.items?.length?'Kupon yüklendi; çıkarabilir veya uygun başka seçim ekleyebilirsiniz.':'Güncel, güçlü ve doğrulanmış seçim bulunamadı.');
 }
 function renderDaily(data){
+ dailyPublication=data;
  const box=$('coupon-daily');if(!box)return;
  box.replaceChildren();
  const diagnostics=data.diagnostics || {}, updates=data.data_updates || {};
@@ -221,10 +222,10 @@ function renderDaily(data){
 async function generate(activate=true){
  const generation=draftGeneration;
  const button=$('coupon-automatic');if(button)button.disabled=true;
- try{const strategy=$('coupon-strategy')?.value || 'balanced';const data=await api('/api/coupons/automatic?'+new URLSearchParams({strategy}),{});if(generation!==draftGeneration)return;text('coupon-day',data.coupon_date || new Date().toLocaleDateString('tr-TR',{timeZone:'Europe/Istanbul'}));renderDaily(data);
+ try{const strategy=$('coupon-strategy')?.value || 'balanced';const data=await api((activate?'/api/coupons/automatic?':'/api/coupons/daily?')+new URLSearchParams({strategy}),activate?{}:undefined);if(generation!==draftGeneration)return;if(!activate && data.publication_version && data.publication_version===dailyPublication?.publication_version && data.items?.length===dailyPublication.items?.length){dailyPublication=data;text('coupon-note','Kaydedilmiş günlük kupon doğrulandı.');return;}text('coupon-day',data.coupon_date || new Date().toLocaleDateString('tr-TR',{timeZone:'Europe/Istanbul'}));renderDaily(data);
   if(data.items?.length && (activate || !dirty && saved?.kind!=='manual')){if(activate && (dirty || saved?.kind==='manual'))manualDraft={items:[...selected.values()],saved,dirty};loadCoupon(data);if($('coupon-tools') && !$('coupon-tools').open)text('coupon-note',`${data.items.length} maç seçildi · Dinamik seçim · Son kontrol: ${date(data.data_updates?.checked_at)}`);}
-  else if(!data.items?.length){if(!dirty && saved?.kind==='automatic'){selected.clear();saved=null;text('coupon-saved-note','');draw();}text('coupon-note',data.message || 'Bugün kalite eşiğini geçen ve güncel oranı doğrulanmış seçim bulunamadı; manuel taslak korunuyor.');}historyOffset=0;if(!$('coupon-tools') || $('coupon-tools').open)await history();}
- catch(_){text('coupon-day','Tarih doğrulanamadı');text('coupon-note','Otomatik kupon oluşturulamadı. Yeniden deneyin.');text('coupon-daily','Günlük kupon bağlantısı bekleniyor. Yeniden deneyin.');}
+  else if(!data.items?.length){if(!dirty && saved?.kind==='automatic'){selected.clear();saved=null;text('coupon-saved-note','');draw();}text('coupon-note',data.message || 'Bugün kalite eşiğini geçen ve güncel oranı doğrulanmış seçim bulunamadı; manuel taslak korunuyor.');}if(activate){historyOffset=0;if(!$('coupon-tools') || $('coupon-tools').open)await history();}}
+ catch(_){expireDaily();globalThis.BetAppRevision?.failed('coupons');if(!$('coupon-daily')?.querySelector?.('.daily-selection'))text('coupon-day','Tarih doğrulanamadı');text('coupon-note','Günlük kupon API hatası. Geçerli kaydı yeniden kontrol edebilirsiniz.');if(!$('coupon-daily')?.querySelector?.('.daily-selection'))text('coupon-daily','Günlük kupon API hatası. Yeniden deneyin.');}
  finally{if(button)button.disabled=false;}
 }
 async function save(){
@@ -282,5 +283,14 @@ if($('coupon-history-refresh'))$('coupon-history-refresh').onclick=history;
 if($('coupon-telegram'))$('coupon-telegram').onclick=share;
 if($('telegram-verify'))$('telegram-verify').onclick=verifyConnection;
 if($('coupon-tools'))$('coupon-tools').ontoggle=()=>{if($('coupon-tools').open)refresh();};
-globalThis.BetAppCoupon=Object.freeze({refresh});restore();draw();
+function expireDaily(){
+ if(!dailyPublication?.items?.length)return;
+ if(new Date().toLocaleDateString('en-CA',{timeZone:'Europe/Istanbul'})!==dailyPublication.coupon_date || dailyPublication.valid_until && Date.parse(dailyPublication.valid_until)<=Date.now() || dailyPublication.items.some(i=>Date.parse(i.match.kickoff_at)<=Date.now() || Date.parse(i.quote.expires_at)<=Date.now())){
+   renderDaily({...dailyPublication,items:[],message:'Kupon günü, maç veya fiyat geçerliliği sona erdi. Yeni doğrulama bekleniyor.'});
+   if(!dirty && saved?.kind==='automatic'){selected.clear();saved=null;draw();}
+ }
+}
+function acceptRevision(meta){const fresh=meta.daily?.[dailyPublication?.strategy || 'balanced'];if(fresh?.valid && fresh.version===dailyPublication?.publication_version)dailyPublication.valid_until=fresh.valid_until;}
+globalThis.setInterval?.(expireDaily,1000);
+globalThis.BetAppCoupon=Object.freeze({refresh,refreshDaily:()=>generate(false),acceptRevision});restore();draw();
 })();

@@ -143,6 +143,7 @@ async def test_duplicate_refresh_and_hidden_tab_do_not_create_polling_storm(api)
         try:
             await page.clock.install()
             await page.goto('http://test/#predictions')
+            await page.locator('#analysis-advanced > summary').click()
             await asyncio.wait_for(entered.wait(),5)
             await page.evaluate('BetAppMarket.refresh(); BetAppMarket.refresh(); BetAppMarket.refresh()')
             assert sum(path.startswith('/api/predictions/best') for path in calls)==1
