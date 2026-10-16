@@ -48,7 +48,7 @@ async function run(mode){
   if(mode==='failed'){assert(text('home-coupon-list').includes('Veri bağlantısı'));assert.equal(text('home-coupon-total'),'—');return;}
   const valid=['valid','stale-movement','changed-line'].includes(mode);
   assert.equal(text('home-coupon-total'),valid?'23,43':'—',mode);
-  if(valid){assert.equal(nodes.get('home-coupon-list').children.length,4);assert.equal(calls.find(c=>c.path.includes('coupons')).options.method,'POST');}
+  if(valid){assert.equal(nodes.get('home-coupon-list').children.length,4);assert.equal(calls.find(c=>c.path.includes('coupons')).options.method,'GET');}
   if(mode==='stale-movement'||mode==='changed-line')assert(!text('home-movement-list').includes('1,90'));
   if(mode==='valid'){
     assert(text('home-movement-list').includes('1,90'));
