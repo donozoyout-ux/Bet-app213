@@ -160,7 +160,7 @@ async def test_delayed_detail_and_expired_board_are_never_restored(api,db,monkey
             await page.clock.fast_forward(601000)
             await expect(page.locator('[data-analysis-match]')).to_have_count(0)
             await expect(page.locator('#analysis-selected')).not_to_be_visible()
-            await expect(page.locator('#match-analysis-status')).to_contain_text('güncel değil')
+            await expect(page.locator('#match-analysis-status')).to_contain_text('Analiz süresi doldu')
         finally:
             release.set();await page.unroute_all(behavior='ignoreErrors');await browser.close()
 

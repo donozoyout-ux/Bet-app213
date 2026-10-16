@@ -178,6 +178,7 @@ async def test_ai_explanation_real_api_background_and_disabled_states(api,db,mon
             await expect(page.locator('#learning-coverage')).to_contain_text('AI anlatımı hazır değil')
             monkeypatch.setattr(ai,'config',lambda:CFG)
             await page.locator('#learning-refresh').click()
+            await expect(page.locator('#learning-lessons')).to_have_attribute('aria-busy','false')
             await expect(page.locator('.learning-ai')).to_have_count(0)
             await expect(page.locator('#learning-coverage')).to_contain_text('AI anlatımı hazır değil')
             def provider(request):calls.append(request);return success(request)
