@@ -97,8 +97,10 @@ async def read_board(session,league,date,team,now,statistical_all=False,include_
             from sqlalchemy.dialects.postgresql import JSONB
             data=data.cast(JSONB)
         base=select(PredictionBoard.league_id,data.label('data'))\
+            .outerjoin(BoardHead,BoardHead.league_id==PredictionBoard.league_id)\
             .where(or_(*[(PredictionBoard.league_id==id) & (PredictionBoard.source_revision==b.source_revision)
-                & (PredictionBoard.generated_at==b.generated_at) for id,b,v in valid])).cte('publication_json')
+                & (PredictionBoard.generated_at==b.generated_at)
+                & (BoardHead.version==v if v else BoardHead.version.is_(None)) for id,b,v in valid])).cte('publication_json')
         # JSON columns otherwise get parsed independently for every extraction.
         # Materialize the JSONB conversion once; send only requested fields.
         base=base.prefix_with('MATERIALIZED',dialect='postgresql')

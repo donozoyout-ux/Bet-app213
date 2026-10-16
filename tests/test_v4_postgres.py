@@ -8,7 +8,7 @@ from sqlalchemy.schema import CreateSchema,DropSchema
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from httpx import AsyncClient,ASGITransport
 from src.db import Database
-from src.models import PredictionBoard,Match
+from src.models import PredictionBoard,Match,MarketOdds
 from src.analytics.board_cache import read_board,payload_cache
 from tests.test_automatic_telegram import many_matches,NOW
 
@@ -42,6 +42,12 @@ async def test_pg_concurrent_publication_reads_fresh_guards_and_http(monkeypatch
         await asyncio.gather(*(read() for _ in range(8)))
         assert sum('prediction_boards.payload' in q for q in queries)==1
         event.remove(db.engine.sync_engine,'before_cursor_execute',collect)
+        from src.analytics.publications import publish_board
+        async with db.session() as s:
+            b=await s.scalar(select(PredictionBoard));changed=deepcopy(b.payload)
+            changed['items'][0]['recommendations'][0]['probability']-=.001
+            await publish_board(s,b,NOW,candidate_payload=changed);await s.commit()
+        assert (await read())[0][0]['recommendations'][0]['probability']!=warm[0][0]['recommendations'][0]['probability']
         from src.api.main import app
         import src.api.routes as routes
         from src.api.routes import session_dependency
@@ -56,6 +62,12 @@ async def test_pg_concurrent_publication_reads_fresh_guards_and_http(monkeypatch
                     r=await api.get(path);responses.append(dict(path=path,status=r.status_code,rendered=len(r.json().get('items',[]))))
                 http_ms=(time.perf_counter()-start)*1000
                 assert all(r['status']==200 and r['rendered']>0 for r in responses)
+                from tests.odds_fixture import move_observations
+                async with db.session() as s:
+                    for price in await s.scalars(select(MarketOdds)):move_observations(price,NOW-timedelta(seconds=901))
+                    await s.commit()
+                unpriced=(await api.get('/api/predictions')).json()
+                assert len(unpriced['items'])==4 and unpriced['cache']['verified_price_matches']==0
                 async with db.session() as s:
                     m=await s.get(Match,warm[0][0]['match']['id']);m.status='live';await s.commit()
                 assert len((await api.get('/api/predictions')).json()['items'])==3
