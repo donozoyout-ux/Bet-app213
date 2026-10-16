@@ -125,7 +125,10 @@ async def test_reused_coupon_has_current_explanations_without_rewriting_history(
         board=await session.scalar(select(PredictionBoard));data=deepcopy(board.payload)
         excluded=next(i for i in data['items'] if i['match']['id'] not in selected)
         for c in excluded['recommendations']:c['qualifies']=False
-        board.payload=data;await session.commit()
+        board.payload=data
+        from src.analytics.publications import publish_board
+        await publish_board(session,board,NOW)
+        await session.commit()
     second=(await api.post('/api/coupons/automatic')).json()
     assert second['id']==first['id']
     assert second['selection_policy']['qualified_candidates']==first['selection_policy']['qualified_candidates']-2
