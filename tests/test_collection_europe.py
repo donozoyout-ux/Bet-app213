@@ -202,6 +202,9 @@ async def test_domestic_exact_identity_and_asof_no_future_leakage(api,db,monkeyp
     target=await verify_domestic(db)
     import src.api.routes as routes
     monkeypatch.setattr(routes,'utcnow',lambda:NOW)
+    from src.analytics.board_cache import refresh_one
+    async with db.session() as session:league=(await session.get(Match,target)).league_id
+    await refresh_one(db,now=NOW,force_league=league)
     data=(await api.get(f'/api/matches/{target}/statistics')).json()
     assert data['domestic_context']['home']['available']
     assert data['prediction']['status']=='insufficient_data'
