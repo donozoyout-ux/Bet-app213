@@ -57,6 +57,18 @@ async def test_detail_is_persisted_read_only_and_fails_closed(api,db,monkeypatch
     assert r.status_code==503 and r.json()['detail']['code']=='analysis_publication_pending'
 
 
+async def test_team_identity_changes_publication_even_with_same_display_data(db):
+    from sqlalchemy.orm import undefer
+    from src.analytics.publications import publish_match_analyses
+    target,*_=await seed(db)
+    async with db.session() as s:
+        row=await s.get(PublishedMatchAnalysis,target,options=[undefer(PublishedMatchAnalysis.payload)])
+        version=row.version;data=deepcopy(row.payload)
+        data['engine_context']['home_team_id']+=100000
+        await publish_match_analyses(s,{target:data},row.board_version,row.model_version,NOW,row.expires_at)
+        assert row.version!=version
+
+
 async def test_history_reads_actual_prematch_archive_without_hindsight_model(api,db,monkeypatch):
     import src.api.routes as routes
     target,*_=await seed(db)

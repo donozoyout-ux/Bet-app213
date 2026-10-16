@@ -25,7 +25,7 @@ async def publish_match_analyses(session,analyses,board_version,model_version,no
     existing={r.match_id:r for r in await session.scalars(select(PublishedMatchAnalysis).where(PublishedMatchAnalysis.match_id.in_(analyses)))} if analyses else {}
     for match_id,data in analyses.items():
         payload=jsonable_encoder(data)
-        evidence=analysis_evidence(stable(payload));evidence.pop('engine_context',None)
+        evidence=analysis_evidence(stable(payload))
         version=digest(evidence)
         row=existing.get(match_id)
         if row is None:
