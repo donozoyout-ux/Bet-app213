@@ -57,7 +57,8 @@ async def read_match_analysis(session,match,now):
     context=data.get('engine_context',{})
     if context and (context.get('home_team_id')!=match.home_team_id or context.get('away_team_id')!=match.away_team_id):return None
     data['as_of']=aware(row.checked_at)
-    data['publication']=dict(version=row.version,generated_at=aware(row.generated_at),checked_at=aware(row.checked_at),status='archived' if historical else 'current')
+    data['publication']=dict(version=row.version,board_version=row.board_version,model_version=row.model_version,
+        generated_at=aware(row.generated_at),checked_at=aware(row.checked_at),status='archived' if historical else 'current')
     data['historical']=historical
     data['cache_seconds']=0 if historical else max(1,int((aware(row.expires_at)-aware(row.checked_at)).total_seconds()))
     if historical:

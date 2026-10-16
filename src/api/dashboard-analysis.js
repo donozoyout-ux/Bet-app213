@@ -205,6 +205,8 @@
         if(state.items.length)select(state.items[0].match.id);else empty('Maç artık yaklaşan uygun karşılaşmalar arasında değil.');return;
       }
       const rec=[...(data.recommendations || []),...(data.candidates || [])].find(r=>r.id===item.recommendation.id && r.qualifies===true);
+      const version=state.board?.cache?.publication_versions?.[String(item.match.league_id)];
+      if(version && data.publication?.board_version && data.publication.board_version!==version)throw new Error('Invalid analysis evidence');
       if(data.match?.id!==id || data.historical || !future(data.match) || Date.parse(data.match.kickoff_at)!==Date.parse(item.match.kickoff_at) ||
         !boardFresh() || !rec || !Number.isFinite(Date.parse(data.as_of)) || Date.parse(data.as_of)>now() ||
         !(data.cache_seconds>0) || Date.parse(data.as_of)+data.cache_seconds*1000<=now())throw new Error('Invalid analysis evidence');
