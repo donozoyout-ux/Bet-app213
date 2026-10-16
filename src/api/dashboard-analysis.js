@@ -88,6 +88,7 @@
       write('match-analysis-status','Son doğrulanmış liste gösteriliyor · arka planda güncelleme kontrol ediliyor.');
       write('analysis-check-time',`Son doğrulanmış analiz: ${date(saved.page.generated_at)} · Yeniden kontrol bekleniyor`);
       // Details need a fresh validation; no persisted quote eligibility is trusted.
+      select(selected);
     } catch (_) {state.board=null;state.items=[];}
   }
   function fingerprint(page,listing) {
@@ -171,11 +172,11 @@
       if(!nextItems.length){state.items=[];state.fingerprint=null;empty('Kalite eşiklerini geçen yaklaşan maç yok. Listeyi doldurmak için eşikler düşürülmez.');return;}
       state.items=nextItems;state.fingerprint=nextFingerprint;persist(page);
       write('match-analysis-status',changed?'Güncel analiz doğrulandı.':'Değişiklik yok · maçlar aynı sırada korunuyor.');
-      if(!changed)return; // Preserve selected match, open accordion and scroll on identical data.
+      if(!changed){if(!state.quotes.size)quote(generation);return;} // Keep selected match, accordion and scroll.
       state.quotes.clear();
       const selected=state.items.find(i=>i.match.id===state.selected)?.match.id || state.items[0].match.id;
       if(state.selected!==selected){renderStrip();select(selected);}
-      else {renderStrip();if(state.detail)renderDetail();}
+      else {renderStrip();select(selected);}
       quote(generation);
     } catch (error) {if(!controller.signal.aborted && generation===state.generation && active()){
       const message=error.message==='HTTP 504'?'API 504 zaman aşımı. Mevcut doğrulanmış liste korunuyor.':'Veri kontrolü başarısız. Mevcut doğrulanmış liste korunuyor.';
