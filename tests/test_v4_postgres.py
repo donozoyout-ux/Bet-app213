@@ -68,6 +68,10 @@ async def test_pg_concurrent_publication_reads_fresh_guards_and_http(monkeypatch
             head=await s.get(BoardHead,target.league_id);board=await s.get(PredictionBoard,target.league_id)
             await publish_match_analyses(s,{target.id:result},head.version,board.model_version,NOW,board.expires_at)
             await s.commit();detail_id=target.id
+        calculate=routes.compute_statistics
+        async def legacy_statistics(match_id,session):
+            row=(await session.execute(routes.match_query()[0].where(Match.id==match_id))).first()
+            return await calculate(session,row[0],routes.match_response(row),NOW)
         async def forbidden(*a,**k):raise AssertionError('HTTP calculated a model')
         monkeypatch.setattr(routes,'compute_statistics',forbidden)
         async def session():
@@ -80,7 +84,23 @@ async def test_pg_concurrent_publication_reads_fresh_guards_and_http(monkeypatch
                     r=await api.get(path);responses.append(dict(path=path,status=r.status_code,rendered=len(r.json().get('items',[]))))
                 http_ms=(time.perf_counter()-start)*1000
                 assert all(r['status']==200 and r['rendered']>0 for r in responses)
-                detail=await api.get(f'/api/matches/{detail_id}/statistics')
+                # Same URL, DB, clock and response schema: reproduce the old
+                # foreground calculation only in this isolated benchmark.
+                from src.analytics import service
+                service._cache.clear();analysis_queries=[]
+                def count_analysis(conn,cursor,statement,*args):analysis_queries.append(statement)
+                current_reader=routes.read_published_statistics
+                monkeypatch.setattr(routes,'read_published_statistics',legacy_statistics)
+                event.listen(db.engine.sync_engine,'before_cursor_execute',count_analysis)
+                start=time.perf_counter();legacy=await api.get(f'/api/matches/{detail_id}/statistics')
+                analysis_before_ms=(time.perf_counter()-start)*1000;analysis_before_sql=len(analysis_queries)
+                monkeypatch.setattr(routes,'read_published_statistics',current_reader)
+                service._cache.clear();analysis_queries.clear()
+                start=time.perf_counter();detail=await api.get(f'/api/matches/{detail_id}/statistics')
+                analysis_after_ms=(time.perf_counter()-start)*1000;analysis_after_sql=len(analysis_queries)
+                event.remove(db.engine.sync_engine,'before_cursor_execute',count_analysis)
+                assert legacy.status_code==200 and legacy.json()['prediction']==detail.json()['prediction']
+                assert analysis_after_sql<analysis_before_sql
                 assert detail.status_code==200 and detail.json()['publication']['status']=='current'
                 assert (await api.get(f'/api/matches/{detail_id}/statistics')).json()['publication']==detail.json()['publication']
                 from tests.odds_fixture import move_observations
@@ -95,7 +115,7 @@ async def test_pg_concurrent_publication_reads_fresh_guards_and_http(monkeypatch
                 monkeypatch.setattr(routes,'utcnow',lambda:NOW+timedelta(hours=1))
                 assert (await api.get('/api/predictions')).json()['items']==[]
         finally:app.dependency_overrides.clear()
-        print('V4_PUBLICATION_BENCHMARK '+json.dumps(dict(basis='isolated PostgreSQL synthetic evidence fixture; not deployed production',cold_ms=round(cold_ms,3),warm_ms=round(warm_ms,3),cold_sql=cold_sql,warm_sql=warm_sql,concurrent_readers=8,concurrent_payload_reads=1,http_total_ms=round(http_ms,3),responses=responses,plan=plan)))
+        print('V4_PUBLICATION_BENCHMARK '+json.dumps(dict(basis='isolated PostgreSQL synthetic evidence fixture; not deployed production',cold_ms=round(cold_ms,3),warm_ms=round(warm_ms,3),cold_sql=cold_sql,warm_sql=warm_sql,concurrent_readers=8,concurrent_payload_reads=1,http_total_ms=round(http_ms,3),responses=responses,analysis_before_ms=round(analysis_before_ms,3),analysis_after_ms=round(analysis_after_ms,3),analysis_before_sql=analysis_before_sql,analysis_after_sql=analysis_after_sql,plan=plan)))
     finally:
         async with db.engine.begin() as conn:await conn.execute(DropSchema(schema,cascade=True))
         await db.close()
