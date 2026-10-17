@@ -41,6 +41,8 @@ jobs:
         run: |
           python - <<'PY'
           import asyncio, os
+          from scripts.render_external_database import external_database_url
+          os.environ['DATABASE_URL'] = external_database_url(os.environ['DATABASE_URL'])
           from scripts.europe_bounded_history import run
           from src.db import database
           async def main():
