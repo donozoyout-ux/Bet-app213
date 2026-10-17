@@ -68,9 +68,10 @@ class Database:
                 async with async_sessionmaker(conn, expire_on_commit=False)() as session:
                     records=verified_snapshot()
                     if settings.app_env == 'production':
-                        from src.scrapers.goaloo.competitions import PRODUCTION_LEAGUE_IDS, apply_production_scope, approved_europe_snapshot
+                        from src.scrapers.goaloo.competitions import PRODUCTION_LEAGUE_IDS, apply_production_scope, approved_europe_snapshot, reviewed_europe_snapshot
                         records=[r for r in records if r['external_id'] in PRODUCTION_LEAGUE_IDS]
                         records.extend(approved_europe_snapshot())
+                        records.extend(reviewed_europe_snapshot())
                     await upsert_competitions(session, records)
                     if settings.app_env == 'production':await apply_production_scope(session)
             for external_id, name in [(3, 'Crown'), (8, 'Bet365'), (31, 'Sbobet')]:

@@ -3,7 +3,7 @@
 python -m src.scrapers.goaloo.competitions [--output report.json] [--seed]
 Catalog discovery remains independent of the explicit eight-league production rollout.
 """
-PRODUCTION_LEAGUE_IDS = (36,31,34,8,11,30,16,23,103,113,2187,315,348)
+PRODUCTION_LEAGUE_IDS = (36,31,34,8,11,30,16,23,103,113,2187,315,348,5,29)
 UEFA_COMPETITIONS = {103: 'UEFA Champions League', 113: 'UEFA Europa League', 2187: 'UEFA Conference League'}
 
 import argparse
@@ -157,6 +157,8 @@ async def verify_competition(client, competition, include_overlapping=False):
     competition.error = None
     try:
         seasons = await discover_seasons(client, competition.external_id, 2024, overlap=include_overlapping or competition.competition_type == 'national')
+        if competition.competition_type == 'club':
+            seasons = [s for s in seasons if int(s[-4:]) >= 2024]
         if not seasons:
             raise SourceError('No available tournaments overlapping 2024 onward')
         competition.seasons, competition.latest_season = seasons, seasons[-1]
@@ -294,6 +296,31 @@ def approved_europe_snapshot():
         if not row.get('verified') or not row.get('verified_at') or row.get('error') or row.get('country') != expected[id][0] or row.get('catalog_name') != expected[id][1] or row.get('schedule_format') != 'league' or row.get('competition_type') != 'club':
             raise SourceError('European pilot source identity is not verified')
     return [rows[id] for id in sorted(approved)]
+
+def reviewed_europe_snapshot():
+    """Reviewed catalog rows; only existing, well-populated 5/29 become active.
+
+    Other rows remain import-only under the unchanged production scope rules.
+    """
+    path = Path(__file__).resolve().parents[3] / 'docs/europe-quality-live.json'
+    report = json.loads(path.read_text(encoding='utf-8'))
+    if report.get('from_year') != 2024 or report.get('production_activation') is not False:
+        raise SourceError('Invalid European quality review')
+    approved = []
+    allowed = {3,5,6,7,22,26,27,29,32,37,133,137}
+    for row in report['competitions']:
+        if not row.get('approved'):
+            continue
+        if (row['external_id'] not in allowed or not row.get('verified')
+                or not row.get('verified_at') or row.get('error')
+                or row.get('sample_count',0) < 6
+                or row.get('complete_sample_count',0)/row['sample_count'] < .8
+                or row.get('schedule_parse_error_count') != 0
+                or row.get('schedule_request_error_rate') != 0):
+            raise SourceError('European quality review failed admission checks')
+        approved.append(row)
+    return approved
+
 
 async def upsert_competitions(session, records):
     from sqlalchemy import select
