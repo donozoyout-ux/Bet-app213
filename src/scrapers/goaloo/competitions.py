@@ -398,6 +398,6 @@ async def apply_production_scope(session):
     await session.execute(update(League).where(League.external_id.not_in(PRODUCTION_LEAGUE_IDS)).values(enabled=False))
     established = set(PRODUCTION_LEAGUE_IDS)-set(STAGED_EUROPE_IDS)
     await session.execute(update(League).where(League.external_id.in_(established)).values(enabled=True))
-    from src.jobs.europe_admission import admission_status
+    from src.jobs.europe_admission import retained_admission
     for league in (await session.scalars(select(League).where(League.external_id.in_(STAGED_EUROPE_IDS)))).all():
-        league.enabled = (await admission_status(session, league))['ready']
+        league.enabled = await retained_admission(session, league)

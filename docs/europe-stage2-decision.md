@@ -59,8 +59,13 @@ After each league's commits, activation reads actual stored fields rather than
 the cached odds_complete flag. Require at least 50 finished 2024+ rows, at least
 95% with all 54 opening/closing prices/lines and FT/HT, and at least 20 complete
 rows within 180 days. Source evidence must pass. If any condition fails, retain
-data and leave the league disabled. Startup applies the same gate to these two
-IDs only; established 15-league scope and existing paused jobs are preserved.
+data and leave the league disabled. The existing supervised job stores the
+admission counts, policy, timestamp and source-evidence hash without replacing
+its other checkpoint metadata. Startup requires this admission proof for these
+two IDs only; established 15-league scope and existing paused jobs are preserved.
+Ordinary schedule discovery can add unpriced fixtures after admission without
+revoking collection scope on restart. Such fixtures still fail the unchanged
+per-match, team, venue, price freshness and coupon qualification rules.
 
 Capacity is checked before every historical network/write boundary and before
 activation. The API health guard runs every five imports; fail/timeout stops

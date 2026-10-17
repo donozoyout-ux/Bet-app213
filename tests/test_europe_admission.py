@@ -2,7 +2,7 @@ from datetime import datetime,timezone,timedelta
 import json
 import pytest
 from sqlalchemy import select
-from src.models import League,Season,Team,Match,Bookmaker,Odds1X2,AsianHandicap,AsianTotals,utcnow
+from src.models import League,Season,Team,Match,Bookmaker,Odds1X2,AsianHandicap,AsianTotals,ScraperJob,utcnow
 from src.jobs.europe_admission import admission_status,activate_reviewed,source_review_passes
 from src.scrapers.goaloo.competitions import apply_production_scope
 
@@ -12,6 +12,7 @@ async def seed_history(db):
     async with db.session() as s:
         league=League(external_id=6,name='Poland',country='Poland',enabled=False)
         s.add(league);await s.flush()
+        s.add(ScraperJob(league_id=league.id,kind='europe_bounded',status='manual_paused',discovery_metrics={'checkpoint':'keep'}))
         season=Season(league_id=league.id,season_name='2026-2027')
         home=Team(external_id=100001,name='Test home');away=Team(external_id=100002,name='Test away')
         s.add_all([season,home,away]);await s.flush()
@@ -47,6 +48,11 @@ async def test_admission_uses_real_fields_and_recent_history_then_preserves_scop
             m.kickoff_at=datetime(2024,1,1,tzinfo=timezone.utc)
         await s.flush()
         assert not (await admission_status(s,league))['ready']
+        await apply_production_scope(s)
+        assert league.enabled  # Retain audited admission as the inventory grows.
+        job=await s.scalar(select(ScraperJob).where(ScraperJob.league_id==id))
+        assert job.discovery_metrics['checkpoint']=='keep'
+        assert job.discovery_metrics['_stage2_admission']['recent_complete']==25
 
 
 async def test_missing_bookmaker_fields_cannot_be_hidden_by_complete_flag(db):
@@ -68,7 +74,17 @@ async def test_missing_bookmaker_fields_cannot_be_hidden_by_complete_flag(db):
 
 
 async def test_twenty_five_ancient_matches_and_unreviewed_ids_are_not_promoted(db):
+    id=await seed_history(db)
     async with db.session() as s:
+        rows=(await s.scalars(select(Match).where(Match.league_id==id).order_by(Match.id))).all()
+        for row in rows[25:]:
+            row.status='scheduled'
+        staged=await s.get(League,id);staged.enabled=True
+        await s.flush()
+        status=await admission_status(s,staged)
+        assert status['finished']==25 and not status['ready']
+        await apply_production_scope(s)
+        assert not staged.enabled  # A bare flag cannot bypass first admission.
         league=await s.scalar(select(League).where(League.external_id==36))
         assert not (await admission_status(s,league))['ready']
         with pytest.raises(ValueError):

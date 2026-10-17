@@ -1,12 +1,38 @@
 """Admission for two reviewed leagues; prediction/quote thresholds are unchanged."""
 from datetime import datetime, timezone, timedelta
 import json
+import hashlib
 from pathlib import Path
 from sqlalchemy import select, and_, func, case, text
-from src.models import Match, Bookmaker, Odds1X2, AsianHandicap, AsianTotals, League, utcnow
+from src.models import Match, Bookmaker, Odds1X2, AsianHandicap, AsianTotals, League, ScraperJob, utcnow
 
 EVIDENCE = Path(__file__).resolve().parents[2]/'docs/europe-stage2-source-audit.json'
 STAGED_IDS = (6, 7)
+POLICY = 'europe-stage2-20261017'
+
+
+async def retained_admission(session, league):
+    """Keep proved collection admission as ordinary discovery adds unpriced rows.
+
+    This never marks any newly discovered fixture/quote as prediction-qualified.
+    The existing supervised job is the durable ledger; no duplicate job/table.
+    """
+    if league.external_id not in STAGED_IDS:
+        return False
+    job=await session.scalar(select(ScraperJob).where(ScraperJob.league_id==league.id,
+        ScraperJob.kind=='europe_bounded').order_by(ScraperJob.id).limit(1))
+    metrics=job.discovery_metrics if job and isinstance(job.discovery_metrics,dict) else {}
+    proof=metrics.get('_stage2_admission',{})
+    if not isinstance(proof,dict):
+        return False
+    try:
+        return bool(proof.get('policy')==POLICY and proof.get('external_id')==league.external_id
+            and proof.get('ready') is True and proof.get('source_reviewed') is True
+            and proof['finished']>=50 and proof['complete_three_books']/proof['finished']>=.95
+            and proof['recent_complete']>=20 and len(proof['source_sha256'])==64
+            and datetime.fromisoformat(proof['admitted_at']))
+    except (KeyError,ValueError,TypeError,ZeroDivisionError):
+        return False
 
 
 def source_review_passes(external_id):
@@ -62,9 +88,20 @@ async def activate_reviewed(session, ids):
         league=await session.scalar(select(League).where(League.external_id==id))
         if league is None:
             raise ValueError('Reviewed league does not exist')
+        if await retained_admission(session,league):
+            league.enabled=True
+            results.append(dict(external_id=id,ready=True,retained=True))
+            continue
         status=await admission_status(session,league)
         if not status['ready']:
             raise ValueError(f'League {id} has insufficient verified recent history')
+        job=await session.scalar(select(ScraperJob).where(ScraperJob.league_id==league.id,
+            ScraperJob.kind=='europe_bounded').order_by(ScraperJob.id).limit(1))
+        if job is None:
+            raise ValueError('Existing supervised history checkpoint is required')
+        job.discovery_metrics={**(job.discovery_metrics or {}),'_stage2_admission':{
+            **status,'policy':POLICY,'admitted_at':utcnow().isoformat(),
+            'source_sha256':hashlib.sha256(EVIDENCE.read_bytes()).hexdigest()}}
         league.enabled=True
         results.append(status)
     await session.flush()
