@@ -193,6 +193,13 @@ async def test_running_stats_item_resumes_after_restart_and_disabled_league_paus
 
 async def test_worker_uses_rollout_order_and_does_not_auto_run_disabled_jobs(db,monkeypatch):
     import src.jobs.worker as worker
+    from dataclasses import replace
+    # Exercise queue ordering only. External UEFA onboarding must not alter this
+    # isolated catalog or make the regression depend on source availability.
+    monkeypatch.setattr(worker,'settings',replace(worker.settings,auto_backfill_on_empty=False))
+    async def no_priority(*args):
+        return None
+    monkeypatch.setattr(worker,'priority_cycle',no_priority)
     monkeypatch.setattr(worker,'database',db)
     async with db.session() as session:
         await upsert_competitions(session,verified_snapshot())
