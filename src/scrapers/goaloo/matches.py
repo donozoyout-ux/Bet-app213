@@ -27,7 +27,13 @@ def expand_schedule_rows(rows):
     league/cup rows unchanged for the existing strict parser.
     """
     for row in rows:
-        if (isinstance(row, list) and len(row) > 4
+        # Championship/Belgium playoff ties place each leg directly at 4, 5...
+        if (isinstance(row, list) and len(row) >= 5
+                and all(isinstance(leg, list) and len(leg) >= 8 for leg in row[4:])
+                and all(str(leg[4]) in {str(row[0]), str(row[1])}
+                        and str(leg[5]) in {str(row[0]), str(row[1])} for leg in row[4:])):
+            yield from row[4:]
+        elif (isinstance(row, list) and len(row) > 4
                 and isinstance(row[4], list) and row[4]
                 and all(isinstance(child, list) for child in row[4])):
             yield from row[4]

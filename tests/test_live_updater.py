@@ -244,10 +244,10 @@ async def test_recent_statistics_rotates_all_eight_leagues_and_reports_progress(
     for _ in range(len(leagues)):await updater.recent_statistics(None)
     assert calls==[l.external_id for l in leagues]
     for _ in range(len(leagues)):await updater.recent_statistics(None)
-    assert len(calls)==8  # Partial data gets a cooldown, not a tight retry loop.
+    assert len(calls)==len(leagues)  # Partial data gets a cooldown, not a tight retry loop.
     rows=(await api.get('/api/diagnostics')).json()['stats_coverage_by_league']
-    assert len(rows)==8 and all(r['matches_with_corners']==1 and r['matches_with_cards']==0 for r in rows)
-    assert [r['stats_backfill']['processed'] for r in rows]==list(range(8))
+    assert len(rows)==len(leagues) and all(r['matches_with_corners']==1 and r['matches_with_cards']==0 for r in rows)
+    assert [r['stats_backfill']['processed'] for r in rows]==list(range(len(leagues)))
 
 
 import os

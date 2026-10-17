@@ -98,7 +98,7 @@ async def test_postgres_10161_matches_concurrent_api_during_stats_backfill(monke
     import src.api.routes as routes
     import src.jobs.worker as worker
     from src.api.main import app
-    from src.scrapers.goaloo.competitions import apply_production_scope
+    from src.scrapers.goaloo.competitions import apply_production_scope, PRODUCTION_LEAGUE_IDS, verified_snapshot
     from tests.test_match_statistics import captured
     db = Database(os.environ['TEST_POSTGRES_URL'])
     schema = 'betapp_latency_' + uuid.uuid4().hex
@@ -114,7 +114,7 @@ async def test_postgres_10161_matches_concurrent_api_during_stats_backfill(monke
         async with db.session() as session:
             await apply_production_scope(session)
             leagues = (await session.scalars(select(League).where(League.enabled))).all()
-            assert len(leagues) == 8
+            assert {l.external_id for l in leagues} == set(PRODUCTION_LEAGUE_IDS).intersection(r['external_id'] for r in verified_snapshot())
             seasons = {league:season}
             for l in leagues:
                 if l.id == league:continue
@@ -122,7 +122,7 @@ async def test_postgres_10161_matches_concurrent_api_during_stats_backfill(monke
                 session.add(s);await session.flush();seasons[l.id] = s.id
             records=[]
             for i in range(10080):
-                lid = leagues[i%8].id
+                lid = leagues[i%len(leagues)].id
                 when = NOW+timedelta(days=2) if i>=10000 else NOW-timedelta(days=2+i%900)
                 records.append(dict(external_match_id=2000000+i,league_id=lid,season_id=seasons[lid],
                     round=1,home_team_id=teams[i%2],away_team_id=teams[1-i%2],
@@ -170,7 +170,7 @@ async def test_postgres_10161_matches_concurrent_api_during_stats_backfill(monke
                 return path,round(elapsed,3)
             timings=await asyncio.gather(*[request(path) for path in paths])
             assert (await client.get('/api/status')).json()['total_matches']==10161
-            assert len((await client.get('/api/leagues')).json())==8
+            assert len((await client.get('/api/leagues')).json())==len(leagues)
             print('PostgreSQL concurrent API seconds:',dict(timings))
             print('PostgreSQL warm board seconds:',dict(await asyncio.gather(*[request(paths[5]),request(paths[6])])))
         release.set();await asyncio.wait_for(task,15)

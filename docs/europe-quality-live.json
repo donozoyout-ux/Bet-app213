@@ -1,0 +1,2751 @@
+{
+  "checked_at": "2026-10-17T11:09:38.360886+00:00",
+  "from_year": 2024,
+  "production_activation": false,
+  "competitions": [
+    {
+      "external_id": 29,
+      "catalog_name": "SCO PR",
+      "country": "Scotland",
+      "competition_type": "club",
+      "schedule_format": "league",
+      "priority": 102,
+      "name": "Scottish Premiership",
+      "latest_season": "2026-2027",
+      "seasons": [
+        "2022-2023",
+        "2023-2024",
+        "2024-2025",
+        "2025-2026",
+        "2026-2027"
+      ],
+      "verified": true,
+      "odds_endpoint": "ok",
+      "odds_books": [
+        "Bet365",
+        "Sbobet",
+        "Crown"
+      ],
+      "historical_matches": 771,
+      "season_counts": {
+        "2022-2023": 0,
+        "2023-2024": 111,
+        "2024-2025": 228,
+        "2025-2026": 234,
+        "2026-2027": 198
+      },
+      "verified_at": "2026-10-17T11:10:33.297775+00:00",
+      "error": null,
+      "sample_match_ids": {
+        "2023-2024": 2413477,
+        "2024-2025": 2600086,
+        "2025-2026": 2791497,
+        "2026-2027": 3002034
+      },
+      "odds_samples": [
+        {
+          "season": "2023-2024",
+          "match_id": 2413556,
+          "kickoff": "2024-01-02T15:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2023-2024",
+          "match_id": 2413538,
+          "kickoff": "2024-03-13T19:45:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2023-2024",
+          "match_id": 2569432,
+          "kickoff": "2024-05-19T14:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2024-2025",
+          "match_id": 2600086,
+          "kickoff": "2024-08-03T11:30:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2024-2025",
+          "match_id": 2600205,
+          "kickoff": "2024-12-29T15:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2024-2025",
+          "match_id": 2766133,
+          "kickoff": "2025-05-18T14:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2025-2026",
+          "match_id": 2791497,
+          "kickoff": "2025-08-02T14:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2025-2026",
+          "match_id": 2791618,
+          "kickoff": "2026-01-03T15:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2025-2026",
+          "match_id": 2988048,
+          "kickoff": "2026-05-25T19:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2026-2027",
+          "match_id": 3002034,
+          "kickoff": "2026-07-31T19:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2026-2027",
+          "match_id": 3002061,
+          "kickoff": "2026-09-03T18:45:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2026-2027",
+          "match_id": 3002076,
+          "kickoff": "2026-10-11T13:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        }
+      ],
+      "sample_error_rate": 0.0,
+      "complete_sample_count": 12,
+      "sample_count": 12,
+      "approved": true,
+      "selection_basis": ">=6 finished samples across seasons; >=80% complete Crown/Bet365/Sbobet FT 1X2/AH/OU opening and closing; zero sample request errors",
+      "fixture_coverage": {
+        "2022-2023": {
+          "dated_fixtures": 0,
+          "finished_matches": 0,
+          "ft_and_ht": 0,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2023-2024": {
+          "dated_fixtures": 111,
+          "finished_matches": 111,
+          "ft_and_ht": 111,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2024-2025": {
+          "dated_fixtures": 228,
+          "finished_matches": 228,
+          "ft_and_ht": 228,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2025-2026": {
+          "dated_fixtures": 234,
+          "finished_matches": 234,
+          "ft_and_ht": 234,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2026-2027": {
+          "dated_fixtures": 198,
+          "finished_matches": 48,
+          "ft_and_ht": 48,
+          "unparsed_rows": 0,
+          "error_examples": []
+        }
+      },
+      "finished_matches": 621,
+      "dated_fixtures": 771,
+      "schedule_parse_error_count": 0,
+      "schedule_request_error_rate": 0.0
+    },
+    {
+      "external_id": 7,
+      "catalog_name": "DEN SASL",
+      "country": "Denmark",
+      "competition_type": "club",
+      "schedule_format": "league",
+      "priority": 104,
+      "name": "Denmark Superliga",
+      "latest_season": "2026-2027",
+      "seasons": [
+        "2022-2023",
+        "2023-2024",
+        "2024-2025",
+        "2025-2026",
+        "2026-2027"
+      ],
+      "verified": true,
+      "odds_endpoint": "ok",
+      "odds_books": [
+        "Bet365",
+        "Sbobet",
+        "Crown"
+      ],
+      "historical_matches": 609,
+      "season_counts": {
+        "2022-2023": 0,
+        "2023-2024": 91,
+        "2024-2025": 193,
+        "2025-2026": 193,
+        "2026-2027": 132
+      },
+      "verified_at": "2026-10-17T11:11:03.119353+00:00",
+      "error": null,
+      "sample_match_ids": {
+        "2023-2024": 2400100,
+        "2024-2025": 2586467,
+        "2025-2026": 2785139,
+        "2026-2027": 2998200
+      },
+      "odds_samples": [
+        {
+          "season": "2023-2024",
+          "match_id": 2400105,
+          "kickoff": "2024-02-16T18:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2023-2024",
+          "match_id": 2557201,
+          "kickoff": "2024-04-14T14:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2023-2024",
+          "match_id": 2582448,
+          "kickoff": "2024-05-31T17:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2024-2025",
+          "match_id": 2586467,
+          "kickoff": "2024-07-19T15:59:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2024-2025",
+          "match_id": 2586563,
+          "kickoff": "2024-11-29T18:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2024-2025",
+          "match_id": 2781741,
+          "kickoff": "2025-06-01T16:30:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2025-2026",
+          "match_id": 2785139,
+          "kickoff": "2025-07-18T17:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2025-2026",
+          "match_id": 2785240,
+          "kickoff": "2025-11-28T18:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2025-2026",
+          "match_id": 2988435,
+          "kickoff": "2026-05-21T16:30:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2026-2027",
+          "match_id": 2998200,
+          "kickoff": "2026-07-24T17:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2026-2027",
+          "match_id": 2998232,
+          "kickoff": "2026-08-30T12:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2026-2027",
+          "match_id": 2998261,
+          "kickoff": "2026-10-16T17:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        }
+      ],
+      "sample_error_rate": 0.0,
+      "complete_sample_count": 12,
+      "sample_count": 12,
+      "approved": true,
+      "selection_basis": ">=6 finished samples across seasons; >=80% complete Crown/Bet365/Sbobet FT 1X2/AH/OU opening and closing; zero sample request errors",
+      "fixture_coverage": {
+        "2022-2023": {
+          "dated_fixtures": 0,
+          "finished_matches": 0,
+          "ft_and_ht": 0,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2023-2024": {
+          "dated_fixtures": 91,
+          "finished_matches": 91,
+          "ft_and_ht": 91,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2024-2025": {
+          "dated_fixtures": 193,
+          "finished_matches": 193,
+          "ft_and_ht": 193,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2025-2026": {
+          "dated_fixtures": 193,
+          "finished_matches": 193,
+          "ft_and_ht": 193,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2026-2027": {
+          "dated_fixtures": 132,
+          "finished_matches": 61,
+          "ft_and_ht": 61,
+          "unparsed_rows": 0,
+          "error_examples": []
+        }
+      },
+      "finished_matches": 538,
+      "dated_fixtures": 609,
+      "schedule_parse_error_count": 0,
+      "schedule_request_error_rate": 0.0
+    },
+    {
+      "external_id": 26,
+      "catalog_name": "SWE D1",
+      "country": "Sweden",
+      "competition_type": "club",
+      "schedule_format": "league",
+      "priority": 106,
+      "name": "Swedish Allsvenskan",
+      "latest_season": "2026",
+      "seasons": [
+        "2023",
+        "2024",
+        "2025",
+        "2026"
+      ],
+      "verified": true,
+      "odds_endpoint": "ok",
+      "odds_books": [
+        "Bet365",
+        "Sbobet",
+        "Crown"
+      ],
+      "historical_matches": 720,
+      "season_counts": {
+        "2023": 0,
+        "2024": 240,
+        "2025": 240,
+        "2026": 240
+      },
+      "verified_at": "2026-10-17T11:11:29.333239+00:00",
+      "error": null,
+      "sample_match_ids": {
+        "2024": 2510495,
+        "2025": 2702887,
+        "2026": 2912107
+      },
+      "odds_samples": [
+        {
+          "season": "2024",
+          "match_id": 2510501,
+          "kickoff": "2024-03-30T14:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2024",
+          "match_id": 2510608,
+          "kickoff": "2024-07-21T14:30:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2024",
+          "match_id": 2510727,
+          "kickoff": "2024-11-10T14:10:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2025",
+          "match_id": 2702887,
+          "kickoff": "2025-03-29T14:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2025",
+          "match_id": 2703003,
+          "kickoff": "2025-07-13T16:30:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2025",
+          "match_id": 2703126,
+          "kickoff": "2025-11-09T14:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2026",
+          "match_id": 2912108,
+          "kickoff": "2026-04-04T13:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2026",
+          "match_id": 2912198,
+          "kickoff": "2026-07-12T12:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2026",
+          "match_id": 2912292,
+          "kickoff": "2026-10-16T17:10:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        }
+      ],
+      "sample_error_rate": 0.0,
+      "complete_sample_count": 9,
+      "sample_count": 9,
+      "approved": true,
+      "selection_basis": ">=6 finished samples across seasons; >=80% complete Crown/Bet365/Sbobet FT 1X2/AH/OU opening and closing; zero sample request errors",
+      "fixture_coverage": {
+        "2023": {
+          "dated_fixtures": 0,
+          "finished_matches": 0,
+          "ft_and_ht": 0,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2024": {
+          "dated_fixtures": 240,
+          "finished_matches": 240,
+          "ft_and_ht": 240,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2025": {
+          "dated_fixtures": 240,
+          "finished_matches": 240,
+          "ft_and_ht": 240,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2026": {
+          "dated_fixtures": 240,
+          "finished_matches": 185,
+          "ft_and_ht": 185,
+          "unparsed_rows": 0,
+          "error_examples": []
+        }
+      },
+      "finished_matches": 665,
+      "dated_fixtures": 720,
+      "schedule_parse_error_count": 0,
+      "schedule_request_error_rate": 0.0
+    },
+    {
+      "external_id": 6,
+      "catalog_name": "POL PR",
+      "country": "Poland",
+      "competition_type": "club",
+      "schedule_format": "league",
+      "priority": 108,
+      "name": "Poland Ekstraklasa",
+      "latest_season": "2026-2027",
+      "seasons": [
+        "2022-2023",
+        "2023-2024",
+        "2024-2025",
+        "2025-2026",
+        "2026-2027"
+      ],
+      "verified": true,
+      "odds_endpoint": "ok",
+      "odds_books": [
+        "Bet365",
+        "Sbobet",
+        "Crown"
+      ],
+      "historical_matches": 1056,
+      "season_counts": {
+        "2022-2023": 0,
+        "2023-2024": 138,
+        "2024-2025": 306,
+        "2025-2026": 306,
+        "2026-2027": 306
+      },
+      "verified_at": "2026-10-17T11:11:48.531019+00:00",
+      "error": null,
+      "sample_match_ids": {
+        "2023-2024": 2399512,
+        "2024-2025": 2588240,
+        "2025-2026": 2785271,
+        "2026-2027": 3003080
+      },
+      "odds_samples": [
+        {
+          "season": "2023-2024",
+          "match_id": 2399678,
+          "kickoff": "2024-02-09T17:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2023-2024",
+          "match_id": 2399740,
+          "kickoff": "2024-04-06T15:30:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2023-2024",
+          "match_id": 2399805,
+          "kickoff": "2024-05-25T16:10:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2024-2025",
+          "match_id": 2588242,
+          "kickoff": "2024-07-19T15:59:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2024-2025",
+          "match_id": 2588393,
+          "kickoff": "2024-12-06T19:30:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2024-2025",
+          "match_id": 2588545,
+          "kickoff": "2025-05-24T15:30:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2025-2026",
+          "match_id": 2785273,
+          "kickoff": "2025-07-18T16:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2025-2026",
+          "match_id": 2785431,
+          "kickoff": "2025-12-07T11:15:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2025-2026",
+          "match_id": 2785576,
+          "kickoff": "2026-05-23T15:30:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2026-2027",
+          "match_id": 3003084,
+          "kickoff": "2026-07-24T16:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2026-2027",
+          "match_id": 3003125,
+          "kickoff": "2026-08-30T15:30:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2026-2027",
+          "match_id": 3003175,
+          "kickoff": "2026-10-16T18:30:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        }
+      ],
+      "sample_error_rate": 0.0,
+      "complete_sample_count": 12,
+      "sample_count": 12,
+      "approved": true,
+      "selection_basis": ">=6 finished samples across seasons; >=80% complete Crown/Bet365/Sbobet FT 1X2/AH/OU opening and closing; zero sample request errors",
+      "fixture_coverage": {
+        "2022-2023": {
+          "dated_fixtures": 0,
+          "finished_matches": 0,
+          "ft_and_ht": 0,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2023-2024": {
+          "dated_fixtures": 138,
+          "finished_matches": 138,
+          "ft_and_ht": 138,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2024-2025": {
+          "dated_fixtures": 306,
+          "finished_matches": 306,
+          "ft_and_ht": 306,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2025-2026": {
+          "dated_fixtures": 306,
+          "finished_matches": 306,
+          "ft_and_ht": 306,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2026-2027": {
+          "dated_fixtures": 306,
+          "finished_matches": 90,
+          "ft_and_ht": 90,
+          "unparsed_rows": 0,
+          "error_examples": []
+        }
+      },
+      "finished_matches": 840,
+      "dated_fixtures": 1056,
+      "schedule_parse_error_count": 0,
+      "schedule_request_error_rate": 0.0
+    },
+    {
+      "external_id": 32,
+      "catalog_name": "GRE D1",
+      "country": "Greece",
+      "competition_type": "club",
+      "schedule_format": "league",
+      "priority": 108,
+      "name": "Greece Super League A",
+      "latest_season": "2026-2027",
+      "seasons": [
+        "2022-2023",
+        "2023-2024",
+        "2024-2025",
+        "2025-2026",
+        "2026-2027"
+      ],
+      "verified": true,
+      "odds_endpoint": "ok",
+      "odds_books": [
+        "Bet365",
+        "Sbobet",
+        "Crown"
+      ],
+      "historical_matches": 789,
+      "season_counts": {
+        "2022-2023": 0,
+        "2023-2024": 135,
+        "2024-2025": 236,
+        "2025-2026": 236,
+        "2026-2027": 182
+      },
+      "verified_at": "2026-10-17T11:12:11.698609+00:00",
+      "error": null,
+      "sample_match_ids": {
+        "2023-2024": 2438192,
+        "2024-2025": 2624065,
+        "2025-2026": 2822107,
+        "2026-2027": 3036405
+      },
+      "odds_samples": [
+        {
+          "season": "2023-2024",
+          "match_id": 2438244,
+          "kickoff": "2024-01-03T14:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2023-2024",
+          "match_id": 2438306,
+          "kickoff": "2024-02-28T17:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2023-2024",
+          "match_id": 2550321,
+          "kickoff": "2024-05-19T17:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2024-2025",
+          "match_id": 2624070,
+          "kickoff": "2024-08-17T17:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2024-2025",
+          "match_id": 2624182,
+          "kickoff": "2025-01-06T16:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2024-2025",
+          "match_id": 2756390,
+          "kickoff": "2025-05-22T17:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2025-2026",
+          "match_id": 2822108,
+          "kickoff": "2025-08-23T17:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2025-2026",
+          "match_id": 2822228,
+          "kickoff": "2026-01-24T17:30:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2025-2026",
+          "match_id": 2973363,
+          "kickoff": "2026-05-21T16:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2026-2027",
+          "match_id": 3036405,
+          "kickoff": "2026-08-22T17:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2026-2027",
+          "match_id": 3036430,
+          "kickoff": "2026-09-12T16:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2026-2027",
+          "match_id": 3036446,
+          "kickoff": "2026-10-12T15:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        }
+      ],
+      "sample_error_rate": 0.0,
+      "complete_sample_count": 12,
+      "sample_count": 12,
+      "approved": true,
+      "selection_basis": ">=6 finished samples across seasons; >=80% complete Crown/Bet365/Sbobet FT 1X2/AH/OU opening and closing; zero sample request errors",
+      "fixture_coverage": {
+        "2022-2023": {
+          "dated_fixtures": 0,
+          "finished_matches": 0,
+          "ft_and_ht": 0,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2023-2024": {
+          "dated_fixtures": 135,
+          "finished_matches": 135,
+          "ft_and_ht": 135,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2024-2025": {
+          "dated_fixtures": 236,
+          "finished_matches": 236,
+          "ft_and_ht": 236,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2025-2026": {
+          "dated_fixtures": 236,
+          "finished_matches": 236,
+          "ft_and_ht": 236,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2026-2027": {
+          "dated_fixtures": 182,
+          "finished_matches": 42,
+          "ft_and_ht": 42,
+          "unparsed_rows": 0,
+          "error_examples": []
+        }
+      },
+      "finished_matches": 649,
+      "dated_fixtures": 789,
+      "schedule_parse_error_count": 0,
+      "schedule_request_error_rate": 0.0
+    },
+    {
+      "external_id": 133,
+      "catalog_name": "CRO D1",
+      "country": "Croatia",
+      "competition_type": "club",
+      "schedule_format": "league",
+      "priority": 110,
+      "name": "Croatia 1.Division",
+      "latest_season": "2026-2027",
+      "seasons": [
+        "2022-2023",
+        "2023-2024",
+        "2024-2025",
+        "2025-2026",
+        "2026-2027"
+      ],
+      "verified": true,
+      "odds_endpoint": "ok",
+      "odds_books": [
+        "Bet365",
+        "Sbobet",
+        "Crown"
+      ],
+      "historical_matches": 628,
+      "season_counts": {
+        "2022-2023": 0,
+        "2023-2024": 88,
+        "2024-2025": 180,
+        "2025-2026": 180,
+        "2026-2027": 180
+      },
+      "verified_at": "2026-10-17T11:12:36.951219+00:00",
+      "error": null,
+      "sample_match_ids": {
+        "2023-2024": 2399822,
+        "2024-2025": 2587820,
+        "2025-2026": 2795112,
+        "2026-2027": 2997492
+      },
+      "odds_samples": [
+        {
+          "season": "2023-2024",
+          "match_id": 2399957,
+          "kickoff": "2024-01-23T15:59:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2023-2024",
+          "match_id": 2399946,
+          "kickoff": "2024-03-30T13:50:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2023-2024",
+          "match_id": 2399982,
+          "kickoff": "2024-05-26T15:30:00+00:00",
+          "gaps": [
+            {
+              "bookmaker": "Crown",
+              "market": "1x2",
+              "stage": "opening",
+              "missing": [
+                "home",
+                "draw",
+                "away"
+              ]
+            },
+            {
+              "bookmaker": "Crown",
+              "market": "1x2",
+              "stage": "closing",
+              "missing": [
+                "home",
+                "draw",
+                "away"
+              ]
+            },
+            {
+              "bookmaker": "Crown",
+              "market": "ah",
+              "stage": "opening",
+              "missing": [
+                "line",
+                "home",
+                "away"
+              ]
+            },
+            {
+              "bookmaker": "Crown",
+              "market": "ah",
+              "stage": "closing",
+              "missing": [
+                "line",
+                "home",
+                "away"
+              ]
+            },
+            {
+              "bookmaker": "Crown",
+              "market": "ou",
+              "stage": "opening",
+              "missing": [
+                "line",
+                "over",
+                "under"
+              ]
+            },
+            {
+              "bookmaker": "Crown",
+              "market": "ou",
+              "stage": "closing",
+              "missing": [
+                "line",
+                "over",
+                "under"
+              ]
+            }
+          ],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2024-2025",
+          "match_id": 2587820,
+          "kickoff": "2024-08-02T19:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2024-2025",
+          "match_id": 2587913,
+          "kickoff": "2025-01-24T17:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2024-2025",
+          "match_id": 2587995,
+          "kickoff": "2025-05-25T15:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2025-2026",
+          "match_id": 2795113,
+          "kickoff": "2025-08-01T18:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2025-2026",
+          "match_id": 2795203,
+          "kickoff": "2026-01-24T14:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2025-2026",
+          "match_id": 2795287,
+          "kickoff": "2026-05-23T16:45:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2026-2027",
+          "match_id": 2997492,
+          "kickoff": "2026-07-31T18:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2026-2027",
+          "match_id": 2997558,
+          "kickoff": "2026-08-31T16:30:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2026-2027",
+          "match_id": 2997540,
+          "kickoff": "2026-10-16T16:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        }
+      ],
+      "sample_error_rate": 0.0,
+      "complete_sample_count": 11,
+      "sample_count": 12,
+      "approved": true,
+      "selection_basis": ">=6 finished samples across seasons; >=80% complete Crown/Bet365/Sbobet FT 1X2/AH/OU opening and closing; zero sample request errors",
+      "fixture_coverage": {
+        "2022-2023": {
+          "dated_fixtures": 0,
+          "finished_matches": 0,
+          "ft_and_ht": 0,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2023-2024": {
+          "dated_fixtures": 88,
+          "finished_matches": 88,
+          "ft_and_ht": 88,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2024-2025": {
+          "dated_fixtures": 180,
+          "finished_matches": 180,
+          "ft_and_ht": 180,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2025-2026": {
+          "dated_fixtures": 180,
+          "finished_matches": 180,
+          "ft_and_ht": 180,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2026-2027": {
+          "dated_fixtures": 180,
+          "finished_matches": 45,
+          "ft_and_ht": 45,
+          "unparsed_rows": 0,
+          "error_examples": []
+        }
+      },
+      "finished_matches": 493,
+      "dated_fixtures": 628,
+      "schedule_parse_error_count": 0,
+      "schedule_request_error_rate": 0.0
+    },
+    {
+      "external_id": 37,
+      "catalog_name": "ENG LCH",
+      "country": "England",
+      "competition_type": "club",
+      "schedule_format": "league",
+      "priority": 100,
+      "name": "England Championship",
+      "latest_season": "2026-2027",
+      "seasons": [
+        "2022-2023",
+        "2023-2024",
+        "2024-2025",
+        "2025-2026",
+        "2026-2027"
+      ],
+      "verified": true,
+      "odds_endpoint": "ok",
+      "odds_books": [
+        "Bet365",
+        "Sbobet",
+        "Crown"
+      ],
+      "historical_matches": 1923,
+      "season_counts": {
+        "2022-2023": 0,
+        "2023-2024": 257,
+        "2024-2025": 557,
+        "2025-2026": 557,
+        "2026-2027": 552
+      },
+      "verified_at": "2026-10-17T11:13:08.931996+00:00",
+      "error": null,
+      "sample_match_ids": {
+        "2023-2024": 2402573,
+        "2024-2025": 2597912,
+        "2025-2026": 2798007,
+        "2026-2027": 3008152
+      },
+      "odds_samples": [
+        {
+          "season": "2023-2024",
+          "match_id": 2402877,
+          "kickoff": "2024-01-01T12:30:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2023-2024",
+          "match_id": 2402998,
+          "kickoff": "2024-03-06T19:45:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2023-2024",
+          "match_id": 2579666,
+          "kickoff": "2024-05-26T14:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2024-2025",
+          "match_id": 2597912,
+          "kickoff": "2024-08-09T19:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2024-2025",
+          "match_id": 2598194,
+          "kickoff": "2024-12-29T15:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2024-2025",
+          "match_id": 2776523,
+          "kickoff": "2025-05-24T14:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2025-2026",
+          "match_id": 2798007,
+          "kickoff": "2025-08-08T19:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2025-2026",
+          "match_id": 2798288,
+          "kickoff": "2025-12-29T19:45:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2025-2026",
+          "match_id": 2988705,
+          "kickoff": "2026-05-23T14:30:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2026-2027",
+          "match_id": 3008152,
+          "kickoff": "2026-08-14T19:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2026-2027",
+          "match_id": 3008212,
+          "kickoff": "2026-09-08T18:45:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2026-2027",
+          "match_id": 3008274,
+          "kickoff": "2026-10-16T19:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        }
+      ],
+      "sample_error_rate": 0.0,
+      "complete_sample_count": 12,
+      "sample_count": 12,
+      "approved": true,
+      "selection_basis": ">=6 finished samples across seasons; >=80% complete Crown/Bet365/Sbobet FT 1X2/AH/OU opening and closing; zero sample request errors",
+      "fixture_coverage": {
+        "2022-2023": {
+          "dated_fixtures": 0,
+          "finished_matches": 0,
+          "ft_and_ht": 0,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2023-2024": {
+          "dated_fixtures": 257,
+          "finished_matches": 257,
+          "ft_and_ht": 257,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2024-2025": {
+          "dated_fixtures": 557,
+          "finished_matches": 557,
+          "ft_and_ht": 557,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2025-2026": {
+          "dated_fixtures": 557,
+          "finished_matches": 557,
+          "ft_and_ht": 557,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2026-2027": {
+          "dated_fixtures": 552,
+          "finished_matches": 120,
+          "ft_and_ht": 120,
+          "unparsed_rows": 0,
+          "error_examples": []
+        }
+      },
+      "finished_matches": 1491,
+      "dated_fixtures": 1923,
+      "schedule_parse_error_count": 0,
+      "schedule_request_error_rate": 0.0
+    },
+    {
+      "external_id": 5,
+      "catalog_name": "BEL D1",
+      "country": "Belgium",
+      "competition_type": "club",
+      "schedule_format": "league",
+      "priority": 100,
+      "name": "Belgian Pro League",
+      "latest_season": "2026-2027",
+      "seasons": [
+        "2022-2023",
+        "2023-2024",
+        "2024-2025",
+        "2025-2026",
+        "2026-2027"
+      ],
+      "verified": true,
+      "odds_endpoint": "ok",
+      "odds_books": [
+        "Bet365",
+        "Sbobet",
+        "Crown"
+      ],
+      "historical_matches": 1091,
+      "season_counts": {
+        "2022-2023": 0,
+        "2023-2024": 155,
+        "2024-2025": 315,
+        "2025-2026": 315,
+        "2026-2027": 306
+      },
+      "verified_at": "2026-10-17T11:13:31.990378+00:00",
+      "error": null,
+      "sample_match_ids": {
+        "2023-2024": 2405371,
+        "2024-2025": 2587580,
+        "2025-2026": 2791718,
+        "2026-2027": 3003521
+      },
+      "odds_samples": [
+        {
+          "season": "2023-2024",
+          "match_id": 2405374,
+          "kickoff": "2024-01-19T19:45:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2023-2024",
+          "match_id": 2405446,
+          "kickoff": "2024-03-17T17:30:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2023-2024",
+          "match_id": 2582371,
+          "kickoff": "2024-06-02T11:30:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2024-2025",
+          "match_id": 2587580,
+          "kickoff": "2024-07-26T18:45:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2024-2025",
+          "match_id": 2587738,
+          "kickoff": "2024-12-27T17:30:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2024-2025",
+          "match_id": 2779669,
+          "kickoff": "2025-05-29T16:30:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2025-2026",
+          "match_id": 2791718,
+          "kickoff": "2025-07-25T18:45:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2025-2026",
+          "match_id": 2791872,
+          "kickoff": "2025-12-27T15:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2025-2026",
+          "match_id": 2990652,
+          "kickoff": "2026-05-31T16:30:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2026-2027",
+          "match_id": 3003521,
+          "kickoff": "2026-08-07T18:45:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2026-2027",
+          "match_id": 3003557,
+          "kickoff": "2026-09-04T18:45:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2026-2027",
+          "match_id": 3003584,
+          "kickoff": "2026-10-11T17:15:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        }
+      ],
+      "sample_error_rate": 0.0,
+      "complete_sample_count": 12,
+      "sample_count": 12,
+      "approved": true,
+      "selection_basis": ">=6 finished samples across seasons; >=80% complete Crown/Bet365/Sbobet FT 1X2/AH/OU opening and closing; zero sample request errors",
+      "fixture_coverage": {
+        "2022-2023": {
+          "dated_fixtures": 0,
+          "finished_matches": 0,
+          "ft_and_ht": 0,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2023-2024": {
+          "dated_fixtures": 155,
+          "finished_matches": 155,
+          "ft_and_ht": 155,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2024-2025": {
+          "dated_fixtures": 315,
+          "finished_matches": 315,
+          "ft_and_ht": 315,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2025-2026": {
+          "dated_fixtures": 315,
+          "finished_matches": 315,
+          "ft_and_ht": 315,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2026-2027": {
+          "dated_fixtures": 306,
+          "finished_matches": 72,
+          "ft_and_ht": 72,
+          "unparsed_rows": 0,
+          "error_examples": []
+        }
+      },
+      "finished_matches": 857,
+      "dated_fixtures": 1091,
+      "schedule_parse_error_count": 0,
+      "schedule_request_error_rate": 0.0
+    },
+    {
+      "external_id": 3,
+      "catalog_name": "AUT D1",
+      "country": "Austria",
+      "competition_type": "club",
+      "schedule_format": "league",
+      "priority": 102,
+      "name": "Austrian Bundesliga",
+      "latest_season": "2026-2027",
+      "seasons": [
+        "2022-2023",
+        "2023-2024",
+        "2024-2025",
+        "2025-2026",
+        "2026-2027"
+      ],
+      "verified": true,
+      "odds_endpoint": "ok",
+      "odds_books": [
+        "Bet365",
+        "Sbobet",
+        "Crown"
+      ],
+      "historical_matches": 615,
+      "season_counts": {
+        "2022-2023": 0,
+        "2023-2024": 93,
+        "2024-2025": 195,
+        "2025-2026": 195,
+        "2026-2027": 132
+      },
+      "verified_at": "2026-10-17T11:13:55.147320+00:00",
+      "error": null,
+      "sample_match_ids": {
+        "2023-2024": 2418775,
+        "2024-2025": 2601968,
+        "2025-2026": 2800333,
+        "2026-2027": 3010600
+      },
+      "odds_samples": [
+        {
+          "season": "2023-2024",
+          "match_id": 2418778,
+          "kickoff": "2024-02-09T19:30:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2023-2024",
+          "match_id": 2553266,
+          "kickoff": "2024-04-07T12:30:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2023-2024",
+          "match_id": 2581077,
+          "kickoff": "2024-05-28T17:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2024-2025",
+          "match_id": 2601968,
+          "kickoff": "2024-08-02T18:30:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2024-2025",
+          "match_id": 2602065,
+          "kickoff": "2025-02-08T16:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2024-2025",
+          "match_id": 2780630,
+          "kickoff": "2025-06-01T15:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2025-2026",
+          "match_id": 2800333,
+          "kickoff": "2025-08-01T18:30:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2025-2026",
+          "match_id": 2800432,
+          "kickoff": "2025-12-13T16:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2025-2026",
+          "match_id": 2988737,
+          "kickoff": "2026-05-25T15:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2026-2027",
+          "match_id": 3010600,
+          "kickoff": "2026-07-31T17:30:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2026-2027",
+          "match_id": 3010627,
+          "kickoff": "2026-08-30T15:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2026-2027",
+          "match_id": 3010651,
+          "kickoff": "2026-10-16T17:30:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        }
+      ],
+      "sample_error_rate": 0.0,
+      "complete_sample_count": 12,
+      "sample_count": 12,
+      "approved": true,
+      "selection_basis": ">=6 finished samples across seasons; >=80% complete Crown/Bet365/Sbobet FT 1X2/AH/OU opening and closing; zero sample request errors",
+      "fixture_coverage": {
+        "2022-2023": {
+          "dated_fixtures": 0,
+          "finished_matches": 0,
+          "ft_and_ht": 0,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2023-2024": {
+          "dated_fixtures": 93,
+          "finished_matches": 93,
+          "ft_and_ht": 93,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2024-2025": {
+          "dated_fixtures": 195,
+          "finished_matches": 195,
+          "ft_and_ht": 195,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2025-2026": {
+          "dated_fixtures": 195,
+          "finished_matches": 195,
+          "ft_and_ht": 195,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2026-2027": {
+          "dated_fixtures": 132,
+          "finished_matches": 49,
+          "ft_and_ht": 49,
+          "unparsed_rows": 0,
+          "error_examples": []
+        }
+      },
+      "finished_matches": 532,
+      "dated_fixtures": 615,
+      "schedule_parse_error_count": 0,
+      "schedule_request_error_rate": 0.0
+    },
+    {
+      "external_id": 27,
+      "catalog_name": "SUI SL",
+      "country": "Switzerland",
+      "competition_type": "club",
+      "schedule_format": "league",
+      "priority": 104,
+      "name": "Switzerland Super League",
+      "latest_season": "2026-2027",
+      "seasons": [
+        "2022-2023",
+        "2023-2024",
+        "2024-2025",
+        "2025-2026",
+        "2026-2027"
+      ],
+      "verified": true,
+      "odds_endpoint": "ok",
+      "odds_books": [
+        "Bet365",
+        "Sbobet",
+        "Crown"
+      ],
+      "historical_matches": 714,
+      "season_counts": {
+        "2022-2023": 0,
+        "2023-2024": 122,
+        "2024-2025": 230,
+        "2025-2026": 230,
+        "2026-2027": 132
+      },
+      "verified_at": "2026-10-17T11:14:18.318934+00:00",
+      "error": null,
+      "sample_match_ids": {
+        "2023-2024": 2407088,
+        "2024-2025": 2592549,
+        "2025-2026": 2793158,
+        "2026-2027": 3000773
+      },
+      "odds_samples": [
+        {
+          "season": "2023-2024",
+          "match_id": 2407091,
+          "kickoff": "2024-01-20T17:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2023-2024",
+          "match_id": 2532974,
+          "kickoff": "2024-03-30T17:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2023-2024",
+          "match_id": 2581438,
+          "kickoff": "2024-05-31T18:30:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2024-2025",
+          "match_id": 2592549,
+          "kickoff": "2024-07-20T15:59:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2024-2025",
+          "match_id": 2592668,
+          "kickoff": "2025-01-25T17:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2024-2025",
+          "match_id": 2779667,
+          "kickoff": "2025-05-30T18:30:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2025-2026",
+          "match_id": 2793158,
+          "kickoff": "2025-07-25T18:30:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2025-2026",
+          "match_id": 2793277,
+          "kickoff": "2026-01-17T19:30:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2025-2026",
+          "match_id": 2988051,
+          "kickoff": "2026-05-21T18:15:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2026-2027",
+          "match_id": 3000773,
+          "kickoff": "2026-07-25T16:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2026-2027",
+          "match_id": 3000806,
+          "kickoff": "2026-09-02T18:30:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2026-2027",
+          "match_id": 3000832,
+          "kickoff": "2026-10-11T14:30:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        }
+      ],
+      "sample_error_rate": 0.0,
+      "complete_sample_count": 12,
+      "sample_count": 12,
+      "approved": true,
+      "selection_basis": ">=6 finished samples across seasons; >=80% complete Crown/Bet365/Sbobet FT 1X2/AH/OU opening and closing; zero sample request errors",
+      "fixture_coverage": {
+        "2022-2023": {
+          "dated_fixtures": 0,
+          "finished_matches": 0,
+          "ft_and_ht": 0,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2023-2024": {
+          "dated_fixtures": 122,
+          "finished_matches": 122,
+          "ft_and_ht": 122,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2024-2025": {
+          "dated_fixtures": 230,
+          "finished_matches": 230,
+          "ft_and_ht": 230,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2025-2026": {
+          "dated_fixtures": 230,
+          "finished_matches": 230,
+          "ft_and_ht": 230,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2026-2027": {
+          "dated_fixtures": 132,
+          "finished_matches": 60,
+          "ft_and_ht": 60,
+          "unparsed_rows": 0,
+          "error_examples": []
+        }
+      },
+      "finished_matches": 642,
+      "dated_fixtures": 714,
+      "schedule_parse_error_count": 0,
+      "schedule_request_error_rate": 0.0
+    },
+    {
+      "external_id": 22,
+      "catalog_name": "NOR D1",
+      "country": "Norway",
+      "competition_type": "club",
+      "schedule_format": "league",
+      "priority": 106,
+      "name": "Norway Eliteserien",
+      "latest_season": "2026",
+      "seasons": [
+        "2023",
+        "2024",
+        "2025",
+        "2026"
+      ],
+      "verified": true,
+      "odds_endpoint": "ok",
+      "odds_books": [
+        "Bet365",
+        "Sbobet",
+        "Crown"
+      ],
+      "historical_matches": 722,
+      "season_counts": {
+        "2023": 0,
+        "2024": 240,
+        "2025": 242,
+        "2026": 240
+      },
+      "verified_at": "2026-10-17T11:14:40.489973+00:00",
+      "error": null,
+      "sample_match_ids": {
+        "2024": 2529386,
+        "2025": 2711376,
+        "2026": 2912730
+      },
+      "odds_samples": [
+        {
+          "season": "2024",
+          "match_id": 2529386,
+          "kickoff": "2024-03-31T15:59:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2024",
+          "match_id": 2529501,
+          "kickoff": "2024-07-21T15:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2024",
+          "match_id": 2529625,
+          "kickoff": "2024-12-01T16:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2025",
+          "match_id": 2711376,
+          "kickoff": "2025-03-29T15:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2025",
+          "match_id": 2711493,
+          "kickoff": "2025-07-26T14:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2025",
+          "match_id": 2905806,
+          "kickoff": "2025-12-11T18:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2026",
+          "match_id": 2912730,
+          "kickoff": "2026-03-14T15:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2026",
+          "match_id": 2912815,
+          "kickoff": "2026-05-30T14:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2026",
+          "match_id": 2912910,
+          "kickoff": "2026-10-12T17:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        }
+      ],
+      "sample_error_rate": 0.0,
+      "complete_sample_count": 9,
+      "sample_count": 9,
+      "approved": true,
+      "selection_basis": ">=6 finished samples across seasons; >=80% complete Crown/Bet365/Sbobet FT 1X2/AH/OU opening and closing; zero sample request errors",
+      "fixture_coverage": {
+        "2023": {
+          "dated_fixtures": 0,
+          "finished_matches": 0,
+          "ft_and_ht": 0,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2024": {
+          "dated_fixtures": 240,
+          "finished_matches": 240,
+          "ft_and_ht": 240,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2025": {
+          "dated_fixtures": 242,
+          "finished_matches": 242,
+          "ft_and_ht": 242,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2026": {
+          "dated_fixtures": 240,
+          "finished_matches": 176,
+          "ft_and_ht": 176,
+          "unparsed_rows": 0,
+          "error_examples": []
+        }
+      },
+      "finished_matches": 658,
+      "dated_fixtures": 722,
+      "schedule_parse_error_count": 0,
+      "schedule_request_error_rate": 0.0
+    },
+    {
+      "external_id": 137,
+      "catalog_name": "CZE D1",
+      "country": "Czech Republic",
+      "competition_type": "club",
+      "schedule_format": "league",
+      "priority": 110,
+      "name": "Czech Republic Gambrinus Liga",
+      "latest_season": "2026-2027",
+      "seasons": [
+        "2023-2024",
+        "2024-2025",
+        "2025-2026",
+        "2026-2027"
+      ],
+      "verified": true,
+      "odds_endpoint": "ok",
+      "odds_books": [
+        "Bet365",
+        "Sbobet",
+        "Crown"
+      ],
+      "historical_matches": 933,
+      "season_counts": {
+        "2023-2024": 133,
+        "2024-2025": 280,
+        "2025-2026": 280,
+        "2026-2027": 240
+      },
+      "verified_at": "2026-10-17T11:17:49.136827+00:00",
+      "error": null,
+      "sample_match_ids": {
+        "2023-2024": 2403276,
+        "2024-2025": 2595611,
+        "2025-2026": 2794632,
+        "2026-2027": 3010749
+      },
+      "odds_samples": [
+        {
+          "season": "2023-2024",
+          "match_id": 2403295,
+          "kickoff": "2024-02-10T14:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2023-2024",
+          "match_id": 2403357,
+          "kickoff": "2024-04-07T13:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2023-2024",
+          "match_id": 2582499,
+          "kickoff": "2024-06-02T15:30:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2024-2025",
+          "match_id": 2595618,
+          "kickoff": "2024-07-19T17:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2024-2025",
+          "match_id": 2595750,
+          "kickoff": "2024-12-08T12:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2024-2025",
+          "match_id": 2780492,
+          "kickoff": "2025-06-01T13:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2025-2026",
+          "match_id": 2794633,
+          "kickoff": "2025-07-18T17:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2025-2026",
+          "match_id": 2794773,
+          "kickoff": "2025-12-06T17:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2025-2026",
+          "match_id": 2989971,
+          "kickoff": "2026-05-31T11:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2026-2027",
+          "match_id": 3010753,
+          "kickoff": "2026-07-25T15:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2026-2027",
+          "match_id": 3039871,
+          "kickoff": "2026-08-30T15:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        },
+        {
+          "season": "2026-2027",
+          "match_id": 3039866,
+          "kickoff": "2026-10-14T16:00:00+00:00",
+          "gaps": [],
+          "books": [
+            "Bet365",
+            "Sbobet",
+            "Crown"
+          ],
+          "error": null
+        }
+      ],
+      "sample_error_rate": 0.0,
+      "complete_sample_count": 12,
+      "sample_count": 12,
+      "approved": true,
+      "selection_basis": ">=6 finished samples across seasons; >=80% complete Crown/Bet365/Sbobet FT 1X2/AH/OU opening and closing; zero sample request errors",
+      "fixture_coverage": {
+        "2023-2024": {
+          "dated_fixtures": 133,
+          "finished_matches": 133,
+          "ft_and_ht": 133,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2024-2025": {
+          "dated_fixtures": 280,
+          "finished_matches": 280,
+          "ft_and_ht": 280,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2025-2026": {
+          "dated_fixtures": 280,
+          "finished_matches": 280,
+          "ft_and_ht": 280,
+          "unparsed_rows": 0,
+          "error_examples": []
+        },
+        "2026-2027": {
+          "dated_fixtures": 240,
+          "finished_matches": 80,
+          "ft_and_ht": 80,
+          "unparsed_rows": 0,
+          "error_examples": []
+        }
+      },
+      "finished_matches": 773,
+      "dated_fixtures": 933,
+      "schedule_parse_error_count": 0,
+      "schedule_request_error_rate": 0.0
+    }
+  ]
+}

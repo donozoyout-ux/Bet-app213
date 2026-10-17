@@ -214,6 +214,8 @@ async def enqueue_all_updates():
             await session.execute(text('SELECT pg_advisory_xact_lock(213003)'))
         result = []
         for league in (await session.scalars(select(League).where(League.enabled.is_(True)).order_by(League.priority))).all():
+            if league.external_id in (315,348) and not await session.scalar(select(Match.id).where(Match.league_id==league.id).limit(1)):
+                continue  # Empty pilots require a supervised import first.
             active = await session.scalar(select(ScraperJob).where(ScraperJob.league_id == league.id, ScraperJob.kind=='update', ScraperJob.status.in_(['queued','running'])))
             if active:
                 result.append(active)

@@ -31,6 +31,16 @@ jobs:
       - run: python -m playwright install --with-deps chromium
       - run: python -m compileall src legacy
       - run: python -c "import pathlib; paths=list(pathlib.Path('.').rglob('*.py')); assert not [str(p) for p in paths if b'\x00' in p.read_bytes()]"
+      - name: Verify reviewed rollout and PostgreSQL admission first
+        run: >-
+          python -m pytest -q
+          tests/test_europe_quality.py
+          tests/test_api_responsiveness.py::test_postgres_10161_matches_concurrent_api_during_stats_backfill
+          tests/test_live_updater.py::test_recent_statistics_rotates_all_eight_leagues_and_reports_progress
+          tests/test_market_terminal.py::test_eight_league_rollout_scope_and_no_duplicate_queue
+          tests/test_market_terminal.py::test_postgres_scope_migration_and_concurrent_immutable_capture
+          tests/test_statistics_pipeline.py::test_rollout_does_not_mistake_odds_jobs_for_stats_and_retries_failed_only
+          tests/test_statistics_pipeline.py::test_worker_uses_rollout_order_and_does_not_auto_run_disabled_jobs
       - run: python -m pytest -q -rP
       - name: Dashboard JavaScript syntax and degraded-state execution
         run: |

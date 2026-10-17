@@ -78,9 +78,9 @@ async def test_eight_league_rollout_scope_and_no_duplicate_queue(db,monkeypatch)
   enabled=set(await session.scalars(select(League.external_id).where(League.enabled.is_(True))))
   assert enabled==set(PRODUCTION_LEAGUE_IDS).intersection({r['external_id'] for r in verified_snapshot()})
  first=await worker.enqueue_stats_rollout();second=await worker.enqueue_stats_rollout()
- assert len(first)==8 and [j.id for j in first]==[j.id for j in second]
+ assert len(first)==len(enabled) and [j.id for j in first]==[j.id for j in second]
  assert [j.priority for j in first]==sorted(j.priority for j in first)
- async with db.session() as session:assert await session.scalar(select(func.count(ScraperJob.id)))==8
+ async with db.session() as session:assert await session.scalar(select(func.count(ScraperJob.id)))==len(enabled)
 
 
 async def test_partial_source_does_not_erase_observations_and_old_partial_can_retry(db,monkeypatch):
@@ -165,7 +165,7 @@ async def test_postgres_scope_migration_and_concurrent_immutable_capture(monkeyp
         rollouts=await asyncio.gather(*(worker.enqueue_stats_rollout() for _ in range(4)))
         assert all([j.id for j in rows]==[j.id for j in rollouts[0]] for rows in rollouts)
         async with db.session() as session:
-            assert await session.scalar(select(func.count(ScraperJob.id)).where(ScraperJob.kind=='stats_backfill'))==8
+            assert await session.scalar(select(func.count(ScraperJob.id)).where(ScraperJob.kind=='stats_backfill'))==len(rollouts[0])
         # A fresh fixture exercises concurrent publication without deleting history.
         async with db.session() as session:
             original=await session.get(Match,id)
