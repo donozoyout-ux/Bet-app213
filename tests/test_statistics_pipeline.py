@@ -94,7 +94,7 @@ async def test_rollout_does_not_mistake_odds_jobs_for_stats_and_retries_failed_o
     assert [j.id for j in jobs]==[j.id for j in resumed]
     async with db.session() as session:
         assert list(await session.scalars(select(JobItem.status).order_by(JobItem.id)))==['completed','queued']
-        assert await session.scalar(select(func.count(ScraperJob.id)).where(ScraperJob.kind=='stats_backfill'))==8
+        assert await session.scalar(select(func.count(ScraperJob.id)).where(ScraperJob.kind=='stats_backfill'))==len(jobs)
 
 
 async def test_completed_rollout_rechecks_missing_coverage_and_preserves_observations(db, monkeypatch):
@@ -206,5 +206,5 @@ async def test_worker_uses_rollout_order_and_does_not_auto_run_disabled_jobs(db,
             (await session.get(ScraperJob,id)).status='completed'
             await session.commit()
     monkeypatch.setattr(worker,'run_job',run)
-    for _ in range(8):await worker.work(once=True)
+    for _ in range(len(jobs)):await worker.work(once=True)
     assert actual==[j.id for j in jobs]
