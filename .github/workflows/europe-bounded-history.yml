@@ -22,6 +22,13 @@ on:
         description: 'Enable Poland/Denmark only after stored admission checks pass'
         type: boolean
         default: false
+      fill_existing_odds:
+        description: 'NULL-only archive repair: existing Poland/Denmark matches only'
+        type: boolean
+        default: false
+      batches:
+        description: 'Supervised repair batches (1-4), at most 50 matches per batch'
+        default: '1'
 permissions:
   contents: read
 concurrency:
@@ -45,6 +52,8 @@ jobs:
       ALBANIA_PILOT: ${{ inputs.albania_pilot }}
       RECENT_FIRST: ${{ inputs.recent_first }}
       ACTIVATE_REVIEWED: ${{ inputs.activate_reviewed }}
+      FILL_EXISTING_ODDS: ${{ inputs.fill_existing_odds }}
+      BATCHES: ${{ inputs.batches }}
       EUROPE_API_GUARD_URL: https://bet-app213.onrender.com/health
     steps:
       - uses: actions/checkout@v4
@@ -64,8 +73,22 @@ jobs:
           async def main():
               try:
                   ids = [int(x.strip()) for x in os.environ['SELECTED_LEAGUES'].split(',')]
-                  await run(ids, int(os.environ['MATCH_LIMIT']), albania_pilot=os.environ.get('ALBANIA_PILOT') == 'true',
-                            recent_first=os.environ.get('RECENT_FIRST') == 'true', activate=os.environ.get('ACTIVATE_REVIEWED') == 'true')
+                  batches = int(os.environ.get('BATCHES') or '1')
+                  if not 1 <= batches <= 4:
+                      raise ValueError('Select 1-4 supervised batches')
+                  if os.environ.get('FILL_EXISTING_ODDS') == 'true':
+                      if any(os.environ.get(k) == 'true' for k in ('ALBANIA_PILOT','ACTIVATE_REVIEWED')):
+                          raise ValueError('Archive repair cannot activate leagues or import pilots')
+                      from scripts.verified_odds_backfill import run as repair
+                      for _ in range(batches):
+                          result = await repair(ids, int(os.environ['MATCH_LIMIT']))
+                          if not sum(r['attempted'] for r in result) or any(r.get('stopped') for r in result):
+                              break
+                  else:
+                      if batches != 1:
+                          raise ValueError('Multiple batches require NULL-only archive repair')
+                      await run(ids, int(os.environ['MATCH_LIMIT']), albania_pilot=os.environ.get('ALBANIA_PILOT') == 'true',
+                                recent_first=os.environ.get('RECENT_FIRST') == 'true', activate=os.environ.get('ACTIVATE_REVIEWED') == 'true')
               finally:
                   await database.close()
           asyncio.run(main())
