@@ -114,6 +114,14 @@
         node('b',pct(r.probability),'analysis-card-probability'),
         node('span',priceFresh(r.verified_odds)?`${num(r.verified_odds.best_price)} · ${r.verified_odds.best_bookmaker}`:reason(r.verified_odds),'analysis-card-price'),
         node('small',status.text,status.eligible?'analysis-eligible':'analysis-model-only'));
+      // The visual meter is model probability only, never historical hit rate.
+      const meter=node('span','','analysis-model-meter');
+      meter.setAttribute('role','img');
+      meter.setAttribute('aria-label','Model olasılığı '+pct(r.probability));
+      const track=node('span','','analysis-model-meter-track');
+      const fill=node('span','','analysis-model-meter-fill');
+      fill.style.width=Math.max(0,Math.min(100,Number(r.probability)*100))+'%';
+      track.append(fill);meter.append(track);button.append(meter);
       if(priceFresh(r.verified_odds) && validNumber(r.verified_odds.best_value) && r.verified_odds.best_value<=0)button.append(node('small','Negatif değer · Avantajlı bahis değil','analysis-negative'));
       button.onclick=()=>select(m.id);
       button.onkeydown=event=>{const all=[...strip.querySelectorAll('button')],index=all.indexOf(button);
