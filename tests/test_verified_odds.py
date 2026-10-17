@@ -1,10 +1,7 @@
 import json
 import os
 import uuid
-from copy import deepcopy
 from datetime import datetime, timezone
-from pathlib import Path
-from types import SimpleNamespace
 
 import pytest
 from sqlalchemy import select, func
@@ -14,7 +11,6 @@ from sqlalchemy.schema import CreateSchema, DropSchema
 from src.db import Database
 from src.models import Base, League, Season, Team, Match, Bookmaker, Odds1X2, AsianHandicap, AsianTotals, ScraperJob, JobItem
 from src.jobs.verified_odds import fill_only, is_complete
-from src.scrapers.goaloo.odds import parse_odds
 import scripts.verified_odds_backfill as repair
 
 
@@ -172,3 +168,29 @@ async def test_postgres_repair_reuses_checkpoint_and_source_gaps_are_terminal(pg
         assert job.discovery_metrics['_stage3_verified_odds']['attempted']==1
         assert job.total_matches==1 and job.no_odds_matches==1
         assert (await s.scalar(select(JobItem))).status=='source_unavailable'
+
+
+@pytest.mark.asyncio
+async def test_postgres_transport_retry_is_bounded_and_counters_do_not_inflate(pg,monkeypatch,tmp_path):
+    from src.scrapers.goaloo.client import SourceError
+    monkeypatch.setattr(repair,'database',pg)
+    report=tmp_path/'report.json'
+    report.write_text(json.dumps({'competitions':[dict(external_id=6,verified=True,approved=True,
+        catalog_name='POL D1',country='Poland',name='Poland',competition_type='club',
+        schedule_format='league',priority=100,latest_season='2025-2026',seasons=['2025-2026'])]}))
+    monkeypatch.setattr(repair,'REPORT',report)
+    async def unavailable(*args):
+        raise SourceError('Source temporarily unreachable')
+    monkeypatch.setattr(repair,'season_data',unavailable)
+    for i in range(3):
+        result=await repair.run([6],25)
+        assert result[0]['request_errors']==1
+    result=await repair.run([6],25)
+    assert result[0]['attempted']==0
+    async with pg.session() as s:
+        job=await s.scalar(select(ScraperJob))
+        assert job.total_matches==1 and job.processed_matches==0 and job.no_odds_matches==1
+        assert job.discovery_metrics['_stage3_verified_odds']['request_errors']==3
+        item=await s.scalar(select(JobItem))
+        assert item.error=='attempts=3;transport_retry_exhausted'
+        assert await s.scalar(select(func.count()).select_from(Odds1X2))==0

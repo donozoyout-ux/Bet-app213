@@ -69,6 +69,7 @@ async def fill_only(session,match_id,external_match_id,job_id,odds):
         raise ValueError('Three verified bookmakers must already exist')
     inserted=updated=0
     now=utcnow()
+    provenance=dict(source='goaloo',external_match_id=external_match_id,job_id=job_id,observed_at=now.isoformat())
     for model,market,sides in MARKETS:
         rows=[]
         for book in BOOKS:
@@ -88,14 +89,14 @@ async def fill_only(session,match_id,external_match_id,job_id,odds):
             stamps={k:now.isoformat() for k,v in values.items() if v is not None}
             line_values={k:values[k.split('_',1)[0]+'_line'] for k,v in values.items()
                          if v is not None and 'line' in sides and not k.endswith('_line')}
-            raw={**data.get('raw',{}),'_field_observed_at':stamps,'_field_lines':line_values}
+            raw={**data.get('raw',{}),'_field_observed_at':stamps,'_field_lines':line_values,
+                 '_verified_odds_fill':provenance}
             rows.append(dict(match_id=match_id,bookmaker_id=books[book],raw=raw,updated_at=now,**values))
         if not rows:
             continue
         stmt=insert(model).values(rows)
         inserted+=len((await session.scalars(stmt.on_conflict_do_nothing(
             index_elements=['match_id','bookmaker_id']).returning(model.id))).all())
-        provenance=dict(source='goaloo',external_match_id=external_match_id,job_id=job_id,observed_at=now.isoformat())
         values,changed=update_plan(model.__table__,stmt.excluded,sides,provenance)
         updated+=len((await session.scalars(stmt.on_conflict_do_update(
             index_elements=['match_id','bookmaker_id'],set_=values,where=changed).returning(model.id))).all())
