@@ -1,0 +1,527 @@
+{
+  "checked_at": "2026-10-17T17:59:35.559902+00:00",
+  "read_only": true,
+  "leagues": [
+    {
+      "external_id": 7,
+      "name": "Denmark Superliga",
+      "stored_finished": 25,
+      "seasons": {
+        "2023-2024": {
+          "fixtures": 193,
+          "parse_errors": 0,
+          "finished": 193,
+          "upcoming_45_days": 0
+        },
+        "2026-2027": {
+          "fixtures": 132,
+          "parse_errors": 0,
+          "finished": 61,
+          "upcoming_45_days": 35
+        }
+      },
+      "mismatches": [],
+      "odds_samples": [
+        {
+          "match_id": 2400105,
+          "gaps": [],
+          "changed_stored_fields": []
+        },
+        {
+          "match_id": 2400115,
+          "gaps": [],
+          "changed_stored_fields": []
+        },
+        {
+          "match_id": 2400124,
+          "gaps": [],
+          "changed_stored_fields": []
+        }
+      ],
+      "source_errors": [],
+      "current_season_samples": [
+        {
+          "match_id": 2998261,
+          "kickoff": "2026-10-16T17:00:00+00:00",
+          "final": true,
+          "gaps": []
+        },
+        {
+          "match_id": 2998254,
+          "kickoff": "2026-10-12T17:00:00+00:00",
+          "final": true,
+          "gaps": []
+        },
+        {
+          "match_id": 2998256,
+          "kickoff": "2026-10-11T16:00:00+00:00",
+          "final": true,
+          "gaps": []
+        },
+        {
+          "match_id": 2998262,
+          "kickoff": "2026-10-18T12:00:00+00:00",
+          "final": false,
+          "gaps": []
+        },
+        {
+          "match_id": 2998264,
+          "kickoff": "2026-10-18T12:00:00+00:00",
+          "final": false,
+          "gaps": []
+        }
+      ]
+    },
+    {
+      "external_id": 26,
+      "name": "Swedish Allsvenskan",
+      "stored_finished": 25,
+      "seasons": {
+        "2024": {
+          "fixtures": 240,
+          "parse_errors": 0,
+          "finished": 240,
+          "upcoming_45_days": 0
+        },
+        "2026": {
+          "fixtures": 240,
+          "parse_errors": 0,
+          "finished": 185,
+          "upcoming_45_days": 54
+        }
+      },
+      "mismatches": [],
+      "odds_samples": [
+        {
+          "match_id": 2510501,
+          "gaps": [],
+          "changed_stored_fields": []
+        },
+        {
+          "match_id": 2510510,
+          "gaps": [],
+          "changed_stored_fields": []
+        },
+        {
+          "match_id": 2510526,
+          "gaps": [],
+          "changed_stored_fields": []
+        }
+      ],
+      "source_errors": []
+    },
+    {
+      "external_id": 6,
+      "name": "Poland Ekstraklasa",
+      "stored_finished": 25,
+      "seasons": {
+        "2023-2024": {
+          "fixtures": 306,
+          "parse_errors": 0,
+          "finished": 306,
+          "upcoming_45_days": 0
+        },
+        "2026-2027": {
+          "fixtures": 306,
+          "parse_errors": 0,
+          "finished": 92,
+          "upcoming_45_days": 50
+        }
+      },
+      "mismatches": [],
+      "odds_samples": [
+        {
+          "match_id": 2399678,
+          "gaps": [],
+          "changed_stored_fields": []
+        },
+        {
+          "match_id": 2399682,
+          "gaps": [],
+          "changed_stored_fields": []
+        },
+        {
+          "match_id": 2399698,
+          "gaps": [],
+          "changed_stored_fields": []
+        }
+      ],
+      "source_errors": [],
+      "current_season_samples": [
+        {
+          "match_id": 3003171,
+          "kickoff": "2026-10-17T15:30:00+00:00",
+          "final": true,
+          "gaps": []
+        },
+        {
+          "match_id": 3003174,
+          "kickoff": "2026-10-17T12:45:00+00:00",
+          "final": true,
+          "gaps": []
+        },
+        {
+          "match_id": 3003175,
+          "kickoff": "2026-10-16T18:30:00+00:00",
+          "final": true,
+          "gaps": []
+        },
+        {
+          "match_id": 3003170,
+          "kickoff": "2026-10-17T18:15:00+00:00",
+          "final": false,
+          "gaps": []
+        },
+        {
+          "match_id": 3003172,
+          "kickoff": "2026-10-18T10:15:00+00:00",
+          "final": false,
+          "gaps": []
+        }
+      ]
+    },
+    {
+      "external_id": 32,
+      "name": "Greece Super League A",
+      "stored_finished": 35,
+      "seasons": {
+        "2023-2024": {
+          "fixtures": 240,
+          "parse_errors": 0,
+          "finished": 240,
+          "upcoming_45_days": 0
+        },
+        "2026-2027": {
+          "fixtures": 182,
+          "parse_errors": 0,
+          "finished": 43,
+          "upcoming_45_days": 40
+        }
+      },
+      "mismatches": [],
+      "odds_samples": [
+        {
+          "match_id": 2438244,
+          "gaps": [],
+          "changed_stored_fields": []
+        },
+        {
+          "match_id": 2438260,
+          "gaps": [],
+          "changed_stored_fields": []
+        },
+        {
+          "match_id": 2438277,
+          "gaps": [],
+          "changed_stored_fields": []
+        }
+      ],
+      "source_errors": []
+    },
+    {
+      "external_id": 133,
+      "name": "Croatia 1.Division",
+      "stored_finished": 25,
+      "seasons": {
+        "2023-2024": {
+          "fixtures": 180,
+          "parse_errors": 0,
+          "finished": 180,
+          "upcoming_45_days": 0
+        },
+        "2026-2027": {
+          "fixtures": 180,
+          "parse_errors": 0,
+          "finished": 46,
+          "upcoming_45_days": 27
+        }
+      },
+      "mismatches": [],
+      "odds_samples": [
+        {
+          "match_id": 2399957,
+          "gaps": [],
+          "changed_stored_fields": []
+        },
+        {
+          "match_id": 2399916,
+          "gaps": [],
+          "changed_stored_fields": []
+        },
+        {
+          "match_id": 2399924,
+          "gaps": [],
+          "changed_stored_fields": []
+        }
+      ],
+      "source_errors": [],
+      "incomplete_fixture_recheck": {
+        "match_id": 2399949,
+        "gaps": [
+          {
+            "bookmaker": "Sbobet",
+            "market": "1x2",
+            "stage": "opening",
+            "missing": [
+              "home",
+              "draw",
+              "away"
+            ]
+          },
+          {
+            "bookmaker": "Sbobet",
+            "market": "1x2",
+            "stage": "closing",
+            "missing": [
+              "home",
+              "draw",
+              "away"
+            ]
+          },
+          {
+            "bookmaker": "Sbobet",
+            "market": "ah",
+            "stage": "opening",
+            "missing": [
+              "line",
+              "home",
+              "away"
+            ]
+          },
+          {
+            "bookmaker": "Sbobet",
+            "market": "ah",
+            "stage": "closing",
+            "missing": [
+              "line",
+              "home",
+              "away"
+            ]
+          },
+          {
+            "bookmaker": "Sbobet",
+            "market": "ou",
+            "stage": "opening",
+            "missing": [
+              "line",
+              "over",
+              "under"
+            ]
+          },
+          {
+            "bookmaker": "Sbobet",
+            "market": "ou",
+            "stage": "closing",
+            "missing": [
+              "line",
+              "over",
+              "under"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "external_id": 37,
+      "name": "England Championship",
+      "stored_finished": 25,
+      "seasons": {
+        "2023-2024": {
+          "fixtures": 557,
+          "parse_errors": 0,
+          "finished": 557,
+          "upcoming_45_days": 0
+        },
+        "2026-2027": {
+          "fixtures": 552,
+          "parse_errors": 0,
+          "finished": 131,
+          "upcoming_45_days": 85
+        }
+      },
+      "mismatches": [],
+      "odds_samples": [
+        {
+          "match_id": 2402877,
+          "gaps": [],
+          "changed_stored_fields": []
+        },
+        {
+          "match_id": 2402883,
+          "gaps": [],
+          "changed_stored_fields": []
+        },
+        {
+          "match_id": 2402901,
+          "gaps": [],
+          "changed_stored_fields": []
+        }
+      ],
+      "source_errors": []
+    },
+    {
+      "external_id": 3,
+      "name": "Austrian Bundesliga",
+      "stored_finished": 463,
+      "seasons": {
+        "2023-2024": {
+          "fixtures": 195,
+          "parse_errors": 0,
+          "finished": 195,
+          "upcoming_45_days": 0
+        },
+        "2024-2025": {
+          "fixtures": 195,
+          "parse_errors": 0,
+          "finished": 195,
+          "upcoming_45_days": 0
+        },
+        "2025-2026": {
+          "fixtures": 195,
+          "parse_errors": 0,
+          "finished": 195,
+          "upcoming_45_days": 0
+        },
+        "2026-2027": {
+          "fixtures": 132,
+          "parse_errors": 0,
+          "finished": 50,
+          "upcoming_45_days": 33
+        }
+      },
+      "mismatches": [],
+      "odds_samples": [
+        {
+          "match_id": 2418778,
+          "gaps": [],
+          "changed_stored_fields": []
+        },
+        {
+          "match_id": 2800336,
+          "gaps": [],
+          "changed_stored_fields": []
+        },
+        {
+          "match_id": 3010640,
+          "gaps": [],
+          "changed_stored_fields": []
+        }
+      ],
+      "source_errors": []
+    },
+    {
+      "external_id": 27,
+      "name": "Switzerland Super League",
+      "stored_finished": 35,
+      "seasons": {
+        "2023-2024": {
+          "fixtures": 230,
+          "parse_errors": 0,
+          "finished": 230,
+          "upcoming_45_days": 0
+        },
+        "2026-2027": {
+          "fixtures": 132,
+          "parse_errors": 0,
+          "finished": 60,
+          "upcoming_45_days": 30
+        }
+      },
+      "mismatches": [],
+      "odds_samples": [
+        {
+          "match_id": 2407091,
+          "gaps": [],
+          "changed_stored_fields": []
+        },
+        {
+          "match_id": 2407100,
+          "gaps": [],
+          "changed_stored_fields": []
+        },
+        {
+          "match_id": 2532947,
+          "gaps": [],
+          "changed_stored_fields": []
+        }
+      ],
+      "source_errors": []
+    },
+    {
+      "external_id": 22,
+      "name": "Norway Eliteserien",
+      "stored_finished": 25,
+      "seasons": {
+        "2024": {
+          "fixtures": 240,
+          "parse_errors": 0,
+          "finished": 240,
+          "upcoming_45_days": 0
+        },
+        "2026": {
+          "fixtures": 240,
+          "parse_errors": 0,
+          "finished": 178,
+          "upcoming_45_days": 53
+        }
+      },
+      "mismatches": [],
+      "odds_samples": [
+        {
+          "match_id": 2529386,
+          "gaps": [],
+          "changed_stored_fields": []
+        },
+        {
+          "match_id": 2529397,
+          "gaps": [],
+          "changed_stored_fields": []
+        },
+        {
+          "match_id": 2529514,
+          "gaps": [],
+          "changed_stored_fields": []
+        }
+      ],
+      "source_errors": []
+    },
+    {
+      "external_id": 137,
+      "name": "Czech Republic Gambrinus Liga",
+      "stored_finished": 25,
+      "seasons": {
+        "2023-2024": {
+          "fixtures": 281,
+          "parse_errors": 0,
+          "finished": 281,
+          "upcoming_45_days": 0
+        },
+        "2026-2027": {
+          "fixtures": 240,
+          "parse_errors": 0,
+          "finished": 83,
+          "upcoming_45_days": 43
+        }
+      },
+      "mismatches": [],
+      "odds_samples": [
+        {
+          "match_id": 2403298,
+          "gaps": [],
+          "changed_stored_fields": []
+        },
+        {
+          "match_id": 2403305,
+          "gaps": [],
+          "changed_stored_fields": []
+        },
+        {
+          "match_id": 2403315,
+          "gaps": [],
+          "changed_stored_fields": []
+        }
+      ],
+      "source_errors": []
+    }
+  ]
+}

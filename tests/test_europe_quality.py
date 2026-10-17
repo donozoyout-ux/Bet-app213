@@ -10,7 +10,7 @@ def test_reviewed_catalog_keeps_new_leagues_import_only():
     from src.scrapers.goaloo.competitions import reviewed_europe_snapshot, PRODUCTION_LEAGUE_IDS
     rows = reviewed_europe_snapshot()
     assert {r['external_id'] for r in rows} == {3,5,6,7,22,26,27,29,32,37,133,137}
-    assert {r['external_id'] for r in rows if r['external_id'] in PRODUCTION_LEAGUE_IDS} == {5,29}
+    assert {r['external_id'] for r in rows if r['external_id'] in PRODUCTION_LEAGUE_IDS} == {5,29,6,7}
     assert 137 not in PRODUCTION_LEAGUE_IDS
 
 
@@ -98,15 +98,19 @@ async def test_postgres_bounded_import_resumes_without_duplicate_or_score_rewrit
         db.engine = db.engine.execution_options(schema_translate_map={None:schema})
         db.sessions = async_sessionmaker(db.engine, expire_on_commit=False)
         await db.initialize()
-        await importer.run([7], 1)
+        await importer.run([7], 1, recent_first=True)
         async with db.session() as session:
             assert await session.scalar(select(func.count(Match.id))) == 1
             match = await session.scalar(select(Match))
+            from src.scrapers.goaloo.matches import parse_matches
+            from src.scrapers.goaloo.rounds import discover_rounds
+            source_rows=[m for section in discover_rounds(payload) for m in parse_matches(payload,section,[])]
+            assert match.external_match_id==max(source_rows,key=lambda m:m['kickoff_at'])['external_match_id']
             match.ft_home = 99  # A subsequent trusted correction must survive retry.
             assert (await session.scalar(select(JobItem))).status == 'failed'
             await session.commit()
         monkeypatch.setattr(importer, 'fetch_statistics', available)
-        await importer.run([7], 1)
+        await importer.run([7], 1, recent_first=True)
         async with db.session() as session:
             assert await session.scalar(select(func.count(Match.id))) == 1
             assert (await session.scalar(select(Match))).ft_home == 99
