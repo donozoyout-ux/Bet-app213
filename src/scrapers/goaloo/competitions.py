@@ -3,7 +3,7 @@
 python -m src.scrapers.goaloo.competitions [--output report.json] [--seed]
 Catalog discovery remains independent of the explicit eight-league production rollout.
 """
-PRODUCTION_LEAGUE_IDS = (36,31,34,8,11,30,16,23,103,113,2187)
+PRODUCTION_LEAGUE_IDS = (36,31,34,8,11,30,16,23,103,113,2187,315,348)
 UEFA_COMPETITIONS = {103: 'UEFA Champions League', 113: 'UEFA Europa League', 2187: 'UEFA Conference League'}
 
 import argparse
@@ -277,6 +277,23 @@ def verified_snapshot():
     report = json.loads(VERIFIED_PATH.read_text(encoding='utf-8'))
     return [item for item in report['competitions'] if item['verified']]
 
+
+
+def approved_europe_snapshot():
+    """Only two source-verified pilot leagues, never the unchecked catalog."""
+    report_path = Path(__file__).resolve().parents[3] / 'docs' / 'europe-first-batch-live.json'
+    report = json.loads(report_path.read_text(encoding='utf-8'))
+    approved = {315, 348}
+    if report.get('from_year') != 2024 or report.get('production_activation') is not False:
+        raise SourceError('European pilot verification report is not suitable for activation')
+    rows = {row['external_id']: row for row in report.get('competitions', []) if row.get('external_id') in approved}
+    if set(rows) != approved:
+        raise SourceError('Approved European pilot identities are missing')
+    expected = {315: ('Albania', 'ALB D1'), 348: ('Albania', 'ALB D2')}
+    for id, row in rows.items():
+        if not row.get('verified') or not row.get('verified_at') or row.get('error') or row.get('country') != expected[id][0] or row.get('catalog_name') != expected[id][1] or row.get('schedule_format') != 'league' or row.get('competition_type') != 'club':
+            raise SourceError('European pilot source identity is not verified')
+    return [rows[id] for id in sorted(approved)]
 
 async def upsert_competitions(session, records):
     from sqlalchemy import select
