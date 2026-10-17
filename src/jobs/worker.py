@@ -26,6 +26,51 @@ from .live import priority_cycle
 
 log = logging.getLogger('scraper')
 LOCK_ID = 213002
+HISTORY_SLICE_SIZE = 25
+DURABLE_KINDS = ('backfill','update','stats_backfill','market_backfill','market_odds','match','domestic_history')
+
+
+async def reconcile_owned_queue(session):
+    """Call only while owning LOCK_ID: no other durable worker can be active.
+
+    Running means interrupted, not expired by an arbitrary wall clock. Preserve
+    completed/failed items, discovery, issue evidence, counters and started_at.
+    Disabled work is parked visibly and can resume if the league is re-enabled.
+    Manual imports use their own lock and are never adopted by this worker.
+    """
+    jobs = (await session.scalars(select(ScraperJob).where(
+        ScraperJob.status.in_(['running', 'queued', 'paused_disabled']),
+        ScraperJob.kind.in_(DURABLE_KINDS)
+    ))).all()
+    for job in jobs:
+        enabled = await league_enabled(session, job)
+        target = 'queued' if enabled else 'paused_disabled'
+        if job.status == 'running':
+            items = (await session.scalars(select(JobItem).where(
+                JobItem.job_id == job.id, JobItem.status == 'running'))).all()
+            for item in items:
+                item.status = 'queued'
+            log.info('[QUEUE] recovered job=%s items=%s target=%s', job.id, len(items), target)
+        job.status = target
+    await session.commit()
+
+
+def next_job_query():
+    # Daily updates retain priority. History rotates after each bounded slice,
+    # instead of preferring a running job forever. Never select manual imports.
+    return select(ScraperJob.id).join(League).where(
+        League.enabled.is_(True), ScraperJob.status.in_(['queued','running']),
+        ScraperJob.kind.in_(DURABLE_KINDS)
+    ).order_by(case((ScraperJob.kind == 'update', 0), else_=1),
+        ScraperJob.checkpoint_at.asc().nulls_first(), ScraperJob.priority, ScraperJob.id).limit(1)
+
+
+async def yield_job(job_id):
+    async with database.session() as session:
+        job = await session.get(ScraperJob, job_id)
+        job.status = 'queued' if await league_enabled(session, job) else 'paused_disabled'
+        job.checkpoint_at = utcnow()
+        await session.commit()
 
 
 def missing_statistics_query(league_id, start_year=2024):
@@ -126,6 +171,10 @@ async def enqueue(kind, league_external_id=36, start_year=2024, match_id=None, r
                 ScraperJob.status.in_(['queued', 'running'])))
             if duplicate:
                 raise ValueError(f'An equivalent job is already active: {duplicate}')
+            if job.status in {'paused_capacity','paused_disabled'}:
+                job.status = 'queued'
+                await session.commit()
+                return job  # Explicit resume retains source errors and all items.
             job.status, job.finished_at, job.last_error = 'queued', None, None
             if await session.scalar(select(func.count(ScraperIssue.id)).where(ScraperIssue.job_id == job.id)):
                 job.discovery_complete = False
@@ -134,7 +183,7 @@ async def enqueue(kind, league_external_id=36, start_year=2024, match_id=None, r
                 item.status, item.error = 'queued', None
             job.failed_matches = 0
         else:
-            query=select(ScraperJob).where(ScraperJob.league_id == league.id, ScraperJob.status.in_(['queued', 'running']))
+            query=select(ScraperJob).where(ScraperJob.league_id == league.id, ScraperJob.status.in_(['queued', 'running','paused_capacity','paused_disabled']))
             if kind in ('update', 'stats_backfill', 'market_backfill', 'market_odds'):
                 query=query.where(ScraperJob.kind==kind)
             active = await session.scalar(query)
@@ -396,10 +445,19 @@ async def discover(job_id, client):
             async with database.session() as session:
                 job = await session.get(ScraperJob, job_id)
                 if not await league_enabled(session, job):
-                    job.status = 'queued'
+                    job.status = 'paused_disabled'
                     await session.commit()
                     return
+                if kind != 'update' and session.bind.dialect.name == 'postgresql':
+                    from .europe_capacity import check_capacity
+                    try:
+                        await check_capacity(session)
+                    except RuntimeError as exc:
+                        job.status, job.last_error = 'paused_capacity', str(exc)[:500]
+                        await session.commit()
+                        return
                 job.current_season, job.current_round = season_name, round_number
+                job.checkpoint_at = utcnow()
                 # A transaction commits each round plus job items; rediscovery is idempotent.
                 await session.execute(delete(ScraperIssue).where(ScraperIssue.job_id == job.id, ScraperIssue.season == season_name, ScraperIssue.round == round_number))
                 errors = []
@@ -458,13 +516,27 @@ async def run_job(job_id):
         job = await session.get(ScraperJob, job_id)
         if not await league_enabled(session, job):
             return
+        if job.kind != 'update' and session.bind.dialect.name == 'postgresql':
+            from .europe_capacity import check_capacity
+            try:
+                await check_capacity(session)
+            except RuntimeError as exc:
+                job.status, job.last_error = 'paused_capacity', str(exc)[:500]
+                await session.commit()
+                return
         job.status, job.started_at, job.finished_at = 'running', job.started_at or utcnow(), None
+        job.checkpoint_at = utcnow()
         await session.commit()
     try:
         async with GoalooClient() as client:
             await priority_cycle(database, client)
             await discover(job_id, client)
-            CHUNK_SIZE = 25
+            async with database.session() as session:
+                if (await session.get(ScraperJob, job_id)).status in {'paused_capacity','paused_disabled'}:
+                    return
+            CHUNK_SIZE = HISTORY_SLICE_SIZE
+            processed_slice = 0
+            slice_started = time.monotonic()
             while True:
                 async with database.session() as session:
                     item_ids = list(await session.scalars(
@@ -475,10 +547,6 @@ async def run_job(job_id):
                     ))
                 if not item_ids:
                     break
-                async with database.session() as check_session:
-                    other = await check_session.scalar(select(ScraperJob.id).join(League).where(League.external_id.in_([103,113,2187]), ScraperJob.status == 'queued', ScraperJob.kind == 'backfill').limit(1))
-                if other and job.kind == 'backfill':
-                    return
                 for item_id in item_ids:
                     await wait_for_capacity()
                     await priority_cycle(database, client)
@@ -487,21 +555,38 @@ async def run_job(job_id):
                         if job.kind != 'update' and await session.scalar(select(ScraperJob.id).join(League).where(
                             League.enabled.is_(True), ScraperJob.kind == 'update', ScraperJob.status == 'queued'
                         ).limit(1)):
-                            return  # Keep running checkpoint; priority update runs next.
-                        if not await league_enabled(session, job):
                             job.status = 'queued'
+                            job.checkpoint_at = utcnow()
                             await session.commit()
                             return
+                        if not await league_enabled(session, job):
+                            job.status = 'paused_disabled'
+                            await session.commit()
+                            return
+                        if job.kind != 'update' and session.bind.dialect.name == 'postgresql':
+                            from .europe_capacity import check_capacity
+                            try:
+                                await check_capacity(session)
+                            except RuntimeError as exc:
+                                job.status = 'paused_capacity'
+                                job.last_error = str(exc)[:500]
+                                await session.commit()
+                                return
                     await process_item(job_id, item_id, client)
+                    processed_slice += 1
+                    if job.kind != 'update' and (processed_slice >= HISTORY_SLICE_SIZE or time.monotonic()-slice_started >= 180):
+                        await yield_job(job_id)
+                        return
         async with database.session() as session:
             job = await session.get(ScraperJob, job_id)
             if not await league_enabled(session, job):
-                job.status = 'queued'
+                job.status = 'paused_disabled'
                 await session.commit()
                 return
             await update_counts(session, job)
             job.status = 'partial' if job.failed_matches else 'completed'
             job.finished_at = utcnow()
+            job.checkpoint_at = utcnow()
             await session.commit()
             log.info('[WORKER] job completed id=%s status=%s processed=%s failed=%s no_odds=%s',
                      job.id, job.status, job.processed_matches, job.failed_matches, getattr(job, 'no_odds_matches', 0))
@@ -533,6 +618,7 @@ async def process_item(job_id, item_id, client):
             season = await session.get(Season, match.season_id)
             external_id, final = match.external_match_id, is_final(match)
             job.current_season, job.current_round = season.season_name, match.round
+            job.checkpoint_at = utcnow()
             item.status = 'running'
             await session.commit()
             log.info('[MATCH] match_id=%s season=%s round=%s', external_id, season.season_name, match.round)
@@ -692,6 +778,7 @@ async def process_item(job_id, item_id, client):
                 item.error = None if ok else ('; '.join(errors) + f' match_id={external_id}')[:500]
             await session.flush()
             await update_counts(session, job)
+            job.checkpoint_at = utcnow()
             if item.status == 'failed':
                 job.last_error = item.error
             await session.commit()
@@ -776,7 +863,8 @@ async def work(once=False):
                     async with GoalooClient() as client:
                         await priority_cycle(database,client)
                     async with database.session() as session:
-                        job_id = await session.scalar(select(ScraperJob.id).join(League).where(League.enabled.is_(True), ScraperJob.status.in_(['running', 'queued'])).order_by(case((ScraperJob.kind == 'update', 0), else_=1),case((and_(ScraperJob.kind == 'backfill', ScraperJob.status == 'queued', League.external_id.in_([103,113,2187])), 0), else_=1),case((ScraperJob.status == 'running', 0), else_=1), ScraperJob.priority, ScraperJob.id).limit(1))
+                        await reconcile_owned_queue(session)
+                        job_id = await session.scalar(next_job_query())
                     if job_id:
                         await run_job(job_id)
                 finally:
@@ -813,7 +901,7 @@ async def enqueue_stats_rollout(automatic=False):
             if not league:continue
             previous=await session.scalar(select(ScraperJob).where(ScraperJob.league_id==league.id,
                 ScraperJob.kind=='stats_backfill',ScraperJob.match_id.is_(None)).order_by(ScraperJob.id.desc()).limit(1))
-            if previous and previous.status in {'queued','running'}:
+            if previous and previous.status in {'queued','running','paused_capacity','paused_disabled'}:
                 jobs.append(previous)
                 continue
             if previous and previous.status in {'partial','failed'}:
@@ -865,7 +953,7 @@ async def enqueue_market_odds_rollout(automatic=False, pilot=None):
                 ScraperJob.kind.in_(['market_backfill', 'market_odds']),
                 ScraperJob.match_id.is_(None),
             ).order_by(ScraperJob.id.desc()).limit(1))
-            if previous and previous.status in {'queued', 'running'}:
+            if previous and previous.status in {'queued', 'running','paused_capacity','paused_disabled'}:
                 jobs.append(previous)
                 continue
             if previous and previous.status in {'partial', 'failed'}:

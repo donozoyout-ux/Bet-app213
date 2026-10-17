@@ -8,6 +8,8 @@ import asyncio
 from dataclasses import fields
 from datetime import datetime, timezone
 import json
+import os
+import httpx
 from pathlib import Path
 from sqlalchemy import select, text
 from src.db import database
@@ -25,6 +27,21 @@ from src.jobs.europe_capacity import check_capacity
 REPORT = Path(__file__).resolve().parents[1] / 'docs/europe-quality-live.json'
 
 
+async def check_api_health():
+    """A supervised workflow stops between commits if the live API is unhealthy."""
+    url = os.getenv('EUROPE_API_GUARD_URL')
+    if not url:
+        return
+    if url != 'https://bet-app213.onrender.com/health':
+        raise ValueError('Unexpected API health guard URL')
+    try:
+        async with httpx.AsyncClient(timeout=5) as client:
+            response = await client.get(url)
+            response.raise_for_status()
+    except httpx.HTTPError as exc:
+        raise RuntimeError('Historical import paused: live API health guard failed') from exc
+
+
 def selected_records(ids, report):
     if not 1 <= len(ids) <= 3 or len(set(ids)) != len(ids):
         raise ValueError('Select 1-3 distinct leagues')
@@ -38,10 +55,13 @@ def selected_records(ids, report):
     return result
 
 
-async def run(ids, limit):
+async def run(ids, limit, albania_pilot=False):
     if not 1 <= limit <= 25:
         raise ValueError('Per-league limit must be 1-25')
-    records = selected_records(ids, json.loads(REPORT.read_text(encoding='utf-8')))
+    if albania_pilot:
+        records = pilot_records(ids, limit)
+    else:
+        records = selected_records(ids, json.loads(REPORT.read_text(encoding='utf-8')))
     if not database.configured:
         raise RuntimeError('Existing DATABASE_URL is required')
     summary = []
@@ -54,6 +74,7 @@ async def run(ids, limit):
         try:
             async with GoalooClient() as client:
                 for record in records:
+                    await check_api_health()
                     async with database.session() as session:
                         before = await check_capacity(session)
                         league = await session.scalar(select(League).where(League.external_id == record['external_id']))
@@ -100,6 +121,8 @@ async def run(ids, limit):
                                     continue  # Never rewrite existing historical scores/settlements.
                                 attempts = int(item.error.split(';',1)[0].split('=')[1]) if item and item.error and item.error.startswith('attempts=') else 0
                             # Network outside a database transaction; no API handler involved.
+                            if imported % 5 == 0:
+                                await check_api_health()
                             odds, stats, errors = None, None, []
                             try:
                                 odds = await fetch_odds(client, row['external_match_id'], True)
@@ -150,6 +173,16 @@ async def run(ids, limit):
             await lock.execute(text('SELECT pg_advisory_unlock(213090)'))
             await lock.commit()
     print(json.dumps(summary, indent=2))
+
+
+def pilot_records(ids, limit):
+    # These pilots passed identity/schedule review, not the three-book quality
+    # gate. Permit only a five-match observation, never broad import/activation.
+    from src.scrapers.goaloo.competitions import approved_europe_snapshot
+    if not 1 <= limit <= 5 or not ids or len(ids) != len(set(ids)) or not set(ids) <= {315,348}:
+        raise ValueError('Albania observation permits only 315/348 and at most five matches each')
+    rows = {r['external_id']:r for r in approved_europe_snapshot()}
+    return [rows[id] for id in ids]
 
 
 if __name__ == '__main__':

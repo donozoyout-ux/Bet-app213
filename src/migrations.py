@@ -16,7 +16,8 @@ async def migrate_competitions(conn):
         },
         'matches': {'round_label': 'VARCHAR(160)', 'stage_key': 'VARCHAR(80)', 'referee_id':'INTEGER REFERENCES referees(id)', 'referee_observed_at':timestamp},
         'scraper_jobs': {'priority': 'INTEGER NOT NULL DEFAULT 100', 'no_odds_matches': 'INTEGER NOT NULL DEFAULT 0',
-                         'discovery_metrics': 'JSON', 'discovery_finished_at': timestamp},
+                         'discovery_metrics': 'JSON', 'discovery_finished_at': timestamp,
+                         'checkpoint_at': timestamp},
     }
     # Respect isolated PostgreSQL test schemas as well as the production schema.
     additions['matches'].update(live_minute='VARCHAR(12)', live_checked_at=timestamp, status_observed_at=timestamp)
