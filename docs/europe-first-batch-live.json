@@ -1,0 +1,150 @@
+{
+  "catalog_url": "https://football.goaloo.com/jsData/infoHeaderEn.js",
+  "catalog_revision": "5653f3a2c0f0f51985138d73545406b2b265b0447d082a9dce969757ed486740",
+  "from_year": 2024,
+  "checked_at": "2026-10-16T18:33:10.460206+00:00",
+  "catalog_count": 214,
+  "countries": [
+    "Albania",
+    "Andorra",
+    "Armenia",
+    "Austria",
+    "Azerbaijan",
+    "Belarus",
+    "Belgium",
+    "Bosnia",
+    "Bulgaria",
+    "Croatia",
+    "Cyprus",
+    "Czech Republic",
+    "Denmark",
+    "England",
+    "Estonia",
+    "Faroe",
+    "Finland",
+    "France",
+    "Georgia",
+    "Germany",
+    "Greece",
+    "Hungary",
+    "Iceland",
+    "Ireland",
+    "Israel",
+    "Italy",
+    "Kazakhstan",
+    "Kosovo",
+    "Latvia",
+    "Lithuania",
+    "Luxembourg",
+    "Malta",
+    "Moldova",
+    "Montenegro",
+    "Netherlands",
+    "North Macedonia",
+    "Northern Ireland",
+    "Norway",
+    "Poland",
+    "Portugal",
+    "Romania",
+    "Russia",
+    "San Marino",
+    "Scotland",
+    "Serbia",
+    "Slovakia",
+    "Slovenia",
+    "Spain",
+    "Sweden",
+    "Switzerland",
+    "Turkey",
+    "Ukraine",
+    "Wales"
+  ],
+  "attempted": [
+    315,
+    348
+  ],
+  "production_activation": false,
+  "remaining": 204,
+  "competitions": [
+    {
+      "external_id": 315,
+      "catalog_name": "ALB D1",
+      "country": "Albania",
+      "competition_type": "club",
+      "schedule_format": "league",
+      "priority": 501,
+      "name": "Albania Super league",
+      "latest_season": "2026-2027",
+      "seasons": [
+        "2022-2023",
+        "2023-2024",
+        "2024-2025",
+        "2025-2026",
+        "2026-2027"
+      ],
+      "verified": true,
+      "odds_endpoint": "ok",
+      "odds_books": [
+        "Bet365",
+        "Sbobet",
+        "Crown"
+      ],
+      "historical_matches": 556,
+      "season_counts": {
+        "2022-2023": 0,
+        "2023-2024": 95,
+        "2024-2025": 185,
+        "2025-2026": 186,
+        "2026-2027": 90
+      },
+      "verified_at": "2026-10-16T18:33:03.232352+00:00",
+      "error": null,
+      "sample_match_ids": {
+        "2023-2024": 2447886,
+        "2024-2025": 2641014,
+        "2025-2026": 2838725,
+        "2026-2027": 3032781
+      },
+      "activation": "disabled_pending_review",
+      "coupon_eligible": false
+    },
+    {
+      "external_id": 348,
+      "catalog_name": "ALB D2",
+      "country": "Albania",
+      "competition_type": "club",
+      "schedule_format": "league",
+      "priority": 502,
+      "name": "Albania Kategoria e Pare",
+      "latest_season": "2026-2027",
+      "seasons": [
+        "2023-2024",
+        "2024-2025",
+        "2025-2026",
+        "2026-2027"
+      ],
+      "verified": true,
+      "odds_endpoint": "ok",
+      "odds_books": [
+        "Bet365"
+      ],
+      "historical_matches": 647,
+      "season_counts": {
+        "2023-2024": 107,
+        "2024-2025": 203,
+        "2025-2026": 205,
+        "2026-2027": 132
+      },
+      "verified_at": "2026-10-16T18:33:09.345159+00:00",
+      "error": null,
+      "sample_match_ids": {
+        "2023-2024": 2518349,
+        "2024-2025": 2653456,
+        "2025-2026": 2853583,
+        "2026-2027": 3080865
+      },
+      "activation": "disabled_pending_review",
+      "coupon_eligible": false
+    }
+  ]
+}
