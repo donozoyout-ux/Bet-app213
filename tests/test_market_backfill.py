@@ -387,7 +387,14 @@ async def test_chunked_job_execution_with_recovery(db, monkeypatch):
     job = await enqueue('market_backfill', league_external_id=36)
     await run_job(job.id)
 
+    assert len(processed_calls) == 25
+    async with db.session() as session:
+        stored_job = await session.get(ScraperJob, job.id)
+        assert stored_job.status == 'queued'
+        assert stored_job.processed_matches == 25
+    await run_job(job.id)
     assert len(processed_calls) == 30
+    assert len(set(processed_calls)) == 30  # Completed first slice is never fetched again.
     async with db.session() as session:
         stored_job = await session.get(ScraperJob, job.id)
         assert stored_job.status == 'completed'

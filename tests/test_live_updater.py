@@ -184,7 +184,8 @@ async def test_historical_job_yields_to_update_without_losing_checkpoint(db,monk
     await worker.run_job(job_id)
     async with db.session() as session:
         assert (await session.get(ScraperJob,job_id)).processed_matches==354
-        assert (await session.get(ScraperJob,job_id)).status=='running'
+        assert (await session.get(ScraperJob,job_id)).status=='queued'
+        assert (await session.get(ScraperJob,job_id)).checkpoint_at is not None
     seen=[]
     async def run(id):seen.append(id)
     monkeypatch.setattr(worker,'run_job',run)
