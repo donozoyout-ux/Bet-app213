@@ -34,7 +34,10 @@ def source_index(payload, league_id):
             if row["external_league_id"] != league_id:
                 raise SourceError("Unexpected league ID in source round")
             kickoff = row.get("kickoff_at")
-            if kickoff is None or kickoff < CUTOFF:
+            if kickoff is None:
+                raise SourceError("Missing kickoff in source fixture; refusing partial audit")
+            kickoff = utc_value(kickoff)
+            if kickoff < CUTOFF:
                 continue
             key = row["external_match_id"]
             original = result.get(key)
@@ -47,11 +50,18 @@ def source_index(payload, league_id):
     return result
 
 
+def utc_value(value):
+    """PostgreSQL may return naive UTC timestamps despite aware source dates."""
+    if value is not None and value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value
+
+
 def mismatch(stored, source, league_id):
     if stored["league_external_id"] != league_id:
         return "league_conflict"
     for key in ("home_external_id", "away_external_id", "kickoff_at"):
-        if stored[key] != source[key]:
+        if (utc_value(stored[key]) if key == "kickoff_at" else stored[key]) != (utc_value(source[key]) if key == "kickoff_at" else source[key]):
             return key + "_conflict"
     for key in ("ft_home", "ft_away", "ht_home", "ht_away"):
         if stored[key] is not None and source.get(key) is not None and stored[key] != source[key]:
