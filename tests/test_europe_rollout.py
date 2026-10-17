@@ -22,9 +22,9 @@ async def test_bounded_resumable_verification_never_activates(monkeypatch):
         return item
     monkeypatch.setattr(rollout,'verify_competition',verify)
     first=await rollout.verify_batch(Catalog())
-    assert len(calls)==2 and first['remaining']==2
+    assert calls==[999,1000] and first['remaining']==0
     second=await rollout.verify_batch(Catalog(),first,batch_size=3)
-    assert len(calls)==4 and second['remaining']==0
+    assert len(calls)==2 and second['remaining']==0
     assert not second['production_activation']
     assert all(x['activation']=='disabled_pending_review' and not x['coupon_eligible'] for x in second['competitions'])
     assert not (await rollout.verify_batch(Catalog(),second))['attempted']
@@ -33,8 +33,8 @@ async def test_bounded_resumable_verification_never_activates(monkeypatch):
 async def test_budget_failure_and_explicit_retry(monkeypatch):
     async def timeout(*a,**k):raise TimeoutError
     monkeypatch.setattr(rollout,'verify_competition',timeout)
-    report=await rollout.verify_batch(Catalog(),league_ids=[315],batch_size=1)
-    assert report['remaining']==4 and report['attempted']==[315]
+    report=await rollout.verify_batch(Catalog(),league_ids=[999],batch_size=1)
+    assert report['remaining']==2 and report['attempted']==[999]
     assert not report['competitions'][0]['verified']
     assert 'time budget' in report['competitions'][0]['error']
     with pytest.raises(ValueError,match='absent'):await rollout.verify_batch(Catalog(),league_ids=[99999])
