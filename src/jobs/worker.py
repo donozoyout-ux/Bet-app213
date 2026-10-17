@@ -193,6 +193,9 @@ async def queue_missing_competitions(session):
     leagues = (await session.scalars(select(League).where(League.enabled.is_(True), League.verified_at.is_not(None)).order_by(League.priority, League.id))).all()
     jobs = []
     for league in leagues:
+        # European pilots require an explicit supervised historical job.
+        if league.external_id in (315, 348):
+            continue
         previous = await session.scalar(select(ScraperJob.id).where(ScraperJob.league_id == league.id, ScraperJob.kind == 'backfill'))
         matches = await session.scalar(select(func.count(Match.id)).where(Match.league_id == league.id))
         active = await session.scalar(select(ScraperJob.id).where(ScraperJob.league_id == league.id, ScraperJob.status.in_(['queued','running'])))
@@ -228,6 +231,8 @@ async def enqueue_due_updates(db=None, now=None):
     async with db.session() as session:
         if session.bind.dialect.name=='postgresql':await session.execute(text('SELECT pg_advisory_xact_lock(213003)'))
         for league in await session.scalars(select(League).where(League.enabled.is_(True)).order_by(League.priority,League.id)):
+            if league.external_id in (315,348) and not await session.scalar(select(Match.id).where(Match.league_id==league.id).limit(1)):
+                continue
             active=await session.scalar(select(ScraperJob.id).where(ScraperJob.league_id==league.id,ScraperJob.kind=='update',ScraperJob.status.in_(['running','queued'])).limit(1))
             if active:continue
             discoveries=(await session.execute(select(ScraperJob.discovery_finished_at,ScraperJob.discovery_metrics).where(ScraperJob.league_id==league.id,

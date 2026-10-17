@@ -23,3 +23,16 @@ def test_unverified_europe_report_is_rejected(monkeypatch,tmp_path):
     monkeypatch.setattr(Path,'read_text',read_text)
     with pytest.raises(competitions.SourceError):
         competitions.approved_europe_snapshot()
+
+@pytest.mark.asyncio
+async def test_pilots_do_not_automatically_enqueue_history(db):
+    from src.models import League
+    from src.jobs.worker import queue_missing_competitions
+    from datetime import datetime, timezone
+    async with db.session() as session:
+        session.add_all([League(external_id=i, name=str(i), country='Albania', enabled=True,
+            verified_at=datetime.now(timezone.utc)) for i in (315,348)])
+        await session.flush()
+        jobs=await queue_missing_competitions(session)
+        assert not jobs
+
