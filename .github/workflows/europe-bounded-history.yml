@@ -10,6 +10,10 @@ on:
         description: 'Maximum matches per league (1-25)'
         required: true
         default: '25'
+      albania_pilot:
+        description: 'Source observation only: IDs 315/348, maximum five matches each'
+        type: boolean
+        default: false
 permissions:
   contents: read
 concurrency:
@@ -30,6 +34,8 @@ jobs:
       BETAPP_PROCESS_ROLE: scraper
       SELECTED_LEAGUES: ${{ inputs.leagues }}
       MATCH_LIMIT: ${{ inputs.limit }}
+      ALBANIA_PILOT: ${{ inputs.albania_pilot }}
+      EUROPE_API_GUARD_URL: https://bet-app213.onrender.com/health
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -48,7 +54,7 @@ jobs:
           async def main():
               try:
                   ids = [int(x.strip()) for x in os.environ['SELECTED_LEAGUES'].split(',')]
-                  await run(ids, int(os.environ['MATCH_LIMIT']))
+                  await run(ids, int(os.environ['MATCH_LIMIT']), albania_pilot=os.environ.get('ALBANIA_PILOT') == 'true')
               finally:
                   await database.close()
           asyncio.run(main())
