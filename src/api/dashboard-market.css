@@ -1691,7 +1691,7 @@ body:has([data-page=predictions]:not([hidden])) .desktop-nav {background:#091A30
 /* Compact football board — inspired by the supplied information hierarchy, not copied. */
 [data-page="predictions"]{--analysis-panel:#0d1d32;--analysis-border:#274665;}
 [data-page="predictions"] .analysis-match-strip{display:grid;grid-template-columns:1fr;gap:0;overflow:visible;padding:0;margin:.6rem 0 1rem;border:1px solid #274665;border-radius:12px;scroll-snap-type:none;background:#0b192b}
-[data-page="predictions"] .analysis-match-card{width:100%;min-height:0;flex:auto;display:grid;grid-template-columns:minmax(100px,1fr) minmax(170px,2fr) minmax(90px,1fr) 70px minmax(110px,1fr);align-items:center;gap:.65rem;margin:0;padding:.73rem .95rem;border:0;border-bottom:1px solid #203751;border-radius:0;background:transparent;transition:background-color .18s ease,border-color .18s ease}
+[data-page="predictions"] .analysis-match-card{width:100%;min-height:0;flex:auto;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr) minmax(0,1fr) 70px minmax(0,1fr);align-items:center;gap:.65rem;margin:0;padding:.73rem .95rem;border:0;border-bottom:1px solid #203751;border-radius:0;background:transparent;transition:background-color .18s ease,border-color .18s ease}
 [data-page="predictions"] .analysis-match-card:last-child{border-bottom:0}
 [data-page="predictions"] .analysis-match-card:hover,[data-page="predictions"] .analysis-match-card:focus-visible{background:#142e4b;outline-offset:-3px}
 [data-page="predictions"] .analysis-match-card[aria-pressed="true"]{background:#153354;box-shadow:inset 3px 0 #35c7ff}
@@ -1704,8 +1704,12 @@ body:has([data-page=predictions]:not([hidden])) .desktop-nav {background:#091A30
 [data-page="predictions"] .analysis-model-meter{grid-column:3/-1;grid-row:auto;width:100%;display:block}
 [data-page="predictions"] .analysis-model-meter-track{display:block;height:5px;border-radius:99px;background:#263951;overflow:hidden}
 [data-page="predictions"] .analysis-model-meter-fill{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#2684ff,#35c7ff);transition:width .35s ease}
-[data-page="predictions"] .analysis-strip-tools button{display:none}
+[data-page="predictions"] .analysis-strip-tools button{display:inline-flex}
 [data-page="predictions"] .analysis-blocks details{border:1px solid #274665;background:#10243d;border-radius:12px;overflow:hidden}
 [data-page="predictions"] .analysis-blocks summary{font-weight:650}
 @media(max-width:740px){[data-page="predictions"] .analysis-match-card{grid-template-columns:1fr auto;gap:.35rem .7rem;padding:.85rem}[data-page="predictions"] .analysis-card-teams{grid-column:1/-1}[data-page="predictions"] .analysis-card-pick{grid-column:1}[data-page="predictions"] .analysis-card-probability{grid-column:2;grid-row:3}[data-page="predictions"] .analysis-card-price{grid-column:1/-1}[data-page="predictions"] .analysis-eligible,[data-page="predictions"] .analysis-model-only,[data-page="predictions"] .analysis-negative{grid-column:1/-1}[data-page="predictions"] .analysis-model-meter{grid-column:1/-1}}
 @media(prefers-reduced-motion:reduce){[data-page="predictions"] .analysis-match-card,[data-page="predictions"] .analysis-model-meter-fill{transition:none}}
+
+[data-page="predictions"] .analysis-match-strip,[data-page="predictions"] .analysis-match-card{min-width:0;max-width:100%;box-sizing:border-box}
+[data-page="predictions"] .analysis-match-card>*{min-width:0;overflow-wrap:anywhere}
+@media(max-width:740px){[data-page="predictions"] .analysis-match-card{grid-template-columns:minmax(0,1fr) auto}}
