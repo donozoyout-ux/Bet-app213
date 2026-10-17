@@ -3,7 +3,8 @@
 python -m src.scrapers.goaloo.competitions [--output report.json] [--seed]
 Catalog discovery remains independent of the explicit eight-league production rollout.
 """
-PRODUCTION_LEAGUE_IDS = (36,31,34,8,11,30,16,23,103,113,2187,315,348,5,29)
+STAGED_EUROPE_IDS = (6, 7)
+PRODUCTION_LEAGUE_IDS = (36,31,34,8,11,30,16,23,103,113,2187,315,348,5,29) + STAGED_EUROPE_IDS
 UEFA_COMPETITIONS = {103: 'UEFA Champions League', 113: 'UEFA Europa League', 2187: 'UEFA Conference League'}
 
 import argparse
@@ -335,7 +336,7 @@ async def upsert_competitions(session, records):
         row = await session.scalar(select(League).where(League.external_id == record['external_id']))
         if row is None:
             from src.config import settings
-            row = League(external_id=record['external_id'], enabled=settings.app_env!='production' or record['external_id'] in PRODUCTION_LEAGUE_IDS)
+            row = League(external_id=record['external_id'], enabled=settings.app_env!='production' or record['external_id'] in set(PRODUCTION_LEAGUE_IDS)-set(STAGED_EUROPE_IDS))
             session.add(row)
         from src.config import settings
         if settings.app_env=='production' and record['external_id'] not in PRODUCTION_LEAGUE_IDS:row.enabled=False
@@ -391,8 +392,12 @@ if __name__ == '__main__':
 
 
 async def apply_production_scope(session):
-    """Explicit eight-league rollout, preserving every stored match and odds row."""
-    from sqlalchemy import update
+    """Preserve established scope; new staged leagues require actual recent history."""
+    from sqlalchemy import update, select
     from src.models import League
     await session.execute(update(League).where(League.external_id.not_in(PRODUCTION_LEAGUE_IDS)).values(enabled=False))
-    await session.execute(update(League).where(League.external_id.in_(PRODUCTION_LEAGUE_IDS)).values(enabled=True))
+    established = set(PRODUCTION_LEAGUE_IDS)-set(STAGED_EUROPE_IDS)
+    await session.execute(update(League).where(League.external_id.in_(established)).values(enabled=True))
+    from src.jobs.europe_admission import retained_admission
+    for league in (await session.scalars(select(League).where(League.external_id.in_(STAGED_EUROPE_IDS)))).all():
+        league.enabled = await retained_admission(session, league)

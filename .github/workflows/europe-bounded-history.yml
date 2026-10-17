@@ -14,6 +14,14 @@ on:
         description: 'Source observation only: IDs 315/348, maximum five matches each'
         type: boolean
         default: false
+      recent_first:
+        description: 'Import newest finished fixtures first (at least three hours old)'
+        type: boolean
+        default: false
+      activate_reviewed:
+        description: 'Enable Poland/Denmark only after stored admission checks pass'
+        type: boolean
+        default: false
 permissions:
   contents: read
 concurrency:
@@ -35,6 +43,8 @@ jobs:
       SELECTED_LEAGUES: ${{ inputs.leagues }}
       MATCH_LIMIT: ${{ inputs.limit }}
       ALBANIA_PILOT: ${{ inputs.albania_pilot }}
+      RECENT_FIRST: ${{ inputs.recent_first }}
+      ACTIVATE_REVIEWED: ${{ inputs.activate_reviewed }}
       EUROPE_API_GUARD_URL: https://bet-app213.onrender.com/health
     steps:
       - uses: actions/checkout@v4
@@ -54,7 +64,8 @@ jobs:
           async def main():
               try:
                   ids = [int(x.strip()) for x in os.environ['SELECTED_LEAGUES'].split(',')]
-                  await run(ids, int(os.environ['MATCH_LIMIT']), albania_pilot=os.environ.get('ALBANIA_PILOT') == 'true')
+                  await run(ids, int(os.environ['MATCH_LIMIT']), albania_pilot=os.environ.get('ALBANIA_PILOT') == 'true',
+                            recent_first=os.environ.get('RECENT_FIRST') == 'true', activate=os.environ.get('ACTIVATE_REVIEWED') == 'true')
               finally:
                   await database.close()
           asyncio.run(main())

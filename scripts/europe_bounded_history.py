@@ -6,7 +6,7 @@ leagues stay disabled until history and live quotes are independently reviewed.
 import argparse
 import asyncio
 from dataclasses import fields
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import json
 import os
 import httpx
@@ -55,9 +55,11 @@ def selected_records(ids, report):
     return result
 
 
-async def run(ids, limit, albania_pilot=False):
+async def run(ids, limit, albania_pilot=False, recent_first=False, activate=False):
     if not 1 <= limit <= 25:
         raise ValueError('Per-league limit must be 1-25')
+    if activate and (albania_pilot or not recent_first or not set(ids)<={6,7}):
+        raise ValueError('Activation requires recent-first reviewed Poland/Denmark batch')
     if albania_pilot:
         records = pilot_records(ids, limit)
     else:
@@ -94,7 +96,8 @@ async def run(ids, limit, albania_pilot=False):
                     failures = 0
                     counts = {}
                     identity = Competition(**{f.name: record[f.name] for f in fields(Competition) if f.name in record})
-                    for season in record['seasons']:
+                    seasons = sorted(record['seasons'],reverse=True) if recent_first else record['seasons']
+                    for season in seasons:
                         if imported >= limit:
                             break
                         payload = await season_data(client, record['external_id'], season)
@@ -106,11 +109,11 @@ async def run(ids, limit, albania_pilot=False):
                                 if row['external_league_id'] != record['external_id']:
                                     raise SourceError('Unexpected league in historical schedule')
                                 if (row['status'] == 'finished' and row['kickoff_at']
-                                        and datetime(2024,1,1,tzinfo=timezone.utc) <= row['kickoff_at'] <= utcnow()):
+                                        and datetime(2024,1,1,tzinfo=timezone.utc) <= row['kickoff_at'] <= utcnow()-(timedelta(hours=3) if recent_first else timedelta())):
                                     candidates[row['external_match_id']] = row
                             if errors:
                                 raise SourceError('Unparsed historical schedule rows')
-                        for row in sorted(candidates.values(), key=lambda r: (r['kickoff_at'], r['external_match_id'])):
+                        for row in sorted(candidates.values(), key=lambda r: (r['kickoff_at'], r['external_match_id']),reverse=recent_first):
                             if imported >= limit:
                                 break
                             async with database.session() as session:
@@ -167,6 +170,14 @@ async def run(ids, limit, albania_pilot=False):
                             print(json.dumps({'league':record['external_id'],'match':row['external_match_id'],'errors':errors}),flush=True)
                     async with database.session() as session:
                         after = await check_capacity(session)
+                    if activate:
+                        await check_api_health()
+                        from src.jobs.europe_admission import activate_reviewed
+                        async with database.session() as session:
+                            await check_capacity(session)
+                            admission = await activate_reviewed(session,[record['external_id']])
+                            await session.commit()
+                        print(json.dumps({'activation':admission}),flush=True)
                     summary.append({'league':record['external_id'],'processed':imported,
                         'source_failures':failures,'populated_fields':counts,'before':before,'after':after})
         finally:
