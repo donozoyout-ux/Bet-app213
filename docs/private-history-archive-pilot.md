@@ -8,7 +8,7 @@
 - Restore into isolated temporary SQLite is a logical integrity demonstration only. A full, isolated PostgreSQL schema/restore parity test is required before any retention decision.
 
 ## Separate private repository prerequisites
-1. Create a new **private** repository `donozoyout-ux/kuponanalizii-archive` using GitHub UI, with access limited to intended maintainers. The source app repository is public; **do not** attach archive artifacts/releases to it.
+1. Use the existing verified **private** repository `donozoyout-ux/ma-larii-archive` using GitHub UI, with access limited to intended maintainers. Repository visibility and write permission were verified on 18 October 2026; the source app repository is public, so **never** attach archive assets to it.
 2. Review Goaloo source licensing/redistribution and GitHub terms. Private visibility is not a license to redistribute third-party data.
 3. Use narrow-scoped token/installation with write access to Releases **only** for the private archive repository. Never print/store the token in app repo, logs, or release assets.
 4. Keep the archive repo private and confirm visibility through GitHub API before **any** archive upload. If missing/wrong visibility, abort.
