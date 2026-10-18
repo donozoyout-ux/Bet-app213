@@ -97,18 +97,18 @@ def test_streaming_cap_and_generator_failure_clean_up(tmp_path,monkeypatch):
     monkeypatch.setattr(fmt,'MAX_LINE',10)
     with pytest.raises(ValueError,match='limit'):write_archive(sample(),tmp_path/'bounded.gz')
     assert not list(tmp_path.iterdir())
-
-
-def test_existing_evidence_cannot_be_clobbered(tmp_path):
-    a=tmp_path/'a.gz';m=write_archive(sample(),a);before=a.read_bytes()
-    with pytest.raises(ValueError,match='overwrite'):write_archive(sample(),a)
-    assert a.read_bytes()==before and sha256(a)==m['sha256']
     monkeypatch.setattr(fmt,'MAX_LINE',2*1024*1024)
     def interrupted():
         yield sample()[0]
         raise RuntimeError('source interrupted')
     with pytest.raises(RuntimeError):write_archive(interrupted(),tmp_path/'partial.gz')
     assert not list(tmp_path.iterdir())
+
+
+def test_existing_evidence_cannot_be_clobbered(tmp_path):
+    a=tmp_path/'a.gz';m=write_archive(sample(),a);before=a.read_bytes()
+    with pytest.raises(ValueError,match='overwrite'):write_archive(sample(),a)
+    assert a.read_bytes()==before and sha256(a)==m['sha256']
 
 
 @pytest.mark.parametrize('url',['postgresql://u:secret@production/betappv33','postgresql://u:secret@localhost/betappv33','sqlite:///x','postgresql://u:secret@localhost/betapp_test?options=bad'])
