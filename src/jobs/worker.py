@@ -501,6 +501,11 @@ async def discover(job_id, client):
                             counts['deferred_capacity'] += 1
                             continue
                         try:
+                            # SQLAlchemy flushes pending ORM state *before* opening
+                            # a SAVEPOINT. Reject older fixtures before that flush;
+                            # store_match repeats admission inside the savepoint.
+                            if historical(data.get('kickoff_at')):
+                                await guard_history_write(session, data.get('kickoff_at'))
                             async with session.begin_nested():
                                 match = await store_match(session, league_id, season_name, data)
                         except HistoryCapacityError:
