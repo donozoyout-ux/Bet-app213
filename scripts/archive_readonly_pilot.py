@@ -84,7 +84,9 @@ async def collect(league_external_id, season_name):
                 for book, quote in quote_rows:
                     fields = {f"{stage}_{side}": getattr(quote, f"{stage}_{side}")
                               for stage in ("opening", "closing") for side in FIELDS[market]}
-                    item["odds"].append({"bookmaker": book, "market": market, **fields,\n                                     "source_provenance": (quote.raw or {}).get("_verified_odds_fill"),\n                                     "observed_fields": (quote.raw or {}).get("_field_observed_at")})
+                    item["odds"].append({"bookmaker": book, "market": market, **fields,
+                                     "source_provenance": (quote.raw or {}).get("_verified_odds_fill"),
+                                     "observed_fields": (quote.raw or {}).get("_field_observed_at")})
             result.append(item)
         return result
 
