@@ -105,4 +105,6 @@ Subsequent read-only audit: 14,796 source matches; application 678,352,575 bytes
 aggregate databases 701,752,908 bytes (678.35/701.75 decimal MB). Physical WAL
 and service overhead were not measured. Normal production activity continued
 between audits; no claim is made that unrelated table counts stayed constant.
-No imports were started. Capacity warrants operational review before backfills.
+No imports were started. Aggregate usage exceeds the existing 700,000,000-byte
+hard import stop by 1,752,908 bytes. Further history imports must remain stopped;
+no source deletion or configuration changes are authorized by this pilot.
