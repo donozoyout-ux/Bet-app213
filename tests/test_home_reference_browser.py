@@ -64,6 +64,18 @@ async def test_reference_home_layout_and_real_interactions(api, db, monkeypatch,
             await page.goto('http://test/')
             await expect(page.locator('#prediction-cards .prediction-card')).to_have_count(4)
             await page.wait_for_load_state('networkidle')
+            assert await page.locator('#prediction-cards .prediction-card').count() <= 8
+            live_panel = [path for path in calls if path.startswith('/api/matches?view=live&') and 'limit=3' in path]
+            assert len(live_panel) == 1
+            assert 'include_odds' not in live_panel[0]
+            assert calls.count('/api/leagues') == 1
+            assert '/api/bookmakers' not in calls  # Match-center controls are lazy.
+            print('ISSUE104_HOME', width, height, json.dumps({
+                'api_requests': [path for path in calls if path.startswith('/api/')],
+                'resources': await page.evaluate('''() => performance.getEntriesByType('resource')
+                    .filter(r=>/\\.(js|css)(\\?|$)/.test(r.name))
+                    .map(r=>({name:new URL(r.name).pathname,bytes:r.decodedBodySize,duration_ms:r.duration}))''')
+            }))
             label=os.getenv('HOME_CAPTURE_LABEL','after')
             if label!='before':
                 await expect(page.locator('#home-coupon-list .coupon-fixture')).to_have_count(4)
