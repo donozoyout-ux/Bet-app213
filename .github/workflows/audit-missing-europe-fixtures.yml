@@ -1,0 +1,58 @@
+name: Audit missing Europe fixtures (read-only)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: europe-bounded-history
+  cancel-in-progress: false
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DATABASE_URL: ${{ secrets.RENDER_DATABASE_URL }}
+      NVIDIA_AI_ENABLED: 'false'
+      NVIDIA_API_KEY: ''
+      TELEGRAM_BOT_TOKEN: ''
+      TELEGRAM_CHAT_ID: ''
+      SCRAPER_WORKER_ENABLED: 'false'
+      AUTO_BACKFILL_ON_EMPTY: 'false'
+      BETAPP_PROCESS_ROLE: scraper
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Compare historical Goaloo fixture catalog to existing database
+        run: |
+          python - <<'PY'
+          import asyncio, json, os
+          from pathlib import Path
+          from scripts.render_external_database import external_database_url
+          os.environ['DATABASE_URL'] = external_database_url(os.environ['DATABASE_URL'])
+          from scripts.audit_missing_europe_fixtures import audit
+          from src.db import database
+          async def main():
+              try:
+                  manifest = await audit([6,7])
+                  output = Path('missing-europe-fixtures.json')
+                  output.write_text(json.dumps(manifest, indent=2, ensure_ascii=False), encoding='utf-8')
+                  print(json.dumps({'mode':manifest['mode'], 'leagues': [
+                      {'league':row['league'],'missing_total':row['missing_total'],
+                       'conflict_total':row['conflict_total']}
+                      for row in manifest['leagues']]}))
+                  if any(row['conflict_total'] for row in manifest['leagues']):
+                      raise RuntimeError('Source/database identity conflicts; manual review required')
+              finally:
+                  await database.close()
+          asyncio.run(main())
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: missing-europe-fixtures-audit
+          path: missing-europe-fixtures.json
+          if-no-files-found: ignore
