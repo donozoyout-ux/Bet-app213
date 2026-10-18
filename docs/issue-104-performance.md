@@ -1,5 +1,9 @@
 # Issue 104: measured read-path improvements
 
+Scope note: during implementation, the GitHub issue was rewritten as a historical
+match/prediction audit. This report and PR implement the user's explicit UI/API
+speed request in this conversation. The revised issue is not closed by this PR.
+
 ## Scope and coordination
 
 Base: master `e45307b5aa177352a94f862e37e5e5e5bef3f3ce`. Independent of open
