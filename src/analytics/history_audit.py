@@ -99,10 +99,26 @@ def evaluate(match, stats, pick):
 def price_at_capture(pick, captured, quote=None):
     vo = pick.get('verified_odds') or {}
     q = quote if quote is not None else dict(price=vo.get('best_price'), bookmaker=vo.get('best_bookmaker'),
-        observed_at=vo.get('observed_at'), expires_at=vo.get('expires_at'))
+        observed_at=vo.get('observed_at'), expires_at=vo.get('expires_at'),line=vo.get('line'),period=vo.get('period'))
+    market, selection = pick.get('market'), pick.get('selection','')
+    period = {'first_half_goals':'first_half','second_half_goals':'second_half'}.get(market,'full_time')
+    contract = q.get('period') == period
+    if market in {'result','btts','double_chance'}:
+        contract = contract and q.get('line') is None
+    else:
+        parsed = re.fullmatch(r'(home|away)_(plus|minus)_(\d+)_(0|5|25|75)',selection) if market=='asian_handicap' else re.fullmatch(r'(over|under)_(\d+)_(0|5|25|75)',selection)
+        if parsed:
+            parts=parsed.groups();line=float(parts[-2]+'.'+parts[-1])
+            if market=='asian_handicap':
+                line *= (1 if parts[1]=='plus' else -1)*(1 if parts[0]=='home' else -1)
+            contract = contract and number(q.get('line')) and abs(q['line']-line)<1e-8
+        else:
+            contract = False
+    if quote is None:
+        contract = contract and vo.get('market')==market and vo.get('selection')==selection
     try:
         seen, expiry = stamp(q.get('observed_at')), stamp(q.get('expires_at'))
-        valid = (number(q.get('price')) and q['price'] > 1 and q.get('bookmaker') in BOOKS
+        valid = (contract and number(q.get('price')) and q['price'] > 1 and q.get('bookmaker') in BOOKS
             and seen is not None and captured is not None and 0 <= (captured-seen).total_seconds() <= 900
             and expiry is not None and captured < expiry
             and (quote is not None or vo.get('has_odds') is True and vo.get('stage') == 'latest'))

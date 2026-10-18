@@ -91,7 +91,7 @@ def test_decode_preserves_float_lexemes_for_snapshot_hashes():
 
 
 def test_only_captured_fresh_prices_and_binary_outcomes_enter_metrics():
-    pick=dict(verified_odds=dict(has_odds=True,stage='latest',best_bookmaker='Bet365',best_price=2.0,
+    pick=dict(market='result',selection='home',verified_odds=dict(market='result',selection='home',period='full_time',has_odds=True,stage='latest',best_bookmaker='Bet365',best_price=2.0,
         observed_at='2026-01-02T10:59:00Z',expires_at='2026-01-02T11:14:00Z'))
     assert price_at_capture(pick,stamp(CAPTURED))==('Bet365',2.0)
     pick['verified_odds']['observed_at']='2026-01-02T11:01:00Z'
@@ -103,6 +103,15 @@ def test_only_captured_fresh_prices_and_binary_outcomes_enter_metrics():
     result=summarize(rows)
     assert result['denominator']==2 and result['hit_rate']==.5
     assert result['priced_n']==5 and result['unit_stake_profit']==0
+
+
+def test_bookmaker_contract_period_and_home_perspective_line():
+    pick=dict(market='asian_handicap',selection='away_plus_0_5')
+    quote=dict(price=2,bookmaker='Bet365',line=-.5,period='full_time',
+               observed_at='2026-01-02T10:59:00Z',expires_at='2026-01-02T11:14:00Z')
+    assert price_at_capture(pick,stamp(CAPTURED),quote)[1]==2
+    assert price_at_capture(pick,stamp(CAPTURED),dict(quote,line=.5))[1] is None
+    assert price_at_capture(pick,stamp(CAPTURED),dict(quote,period='first_half'))[1] is None
 
 
 @pytest.mark.skipif(not os.getenv('TEST_POSTGRES_URL'),reason='requires PostgreSQL service')
