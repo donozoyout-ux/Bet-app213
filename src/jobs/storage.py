@@ -23,7 +23,12 @@ async def get_or_create(session, model, keys, defaults=None):
 
 async def store_match(session, league_id, season_name, data):
     # Must run before even creating a season/team, not merely before Match flush.
-    await guard_history_write(session, data.get('kickoff_at'))
+    with session.no_autoflush:
+        match = await session.scalar(select(Match).where(Match.external_match_id == data['external_match_id']))
+    # A newly imported result is history even if its kickoff is recent. Only
+    # existing near-term results get the live-correction exemption.
+    await guard_history_write(session, data.get('kickoff_at'),
+                              force=match is None and data.get('status') == 'finished')
     season = await get_or_create(session, Season, {'league_id': league_id, 'season_name': season_name})
     home = await get_or_create(session, Team, {'external_id': data['home_external_id']}, {'name': data['home_name']})
     away = await get_or_create(session, Team, {'external_id': data['away_external_id']}, {'name': data['away_name']})
@@ -32,7 +37,6 @@ async def store_match(session, league_id, season_name, data):
     values = {k: data[k] for k in keys}
     values.update({k: data[k] for k in ['round_label', 'stage_key'] if k in data})
     values.update(league_id=league_id, season_id=season.id, home_team_id=home.id, away_team_id=away.id)
-    match = await session.scalar(select(Match).where(Match.external_match_id == data['external_match_id']))
     added = match is None
     if added:
         match = await get_or_create(session, Match, {'external_match_id': data['external_match_id']}, values)

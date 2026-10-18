@@ -494,17 +494,17 @@ async def discover(job_id, client):
                             continue
                     if competition_type == 'national' and (data['kickoff_at'] is None or data['kickoff_at'].year < start_year):
                         continue
-                    if kind == 'update' and historical(data.get('kickoff_at')):
+                    if kind == 'update':
                         # A daily schedule can contain old seasons. Defer its old
                         # rows without preventing near-term fixtures/live results.
-                        if counts.get('deferred_capacity'):
+                        if counts.get('deferred_capacity') and historical(data.get('kickoff_at')):
                             counts['deferred_capacity'] += 1
                             continue
                         try:
                             async with session.begin_nested():
                                 match = await store_match(session, league_id, season_name, data)
                         except HistoryCapacityError:
-                            counts['deferred_capacity'] = 1
+                            counts['deferred_capacity'] = counts.get('deferred_capacity', 0) + 1
                             continue
                     else:
                         match = await store_match(session, league_id, season_name, data)

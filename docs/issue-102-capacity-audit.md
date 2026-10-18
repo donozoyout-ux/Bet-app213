@@ -26,7 +26,9 @@ Daily update schedules previously bypassed the old job-kind-only guard despite
 including prior-season fixtures. They now defer blocked historical rows using a
 savepoint and record `deferred_capacity`, while continuing current fixtures.
 The existing seven-day live/results correction window stays available, unless
-the caller explicitly marks the work as historical. Unknown kickoff dates are
+the caller explicitly marks the work as historical. Newly inserted finished
+fixtures always require admission, even inside that window; only existing recent
+results qualify as live corrections. Unknown kickoff dates are
 guarded. The dedicated score updater and prediction processing remain available;
 old 90-day statistics enrichment defers without writing a source retry failure.
 SQLite remains test-only; production Database configuration requires PostgreSQL.

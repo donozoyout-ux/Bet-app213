@@ -149,6 +149,8 @@ async def test_all_storage_paths_stop_before_metadata_and_live_remains_available
     with pytest.raises(capacity.HistoryCapacityError):
         await store_match(session,league_id,'2026-2027',fixture_data(age=0))
     session.info.clear()
+    with pytest.raises(capacity.HistoryCapacityError):
+        await store_match(session,league_id,'2026-2027',fixture_data(age=0))
     # Daily discovery and the dedicated score updater do not need history admission.
     live=await store_match(session,league_id,'2026-2027',{**fixture_data(age=0),'status':'scheduled'})
     await store_live(session,live,dict(status='live',live_minute='10',ft_home=1,ft_away=0,raw={}),utcnow())
