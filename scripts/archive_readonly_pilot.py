@@ -15,7 +15,7 @@ import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.orm import aliased
 from src.db import database
 from src.models import (League, Season, Match, Team, Bookmaker, MatchStatistics,
@@ -46,9 +46,14 @@ def encoded(row):
 
 
 async def collect(league_external_id, season_name):
-    """Query a bounded season with no write statements; snapshots may change concurrently."""
+    """Export one consistent PostgreSQL REPEATABLE READ READ ONLY snapshot."""
     home, away = aliased(Team), aliased(Team)
     async with database.session() as session:
+        if session.bind.dialect.name != "postgresql":
+            raise RuntimeError("Archive source must be PostgreSQL")
+        # Must be the first statement in the transaction. Locks a single
+        # consistent snapshot across matches, prices and statistics, without writes.
+        await session.execute(text("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY"))
         matches = (await session.execute(
             select(Match, home.external_id, home.name, away.external_id, away.name)
             .join(League, Match.league_id == League.id)
@@ -79,7 +84,7 @@ async def collect(league_external_id, season_name):
                 for book, quote in quote_rows:
                     fields = {f"{stage}_{side}": getattr(quote, f"{stage}_{side}")
                               for stage in ("opening", "closing") for side in FIELDS[market]}
-                    item["odds"].append({"bookmaker": book, "market": market, **fields})
+                    item["odds"].append({"bookmaker": book, "market": market, **fields,\n                                     "source_provenance": (quote.raw or {}).get("_verified_odds_fill"),\n                                     "observed_fields": (quote.raw or {}).get("_field_observed_at")})
             result.append(item)
         return result
 
