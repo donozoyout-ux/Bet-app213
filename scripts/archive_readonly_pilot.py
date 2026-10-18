@@ -93,7 +93,7 @@ async def export_archive(league_id,season_name,output,db=None):
 def restore_verify(archive,manifest,db_path):
     """SQLite logical check only; never presented as PostgreSQL proof."""
     if Path(db_path).exists():raise ValueError('Fresh SQLite target required')
-    conn=sqlite3.connect(str(db_path));digest=hashlib.sha256();count=quotes=0
+    conn=sqlite3.connect(str(db_path));digest=hashlib.sha256();count=quotes=0;success=False
     try:
         conn.execute('CREATE TABLE fixtures (match_id INTEGER PRIMARY KEY, payload TEXT NOT NULL)')
         conn.execute('CREATE TABLE quotes (match_id INTEGER, market TEXT, book INTEGER, payload TEXT, PRIMARY KEY(match_id,market,book), FOREIGN KEY(match_id) REFERENCES fixtures(match_id))')
@@ -107,8 +107,11 @@ def restore_verify(archive,manifest,db_path):
             count+=1
         for payload, in conn.execute('SELECT payload FROM fixtures ORDER BY match_id'):digest.update((payload+'\n').encode('utf-8'))
         if digest.hexdigest()!=manifest['payload_sha256']:raise ValueError('SQLite value parity mismatch')
+        conn.commit();success=True
         return dict(verified_matches=count,verified_quotes=quotes,sha256=manifest['sha256'],backend='sqlite-logical')
-    finally:conn.close()
+    finally:
+        conn.close()
+        if not success:Path(db_path).unlink(missing_ok=True)
 
 
 async def main():

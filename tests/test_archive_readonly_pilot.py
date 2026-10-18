@@ -3,6 +3,7 @@ import gzip
 import hashlib
 import json
 import os
+import sqlite3
 import uuid
 from copy import deepcopy
 from pathlib import Path
@@ -49,6 +50,9 @@ def test_isolated_sqlite_restore_proves_logical_parity(tmp_path):
     archive=tmp_path/'season.gz';manifest=write_archive(sample(),archive)
     proof=restore_verify(archive,manifest,tmp_path/'restore.sqlite')
     assert proof['verified_matches']==1 and proof['verified_quotes']==9 and proof['backend']=='sqlite-logical'
+    with sqlite3.connect(tmp_path/'restore.sqlite') as conn:
+        assert conn.execute('SELECT count(*) FROM fixtures').fetchone()[0]==1
+        assert conn.execute('SELECT count(*) FROM quotes').fetchone()[0]==9
 
 
 def test_deterministic_bytes_and_null_roundtrip(tmp_path):
