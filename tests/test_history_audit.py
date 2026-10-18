@@ -42,6 +42,7 @@ def test_unknown_and_inconsistent_score_abstain():
     assert evaluate(MATCH,None,dict(market='result',selection=[]))[0]=='awaiting_data'
     assert evaluate(dict(MATCH,ht_home=3),None,dict(market='goals',selection='over_2_5'))[0]=='awaiting_data'
     assert evaluate(dict(MATCH,status='scheduled'),None,dict(market='result',selection='home'))[0]=='pending'
+    assert price_at_capture(dict(market=[],selection=None),stamp(CAPTURED))[1] is None
 
 
 def fixture():

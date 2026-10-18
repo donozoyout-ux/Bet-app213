@@ -101,6 +101,8 @@ def price_at_capture(pick, captured, quote=None):
     q = quote if quote is not None else dict(price=vo.get('best_price'), bookmaker=vo.get('best_bookmaker'),
         observed_at=vo.get('observed_at'), expires_at=vo.get('expires_at'),line=vo.get('line'),period=vo.get('period'))
     market, selection = pick.get('market'), pick.get('selection','')
+    if not isinstance(market,str) or not isinstance(selection,str):
+        return q.get('bookmaker') or 'unknown', None
     period = {'first_half_goals':'first_half','second_half_goals':'second_half'}.get(market,'full_time')
     contract = q.get('period') == period
     if market in {'result','btts','double_chance'}:
