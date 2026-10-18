@@ -1,33 +1,85 @@
-# Private historical archive pilot — no-delete protocol
+# Private archive phase 2 — no source deletion
 
-## Approved architecture
-- Live application remains on existing Render PostgreSQL. Never substitute archive quotes for 900-second live odds.
-- Historical partition: one league and one season of finished fixtures dated 2024+.
-- Archive output: deterministic `.jsonl.gz` and `.manifest.json` with SHA256, match/quote counts; includes 1X2/AH/OU opening+closing and a subset of match statistics. This is a **pilot subset**, not a full DB backup (does not include all raw payloads, events, odds snapshots, saved predictions/coupons, or every statistic).
-- Source transaction uses `REPEATABLE READ READ ONLY`; no production insert/update/delete.
-- Restore into isolated temporary SQLite is a logical integrity demonstration only. A full, isolated PostgreSQL schema/restore parity test is required before any retention decision.
+Destination: **donozoyout-ux/ma-larii-archive** (private). Application source:
+**donozoyout-ux/Bet-app213** (public). Never put exported data in public commits,
+Actions artifacts, caches or Releases. Neither workflow publishes an archive.
 
-## Separate private repository prerequisites
-1. Use the existing verified **private** repository `donozoyout-ux/ma-larii-archive` using GitHub UI, with access limited to intended maintainers. Repository visibility and write permission were verified on 18 October 2026; the source app repository is public, so **never** attach archive assets to it.
-2. Review Goaloo source licensing/redistribution and GitHub terms. Private visibility is not a license to redistribute third-party data.
-3. Use narrow-scoped token/installation with write access to Releases **only** for the private archive repository. Never print/store the token in app repo, logs, or release assets.
-4. Keep the archive repo private and confirm visibility through GitHub API before **any** archive upload. If missing/wrong visibility, abort.
-5. For first pilot, export locally on a controlled authenticated runner, verify checksums and isolated logical restore; do not automatically upload until review.
+## Actual phase-1 evidence
 
-## Commands after configuring an isolated runner
-```bash
-python -m scripts.archive_readonly_pilot --league 6 --season 2025-2026 --output /tmp/kupon-archive/poland-2025-2026.jsonl.gz
-python -m scripts.archive_readonly_pilot --league 7 --season 2025-2026 --output /tmp/kupon-archive/denmark-2025-2026.jsonl.gz
-```
+The private repository already exists. Poland 2025–2026 read-only pilot
+[39114835293](https://github.com/donozoyout-ux/ma-larii-archive/actions/runs/39114835293)
+succeeded: 306 fixtures, 2,754 bookmaker/market rows, gzip SHA-256
+`915a6b70c52deeaf4d1b6ce2010d5e8cea1c9b825d9a94a24e820d2d9571611f`.
+That version-1 run proved **SQLite logical parity only**, not PostgreSQL restore.
+Release publishing was skipped; no permanent archive asset was created.
+Draft PR #99 is the prototype; phase 2 supersedes its exporter.
 
-Make sure `DATABASE_URL` is the existing read-only PostgreSQL credential (a dedicated SELECT-only role is preferred). The script does not initialize a schema or upload files. Keep any generated files off publicly accessible build artifacts.
+## Version-2 safety contract
 
-## Gates before Release upload
-- Verify private destination, permissions, licensing, expected season/league and SHA256.
-- Check sample export/restore parity and inspect missing/null odds and statistics as factual data gaps.
-- Ensure credentials/personal data are absent from the archive.
-- Encrypt at rest if required by data classification, and maintain an independent recovery copy.
-- Never remove archive source rows from PostgreSQL in this pilot.
+- One PostgreSQL REPEATABLE READ READ ONLY transaction; server read-only check,
+  5-second statement / 1-second lock / 15-second idle-transaction timeouts and
+  120-second total snapshot lifetime. No source schema initialization or writes.
+- Keyset pages of 50, at most 100; bulk related reads and bounded ORM identity
+  map. Writer/reader enforce 5,000 fixtures, 2 MiB per record, 128 MiB inflated
+  payload and a conservative **64 MiB application asset limit**.
+- Canonical gzip JSONL, no embedded filename/mtime; SHA-256 over compressed and
+  canonical uncompressed bytes. Deterministic for the same unchanged snapshot.
+  Checksums detect alteration against a trusted manifest; they are not signatures.
+- League, season, teams, optional referee, match identity and scores, all match
+  statistic columns, three bookmaker identities and FT 1X2/AH/OU opening,
+  closing and latest observations with complete raw metadata and timestamps.
+  NULL is preserved, never replaced by a default or inferred price.
+- Manifest and record schema, linked identities, unique/sorted match IDs,
+  unique bookmaker/market pairs, numeric values, hashes and counts validated.
+  Partial exports never publish a valid archive/manifest pair. Existing evidence
+  cannot be overwritten.
+- SQLite remains a separately labelled logical check. Real PostgreSQL restore
+  uses only loopback `betapp_test` / `betapp_archive_restore`, a random new schema
+  and real model tables/foreign keys. Re-exported **every-value** digest and
+  counts must match. The entire target transaction, including DDL, rolls back.
+  No DROP/DELETE/TRUNCATE or production-target restore is needed.
 
-## Current scope
-PR #99 contains code and unit tests only. No archive repo was created, no production export executed, and no real historical database restored yet. This document does not authorize destructive actions.
+CI supplies PostgreSQL 16 and seeded synthetic data. Tests prove exact roundtrip,
+JSON nulls, zero handicap, metadata, repeatable snapshot under a concurrent test
+writer, SELECT-only export verbs, reproducible bytes, failure cleanup, corrupt
+manifests/counts, linked-identity conflicts and rejection of live restore targets.
+Synthetic test data never enters Render.
+
+## Read-only Denmark pilot
+
+Private workflow `.github/workflows/archive-pilot.yml` must pin the **full tested
+exporter commit SHA**, validate actual repository privacy via GitHub API, run
+SQLite and genuine disposable PostgreSQL restores, and log only counts/checksums
+and proof flags. It must be manually dispatched with league 7, season 2025–2026,
+`publish_release=false`. Phase-2 results will be recorded only after execution.
+
+A dedicated SELECT-only source credential is recommended; do not create users,
+change Render configuration or grants in this task. The current credential's
+scope must be reported honestly; server read-only transactions are mandatory
+regardless of role privileges. No Telegram/NVIDIA calls, scraper scheduling,
+prediction/coupon reads or mutations are part of the exporter.
+
+## Publishing remains disabled
+
+`publish_release=true` fails before export. Job token is contents:read, there is
+no upload action, no Release upload command, no public artifact and no persisted
+export on the ephemeral runner. Private access alone grants no redistribution
+rights. Source rights/licensing and user approval remain unestablished.
+
+A future **separate reviewed uploader** requires documented source permission,
+explicit user clearance, freshly checked exact private destination, narrowly
+scoped write token, independently trusted manifest and PostgreSQL proof, asset
+size preflight, immutable unique tags, no clobber/replace, and a manual retention
+policy. No automatic source pruning or archive deletion. Check the current
+GitHub limits before that uploader is enabled; 64 MiB here is an application cap.
+
+## Disaster recovery limits
+
+This is a partition archive and relational parity test, not a full native backup,
+PITR system or production recovery drill. Events, odds tick snapshots, other
+market tables, users, prediction/coupon history, jobs and service configuration
+are excluded. Local internal IDs are remapped via checked external identities.
+Production restore, retention decisions and independent offsite recovery copies
+require separately reviewed procedures. Historical observations never satisfy
+900-second live-quote freshness requirements. Imports keep the existing 650 MB
+soft / 700 MB hard safety guards; this task performs no imports or source pruning.
