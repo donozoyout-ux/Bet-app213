@@ -1,0 +1,58 @@
+{
+  "observed_at": "2026-10-18T19:19:36.115636+00:00",
+  "concurrency": 1,
+  "samples_per_path": 21,
+  "cold_definition": "First client request; server cache/wakeup state unknown",
+  "sql_count": null,
+  "paths": {
+    "/api/matches?view=upcoming&limit=12&include_odds=true": {
+      "first_ms": 1299.46,
+      "warm_n": 20,
+      "warm_median_ms": 460.15,
+      "warm_p95_ms": 842.92,
+      "errors": 0
+    },
+    "/api/predictions": {
+      "first_ms": 1647.63,
+      "warm_n": 20,
+      "warm_median_ms": 1080.1299999999999,
+      "warm_p95_ms": 3033.97,
+      "errors": 0
+    },
+    "/api/predictions/best": {
+      "first_ms": 1386.31,
+      "warm_n": 20,
+      "warm_median_ms": 1019.745,
+      "warm_p95_ms": 1536.44,
+      "errors": 0
+    },
+    "/api/coupons/daily": {
+      "first_ms": 219.87,
+      "warm_n": 20,
+      "warm_median_ms": 115.4,
+      "warm_p95_ms": 244.9,
+      "errors": 0
+    },
+    "/api/dashboard/revision": {
+      "first_ms": 956.63,
+      "warm_n": 20,
+      "warm_median_ms": 136.51999999999998,
+      "warm_p95_ms": 646.72,
+      "errors": 0
+    },
+    "/api/market-performance?limit=1": {
+      "first_ms": 3139.9,
+      "warm_n": 20,
+      "warm_median_ms": 69.095,
+      "warm_p95_ms": 149.07,
+      "errors": 0
+    },
+    "/api/matches/3109": {
+      "first_ms": 72.58,
+      "warm_n": 20,
+      "warm_median_ms": 80.445,
+      "warm_p95_ms": 342.58,
+      "errors": 0
+    }
+  }
+}
