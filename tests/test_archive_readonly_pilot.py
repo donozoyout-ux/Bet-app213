@@ -97,6 +97,12 @@ def test_streaming_cap_and_generator_failure_clean_up(tmp_path,monkeypatch):
     monkeypatch.setattr(fmt,'MAX_LINE',10)
     with pytest.raises(ValueError,match='limit'):write_archive(sample(),tmp_path/'bounded.gz')
     assert not list(tmp_path.iterdir())
+
+
+def test_existing_evidence_cannot_be_clobbered(tmp_path):
+    a=tmp_path/'a.gz';m=write_archive(sample(),a);before=a.read_bytes()
+    with pytest.raises(ValueError,match='overwrite'):write_archive(sample(),a)
+    assert a.read_bytes()==before and sha256(a)==m['sha256']
     monkeypatch.setattr(fmt,'MAX_LINE',2*1024*1024)
     def interrupted():
         yield sample()[0]
@@ -185,5 +191,26 @@ async def test_postgres_rejects_valid_hash_but_inconsistent_entity(pg,tmp_path):
     rows[1]['teams'][0]['name']='Changed identity'
     a=tmp_path/'a.gz';m=write_archive(rows,a)
     with pytest.raises(ValueError,match='linked'):await restore_postgres(a,m,os.environ['TEST_POSTGRES_URL'])
+    async with pg.session() as s:
+        assert await s.scalar(text("SELECT count(*) FROM pg_namespace WHERE nspname LIKE 'archive_restore_%'"))==0
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('kind',['checksum','wrong_count','manifest','missing_team','duplicate_match','unknown_book'])
+async def test_postgres_tamper_rollback_preserves_source(pg,tmp_path,kind):
+    original=await collect(7,'2025-2026',pg);rows=deepcopy(original)
+    a=tmp_path/'a.gz';m=write_archive(rows,a)
+    if kind=='checksum':a.write_bytes(a.read_bytes()+b'tamper')
+    elif kind=='wrong_count':m['odds_count']+=1
+    elif kind=='manifest':del m['payload_sha256']
+    else:
+        if kind=='missing_team':rows[0]['teams'].pop()
+        if kind=='duplicate_match':rows[1]['match']['external_match_id']=rows[0]['match']['external_match_id']
+        if kind=='unknown_book':rows[0]['odds'][0]['bookmaker_external_id']=999
+        payload=(''.join(encoded(r)+'\n' for r in rows)).encode()
+        a.write_bytes(gzip.compress(payload,mtime=0))
+        m.update(sha256=sha256(a),payload_sha256=hashlib.sha256(payload).hexdigest(),uncompressed_bytes=len(payload))
+    with pytest.raises(ValueError):await restore_postgres(a,m,os.environ['TEST_POSTGRES_URL'])
+    assert await collect(7,'2025-2026',pg)==original
     async with pg.session() as s:
         assert await s.scalar(text("SELECT count(*) FROM pg_namespace WHERE nspname LIKE 'archive_restore_%'"))==0

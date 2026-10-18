@@ -160,7 +160,8 @@ class Writer:
             uncompressed_bytes=self.size,league=self.league,season=self.season,
             format='jsonl.gz',contains_personal_account_data=False)
         # Publish the manifest last. Failed exports never produce a valid pair.
-        self.partial.replace(self.output)
+        # Atomic no-clobber publication, even if another writer won the name.
+        self.output.hardlink_to(self.partial)
         owned=False
         try:
             with self.manifest_path.open('x',encoding='utf-8') as target:
