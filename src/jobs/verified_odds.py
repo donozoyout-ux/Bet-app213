@@ -64,6 +64,8 @@ async def fill_only(session,match_id,external_match_id,job_id,odds):
     Only opening/closing fields are written. Match scores/statistics, latest_*
     values, their observation times and match.last_scraped_at are untouched.
     """
+    from .europe_capacity import guard_history_write
+    await guard_history_write(session, force=True)
     books=dict((await session.execute(select(Bookmaker.name,Bookmaker.id).where(Bookmaker.name.in_(BOOKS)))).all())
     if set(books)!=set(BOOKS):
         raise ValueError('Three verified bookmakers must already exist')
