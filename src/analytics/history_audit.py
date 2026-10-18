@@ -98,7 +98,7 @@ def evaluate(match, stats, pick):
 
 def price_at_capture(pick, captured, quote=None):
     vo = pick.get('verified_odds') or {}
-    q = quote or dict(price=vo.get('best_price'), bookmaker=vo.get('best_bookmaker'),
+    q = quote if quote is not None else dict(price=vo.get('best_price'), bookmaker=vo.get('best_bookmaker'),
         observed_at=vo.get('observed_at'), expires_at=vo.get('expires_at'))
     try:
         seen, expiry = stamp(q.get('observed_at')), stamp(q.get('expires_at'))
@@ -154,7 +154,7 @@ def audit(snapshots, coupons=(), coupon_matches=(), *, observed_at):
             evidence=dict(match=match, stats=stats))
         row.update({field:match.get(field) if match else None for field in ('ft_home','ft_away','ht_home','ht_away')})
         flags = list(extra)
-        if not eligible: flags.append('not_verifiable_prematch')
+        if not (when and kickoff and when < kickoff): flags.append('not_verifiable_prematch')
         normalized = 'void' if expected == 'push' else expected
         if stored is None and expected in TERMINAL and source == 'prediction': flags.append('missing_terminal_decision')
         elif stored is not None and stored != normalized and not (source == 'coupon' and stored == 'pending'):

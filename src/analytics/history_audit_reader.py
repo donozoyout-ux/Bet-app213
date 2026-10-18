@@ -49,4 +49,3 @@ async def collect(conn, batch_size=50):
         raise TypeError(type(value).__name__)
     return json.loads(json.dumps(dict(snapshots=snapshots, coupons=coupons,
         coupon_matches=matches, observed_at=observed.isoformat()), default=serial))
-
