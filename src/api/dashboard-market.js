@@ -110,6 +110,17 @@ if($('trend-as-of')&&!value('trend-as-of'))$('trend-as-of').value=data.as_of;
 const periods=$('trend-periods');periods.replaceChildren();
 for(const comparison of data.comparisons){
  const card=node('article','','trend-period');card.dataset.days=String(comparison.days);card.hidden=String(comparison.days)!==(value('trend-window')||'7');card.append(node('h3',`${comparison.days} gün / önceki ${comparison.days} gün`));
+ const comparisonChart=node('div','','trend-comparison-chart');
+ comparisonChart.setAttribute('role','group');
+ comparisonChart.setAttribute('aria-label',comparison.days+' günlük gerçek tahmin başarı oranı karşılaştırması');
+ for(const [periodName,periodData] of [['Önceki',comparison.previous],['Son',comparison.recent]]){
+  const barRow=node('div','','trend-comparison-row');
+  barRow.append(node('strong',periodName+' '+comparison.days+' gün: '+(periodData.decided?pct(periodData.success_rate):'Veri yok')+' ('+periodData.won+'/'+periodData.decided+')'));
+  const track=node('div','','trend-comparison-track');
+  if(periodData.decided){const fill=node('div','','trend-comparison-fill');fill.style.width=(Math.max(0,Math.min(1,periodData.success_rate))*100)+'%';track.append(fill);}
+  barRow.append(track);comparisonChart.append(barRow);
+ }
+ card.append(comparisonChart);
  card.append(node('p',comparison.eligible?`Ham başarı farkı: ${comparison.raw_difference==null?'—':(comparison.raw_difference*100).toFixed(1)+' yüzde puan'} · ${comparison.direction==='increase'?'Artış sinyali; kalıcılık/öğrenme kanıtı değil':comparison.direction==='decrease'?'Düşüş sinyali':'Belirsizlik aralıkları ayrışmıyor'}`:'Yetersiz veya eksik örneklem · güvenilir gelişim karşılaştırması yapılamıyor'));
  for(const [key,label] of [['recent','Son dönem'],['previous','Önceki dönem']]){
   const p=comparison[key];const interval=p.cluster_95?`${pct(p.cluster_95.lower)} – ${pct(p.cluster_95.upper)}`:'—';
@@ -124,12 +135,12 @@ for(const comparison of data.comparisons){
 }
 const daily=$('trend-daily');daily.replaceChildren();for(const d of data.daily){const row=node('tr');for(const v of [d.date,`${d.won}/${d.decided}`,d.lost,d.distinct_matches,pct(d.success_rate),pct(d.mean_probability),d.brier_score==null?'—':d.brier_score.toFixed(3),`${d.pending} / ${d.awaiting_data} / ${d.disputed} / ${d.void}`])cell(row,String(v));daily.append(row);}
 const chart=$('trend-chart');chart.replaceChildren();
-const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 620 140');svg.setAttribute('role','img');svg.setAttribute('aria-label','Son 60 günlük başarı; yetersiz veya eksik günlerde boşluk. Ayrıntılar günlük sayım tablosunda.');
+const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 620 140');svg.setAttribute('role','img');svg.setAttribute('aria-label','Son 60 günlük gözlenen başarı; düşük örneklemli günler yorum için yeterli olmayabilir. Ayrıntılar günlük sayım tablosunda.');
 let previous=null;for(let i=0;i<data.daily.length;i++){const d=data.daily[i];if(d.chart_rate==null){previous=null;continue;}const x=12+i*10,y=125-d.chart_rate*110;
 const line=(x1,y1,x2,y2)=>{const el=document.createElementNS(svg.namespaceURI,'line');for(const [k,v] of Object.entries({x1,y1,x2,y2}))el.setAttribute(k,v);el.setAttribute('stroke','#66dda1');svg.append(el);};
 line(x,125-d.cluster_95.lower*110,x,125-d.cluster_95.upper*110);if(previous)line(previous.x,previous.y,x,y);
 const dot=document.createElementNS(svg.namespaceURI,'circle');dot.setAttribute('cx',x);dot.setAttribute('cy',y);dot.setAttribute('r',3);dot.setAttribute('fill','#66dda1');svg.append(dot);previous={x,y};}
-chart.append(node('p','Günlük başarı %0–%100 · soldan sağa son 60 gün · çizgiler maç gruplu belirsizlik aralığı'),svg);if(!data.daily.some(d=>d.chart_rate!=null))chart.append(node('p','Günlük çizgi için yeterli tamamlanmış örneklem yok.'));
+chart.append(node('p','Günlük gözlenen başarı %0–%100 · soldan sağa son 60 gün · az örneklem uyarısı: bu oranlar tek başına öğrenme kanıtı değildir'),svg);if(!data.daily.some(d=>d.chart_rate!=null))chart.append(node('p','Bu aralıkta sonuçlanmış tahmin yok.'));
 }
 function refreshTrends(){if(!$('trend-periods'))return;const q=new URLSearchParams();for(const [id,key] of [['trend-as-of','as_of'],['performance-league','league'],['performance-market','market'],['performance-exact','exact_market'],['performance-confidence','confidence']])if(value(id))q.set(key,value(id));write('trend-status','Gelişim verisi yükleniyor…');return request('trends','/api/performance-trends?'+q,renderTrends,()=>{write('trend-status','Gelişim verisi alınamadı · İyileşme kanıtlanmadı');for(const id of ['trend-periods','trend-chart','trend-daily'])$(id)?.replaceChildren();write('trend-model','');});}
 if($('trend-as-of'))$('trend-as-of').onchange=refreshTrends;
