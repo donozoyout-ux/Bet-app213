@@ -33,7 +33,7 @@ def test_cluster_dependence_incomplete_and_probability_valid_denominator():
     for r in data:r['match_id']=1
     summary=summarize(data)
     assert summary['distinct_matches']==summary['effective_matches']==1
-    assert not summary['sufficient'] and summary['chart_rate'] is None
+    assert not summary['sufficient'] and summary['chart_rate']==pytest.approx(.8)
     assert summary['brier_score']==pytest.approx(.16)
     assert summary['mean_probability']==pytest.approx(.8)
     data[0]['probability']=None
@@ -142,3 +142,18 @@ async def test_chart_gaps_and_descriptive_increase(api):
             await expect(page.locator('#trend-periods')).to_contain_text('Artış sinyali; kalıcılık/öğrenme kanıtı değil')
         finally:
             await page.unroute_all(behavior='ignoreErrors');await browser.close()
+
+
+def test_sparse_daily_measurements_are_visible_without_claiming_improvement():
+    previous=rows(35,28,AS_OF-timedelta(days=9),offset=100)
+    recent=rows(35,25,AS_OF-timedelta(days=2),offset=200)
+    disputed=dict(recent[0],outcome='disputed',match_id=999)
+    report=build_trends(previous+recent+[disputed],AS_OF)
+    week=report['comparisons'][0]
+    assert week['previous']['success_rate']==pytest.approx(28/35)
+    assert week['recent']['success_rate']==pytest.approx(25/35)
+    assert not week['eligible'] and not report['improvement_proven']
+    day=next(d for d in report['daily'] if d['date']==(AS_OF-timedelta(days=2)).isoformat())
+    assert day['decided']==35 and day['disputed']==1
+    assert day['chart_rate']==pytest.approx(25/35)
+    assert all(d['chart_rate'] is None for d in report['daily'] if d['decided']==0)
