@@ -1,0 +1,63 @@
+{
+  "source": "Existing 2026-10-18 read-only Issue104 export; offline replay, not current production totals",
+  "counts": {
+    "won": 157,
+    "lost": 46,
+    "disputed": 23,
+    "awaiting_data": 37,
+    "pending": 229,
+    "void": 1
+  },
+  "previously_identified_disagreements": [
+    {
+      "pick": "821:0",
+      "display_outcome": "disputed",
+      "reason": "recorded_current_disagreement"
+    },
+    {
+      "pick": "821:2",
+      "display_outcome": "disputed",
+      "reason": "recorded_current_disagreement"
+    },
+    {
+      "pick": "823:0",
+      "display_outcome": "disputed",
+      "reason": "recorded_current_disagreement"
+    },
+    {
+      "pick": "3102:0",
+      "display_outcome": "disputed",
+      "reason": "recorded_current_disagreement"
+    },
+    {
+      "pick": "3103:2",
+      "display_outcome": "disputed",
+      "reason": "recorded_current_disagreement"
+    },
+    {
+      "pick": "3104:2",
+      "display_outcome": "disputed",
+      "reason": "recorded_current_disagreement"
+    },
+    {
+      "pick": "5971:0",
+      "display_outcome": "disputed",
+      "reason": "recorded_current_disagreement"
+    },
+    {
+      "pick": "9494:1",
+      "display_outcome": "disputed",
+      "reason": "recorded_current_disagreement"
+    },
+    {
+      "pick": "9496:0",
+      "display_outcome": "disputed",
+      "reason": "recorded_current_disagreement"
+    },
+    {
+      "pick": "11528:0",
+      "display_outcome": "disputed",
+      "reason": "recorded_current_disagreement"
+    }
+  ]
+}

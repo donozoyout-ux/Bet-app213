@@ -17,6 +17,6 @@ if(mode==='empty'){assert(body.text().includes('nitelikli tahmin yok'));return;}
 if(mode==='failed-board'){assert(body.text().includes('PostgreSQL'));sandbox.BetAppUI.navigate('performance');await settle();assert(elements.get('performance-picks').text().includes('kaydedilmiş tahmin yok'));return;}
 assert(body.children.length===all.length);assert.equal(body.children[0].children.length, 7);body.children[0].onkeydown({key:'Enter',preventDefault(){}});assert.equal(clicked.at(-1),all[0].match.id);
 elements.get('pred-market').value='corners';await sandbox.BetAppMarket.refresh();assert(body.text().includes('nitelikli tahmin yok'));
-sandbox.BetAppUI.navigate('performance');await settle();assert.equal(elements.get('daily-summary').children.length,7);
+sandbox.BetAppUI.navigate('performance');await settle();assert.equal(elements.get('daily-summary').children.length,9);
 sandbox.BetAppUI.navigate('markets');await settle();assert(elements.get('stats-league-coverage').text().includes('API'));}
 (async()=>{for(const mode of ['populated','empty','failed-board','race'])await run(mode);console.log('market runtime: 4 scenarios passed');})().catch(e=>{console.error(e);process.exitCode=1;});

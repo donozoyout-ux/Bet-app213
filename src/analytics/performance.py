@@ -1,7 +1,7 @@
 """Forward-only, immutable prematch picks; settlement uses published final data."""
 from collections import defaultdict
 import math
-from sqlalchemy import select
+from sqlalchemy import select, case
 from sqlalchemy.orm import defer
 from src.models import PredictionSnapshot, Match, MatchStatistics, League
 from src.jobs.worker import aware
@@ -98,7 +98,28 @@ def settle(match, stats, pick):
     return _settle(match, stats, pick)
 
 
-def tally():return dict(total=0,settled=0,won=0,lost=0,pending=0,awaiting_data=0,void=0,reliability_sum=0,sample_sum=0,last_10=[],probability_sum=0,brier_sum=0,calibrated_samples=0,calibration={},priced_samples=0,profit=0)
+def display_result(snapshot, match, stats, pick, saved):
+    """Read-only reconciliation: never repair or overwrite the frozen ledger."""
+    current, actual = settle(match, stats, pick)
+    if saved:
+        from src.analytics.settlements import verify_decision
+        try:
+            verify_decision(snapshot, saved)
+        except (ValueError, KeyError, TypeError, AttributeError, IndexError):
+            return 'disputed', actual, 'invalid_recorded_evidence'
+        if current in {'won', 'lost', 'void'} and (current, actual) != (saved.outcome, saved.actual['value']):
+            return 'disputed', actual, 'recorded_current_disagreement'
+        if current == 'pending':
+            return 'disputed', actual, 'recorded_terminal_current_unfinished'
+    # Missing current evidence cannot be presented as a definitive result.
+    if current == 'pending' and match.status not in {'scheduled', 'live', 'postponed'}:
+        return 'awaiting_data', actual, 'unknown_match_status'
+    if match.status == 'finished' and current == 'void' and actual is None:
+        return 'disputed', actual, 'invalid_final_score'
+    return current, actual, 'recorded_verified' if saved and current != 'awaiting_data' else 'current_evaluation'
+
+
+def tally():return dict(total=0,settled=0,won=0,lost=0,pending=0,awaiting_data=0,disputed=0,void=0,reliability_sum=0,sample_sum=0,last_10=[],probability_sum=0,brier_sum=0,calibrated_samples=0,calibration={},priced_samples=0,profit=0)
 
 
 def add(result,pick,outcome,captured_at=None):
@@ -146,7 +167,7 @@ async def performance(session, league=None, start=None, end=None, market='all', 
     if league:query=query.where(League.id==int(league)) if league.isdigit() else query.where(League.name.ilike('%'+league+'%'))
     if start:query=query.where(PredictionSnapshot.captured_at>=start)
     if end:query=query.where(PredictionSnapshot.captured_at<end)
-    query=query.order_by(PredictionSnapshot.captured_at.desc(),Match.id.desc()).execution_options(yield_per=200)
+    query=query.order_by(case((Match.status.in_(['finished','cancelled','abandoned']),0),else_=1),PredictionSnapshot.captured_at.desc(),Match.id.desc()).execution_options(yield_per=200)
     from src.analytics.settlements import decisions_many
     frozen_rows=await decisions_many(session,query.with_only_columns(Match.id).order_by(None))
     duplicates=0
@@ -166,12 +187,12 @@ async def performance(session, league=None, start=None, end=None, market='all', 
             seen.add(identity)
             if not market_matches([pick],market) or exact_market and pick['id']!=exact_market or confidence and pick['confidence']!=confidence:continue
             saved=frozen.get(index)
-            outcome,actual=(saved.outcome,saved.actual['value']) if saved else settle(match,stats,pick)
+            outcome,actual,display_basis=display_result(snapshot,match,stats,pick,saved)
             add(summary,pick,outcome,snapshot.captured_at);add(families[pick['market']],pick,outcome,snapshot.captured_at);add(exact[pick['id']],pick,outcome,snapshot.captured_at);labels[pick['id']]=(pick['market'],pick['label'])
             gates={'probability_70':pick.get('probability',0)>=.7,'reliability_80':pick.get('reliability',0)>=.8,'quality_80':pick.get('score',0)>=.8}
             for name,accept in {'all_saved':True,**gates,'combined_70_80_80':all(gates.values())}.items():
                 if accept:add(cohorts[name],pick,outcome,snapshot.captured_at)
-            if offset<=count<offset+limit:items.append(dict(match=match_response(row[:5]),recommendation=pick,captured_at=aware(snapshot.captured_at),model_version=snapshot.model_version,outcome=outcome,actual=actual,settlement_basis='recorded' if saved else 'unrecorded_evaluation',settlement_revision=saved.revision if saved else None))
+            if offset<=count<offset+limit:items.append(dict(match=match_response(row[:5]),recommendation=pick,captured_at=aware(snapshot.captured_at),model_version=snapshot.model_version,outcome=outcome,actual=actual,display_basis=display_basis,recorded_outcome=saved.outcome if saved else None,recorded_actual=saved.actual.get('value') if saved else None,settlement_basis='recorded' if saved else 'unrecorded_evaluation',settlement_revision=saved.revision if saved else None))
             count+=1
     from src.diagnostics import statistics_coverage
     coverage=await statistics_coverage(session)

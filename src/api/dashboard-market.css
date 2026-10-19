@@ -1686,3 +1686,10 @@ body:has([data-page=predictions]:not([hidden])) .desktop-nav {background:#091A30
 .performance-result-group.lost h3{color:#ff9b9b}
 .performance-result-group.pending h3{color:#a8c8ef}
 @media(prefers-reduced-motion:reduce){.performance-result-card{transition:none}.performance-result-card:hover,.performance-result-card:focus-visible{transform:none}}
+
+/* Result text and symbols remain understandable without colour. */
+.performance-outcome{font-weight:700;white-space:normal}
+.performance-outcome.won{color:#66dda1}
+.performance-outcome.lost{color:#ff9b9b}
+.performance-outcome.awaiting_data,.performance-outcome.disputed{color:#f5c76b}
+.performance-outcome.pending,.performance-outcome.void{color:#b8c5d5}
