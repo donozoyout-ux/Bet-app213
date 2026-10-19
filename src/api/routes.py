@@ -604,6 +604,15 @@ async def yesterday_winners(session=Depends(session_dependency)):
             'basis': 'immutable_prematch_snapshots'}
 
 
+@router.get('/performance-trends')
+async def performance_trends(as_of: Date | None=None,league: str | None=None,market: str='all',exact_market: str | None=None,confidence: Literal['high','medium','low'] | None=None,session=Depends(session_dependency)):
+    from src.analytics.performance_trends import trends, ISTANBUL
+    anchor=as_of or utcnow().astimezone(ISTANBUL).date()
+    if anchor<Date(1970,1,1) or anchor>utcnow().astimezone(ISTANBUL).date():
+        raise HTTPException(status_code=400,detail='Observation date must be between 1970 and today')
+    return await performance_cache.get(session.bind, ('trends-v1',anchor,league,market,exact_market,confidence),lambda:trends(session,anchor,league,market,exact_market,confidence))
+
+
 @router.get('/market-performance')
 async def market_performance(league: str | None=None,market: Literal['all','result','goals','btts','corners','cards','yellow_cards','red_cards','asian_handicap','double_chance','first_half_goals','second_half_goals']='all',exact_market: str | None=None,date_from: Date | None=None,date_to: Date | None=None,confidence: Literal['high','medium','low'] | None=None,limit: int=Query(default=50,ge=1,le=100),offset: int=Query(default=0,ge=0),session=Depends(session_dependency)):
     if date_from and date_to and date_from>date_to:raise HTTPException(400,'Invalid date range')
