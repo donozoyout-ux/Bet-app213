@@ -146,9 +146,24 @@ def add(result,pick,outcome,captured_at=None):
         result['priced_samples']+=1;result['profit']+=price-1 if outcome=='won' else -1
 
 
+def wilson_interval(won, decided):
+    """Nominal 95% binomial interval; correlated picks are not independent bets."""
+    if not decided:
+        return None
+    z=1.959963984540054
+    p=won/decided
+    denominator=1+z*z/decided
+    center=(p+z*z/(2*decided))/denominator
+    margin=z*math.sqrt(p*(1-p)/decided+z*z/(4*decided*decided))/denominator
+    return dict(lower=max(0.,center-margin),upper=min(1.,center+margin))
+
+
 def finish(result):
     result=dict(result);n=result['total'];settled=result['settled']
     result['success_rate']=result['won']/settled if settled else None
+    result['wilson_95']=wilson_interval(result['won'],settled)
+    result['sample_tier']='comparable' if settled>=20 else 'insufficient'
+    result['comparison_min_decided']=20
     result['average_reliability']=result.pop('reliability_sum')/n if n else None
     result['average_sample_size']=result.pop('sample_sum')/n if n else None
     calibrated=result['calibrated_samples']

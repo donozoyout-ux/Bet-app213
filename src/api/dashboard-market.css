@@ -1693,3 +1693,8 @@ body:has([data-page=predictions]:not([hidden])) .desktop-nav {background:#091A30
 .performance-outcome.lost{color:#ff9b9b}
 .performance-outcome.awaiting_data,.performance-outcome.disputed{color:#f5c76b}
 .performance-outcome.pending,.performance-outcome.void{color:#b8c5d5}
+
+.sample-group th{text-align:left;white-space:normal;background:#172e48;padding:14px}
+.sample-insufficient td{color:#b8c5d5}
+
+.market-evidence-table thead th{white-space:normal;max-width:10rem}
