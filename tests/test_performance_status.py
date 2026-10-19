@@ -23,6 +23,8 @@ def test_reconciliation_preserves_frozen_evidence():
     saved=NS(outcome='lost',actual={'value':6},evidence=proof,snapshot_hash=snapshot_digest(snapshot),evidence_hash=digest(proof),evaluator_version=VERSION,pick_index=0)
     original=deepcopy(saved.__dict__)
     assert display_result(snapshot,match,stats,pick,saved)[:2]==('lost',6)
+    stats.home_corners=4
+    assert display_result(snapshot,match,stats,pick,saved)[:2]==("disputed",7)
     stats.home_corners=5
     assert display_result(snapshot,match,stats,pick,saved)[:2]==('disputed',8)
     stats.home_corners=None
@@ -59,6 +61,7 @@ async def test_result_screen_real_api(api,db,width):
     ident=await fixture(db)
     data=(await api.get('/api/market-performance')).json()
     assert [x['outcome'] for x in data['items'] if x['match']['id']==ident]==['won','lost','awaiting_data','void','disputed']
+    assert data['items'][0]['match']['id']==ident
     assert data['summary']['success_rate']==.5
     async with db.session() as session:
         before=[(r.id,r.outcome,deepcopy(r.evidence)) for r in await session.scalars(select(PredictionSettlement))]

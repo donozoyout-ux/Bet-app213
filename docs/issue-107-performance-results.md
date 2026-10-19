@@ -13,3 +13,6 @@ Run `python -m pytest tests/test_performance_status.py tests/test_market_termina
 Browser fixtures use local SQLite and real ASGI routes, not production writes. Screenshots at 390 and 1536 pixels are under `issue-107-screenshots/`; they are synthetic acceptance examples. Tests assert statuses, hit-rate exclusion, immutable ledger preservation, no page errors and no document overflow. Existing market tests cover FT, BTTS, handicap, corners and cards, pagination and date filters. CI runs the complete suite including PostgreSQL checks.
 
 No merge, deploy, production database update, backfill, Telegram or NVIDIA invocation.
+
+## Offline replay of the prior audit
+`issue-107-offline-reconciliation.json` records evaluation of the existing 2026-10-18 read-only export: all ten previously identified outcome disagreements become disputed. Thirteen additional picks have changed actual values despite unchanged win/loss; these also require review. The resulting display buckets are 157 won, 46 lost, 23 disputed, 37 missing, 229 pending, one void. These are historical replay counts, not today's production totals. No raw snapshot, coupon ownership or private export was added to the repository.
