@@ -1,0 +1,5392 @@
+[
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 3,
+    "league": "Albania Kategoria e Pare",
+    "market": "1x2",
+    "matches": 3,
+    "observation_metadata_present": 3,
+    "rows": 3,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 3,
+    "league": "Albania Kategoria e Pare",
+    "market": "AH",
+    "matches": 3,
+    "observation_metadata_present": 3,
+    "rows": 3,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 3,
+    "league": "Albania Kategoria e Pare",
+    "market": "OU",
+    "matches": 3,
+    "observation_metadata_present": 3,
+    "rows": 3,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 10,
+    "league": "Albania Kategoria e Pare",
+    "market": "1x2",
+    "matches": 10,
+    "observation_metadata_present": 10,
+    "rows": 10,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 10,
+    "league": "Albania Kategoria e Pare",
+    "market": "AH",
+    "matches": 10,
+    "observation_metadata_present": 10,
+    "rows": 10,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 10,
+    "league": "Albania Kategoria e Pare",
+    "market": "OU",
+    "matches": 10,
+    "observation_metadata_present": 10,
+    "rows": 10,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 1,
+    "league": "Albania Kategoria e Pare",
+    "market": "1x2",
+    "matches": 1,
+    "observation_metadata_present": 1,
+    "rows": 1,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 1,
+    "league": "Albania Kategoria e Pare",
+    "market": "AH",
+    "matches": 1,
+    "observation_metadata_present": 1,
+    "rows": 1,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 1,
+    "league": "Albania Kategoria e Pare",
+    "market": "OU",
+    "matches": 1,
+    "observation_metadata_present": 1,
+    "rows": 1,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 5,
+    "league": "Albania Super league",
+    "market": "1x2",
+    "matches": 5,
+    "observation_metadata_present": 5,
+    "rows": 5,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 5,
+    "league": "Albania Super league",
+    "market": "AH",
+    "matches": 5,
+    "observation_metadata_present": 5,
+    "rows": 5,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 5,
+    "league": "Albania Super league",
+    "market": "OU",
+    "matches": 5,
+    "observation_metadata_present": 5,
+    "rows": 5,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 3,
+    "league": "Albania Super league",
+    "market": "1x2",
+    "matches": 3,
+    "observation_metadata_present": 3,
+    "rows": 3,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 3,
+    "league": "Albania Super league",
+    "market": "AH",
+    "matches": 3,
+    "observation_metadata_present": 3,
+    "rows": 3,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 3,
+    "league": "Albania Super league",
+    "market": "OU",
+    "matches": 3,
+    "observation_metadata_present": 3,
+    "rows": 3,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 5,
+    "league": "Albania Super league",
+    "market": "AH",
+    "matches": 5,
+    "observation_metadata_present": 5,
+    "rows": 5,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 5,
+    "league": "Albania Super league",
+    "market": "OU",
+    "matches": 5,
+    "observation_metadata_present": 5,
+    "rows": 5,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 7,
+    "league": "Albania Super league",
+    "market": "1x2",
+    "matches": 8,
+    "observation_metadata_present": 8,
+    "rows": 8,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 6,
+    "league": "Albania Super league",
+    "market": "AH",
+    "matches": 7,
+    "observation_metadata_present": 7,
+    "rows": 7,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 6,
+    "league": "Albania Super league",
+    "market": "OU",
+    "matches": 7,
+    "observation_metadata_present": 7,
+    "rows": 7,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 3,
+    "league": "Albania Super league",
+    "market": "1x2",
+    "matches": 3,
+    "observation_metadata_present": 3,
+    "rows": 3,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 3,
+    "league": "Albania Super league",
+    "market": "AH",
+    "matches": 3,
+    "observation_metadata_present": 3,
+    "rows": 3,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 3,
+    "league": "Albania Super league",
+    "market": "OU",
+    "matches": 3,
+    "observation_metadata_present": 3,
+    "rows": 3,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 1,
+    "league": "Albania Super league",
+    "market": "1x2",
+    "matches": 5,
+    "observation_metadata_present": 5,
+    "rows": 5,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 5,
+    "league": "Albania Super league",
+    "market": "AH",
+    "matches": 6,
+    "observation_metadata_present": 6,
+    "rows": 6,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 5,
+    "league": "Albania Super league",
+    "market": "OU",
+    "matches": 6,
+    "observation_metadata_present": 6,
+    "rows": 6,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 35,
+    "league": "Austrian Bundesliga",
+    "market": "1x2",
+    "matches": 35,
+    "observation_metadata_present": 35,
+    "rows": 35,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 35,
+    "league": "Austrian Bundesliga",
+    "market": "AH",
+    "matches": 35,
+    "observation_metadata_present": 35,
+    "rows": 35,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 35,
+    "league": "Austrian Bundesliga",
+    "market": "OU",
+    "matches": 35,
+    "observation_metadata_present": 35,
+    "rows": 35,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 35,
+    "league": "Austrian Bundesliga",
+    "market": "1x2",
+    "matches": 35,
+    "observation_metadata_present": 35,
+    "rows": 35,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 35,
+    "league": "Austrian Bundesliga",
+    "market": "AH",
+    "matches": 35,
+    "observation_metadata_present": 35,
+    "rows": 35,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 35,
+    "league": "Austrian Bundesliga",
+    "market": "OU",
+    "matches": 35,
+    "observation_metadata_present": 35,
+    "rows": 35,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 35,
+    "league": "Austrian Bundesliga",
+    "market": "1x2",
+    "matches": 35,
+    "observation_metadata_present": 35,
+    "rows": 35,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 35,
+    "league": "Austrian Bundesliga",
+    "market": "AH",
+    "matches": 35,
+    "observation_metadata_present": 35,
+    "rows": 35,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 35,
+    "league": "Austrian Bundesliga",
+    "market": "OU",
+    "matches": 35,
+    "observation_metadata_present": 35,
+    "rows": 35,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 193,
+    "league": "Austrian Bundesliga",
+    "market": "1x2",
+    "matches": 193,
+    "observation_metadata_present": 0,
+    "rows": 193,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 193,
+    "league": "Austrian Bundesliga",
+    "market": "AH",
+    "matches": 193,
+    "observation_metadata_present": 0,
+    "rows": 193,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 193,
+    "league": "Austrian Bundesliga",
+    "market": "OU",
+    "matches": 193,
+    "observation_metadata_present": 0,
+    "rows": 193,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 193,
+    "league": "Austrian Bundesliga",
+    "market": "1x2",
+    "matches": 193,
+    "observation_metadata_present": 0,
+    "rows": 193,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 193,
+    "league": "Austrian Bundesliga",
+    "market": "AH",
+    "matches": 193,
+    "observation_metadata_present": 0,
+    "rows": 193,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 193,
+    "league": "Austrian Bundesliga",
+    "market": "OU",
+    "matches": 193,
+    "observation_metadata_present": 0,
+    "rows": 193,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 193,
+    "league": "Austrian Bundesliga",
+    "market": "1x2",
+    "matches": 193,
+    "observation_metadata_present": 0,
+    "rows": 193,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 193,
+    "league": "Austrian Bundesliga",
+    "market": "AH",
+    "matches": 193,
+    "observation_metadata_present": 0,
+    "rows": 193,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 193,
+    "league": "Austrian Bundesliga",
+    "market": "OU",
+    "matches": 193,
+    "observation_metadata_present": 0,
+    "rows": 193,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 58,
+    "league": "Austrian Bundesliga",
+    "market": "1x2",
+    "matches": 58,
+    "observation_metadata_present": 0,
+    "rows": 58,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 58,
+    "league": "Austrian Bundesliga",
+    "market": "AH",
+    "matches": 58,
+    "observation_metadata_present": 0,
+    "rows": 58,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 58,
+    "league": "Austrian Bundesliga",
+    "market": "OU",
+    "matches": 58,
+    "observation_metadata_present": 0,
+    "rows": 58,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 58,
+    "league": "Austrian Bundesliga",
+    "market": "1x2",
+    "matches": 58,
+    "observation_metadata_present": 0,
+    "rows": 58,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 58,
+    "league": "Austrian Bundesliga",
+    "market": "AH",
+    "matches": 58,
+    "observation_metadata_present": 0,
+    "rows": 58,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 58,
+    "league": "Austrian Bundesliga",
+    "market": "OU",
+    "matches": 58,
+    "observation_metadata_present": 0,
+    "rows": 58,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 58,
+    "league": "Austrian Bundesliga",
+    "market": "1x2",
+    "matches": 58,
+    "observation_metadata_present": 0,
+    "rows": 58,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 58,
+    "league": "Austrian Bundesliga",
+    "market": "AH",
+    "matches": 58,
+    "observation_metadata_present": 0,
+    "rows": 58,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 58,
+    "league": "Austrian Bundesliga",
+    "market": "OU",
+    "matches": 58,
+    "observation_metadata_present": 0,
+    "rows": 58,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 25,
+    "league": "Belgian Pro League",
+    "market": "1x2",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 25,
+    "league": "Belgian Pro League",
+    "market": "AH",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 25,
+    "league": "Belgian Pro League",
+    "market": "OU",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 25,
+    "league": "Belgian Pro League",
+    "market": "1x2",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 25,
+    "league": "Belgian Pro League",
+    "market": "AH",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 25,
+    "league": "Belgian Pro League",
+    "market": "OU",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 25,
+    "league": "Belgian Pro League",
+    "market": "1x2",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 25,
+    "league": "Belgian Pro League",
+    "market": "AH",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 25,
+    "league": "Belgian Pro League",
+    "market": "OU",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 313,
+    "league": "Belgian Pro League",
+    "market": "1x2",
+    "matches": 313,
+    "observation_metadata_present": 0,
+    "rows": 313,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 313,
+    "league": "Belgian Pro League",
+    "market": "AH",
+    "matches": 313,
+    "observation_metadata_present": 0,
+    "rows": 313,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 313,
+    "league": "Belgian Pro League",
+    "market": "OU",
+    "matches": 313,
+    "observation_metadata_present": 0,
+    "rows": 313,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 313,
+    "league": "Belgian Pro League",
+    "market": "1x2",
+    "matches": 313,
+    "observation_metadata_present": 0,
+    "rows": 313,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 313,
+    "league": "Belgian Pro League",
+    "market": "AH",
+    "matches": 313,
+    "observation_metadata_present": 0,
+    "rows": 313,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 313,
+    "league": "Belgian Pro League",
+    "market": "OU",
+    "matches": 313,
+    "observation_metadata_present": 0,
+    "rows": 313,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 313,
+    "league": "Belgian Pro League",
+    "market": "1x2",
+    "matches": 313,
+    "observation_metadata_present": 0,
+    "rows": 313,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 313,
+    "league": "Belgian Pro League",
+    "market": "AH",
+    "matches": 313,
+    "observation_metadata_present": 0,
+    "rows": 313,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 313,
+    "league": "Belgian Pro League",
+    "market": "OU",
+    "matches": 313,
+    "observation_metadata_present": 0,
+    "rows": 313,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 313,
+    "league": "Belgian Pro League",
+    "market": "1x2",
+    "matches": 313,
+    "observation_metadata_present": 0,
+    "rows": 313,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 313,
+    "league": "Belgian Pro League",
+    "market": "AH",
+    "matches": 313,
+    "observation_metadata_present": 0,
+    "rows": 313,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 313,
+    "league": "Belgian Pro League",
+    "market": "OU",
+    "matches": 313,
+    "observation_metadata_present": 0,
+    "rows": 313,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 313,
+    "league": "Belgian Pro League",
+    "market": "1x2",
+    "matches": 313,
+    "observation_metadata_present": 0,
+    "rows": 313,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 313,
+    "league": "Belgian Pro League",
+    "market": "AH",
+    "matches": 313,
+    "observation_metadata_present": 0,
+    "rows": 313,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 313,
+    "league": "Belgian Pro League",
+    "market": "OU",
+    "matches": 313,
+    "observation_metadata_present": 0,
+    "rows": 313,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 313,
+    "league": "Belgian Pro League",
+    "market": "1x2",
+    "matches": 313,
+    "observation_metadata_present": 0,
+    "rows": 313,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 313,
+    "league": "Belgian Pro League",
+    "market": "AH",
+    "matches": 313,
+    "observation_metadata_present": 0,
+    "rows": 313,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 313,
+    "league": "Belgian Pro League",
+    "market": "OU",
+    "matches": 313,
+    "observation_metadata_present": 0,
+    "rows": 313,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 71,
+    "league": "Belgian Pro League",
+    "market": "1x2",
+    "matches": 72,
+    "observation_metadata_present": 8,
+    "rows": 72,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 71,
+    "league": "Belgian Pro League",
+    "market": "AH",
+    "matches": 72,
+    "observation_metadata_present": 8,
+    "rows": 72,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 71,
+    "league": "Belgian Pro League",
+    "market": "OU",
+    "matches": 72,
+    "observation_metadata_present": 8,
+    "rows": 72,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 71,
+    "league": "Belgian Pro League",
+    "market": "1x2",
+    "matches": 72,
+    "observation_metadata_present": 8,
+    "rows": 72,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 71,
+    "league": "Belgian Pro League",
+    "market": "AH",
+    "matches": 72,
+    "observation_metadata_present": 8,
+    "rows": 72,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 71,
+    "league": "Belgian Pro League",
+    "market": "OU",
+    "matches": 72,
+    "observation_metadata_present": 8,
+    "rows": 72,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 71,
+    "league": "Belgian Pro League",
+    "market": "1x2",
+    "matches": 72,
+    "observation_metadata_present": 8,
+    "rows": 72,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 71,
+    "league": "Belgian Pro League",
+    "market": "AH",
+    "matches": 72,
+    "observation_metadata_present": 8,
+    "rows": 72,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 71,
+    "league": "Belgian Pro League",
+    "market": "OU",
+    "matches": 72,
+    "observation_metadata_present": 8,
+    "rows": 72,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 25,
+    "league": "Croatia 1.Division",
+    "market": "1x2",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 25,
+    "league": "Croatia 1.Division",
+    "market": "AH",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 25,
+    "league": "Croatia 1.Division",
+    "market": "OU",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 25,
+    "league": "Croatia 1.Division",
+    "market": "1x2",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 25,
+    "league": "Croatia 1.Division",
+    "market": "AH",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 25,
+    "league": "Croatia 1.Division",
+    "market": "OU",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 24,
+    "league": "Croatia 1.Division",
+    "market": "1x2",
+    "matches": 24,
+    "observation_metadata_present": 24,
+    "rows": 24,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 24,
+    "league": "Croatia 1.Division",
+    "market": "AH",
+    "matches": 24,
+    "observation_metadata_present": 24,
+    "rows": 24,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 24,
+    "league": "Croatia 1.Division",
+    "market": "OU",
+    "matches": 24,
+    "observation_metadata_present": 24,
+    "rows": 24,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 25,
+    "league": "Czech Republic Gambrinus Liga",
+    "market": "1x2",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 25,
+    "league": "Czech Republic Gambrinus Liga",
+    "market": "AH",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 25,
+    "league": "Czech Republic Gambrinus Liga",
+    "market": "OU",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 25,
+    "league": "Czech Republic Gambrinus Liga",
+    "market": "1x2",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 25,
+    "league": "Czech Republic Gambrinus Liga",
+    "market": "AH",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 25,
+    "league": "Czech Republic Gambrinus Liga",
+    "market": "OU",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 25,
+    "league": "Czech Republic Gambrinus Liga",
+    "market": "1x2",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 25,
+    "league": "Czech Republic Gambrinus Liga",
+    "market": "AH",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 25,
+    "league": "Czech Republic Gambrinus Liga",
+    "market": "OU",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 25,
+    "league": "Denmark Superliga",
+    "market": "1x2",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 25,
+    "league": "Denmark Superliga",
+    "market": "AH",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 25,
+    "league": "Denmark Superliga",
+    "market": "OU",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 25,
+    "league": "Denmark Superliga",
+    "market": "1x2",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 25,
+    "league": "Denmark Superliga",
+    "market": "AH",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 25,
+    "league": "Denmark Superliga",
+    "market": "OU",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 25,
+    "league": "Denmark Superliga",
+    "market": "1x2",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 25,
+    "league": "Denmark Superliga",
+    "market": "AH",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 25,
+    "league": "Denmark Superliga",
+    "market": "OU",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 193,
+    "league": "Denmark Superliga",
+    "market": "1x2",
+    "matches": 193,
+    "observation_metadata_present": 193,
+    "rows": 193,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 193,
+    "league": "Denmark Superliga",
+    "market": "AH",
+    "matches": 193,
+    "observation_metadata_present": 193,
+    "rows": 193,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 193,
+    "league": "Denmark Superliga",
+    "market": "OU",
+    "matches": 193,
+    "observation_metadata_present": 193,
+    "rows": 193,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 193,
+    "league": "Denmark Superliga",
+    "market": "1x2",
+    "matches": 193,
+    "observation_metadata_present": 193,
+    "rows": 193,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 193,
+    "league": "Denmark Superliga",
+    "market": "AH",
+    "matches": 193,
+    "observation_metadata_present": 193,
+    "rows": 193,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 193,
+    "league": "Denmark Superliga",
+    "market": "OU",
+    "matches": 193,
+    "observation_metadata_present": 193,
+    "rows": 193,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 193,
+    "league": "Denmark Superliga",
+    "market": "1x2",
+    "matches": 193,
+    "observation_metadata_present": 193,
+    "rows": 193,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 193,
+    "league": "Denmark Superliga",
+    "market": "AH",
+    "matches": 193,
+    "observation_metadata_present": 193,
+    "rows": 193,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 193,
+    "league": "Denmark Superliga",
+    "market": "OU",
+    "matches": 193,
+    "observation_metadata_present": 193,
+    "rows": 193,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 63,
+    "league": "Denmark Superliga",
+    "market": "1x2",
+    "matches": 65,
+    "observation_metadata_present": 65,
+    "rows": 65,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 63,
+    "league": "Denmark Superliga",
+    "market": "AH",
+    "matches": 65,
+    "observation_metadata_present": 65,
+    "rows": 65,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 63,
+    "league": "Denmark Superliga",
+    "market": "OU",
+    "matches": 65,
+    "observation_metadata_present": 65,
+    "rows": 65,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 63,
+    "league": "Denmark Superliga",
+    "market": "1x2",
+    "matches": 65,
+    "observation_metadata_present": 65,
+    "rows": 65,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 63,
+    "league": "Denmark Superliga",
+    "market": "AH",
+    "matches": 65,
+    "observation_metadata_present": 65,
+    "rows": 65,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 63,
+    "league": "Denmark Superliga",
+    "market": "OU",
+    "matches": 65,
+    "observation_metadata_present": 65,
+    "rows": 65,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 63,
+    "league": "Denmark Superliga",
+    "market": "1x2",
+    "matches": 65,
+    "observation_metadata_present": 65,
+    "rows": 65,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 63,
+    "league": "Denmark Superliga",
+    "market": "AH",
+    "matches": 65,
+    "observation_metadata_present": 65,
+    "rows": 65,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 63,
+    "league": "Denmark Superliga",
+    "market": "OU",
+    "matches": 65,
+    "observation_metadata_present": 65,
+    "rows": 65,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 25,
+    "league": "England Championship",
+    "market": "1x2",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 25,
+    "league": "England Championship",
+    "market": "AH",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 25,
+    "league": "England Championship",
+    "market": "OU",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 25,
+    "league": "England Championship",
+    "market": "1x2",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 25,
+    "league": "England Championship",
+    "market": "AH",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 25,
+    "league": "England Championship",
+    "market": "OU",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 25,
+    "league": "England Championship",
+    "market": "1x2",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 25,
+    "league": "England Championship",
+    "market": "AH",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 25,
+    "league": "England Championship",
+    "market": "OU",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 380,
+    "league": "English Premier League",
+    "market": "1x2",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 380,
+    "league": "English Premier League",
+    "market": "AH",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 380,
+    "league": "English Premier League",
+    "market": "OU",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 380,
+    "league": "English Premier League",
+    "market": "1x2",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 380,
+    "league": "English Premier League",
+    "market": "AH",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 380,
+    "league": "English Premier League",
+    "market": "OU",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 380,
+    "league": "English Premier League",
+    "market": "1x2",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 380,
+    "league": "English Premier League",
+    "market": "AH",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 380,
+    "league": "English Premier League",
+    "market": "OU",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 380,
+    "league": "English Premier League",
+    "market": "1x2",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 380,
+    "league": "English Premier League",
+    "market": "AH",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 380,
+    "league": "English Premier League",
+    "market": "OU",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 380,
+    "league": "English Premier League",
+    "market": "1x2",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 380,
+    "league": "English Premier League",
+    "market": "AH",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 380,
+    "league": "English Premier League",
+    "market": "OU",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 380,
+    "league": "English Premier League",
+    "market": "1x2",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 380,
+    "league": "English Premier League",
+    "market": "AH",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 380,
+    "league": "English Premier League",
+    "market": "OU",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 68,
+    "league": "English Premier League",
+    "market": "1x2",
+    "matches": 69,
+    "observation_metadata_present": 19,
+    "rows": 69,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 68,
+    "league": "English Premier League",
+    "market": "AH",
+    "matches": 69,
+    "observation_metadata_present": 19,
+    "rows": 69,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 68,
+    "league": "English Premier League",
+    "market": "OU",
+    "matches": 69,
+    "observation_metadata_present": 19,
+    "rows": 69,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 68,
+    "league": "English Premier League",
+    "market": "1x2",
+    "matches": 69,
+    "observation_metadata_present": 19,
+    "rows": 69,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 68,
+    "league": "English Premier League",
+    "market": "AH",
+    "matches": 69,
+    "observation_metadata_present": 19,
+    "rows": 69,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 68,
+    "league": "English Premier League",
+    "market": "OU",
+    "matches": 69,
+    "observation_metadata_present": 19,
+    "rows": 69,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 68,
+    "league": "English Premier League",
+    "market": "1x2",
+    "matches": 69,
+    "observation_metadata_present": 19,
+    "rows": 69,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 68,
+    "league": "English Premier League",
+    "market": "AH",
+    "matches": 69,
+    "observation_metadata_present": 19,
+    "rows": 69,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 68,
+    "league": "English Premier League",
+    "market": "OU",
+    "matches": 69,
+    "observation_metadata_present": 19,
+    "rows": 69,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 306,
+    "league": "France Ligue 1",
+    "market": "1x2",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 306,
+    "league": "France Ligue 1",
+    "market": "AH",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 306,
+    "league": "France Ligue 1",
+    "market": "OU",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 306,
+    "league": "France Ligue 1",
+    "market": "1x2",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 306,
+    "league": "France Ligue 1",
+    "market": "AH",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 306,
+    "league": "France Ligue 1",
+    "market": "OU",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 306,
+    "league": "France Ligue 1",
+    "market": "1x2",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 306,
+    "league": "France Ligue 1",
+    "market": "AH",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 306,
+    "league": "France Ligue 1",
+    "market": "OU",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 306,
+    "league": "France Ligue 1",
+    "market": "1x2",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 306,
+    "league": "France Ligue 1",
+    "market": "AH",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 306,
+    "league": "France Ligue 1",
+    "market": "OU",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 306,
+    "league": "France Ligue 1",
+    "market": "1x2",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 306,
+    "league": "France Ligue 1",
+    "market": "AH",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 306,
+    "league": "France Ligue 1",
+    "market": "OU",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 306,
+    "league": "France Ligue 1",
+    "market": "1x2",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 306,
+    "league": "France Ligue 1",
+    "market": "AH",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 306,
+    "league": "France Ligue 1",
+    "market": "OU",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 58,
+    "league": "France Ligue 1",
+    "market": "1x2",
+    "matches": 62,
+    "observation_metadata_present": 17,
+    "rows": 62,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 58,
+    "league": "France Ligue 1",
+    "market": "AH",
+    "matches": 62,
+    "observation_metadata_present": 17,
+    "rows": 62,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 58,
+    "league": "France Ligue 1",
+    "market": "OU",
+    "matches": 62,
+    "observation_metadata_present": 17,
+    "rows": 62,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 58,
+    "league": "France Ligue 1",
+    "market": "1x2",
+    "matches": 62,
+    "observation_metadata_present": 17,
+    "rows": 62,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 58,
+    "league": "France Ligue 1",
+    "market": "AH",
+    "matches": 62,
+    "observation_metadata_present": 17,
+    "rows": 62,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 58,
+    "league": "France Ligue 1",
+    "market": "OU",
+    "matches": 62,
+    "observation_metadata_present": 17,
+    "rows": 62,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 58,
+    "league": "France Ligue 1",
+    "market": "1x2",
+    "matches": 62,
+    "observation_metadata_present": 17,
+    "rows": 62,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 58,
+    "league": "France Ligue 1",
+    "market": "AH",
+    "matches": 62,
+    "observation_metadata_present": 17,
+    "rows": 62,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 58,
+    "league": "France Ligue 1",
+    "market": "OU",
+    "matches": 62,
+    "observation_metadata_present": 17,
+    "rows": 62,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 306,
+    "league": "German Bundesliga",
+    "market": "1x2",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 306,
+    "league": "German Bundesliga",
+    "market": "AH",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 306,
+    "league": "German Bundesliga",
+    "market": "OU",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 306,
+    "league": "German Bundesliga",
+    "market": "1x2",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 306,
+    "league": "German Bundesliga",
+    "market": "AH",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 306,
+    "league": "German Bundesliga",
+    "market": "OU",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 306,
+    "league": "German Bundesliga",
+    "market": "1x2",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 306,
+    "league": "German Bundesliga",
+    "market": "AH",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 306,
+    "league": "German Bundesliga",
+    "market": "OU",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 306,
+    "league": "German Bundesliga",
+    "market": "1x2",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 306,
+    "league": "German Bundesliga",
+    "market": "AH",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 306,
+    "league": "German Bundesliga",
+    "market": "OU",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 306,
+    "league": "German Bundesliga",
+    "market": "1x2",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 306,
+    "league": "German Bundesliga",
+    "market": "AH",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 306,
+    "league": "German Bundesliga",
+    "market": "OU",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 306,
+    "league": "German Bundesliga",
+    "market": "1x2",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 306,
+    "league": "German Bundesliga",
+    "market": "AH",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 306,
+    "league": "German Bundesliga",
+    "market": "OU",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 52,
+    "league": "German Bundesliga",
+    "market": "1x2",
+    "matches": 54,
+    "observation_metadata_present": 18,
+    "rows": 54,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 52,
+    "league": "German Bundesliga",
+    "market": "AH",
+    "matches": 54,
+    "observation_metadata_present": 18,
+    "rows": 54,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 52,
+    "league": "German Bundesliga",
+    "market": "OU",
+    "matches": 54,
+    "observation_metadata_present": 18,
+    "rows": 54,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 52,
+    "league": "German Bundesliga",
+    "market": "1x2",
+    "matches": 54,
+    "observation_metadata_present": 18,
+    "rows": 54,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 52,
+    "league": "German Bundesliga",
+    "market": "AH",
+    "matches": 54,
+    "observation_metadata_present": 18,
+    "rows": 54,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 52,
+    "league": "German Bundesliga",
+    "market": "OU",
+    "matches": 54,
+    "observation_metadata_present": 18,
+    "rows": 54,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 52,
+    "league": "German Bundesliga",
+    "market": "1x2",
+    "matches": 54,
+    "observation_metadata_present": 18,
+    "rows": 54,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 52,
+    "league": "German Bundesliga",
+    "market": "AH",
+    "matches": 54,
+    "observation_metadata_present": 18,
+    "rows": 54,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 52,
+    "league": "German Bundesliga",
+    "market": "OU",
+    "matches": 54,
+    "observation_metadata_present": 18,
+    "rows": 54,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 35,
+    "league": "Greece Super League A",
+    "market": "1x2",
+    "matches": 35,
+    "observation_metadata_present": 35,
+    "rows": 35,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 35,
+    "league": "Greece Super League A",
+    "market": "AH",
+    "matches": 35,
+    "observation_metadata_present": 35,
+    "rows": 35,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 35,
+    "league": "Greece Super League A",
+    "market": "OU",
+    "matches": 35,
+    "observation_metadata_present": 35,
+    "rows": 35,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 35,
+    "league": "Greece Super League A",
+    "market": "1x2",
+    "matches": 35,
+    "observation_metadata_present": 35,
+    "rows": 35,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 35,
+    "league": "Greece Super League A",
+    "market": "AH",
+    "matches": 35,
+    "observation_metadata_present": 35,
+    "rows": 35,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 35,
+    "league": "Greece Super League A",
+    "market": "OU",
+    "matches": 35,
+    "observation_metadata_present": 35,
+    "rows": 35,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 35,
+    "league": "Greece Super League A",
+    "market": "1x2",
+    "matches": 35,
+    "observation_metadata_present": 35,
+    "rows": 35,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 35,
+    "league": "Greece Super League A",
+    "market": "AH",
+    "matches": 35,
+    "observation_metadata_present": 35,
+    "rows": 35,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 35,
+    "league": "Greece Super League A",
+    "market": "OU",
+    "matches": 35,
+    "observation_metadata_present": 35,
+    "rows": 35,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 309,
+    "league": "Holland Eredivisie",
+    "market": "1x2",
+    "matches": 309,
+    "observation_metadata_present": 0,
+    "rows": 309,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 309,
+    "league": "Holland Eredivisie",
+    "market": "AH",
+    "matches": 309,
+    "observation_metadata_present": 0,
+    "rows": 309,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 309,
+    "league": "Holland Eredivisie",
+    "market": "OU",
+    "matches": 309,
+    "observation_metadata_present": 0,
+    "rows": 309,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 308,
+    "league": "Holland Eredivisie",
+    "market": "1x2",
+    "matches": 309,
+    "observation_metadata_present": 0,
+    "rows": 309,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 308,
+    "league": "Holland Eredivisie",
+    "market": "AH",
+    "matches": 309,
+    "observation_metadata_present": 0,
+    "rows": 309,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 308,
+    "league": "Holland Eredivisie",
+    "market": "OU",
+    "matches": 309,
+    "observation_metadata_present": 0,
+    "rows": 309,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 308,
+    "league": "Holland Eredivisie",
+    "market": "1x2",
+    "matches": 309,
+    "observation_metadata_present": 0,
+    "rows": 309,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 308,
+    "league": "Holland Eredivisie",
+    "market": "AH",
+    "matches": 309,
+    "observation_metadata_present": 0,
+    "rows": 309,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 308,
+    "league": "Holland Eredivisie",
+    "market": "OU",
+    "matches": 309,
+    "observation_metadata_present": 0,
+    "rows": 309,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 309,
+    "league": "Holland Eredivisie",
+    "market": "1x2",
+    "matches": 309,
+    "observation_metadata_present": 0,
+    "rows": 309,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 309,
+    "league": "Holland Eredivisie",
+    "market": "AH",
+    "matches": 309,
+    "observation_metadata_present": 0,
+    "rows": 309,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 309,
+    "league": "Holland Eredivisie",
+    "market": "OU",
+    "matches": 309,
+    "observation_metadata_present": 0,
+    "rows": 309,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 309,
+    "league": "Holland Eredivisie",
+    "market": "1x2",
+    "matches": 309,
+    "observation_metadata_present": 0,
+    "rows": 309,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 309,
+    "league": "Holland Eredivisie",
+    "market": "AH",
+    "matches": 309,
+    "observation_metadata_present": 0,
+    "rows": 309,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 309,
+    "league": "Holland Eredivisie",
+    "market": "OU",
+    "matches": 309,
+    "observation_metadata_present": 0,
+    "rows": 309,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 309,
+    "league": "Holland Eredivisie",
+    "market": "1x2",
+    "matches": 309,
+    "observation_metadata_present": 0,
+    "rows": 309,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 309,
+    "league": "Holland Eredivisie",
+    "market": "AH",
+    "matches": 309,
+    "observation_metadata_present": 0,
+    "rows": 309,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 309,
+    "league": "Holland Eredivisie",
+    "market": "OU",
+    "matches": 309,
+    "observation_metadata_present": 0,
+    "rows": 309,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 76,
+    "league": "Holland Eredivisie",
+    "market": "1x2",
+    "matches": 79,
+    "observation_metadata_present": 16,
+    "rows": 79,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 76,
+    "league": "Holland Eredivisie",
+    "market": "AH",
+    "matches": 79,
+    "observation_metadata_present": 16,
+    "rows": 79,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 76,
+    "league": "Holland Eredivisie",
+    "market": "OU",
+    "matches": 79,
+    "observation_metadata_present": 16,
+    "rows": 79,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 76,
+    "league": "Holland Eredivisie",
+    "market": "1x2",
+    "matches": 79,
+    "observation_metadata_present": 16,
+    "rows": 79,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 75,
+    "league": "Holland Eredivisie",
+    "market": "AH",
+    "matches": 79,
+    "observation_metadata_present": 16,
+    "rows": 79,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 76,
+    "league": "Holland Eredivisie",
+    "market": "OU",
+    "matches": 79,
+    "observation_metadata_present": 16,
+    "rows": 79,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 75,
+    "league": "Holland Eredivisie",
+    "market": "1x2",
+    "matches": 79,
+    "observation_metadata_present": 16,
+    "rows": 79,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 75,
+    "league": "Holland Eredivisie",
+    "market": "AH",
+    "matches": 79,
+    "observation_metadata_present": 16,
+    "rows": 79,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 75,
+    "league": "Holland Eredivisie",
+    "market": "OU",
+    "matches": 79,
+    "observation_metadata_present": 16,
+    "rows": 79,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 380,
+    "league": "Italy Serie A",
+    "market": "1x2",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 380,
+    "league": "Italy Serie A",
+    "market": "AH",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 380,
+    "league": "Italy Serie A",
+    "market": "OU",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 380,
+    "league": "Italy Serie A",
+    "market": "1x2",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 380,
+    "league": "Italy Serie A",
+    "market": "AH",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 380,
+    "league": "Italy Serie A",
+    "market": "OU",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 380,
+    "league": "Italy Serie A",
+    "market": "1x2",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 380,
+    "league": "Italy Serie A",
+    "market": "AH",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 380,
+    "league": "Italy Serie A",
+    "market": "OU",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 380,
+    "league": "Italy Serie A",
+    "market": "1x2",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 380,
+    "league": "Italy Serie A",
+    "market": "AH",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 380,
+    "league": "Italy Serie A",
+    "market": "OU",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 380,
+    "league": "Italy Serie A",
+    "market": "1x2",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 380,
+    "league": "Italy Serie A",
+    "market": "AH",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 380,
+    "league": "Italy Serie A",
+    "market": "OU",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 380,
+    "league": "Italy Serie A",
+    "market": "1x2",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 380,
+    "league": "Italy Serie A",
+    "market": "AH",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 380,
+    "league": "Italy Serie A",
+    "market": "OU",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 61,
+    "league": "Italy Serie A",
+    "market": "1x2",
+    "matches": 67,
+    "observation_metadata_present": 17,
+    "rows": 67,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 61,
+    "league": "Italy Serie A",
+    "market": "AH",
+    "matches": 67,
+    "observation_metadata_present": 17,
+    "rows": 67,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 61,
+    "league": "Italy Serie A",
+    "market": "OU",
+    "matches": 67,
+    "observation_metadata_present": 17,
+    "rows": 67,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 61,
+    "league": "Italy Serie A",
+    "market": "1x2",
+    "matches": 67,
+    "observation_metadata_present": 17,
+    "rows": 67,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 61,
+    "league": "Italy Serie A",
+    "market": "AH",
+    "matches": 67,
+    "observation_metadata_present": 17,
+    "rows": 67,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 61,
+    "league": "Italy Serie A",
+    "market": "OU",
+    "matches": 67,
+    "observation_metadata_present": 17,
+    "rows": 67,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 61,
+    "league": "Italy Serie A",
+    "market": "1x2",
+    "matches": 67,
+    "observation_metadata_present": 17,
+    "rows": 67,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 61,
+    "league": "Italy Serie A",
+    "market": "AH",
+    "matches": 67,
+    "observation_metadata_present": 17,
+    "rows": 67,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 61,
+    "league": "Italy Serie A",
+    "market": "OU",
+    "matches": 67,
+    "observation_metadata_present": 17,
+    "rows": 67,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 305,
+    "league": "Liga Portugal 1",
+    "market": "1x2",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 305,
+    "league": "Liga Portugal 1",
+    "market": "AH",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 305,
+    "league": "Liga Portugal 1",
+    "market": "OU",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 304,
+    "league": "Liga Portugal 1",
+    "market": "1x2",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 304,
+    "league": "Liga Portugal 1",
+    "market": "AH",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 304,
+    "league": "Liga Portugal 1",
+    "market": "OU",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 304,
+    "league": "Liga Portugal 1",
+    "market": "1x2",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 304,
+    "league": "Liga Portugal 1",
+    "market": "AH",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 304,
+    "league": "Liga Portugal 1",
+    "market": "OU",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 306,
+    "league": "Liga Portugal 1",
+    "market": "1x2",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 306,
+    "league": "Liga Portugal 1",
+    "market": "AH",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 306,
+    "league": "Liga Portugal 1",
+    "market": "OU",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 306,
+    "league": "Liga Portugal 1",
+    "market": "1x2",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 306,
+    "league": "Liga Portugal 1",
+    "market": "AH",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 306,
+    "league": "Liga Portugal 1",
+    "market": "OU",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 306,
+    "league": "Liga Portugal 1",
+    "market": "1x2",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 306,
+    "league": "Liga Portugal 1",
+    "market": "AH",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 306,
+    "league": "Liga Portugal 1",
+    "market": "OU",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 71,
+    "league": "Liga Portugal 1",
+    "market": "1x2",
+    "matches": 71,
+    "observation_metadata_present": 9,
+    "rows": 71,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 71,
+    "league": "Liga Portugal 1",
+    "market": "AH",
+    "matches": 71,
+    "observation_metadata_present": 9,
+    "rows": 71,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 71,
+    "league": "Liga Portugal 1",
+    "market": "OU",
+    "matches": 71,
+    "observation_metadata_present": 9,
+    "rows": 71,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 71,
+    "league": "Liga Portugal 1",
+    "market": "1x2",
+    "matches": 71,
+    "observation_metadata_present": 9,
+    "rows": 71,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 71,
+    "league": "Liga Portugal 1",
+    "market": "AH",
+    "matches": 71,
+    "observation_metadata_present": 9,
+    "rows": 71,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 71,
+    "league": "Liga Portugal 1",
+    "market": "OU",
+    "matches": 71,
+    "observation_metadata_present": 9,
+    "rows": 71,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 71,
+    "league": "Liga Portugal 1",
+    "market": "1x2",
+    "matches": 71,
+    "observation_metadata_present": 9,
+    "rows": 71,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 71,
+    "league": "Liga Portugal 1",
+    "market": "AH",
+    "matches": 71,
+    "observation_metadata_present": 9,
+    "rows": 71,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 71,
+    "league": "Liga Portugal 1",
+    "market": "OU",
+    "matches": 71,
+    "observation_metadata_present": 9,
+    "rows": 71,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 25,
+    "league": "Norway Eliteserien",
+    "market": "1x2",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2024"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 25,
+    "league": "Norway Eliteserien",
+    "market": "AH",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2024"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 25,
+    "league": "Norway Eliteserien",
+    "market": "OU",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2024"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 25,
+    "league": "Norway Eliteserien",
+    "market": "1x2",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2024"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 25,
+    "league": "Norway Eliteserien",
+    "market": "AH",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2024"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 25,
+    "league": "Norway Eliteserien",
+    "market": "OU",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2024"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 25,
+    "league": "Norway Eliteserien",
+    "market": "1x2",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2024"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 25,
+    "league": "Norway Eliteserien",
+    "market": "AH",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2024"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 25,
+    "league": "Norway Eliteserien",
+    "market": "OU",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2024"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 25,
+    "league": "Poland Ekstraklasa",
+    "market": "1x2",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 25,
+    "league": "Poland Ekstraklasa",
+    "market": "AH",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 25,
+    "league": "Poland Ekstraklasa",
+    "market": "OU",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 25,
+    "league": "Poland Ekstraklasa",
+    "market": "1x2",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 25,
+    "league": "Poland Ekstraklasa",
+    "market": "AH",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 25,
+    "league": "Poland Ekstraklasa",
+    "market": "OU",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 25,
+    "league": "Poland Ekstraklasa",
+    "market": "1x2",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 25,
+    "league": "Poland Ekstraklasa",
+    "market": "AH",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 25,
+    "league": "Poland Ekstraklasa",
+    "market": "OU",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 306,
+    "league": "Poland Ekstraklasa",
+    "market": "1x2",
+    "matches": 306,
+    "observation_metadata_present": 306,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 306,
+    "league": "Poland Ekstraklasa",
+    "market": "AH",
+    "matches": 306,
+    "observation_metadata_present": 306,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 306,
+    "league": "Poland Ekstraklasa",
+    "market": "OU",
+    "matches": 306,
+    "observation_metadata_present": 306,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 306,
+    "league": "Poland Ekstraklasa",
+    "market": "1x2",
+    "matches": 306,
+    "observation_metadata_present": 306,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 306,
+    "league": "Poland Ekstraklasa",
+    "market": "AH",
+    "matches": 306,
+    "observation_metadata_present": 306,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 306,
+    "league": "Poland Ekstraklasa",
+    "market": "OU",
+    "matches": 306,
+    "observation_metadata_present": 306,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 306,
+    "league": "Poland Ekstraklasa",
+    "market": "1x2",
+    "matches": 306,
+    "observation_metadata_present": 306,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 306,
+    "league": "Poland Ekstraklasa",
+    "market": "AH",
+    "matches": 306,
+    "observation_metadata_present": 306,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 306,
+    "league": "Poland Ekstraklasa",
+    "market": "OU",
+    "matches": 306,
+    "observation_metadata_present": 306,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 95,
+    "league": "Poland Ekstraklasa",
+    "market": "1x2",
+    "matches": 96,
+    "observation_metadata_present": 96,
+    "rows": 96,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 95,
+    "league": "Poland Ekstraklasa",
+    "market": "AH",
+    "matches": 96,
+    "observation_metadata_present": 96,
+    "rows": 96,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 95,
+    "league": "Poland Ekstraklasa",
+    "market": "OU",
+    "matches": 96,
+    "observation_metadata_present": 96,
+    "rows": 96,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 95,
+    "league": "Poland Ekstraklasa",
+    "market": "1x2",
+    "matches": 96,
+    "observation_metadata_present": 96,
+    "rows": 96,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 95,
+    "league": "Poland Ekstraklasa",
+    "market": "AH",
+    "matches": 96,
+    "observation_metadata_present": 96,
+    "rows": 96,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 95,
+    "league": "Poland Ekstraklasa",
+    "market": "OU",
+    "matches": 96,
+    "observation_metadata_present": 96,
+    "rows": 96,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 95,
+    "league": "Poland Ekstraklasa",
+    "market": "1x2",
+    "matches": 96,
+    "observation_metadata_present": 96,
+    "rows": 96,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 95,
+    "league": "Poland Ekstraklasa",
+    "market": "AH",
+    "matches": 96,
+    "observation_metadata_present": 96,
+    "rows": 96,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 95,
+    "league": "Poland Ekstraklasa",
+    "market": "OU",
+    "matches": 96,
+    "observation_metadata_present": 96,
+    "rows": 96,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 25,
+    "league": "Scottish Premiership",
+    "market": "1x2",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 25,
+    "league": "Scottish Premiership",
+    "market": "AH",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 25,
+    "league": "Scottish Premiership",
+    "market": "OU",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 25,
+    "league": "Scottish Premiership",
+    "market": "1x2",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 25,
+    "league": "Scottish Premiership",
+    "market": "AH",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 25,
+    "league": "Scottish Premiership",
+    "market": "OU",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 25,
+    "league": "Scottish Premiership",
+    "market": "1x2",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 25,
+    "league": "Scottish Premiership",
+    "market": "AH",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 25,
+    "league": "Scottish Premiership",
+    "market": "OU",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 228,
+    "league": "Scottish Premiership",
+    "market": "1x2",
+    "matches": 228,
+    "observation_metadata_present": 0,
+    "rows": 228,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 228,
+    "league": "Scottish Premiership",
+    "market": "AH",
+    "matches": 228,
+    "observation_metadata_present": 0,
+    "rows": 228,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 228,
+    "league": "Scottish Premiership",
+    "market": "OU",
+    "matches": 228,
+    "observation_metadata_present": 0,
+    "rows": 228,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 228,
+    "league": "Scottish Premiership",
+    "market": "1x2",
+    "matches": 228,
+    "observation_metadata_present": 0,
+    "rows": 228,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 228,
+    "league": "Scottish Premiership",
+    "market": "AH",
+    "matches": 228,
+    "observation_metadata_present": 0,
+    "rows": 228,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 228,
+    "league": "Scottish Premiership",
+    "market": "OU",
+    "matches": 228,
+    "observation_metadata_present": 0,
+    "rows": 228,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 228,
+    "league": "Scottish Premiership",
+    "market": "1x2",
+    "matches": 228,
+    "observation_metadata_present": 0,
+    "rows": 228,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 228,
+    "league": "Scottish Premiership",
+    "market": "AH",
+    "matches": 228,
+    "observation_metadata_present": 0,
+    "rows": 228,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 228,
+    "league": "Scottish Premiership",
+    "market": "OU",
+    "matches": 228,
+    "observation_metadata_present": 0,
+    "rows": 228,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 234,
+    "league": "Scottish Premiership",
+    "market": "1x2",
+    "matches": 234,
+    "observation_metadata_present": 0,
+    "rows": 234,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 234,
+    "league": "Scottish Premiership",
+    "market": "AH",
+    "matches": 234,
+    "observation_metadata_present": 0,
+    "rows": 234,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 234,
+    "league": "Scottish Premiership",
+    "market": "OU",
+    "matches": 234,
+    "observation_metadata_present": 0,
+    "rows": 234,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 234,
+    "league": "Scottish Premiership",
+    "market": "1x2",
+    "matches": 234,
+    "observation_metadata_present": 0,
+    "rows": 234,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 234,
+    "league": "Scottish Premiership",
+    "market": "AH",
+    "matches": 234,
+    "observation_metadata_present": 0,
+    "rows": 234,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 234,
+    "league": "Scottish Premiership",
+    "market": "OU",
+    "matches": 234,
+    "observation_metadata_present": 0,
+    "rows": 234,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 234,
+    "league": "Scottish Premiership",
+    "market": "1x2",
+    "matches": 234,
+    "observation_metadata_present": 0,
+    "rows": 234,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 234,
+    "league": "Scottish Premiership",
+    "market": "AH",
+    "matches": 234,
+    "observation_metadata_present": 0,
+    "rows": 234,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 234,
+    "league": "Scottish Premiership",
+    "market": "OU",
+    "matches": 234,
+    "observation_metadata_present": 0,
+    "rows": 234,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 53,
+    "league": "Scottish Premiership",
+    "market": "1x2",
+    "matches": 54,
+    "observation_metadata_present": 12,
+    "rows": 54,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 53,
+    "league": "Scottish Premiership",
+    "market": "AH",
+    "matches": 54,
+    "observation_metadata_present": 12,
+    "rows": 54,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 53,
+    "league": "Scottish Premiership",
+    "market": "OU",
+    "matches": 54,
+    "observation_metadata_present": 12,
+    "rows": 54,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 53,
+    "league": "Scottish Premiership",
+    "market": "1x2",
+    "matches": 54,
+    "observation_metadata_present": 12,
+    "rows": 54,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 53,
+    "league": "Scottish Premiership",
+    "market": "AH",
+    "matches": 54,
+    "observation_metadata_present": 12,
+    "rows": 54,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 53,
+    "league": "Scottish Premiership",
+    "market": "OU",
+    "matches": 54,
+    "observation_metadata_present": 12,
+    "rows": 54,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 53,
+    "league": "Scottish Premiership",
+    "market": "1x2",
+    "matches": 54,
+    "observation_metadata_present": 12,
+    "rows": 54,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 53,
+    "league": "Scottish Premiership",
+    "market": "AH",
+    "matches": 54,
+    "observation_metadata_present": 12,
+    "rows": 54,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 53,
+    "league": "Scottish Premiership",
+    "market": "OU",
+    "matches": 54,
+    "observation_metadata_present": 12,
+    "rows": 54,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 380,
+    "league": "Spanish La Liga",
+    "market": "1x2",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 380,
+    "league": "Spanish La Liga",
+    "market": "AH",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 380,
+    "league": "Spanish La Liga",
+    "market": "OU",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 380,
+    "league": "Spanish La Liga",
+    "market": "1x2",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 380,
+    "league": "Spanish La Liga",
+    "market": "AH",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 380,
+    "league": "Spanish La Liga",
+    "market": "OU",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 380,
+    "league": "Spanish La Liga",
+    "market": "1x2",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 380,
+    "league": "Spanish La Liga",
+    "market": "AH",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 380,
+    "league": "Spanish La Liga",
+    "market": "OU",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 380,
+    "league": "Spanish La Liga",
+    "market": "1x2",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 380,
+    "league": "Spanish La Liga",
+    "market": "AH",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 380,
+    "league": "Spanish La Liga",
+    "market": "OU",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 380,
+    "league": "Spanish La Liga",
+    "market": "1x2",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 380,
+    "league": "Spanish La Liga",
+    "market": "AH",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 380,
+    "league": "Spanish La Liga",
+    "market": "OU",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 380,
+    "league": "Spanish La Liga",
+    "market": "1x2",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 380,
+    "league": "Spanish La Liga",
+    "market": "AH",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 380,
+    "league": "Spanish La Liga",
+    "market": "OU",
+    "matches": 380,
+    "observation_metadata_present": 0,
+    "rows": 380,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 86,
+    "league": "Spanish La Liga",
+    "market": "1x2",
+    "matches": 86,
+    "observation_metadata_present": 17,
+    "rows": 86,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 86,
+    "league": "Spanish La Liga",
+    "market": "AH",
+    "matches": 86,
+    "observation_metadata_present": 17,
+    "rows": 86,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 86,
+    "league": "Spanish La Liga",
+    "market": "OU",
+    "matches": 86,
+    "observation_metadata_present": 17,
+    "rows": 86,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 86,
+    "league": "Spanish La Liga",
+    "market": "1x2",
+    "matches": 86,
+    "observation_metadata_present": 17,
+    "rows": 86,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 86,
+    "league": "Spanish La Liga",
+    "market": "AH",
+    "matches": 86,
+    "observation_metadata_present": 17,
+    "rows": 86,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 86,
+    "league": "Spanish La Liga",
+    "market": "OU",
+    "matches": 86,
+    "observation_metadata_present": 17,
+    "rows": 86,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 86,
+    "league": "Spanish La Liga",
+    "market": "1x2",
+    "matches": 86,
+    "observation_metadata_present": 17,
+    "rows": 86,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 86,
+    "league": "Spanish La Liga",
+    "market": "AH",
+    "matches": 86,
+    "observation_metadata_present": 17,
+    "rows": 86,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 86,
+    "league": "Spanish La Liga",
+    "market": "OU",
+    "matches": 86,
+    "observation_metadata_present": 17,
+    "rows": 86,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 25,
+    "league": "Swedish Allsvenskan",
+    "market": "1x2",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2024"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 25,
+    "league": "Swedish Allsvenskan",
+    "market": "AH",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2024"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 25,
+    "league": "Swedish Allsvenskan",
+    "market": "OU",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2024"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 25,
+    "league": "Swedish Allsvenskan",
+    "market": "1x2",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2024"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 25,
+    "league": "Swedish Allsvenskan",
+    "market": "AH",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2024"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 25,
+    "league": "Swedish Allsvenskan",
+    "market": "OU",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2024"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 25,
+    "league": "Swedish Allsvenskan",
+    "market": "1x2",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2024"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 25,
+    "league": "Swedish Allsvenskan",
+    "market": "AH",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2024"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 25,
+    "league": "Swedish Allsvenskan",
+    "market": "OU",
+    "matches": 25,
+    "observation_metadata_present": 25,
+    "rows": 25,
+    "season_name": "2024"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 35,
+    "league": "Switzerland Super League",
+    "market": "1x2",
+    "matches": 35,
+    "observation_metadata_present": 35,
+    "rows": 35,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 35,
+    "league": "Switzerland Super League",
+    "market": "AH",
+    "matches": 35,
+    "observation_metadata_present": 35,
+    "rows": 35,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 35,
+    "league": "Switzerland Super League",
+    "market": "OU",
+    "matches": 35,
+    "observation_metadata_present": 35,
+    "rows": 35,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 35,
+    "league": "Switzerland Super League",
+    "market": "1x2",
+    "matches": 35,
+    "observation_metadata_present": 35,
+    "rows": 35,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 35,
+    "league": "Switzerland Super League",
+    "market": "AH",
+    "matches": 35,
+    "observation_metadata_present": 35,
+    "rows": 35,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 35,
+    "league": "Switzerland Super League",
+    "market": "OU",
+    "matches": 35,
+    "observation_metadata_present": 35,
+    "rows": 35,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 35,
+    "league": "Switzerland Super League",
+    "market": "1x2",
+    "matches": 35,
+    "observation_metadata_present": 35,
+    "rows": 35,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 35,
+    "league": "Switzerland Super League",
+    "market": "AH",
+    "matches": 35,
+    "observation_metadata_present": 35,
+    "rows": 35,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 35,
+    "league": "Switzerland Super League",
+    "market": "OU",
+    "matches": 35,
+    "observation_metadata_present": 35,
+    "rows": 35,
+    "season_name": "2023-2024"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 342,
+    "league": "Turkey Super Lig",
+    "market": "1x2",
+    "matches": 342,
+    "observation_metadata_present": 0,
+    "rows": 342,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 342,
+    "league": "Turkey Super Lig",
+    "market": "AH",
+    "matches": 342,
+    "observation_metadata_present": 0,
+    "rows": 342,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 342,
+    "league": "Turkey Super Lig",
+    "market": "OU",
+    "matches": 342,
+    "observation_metadata_present": 0,
+    "rows": 342,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 342,
+    "league": "Turkey Super Lig",
+    "market": "1x2",
+    "matches": 342,
+    "observation_metadata_present": 0,
+    "rows": 342,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 342,
+    "league": "Turkey Super Lig",
+    "market": "AH",
+    "matches": 342,
+    "observation_metadata_present": 0,
+    "rows": 342,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 342,
+    "league": "Turkey Super Lig",
+    "market": "OU",
+    "matches": 342,
+    "observation_metadata_present": 0,
+    "rows": 342,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 342,
+    "league": "Turkey Super Lig",
+    "market": "1x2",
+    "matches": 342,
+    "observation_metadata_present": 0,
+    "rows": 342,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 342,
+    "league": "Turkey Super Lig",
+    "market": "AH",
+    "matches": 342,
+    "observation_metadata_present": 0,
+    "rows": 342,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 342,
+    "league": "Turkey Super Lig",
+    "market": "OU",
+    "matches": 342,
+    "observation_metadata_present": 0,
+    "rows": 342,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 306,
+    "league": "Turkey Super Lig",
+    "market": "1x2",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 306,
+    "league": "Turkey Super Lig",
+    "market": "AH",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 306,
+    "league": "Turkey Super Lig",
+    "market": "OU",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 306,
+    "league": "Turkey Super Lig",
+    "market": "1x2",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 306,
+    "league": "Turkey Super Lig",
+    "market": "AH",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 306,
+    "league": "Turkey Super Lig",
+    "market": "OU",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 306,
+    "league": "Turkey Super Lig",
+    "market": "1x2",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 306,
+    "league": "Turkey Super Lig",
+    "market": "AH",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 306,
+    "league": "Turkey Super Lig",
+    "market": "OU",
+    "matches": 306,
+    "observation_metadata_present": 0,
+    "rows": 306,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 68,
+    "league": "Turkey Super Lig",
+    "market": "1x2",
+    "matches": 71,
+    "observation_metadata_present": 17,
+    "rows": 71,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 68,
+    "league": "Turkey Super Lig",
+    "market": "AH",
+    "matches": 71,
+    "observation_metadata_present": 17,
+    "rows": 71,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 68,
+    "league": "Turkey Super Lig",
+    "market": "OU",
+    "matches": 71,
+    "observation_metadata_present": 17,
+    "rows": 71,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 68,
+    "league": "Turkey Super Lig",
+    "market": "1x2",
+    "matches": 71,
+    "observation_metadata_present": 17,
+    "rows": 71,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 68,
+    "league": "Turkey Super Lig",
+    "market": "AH",
+    "matches": 71,
+    "observation_metadata_present": 17,
+    "rows": 71,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 68,
+    "league": "Turkey Super Lig",
+    "market": "OU",
+    "matches": 71,
+    "observation_metadata_present": 17,
+    "rows": 71,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 68,
+    "league": "Turkey Super Lig",
+    "market": "1x2",
+    "matches": 71,
+    "observation_metadata_present": 17,
+    "rows": 71,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 68,
+    "league": "Turkey Super Lig",
+    "market": "AH",
+    "matches": 71,
+    "observation_metadata_present": 17,
+    "rows": 71,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 68,
+    "league": "Turkey Super Lig",
+    "market": "OU",
+    "matches": 71,
+    "observation_metadata_present": 17,
+    "rows": 71,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 279,
+    "league": "UEFA Champions League",
+    "market": "1x2",
+    "matches": 279,
+    "observation_metadata_present": 279,
+    "rows": 279,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 279,
+    "league": "UEFA Champions League",
+    "market": "AH",
+    "matches": 279,
+    "observation_metadata_present": 279,
+    "rows": 279,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 279,
+    "league": "UEFA Champions League",
+    "market": "OU",
+    "matches": 279,
+    "observation_metadata_present": 279,
+    "rows": 279,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 279,
+    "league": "UEFA Champions League",
+    "market": "1x2",
+    "matches": 279,
+    "observation_metadata_present": 279,
+    "rows": 279,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 279,
+    "league": "UEFA Champions League",
+    "market": "AH",
+    "matches": 279,
+    "observation_metadata_present": 279,
+    "rows": 279,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 279,
+    "league": "UEFA Champions League",
+    "market": "OU",
+    "matches": 279,
+    "observation_metadata_present": 279,
+    "rows": 279,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 277,
+    "league": "UEFA Champions League",
+    "market": "1x2",
+    "matches": 279,
+    "observation_metadata_present": 279,
+    "rows": 279,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 279,
+    "league": "UEFA Champions League",
+    "market": "AH",
+    "matches": 279,
+    "observation_metadata_present": 279,
+    "rows": 279,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 279,
+    "league": "UEFA Champions League",
+    "market": "OU",
+    "matches": 279,
+    "observation_metadata_present": 279,
+    "rows": 279,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 281,
+    "league": "UEFA Champions League",
+    "market": "1x2",
+    "matches": 281,
+    "observation_metadata_present": 281,
+    "rows": 281,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 281,
+    "league": "UEFA Champions League",
+    "market": "AH",
+    "matches": 281,
+    "observation_metadata_present": 281,
+    "rows": 281,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 281,
+    "league": "UEFA Champions League",
+    "market": "OU",
+    "matches": 281,
+    "observation_metadata_present": 281,
+    "rows": 281,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 281,
+    "league": "UEFA Champions League",
+    "market": "1x2",
+    "matches": 281,
+    "observation_metadata_present": 281,
+    "rows": 281,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 281,
+    "league": "UEFA Champions League",
+    "market": "AH",
+    "matches": 281,
+    "observation_metadata_present": 281,
+    "rows": 281,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 281,
+    "league": "UEFA Champions League",
+    "market": "OU",
+    "matches": 281,
+    "observation_metadata_present": 281,
+    "rows": 281,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 279,
+    "league": "UEFA Champions League",
+    "market": "1x2",
+    "matches": 281,
+    "observation_metadata_present": 281,
+    "rows": 281,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 281,
+    "league": "UEFA Champions League",
+    "market": "AH",
+    "matches": 281,
+    "observation_metadata_present": 281,
+    "rows": 281,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 281,
+    "league": "UEFA Champions League",
+    "market": "OU",
+    "matches": 281,
+    "observation_metadata_present": 281,
+    "rows": 281,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 126,
+    "league": "UEFA Champions League",
+    "market": "1x2",
+    "matches": 126,
+    "observation_metadata_present": 126,
+    "rows": 126,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 126,
+    "league": "UEFA Champions League",
+    "market": "AH",
+    "matches": 126,
+    "observation_metadata_present": 126,
+    "rows": 126,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 126,
+    "league": "UEFA Champions League",
+    "market": "OU",
+    "matches": 126,
+    "observation_metadata_present": 126,
+    "rows": 126,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 126,
+    "league": "UEFA Champions League",
+    "market": "1x2",
+    "matches": 126,
+    "observation_metadata_present": 126,
+    "rows": 126,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 126,
+    "league": "UEFA Champions League",
+    "market": "AH",
+    "matches": 126,
+    "observation_metadata_present": 126,
+    "rows": 126,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 126,
+    "league": "UEFA Champions League",
+    "market": "OU",
+    "matches": 126,
+    "observation_metadata_present": 126,
+    "rows": 126,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 126,
+    "league": "UEFA Champions League",
+    "market": "1x2",
+    "matches": 126,
+    "observation_metadata_present": 126,
+    "rows": 126,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 126,
+    "league": "UEFA Champions League",
+    "market": "AH",
+    "matches": 126,
+    "observation_metadata_present": 126,
+    "rows": 126,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 126,
+    "league": "UEFA Champions League",
+    "market": "OU",
+    "matches": 126,
+    "observation_metadata_present": 126,
+    "rows": 126,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 407,
+    "league": "UEFA Conference League",
+    "market": "1x2",
+    "matches": 409,
+    "observation_metadata_present": 409,
+    "rows": 409,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 407,
+    "league": "UEFA Conference League",
+    "market": "AH",
+    "matches": 409,
+    "observation_metadata_present": 409,
+    "rows": 409,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 407,
+    "league": "UEFA Conference League",
+    "market": "OU",
+    "matches": 409,
+    "observation_metadata_present": 409,
+    "rows": 409,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 407,
+    "league": "UEFA Conference League",
+    "market": "1x2",
+    "matches": 409,
+    "observation_metadata_present": 409,
+    "rows": 409,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 407,
+    "league": "UEFA Conference League",
+    "market": "AH",
+    "matches": 409,
+    "observation_metadata_present": 409,
+    "rows": 409,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 407,
+    "league": "UEFA Conference League",
+    "market": "OU",
+    "matches": 409,
+    "observation_metadata_present": 409,
+    "rows": 409,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 402,
+    "league": "UEFA Conference League",
+    "market": "1x2",
+    "matches": 409,
+    "observation_metadata_present": 409,
+    "rows": 409,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 407,
+    "league": "UEFA Conference League",
+    "market": "AH",
+    "matches": 409,
+    "observation_metadata_present": 409,
+    "rows": 409,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 407,
+    "league": "UEFA Conference League",
+    "market": "OU",
+    "matches": 409,
+    "observation_metadata_present": 409,
+    "rows": 409,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 409,
+    "league": "UEFA Conference League",
+    "market": "1x2",
+    "matches": 409,
+    "observation_metadata_present": 409,
+    "rows": 409,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 409,
+    "league": "UEFA Conference League",
+    "market": "AH",
+    "matches": 409,
+    "observation_metadata_present": 409,
+    "rows": 409,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 409,
+    "league": "UEFA Conference League",
+    "market": "OU",
+    "matches": 409,
+    "observation_metadata_present": 409,
+    "rows": 409,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 409,
+    "league": "UEFA Conference League",
+    "market": "1x2",
+    "matches": 409,
+    "observation_metadata_present": 409,
+    "rows": 409,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 409,
+    "league": "UEFA Conference League",
+    "market": "AH",
+    "matches": 409,
+    "observation_metadata_present": 409,
+    "rows": 409,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 409,
+    "league": "UEFA Conference League",
+    "market": "OU",
+    "matches": 409,
+    "observation_metadata_present": 409,
+    "rows": 409,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 408,
+    "league": "UEFA Conference League",
+    "market": "1x2",
+    "matches": 409,
+    "observation_metadata_present": 409,
+    "rows": 409,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 409,
+    "league": "UEFA Conference League",
+    "market": "AH",
+    "matches": 409,
+    "observation_metadata_present": 409,
+    "rows": 409,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 409,
+    "league": "UEFA Conference League",
+    "market": "OU",
+    "matches": 409,
+    "observation_metadata_present": 409,
+    "rows": 409,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 276,
+    "league": "UEFA Conference League",
+    "market": "1x2",
+    "matches": 276,
+    "observation_metadata_present": 276,
+    "rows": 276,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 276,
+    "league": "UEFA Conference League",
+    "market": "AH",
+    "matches": 276,
+    "observation_metadata_present": 276,
+    "rows": 276,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 276,
+    "league": "UEFA Conference League",
+    "market": "OU",
+    "matches": 276,
+    "observation_metadata_present": 276,
+    "rows": 276,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 276,
+    "league": "UEFA Conference League",
+    "market": "1x2",
+    "matches": 276,
+    "observation_metadata_present": 276,
+    "rows": 276,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 276,
+    "league": "UEFA Conference League",
+    "market": "AH",
+    "matches": 276,
+    "observation_metadata_present": 276,
+    "rows": 276,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 276,
+    "league": "UEFA Conference League",
+    "market": "OU",
+    "matches": 276,
+    "observation_metadata_present": 276,
+    "rows": 276,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 275,
+    "league": "UEFA Conference League",
+    "market": "1x2",
+    "matches": 276,
+    "observation_metadata_present": 276,
+    "rows": 276,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 276,
+    "league": "UEFA Conference League",
+    "market": "AH",
+    "matches": 276,
+    "observation_metadata_present": 276,
+    "rows": 276,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 276,
+    "league": "UEFA Conference League",
+    "market": "OU",
+    "matches": 276,
+    "observation_metadata_present": 276,
+    "rows": 276,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 269,
+    "league": "UEFA Europa League",
+    "market": "1x2",
+    "matches": 269,
+    "observation_metadata_present": 269,
+    "rows": 269,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 269,
+    "league": "UEFA Europa League",
+    "market": "AH",
+    "matches": 269,
+    "observation_metadata_present": 269,
+    "rows": 269,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 269,
+    "league": "UEFA Europa League",
+    "market": "OU",
+    "matches": 269,
+    "observation_metadata_present": 269,
+    "rows": 269,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 269,
+    "league": "UEFA Europa League",
+    "market": "1x2",
+    "matches": 269,
+    "observation_metadata_present": 269,
+    "rows": 269,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 269,
+    "league": "UEFA Europa League",
+    "market": "AH",
+    "matches": 269,
+    "observation_metadata_present": 269,
+    "rows": 269,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 269,
+    "league": "UEFA Europa League",
+    "market": "OU",
+    "matches": 269,
+    "observation_metadata_present": 269,
+    "rows": 269,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 269,
+    "league": "UEFA Europa League",
+    "market": "1x2",
+    "matches": 269,
+    "observation_metadata_present": 269,
+    "rows": 269,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 269,
+    "league": "UEFA Europa League",
+    "market": "AH",
+    "matches": 269,
+    "observation_metadata_present": 269,
+    "rows": 269,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 269,
+    "league": "UEFA Europa League",
+    "market": "OU",
+    "matches": 269,
+    "observation_metadata_present": 269,
+    "rows": 269,
+    "season_name": "2024-2025"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 271,
+    "league": "UEFA Europa League",
+    "market": "1x2",
+    "matches": 271,
+    "observation_metadata_present": 271,
+    "rows": 271,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 271,
+    "league": "UEFA Europa League",
+    "market": "AH",
+    "matches": 271,
+    "observation_metadata_present": 271,
+    "rows": 271,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 271,
+    "league": "UEFA Europa League",
+    "market": "OU",
+    "matches": 271,
+    "observation_metadata_present": 271,
+    "rows": 271,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 271,
+    "league": "UEFA Europa League",
+    "market": "1x2",
+    "matches": 271,
+    "observation_metadata_present": 271,
+    "rows": 271,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 271,
+    "league": "UEFA Europa League",
+    "market": "AH",
+    "matches": 271,
+    "observation_metadata_present": 271,
+    "rows": 271,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 271,
+    "league": "UEFA Europa League",
+    "market": "OU",
+    "matches": 271,
+    "observation_metadata_present": 271,
+    "rows": 271,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 271,
+    "league": "UEFA Europa League",
+    "market": "1x2",
+    "matches": 271,
+    "observation_metadata_present": 271,
+    "rows": 271,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 271,
+    "league": "UEFA Europa League",
+    "market": "AH",
+    "matches": 271,
+    "observation_metadata_present": 271,
+    "rows": 271,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 271,
+    "league": "UEFA Europa League",
+    "market": "OU",
+    "matches": 271,
+    "observation_metadata_present": 271,
+    "rows": 271,
+    "season_name": "2025-2026"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 116,
+    "league": "UEFA Europa League",
+    "market": "1x2",
+    "matches": 116,
+    "observation_metadata_present": 116,
+    "rows": 116,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 116,
+    "league": "UEFA Europa League",
+    "market": "AH",
+    "matches": 116,
+    "observation_metadata_present": 116,
+    "rows": 116,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Bet365",
+    "complete_open_close": 116,
+    "league": "UEFA Europa League",
+    "market": "OU",
+    "matches": 116,
+    "observation_metadata_present": 116,
+    "rows": 116,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 116,
+    "league": "UEFA Europa League",
+    "market": "1x2",
+    "matches": 116,
+    "observation_metadata_present": 116,
+    "rows": 116,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 116,
+    "league": "UEFA Europa League",
+    "market": "AH",
+    "matches": 116,
+    "observation_metadata_present": 116,
+    "rows": 116,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Crown",
+    "complete_open_close": 116,
+    "league": "UEFA Europa League",
+    "market": "OU",
+    "matches": 116,
+    "observation_metadata_present": 116,
+    "rows": 116,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 116,
+    "league": "UEFA Europa League",
+    "market": "1x2",
+    "matches": 116,
+    "observation_metadata_present": 116,
+    "rows": 116,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 116,
+    "league": "UEFA Europa League",
+    "market": "AH",
+    "matches": 116,
+    "observation_metadata_present": 116,
+    "rows": 116,
+    "season_name": "2026-2027"
+  },
+  {
+    "bookmaker": "Sbobet",
+    "complete_open_close": 116,
+    "league": "UEFA Europa League",
+    "market": "OU",
+    "matches": 116,
+    "observation_metadata_present": 116,
+    "rows": 116,
+    "season_name": "2026-2027"
+  }
+]

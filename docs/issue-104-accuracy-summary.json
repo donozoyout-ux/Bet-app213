@@ -1,0 +1,4045 @@
+{
+  "observed_at": "2026-10-18T19:52:48.449284+00:00",
+  "method": "readonly-history-audit-v1",
+  "dry_run": true,
+  "limitations": [
+    "Database evidence only; no independent Goaloo source verification.",
+    "Coupon rows count immutable versions, not independent wagers; no actual stakes recorded.",
+    "ROI is a one-unit simulation only over valid captured prices, never actual realized profit.",
+    "Wilson intervals assume independent selections; same-match/version correlation weakens this assumption.",
+    "Pushes are separated from application voids; bookmaker abandonment rules are not independently verified."
+  ],
+  "groups": {
+    "prediction": {
+      "overall": {
+        "selections": 493,
+        "outcomes": {
+          "won": 172,
+          "lost": 54,
+          "awaiting_data": 37,
+          "pending": 229,
+          "void": 1
+        },
+        "denominator": 226,
+        "wins": 172,
+        "recorded_outcomes": {
+          "won": 174,
+          "lost": 52,
+          "void": 1
+        },
+        "recorded_denominator": 226,
+        "recorded_hit_rate": 0.7699115044247787,
+        "hit_rate": 0.7610619469026548,
+        "wilson_95": [
+          0.7013953051509154,
+          0.812001747427904
+        ],
+        "calibrated_n": 226,
+        "brier": 0.1883298405537105,
+        "mean_probability": 0.811459950532992,
+        "priced_n": 2,
+        "unit_stake_profit": -0.54,
+        "unit_stake_roi": -0.27
+      },
+      "league_market": {
+        "Albania Kategoria e Pare | first_half_goals": {
+          "selections": 3,
+          "outcomes": {
+            "pending": 3
+          },
+          "denominator": 0,
+          "wins": 0,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": null,
+          "wilson_95": null,
+          "calibrated_n": 0,
+          "brier": null,
+          "mean_probability": null,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Albania Kategoria e Pare | second_half_goals": {
+          "selections": 3,
+          "outcomes": {
+            "pending": 3
+          },
+          "denominator": 0,
+          "wins": 0,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": null,
+          "wilson_95": null,
+          "calibrated_n": 0,
+          "brier": null,
+          "mean_probability": null,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Albania Super league | first_half_goals": {
+          "selections": 5,
+          "outcomes": {
+            "awaiting_data": 1,
+            "pending": 4
+          },
+          "denominator": 0,
+          "wins": 0,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": null,
+          "wilson_95": null,
+          "calibrated_n": 0,
+          "brier": null,
+          "mean_probability": null,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Albania Super league | goals": {
+          "selections": 2,
+          "outcomes": {
+            "lost": 1,
+            "pending": 1
+          },
+          "denominator": 1,
+          "wins": 0,
+          "recorded_outcomes": {
+            "lost": 1
+          },
+          "recorded_denominator": 1,
+          "recorded_hit_rate": 0.0,
+          "hit_rate": 0.0,
+          "wilson_95": [
+            0.0,
+            0.7934567085261071
+          ],
+          "calibrated_n": 1,
+          "brier": 0.4501956522524634,
+          "mean_probability": 0.6709662079810453,
+          "priced_n": 1,
+          "unit_stake_profit": -1,
+          "unit_stake_roi": -1.0
+        },
+        "Albania Super league | second_half_goals": {
+          "selections": 6,
+          "outcomes": {
+            "awaiting_data": 2,
+            "pending": 4
+          },
+          "denominator": 0,
+          "wins": 0,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": null,
+          "wilson_95": null,
+          "calibrated_n": 0,
+          "brier": null,
+          "mean_probability": null,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Belgian Pro League | corners": {
+          "selections": 7,
+          "outcomes": {
+            "pending": 7
+          },
+          "denominator": 0,
+          "wins": 0,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": null,
+          "wilson_95": null,
+          "calibrated_n": 0,
+          "brier": null,
+          "mean_probability": null,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Belgian Pro League | first_half_goals": {
+          "selections": 4,
+          "outcomes": {
+            "pending": 4
+          },
+          "denominator": 0,
+          "wins": 0,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": null,
+          "wilson_95": null,
+          "calibrated_n": 0,
+          "brier": null,
+          "mean_probability": null,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Belgian Pro League | second_half_goals": {
+          "selections": 4,
+          "outcomes": {
+            "pending": 4
+          },
+          "denominator": 0,
+          "wins": 0,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": null,
+          "wilson_95": null,
+          "calibrated_n": 0,
+          "brier": null,
+          "mean_probability": null,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Belgian Pro League | yellow_cards": {
+          "selections": 1,
+          "outcomes": {
+            "pending": 1
+          },
+          "denominator": 0,
+          "wins": 0,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": null,
+          "wilson_95": null,
+          "calibrated_n": 0,
+          "brier": null,
+          "mean_probability": null,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Denmark Superliga | corners": {
+          "selections": 3,
+          "outcomes": {
+            "pending": 3
+          },
+          "denominator": 0,
+          "wins": 0,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": null,
+          "wilson_95": null,
+          "calibrated_n": 0,
+          "brier": null,
+          "mean_probability": null,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Denmark Superliga | first_half_goals": {
+          "selections": 7,
+          "outcomes": {
+            "awaiting_data": 4,
+            "pending": 3
+          },
+          "denominator": 0,
+          "wins": 0,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": null,
+          "wilson_95": null,
+          "calibrated_n": 0,
+          "brier": null,
+          "mean_probability": null,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Denmark Superliga | goals": {
+          "selections": 1,
+          "outcomes": {
+            "pending": 1
+          },
+          "denominator": 0,
+          "wins": 0,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": null,
+          "wilson_95": null,
+          "calibrated_n": 0,
+          "brier": null,
+          "mean_probability": null,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Denmark Superliga | second_half_goals": {
+          "selections": 5,
+          "outcomes": {
+            "awaiting_data": 4,
+            "pending": 1
+          },
+          "denominator": 0,
+          "wins": 0,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": null,
+          "wilson_95": null,
+          "calibrated_n": 0,
+          "brier": null,
+          "mean_probability": null,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Denmark Superliga | yellow_cards": {
+          "selections": 4,
+          "outcomes": {
+            "pending": 4
+          },
+          "denominator": 0,
+          "wins": 0,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": null,
+          "wilson_95": null,
+          "calibrated_n": 0,
+          "brier": null,
+          "mean_probability": null,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "English Premier League | corners": {
+          "selections": 14,
+          "outcomes": {
+            "lost": 2,
+            "awaiting_data": 3,
+            "won": 1,
+            "pending": 8
+          },
+          "denominator": 3,
+          "wins": 1,
+          "recorded_outcomes": {
+            "won": 2,
+            "lost": 1
+          },
+          "recorded_denominator": 3,
+          "recorded_hit_rate": 0.6666666666666666,
+          "hit_rate": 0.3333333333333333,
+          "wilson_95": [
+            0.0614903152761605,
+            0.7923450448735121
+          ],
+          "calibrated_n": 3,
+          "brier": 0.4374518105197794,
+          "mean_probability": 0.820817173472614,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "English Premier League | double_chance": {
+          "selections": 6,
+          "outcomes": {
+            "won": 5,
+            "lost": 1
+          },
+          "denominator": 6,
+          "wins": 5,
+          "recorded_outcomes": {
+            "won": 5,
+            "lost": 1
+          },
+          "recorded_denominator": 6,
+          "recorded_hit_rate": 0.8333333333333334,
+          "hit_rate": 0.8333333333333334,
+          "wilson_95": [
+            0.43649056343635395,
+            0.9699474141282697
+          ],
+          "calibrated_n": 6,
+          "brier": 0.14224317180019558,
+          "mean_probability": 0.7618361375179145,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "English Premier League | first_half_goals": {
+          "selections": 6,
+          "outcomes": {
+            "won": 3,
+            "awaiting_data": 1,
+            "pending": 2
+          },
+          "denominator": 3,
+          "wins": 3,
+          "recorded_outcomes": {
+            "won": 3
+          },
+          "recorded_denominator": 3,
+          "recorded_hit_rate": 1.0,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.43849391955098227,
+            1.0
+          ],
+          "calibrated_n": 3,
+          "brier": 0.01713748924533683,
+          "mean_probability": 0.8752962410273254,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "English Premier League | goals": {
+          "selections": 9,
+          "outcomes": {
+            "won": 9
+          },
+          "denominator": 9,
+          "wins": 9,
+          "recorded_outcomes": {
+            "won": 9
+          },
+          "recorded_denominator": 9,
+          "recorded_hit_rate": 1.0,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.7008472464490407,
+            1.0
+          ],
+          "calibrated_n": 9,
+          "brier": 0.042948992343556223,
+          "mean_probability": 0.7978460869524314,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "English Premier League | result": {
+          "selections": 2,
+          "outcomes": {
+            "lost": 2
+          },
+          "denominator": 2,
+          "wins": 0,
+          "recorded_outcomes": {
+            "lost": 2
+          },
+          "recorded_denominator": 2,
+          "recorded_hit_rate": 0.0,
+          "hit_rate": 0.0,
+          "wilson_95": [
+            0.0,
+            0.6576280471103807
+          ],
+          "calibrated_n": 2,
+          "brier": 0.39259561518719854,
+          "mean_probability": 0.6261323984892102,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "English Premier League | second_half_goals": {
+          "selections": 7,
+          "outcomes": {
+            "won": 2,
+            "lost": 1,
+            "awaiting_data": 1,
+            "pending": 3
+          },
+          "denominator": 3,
+          "wins": 2,
+          "recorded_outcomes": {
+            "won": 2,
+            "lost": 1
+          },
+          "recorded_denominator": 3,
+          "recorded_hit_rate": 0.6666666666666666,
+          "hit_rate": 0.6666666666666666,
+          "wilson_95": [
+            0.2076549551264879,
+            0.9385096847238394
+          ],
+          "calibrated_n": 3,
+          "brier": 0.2398804661912928,
+          "mean_probability": 0.8214555267278842,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "English Premier League | yellow_cards": {
+          "selections": 8,
+          "outcomes": {
+            "lost": 2,
+            "won": 2,
+            "awaiting_data": 1,
+            "pending": 3
+          },
+          "denominator": 4,
+          "wins": 2,
+          "recorded_outcomes": {
+            "won": 4
+          },
+          "recorded_denominator": 4,
+          "recorded_hit_rate": 1.0,
+          "hit_rate": 0.5,
+          "wilson_95": [
+            0.15003570882017148,
+            0.8499642911798285
+          ],
+          "calibrated_n": 4,
+          "brier": 0.3873759571633975,
+          "mean_probability": 0.8583962583514778,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "France Ligue 1 | corners": {
+          "selections": 11,
+          "outcomes": {
+            "won": 2,
+            "lost": 2,
+            "awaiting_data": 1,
+            "pending": 6
+          },
+          "denominator": 4,
+          "wins": 2,
+          "recorded_outcomes": {
+            "won": 2,
+            "lost": 2
+          },
+          "recorded_denominator": 4,
+          "recorded_hit_rate": 0.5,
+          "hit_rate": 0.5,
+          "wilson_95": [
+            0.15003570882017148,
+            0.8499642911798285
+          ],
+          "calibrated_n": 4,
+          "brier": 0.3432899761630775,
+          "mean_probability": 0.7916965049047053,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "France Ligue 1 | double_chance": {
+          "selections": 6,
+          "outcomes": {
+            "won": 6
+          },
+          "denominator": 6,
+          "wins": 6,
+          "recorded_outcomes": {
+            "won": 6
+          },
+          "recorded_denominator": 6,
+          "recorded_hit_rate": 1.0,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.6096569663469354,
+            0.9999999999999999
+          ],
+          "calibrated_n": 6,
+          "brier": 0.05796133917721974,
+          "mean_probability": 0.7617260500407106,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "France Ligue 1 | first_half_goals": {
+          "selections": 1,
+          "outcomes": {
+            "pending": 1
+          },
+          "denominator": 0,
+          "wins": 0,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": null,
+          "wilson_95": null,
+          "calibrated_n": 0,
+          "brier": null,
+          "mean_probability": null,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "France Ligue 1 | goals": {
+          "selections": 12,
+          "outcomes": {
+            "won": 8,
+            "lost": 1,
+            "pending": 3
+          },
+          "denominator": 9,
+          "wins": 8,
+          "recorded_outcomes": {
+            "won": 8,
+            "lost": 1
+          },
+          "recorded_denominator": 9,
+          "recorded_hit_rate": 0.8888888888888888,
+          "hit_rate": 0.8888888888888888,
+          "wilson_95": [
+            0.5649937852319399,
+            0.9801096286728695
+          ],
+          "calibrated_n": 9,
+          "brier": 0.11586301226038503,
+          "mean_probability": 0.8201084663882049,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "France Ligue 1 | second_half_goals": {
+          "selections": 6,
+          "outcomes": {
+            "won": 1,
+            "awaiting_data": 1,
+            "pending": 4
+          },
+          "denominator": 1,
+          "wins": 1,
+          "recorded_outcomes": {
+            "won": 1
+          },
+          "recorded_denominator": 1,
+          "recorded_hit_rate": 1.0,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.20654329147389294,
+            1.0
+          ],
+          "calibrated_n": 1,
+          "brier": 0.018510457450469066,
+          "mean_probability": 0.8639468579911913,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "France Ligue 1 | yellow_cards": {
+          "selections": 6,
+          "outcomes": {
+            "won": 3,
+            "awaiting_data": 1,
+            "pending": 2
+          },
+          "denominator": 3,
+          "wins": 3,
+          "recorded_outcomes": {
+            "won": 3
+          },
+          "recorded_denominator": 3,
+          "recorded_hit_rate": 1.0,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.43849391955098227,
+            1.0
+          ],
+          "calibrated_n": 3,
+          "brier": 0.02175289781191082,
+          "mean_probability": 0.8667876145491379,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "German Bundesliga | asian_handicap": {
+          "selections": 1,
+          "outcomes": {
+            "won": 1
+          },
+          "denominator": 1,
+          "wins": 1,
+          "recorded_outcomes": {
+            "won": 1
+          },
+          "recorded_denominator": 1,
+          "recorded_hit_rate": 1.0,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.20654329147389294,
+            1.0
+          ],
+          "calibrated_n": 1,
+          "brier": 0.022172781641317797,
+          "mean_probability": 0.8510947225874187,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "German Bundesliga | corners": {
+          "selections": 12,
+          "outcomes": {
+            "won": 6,
+            "awaiting_data": 1,
+            "pending": 5
+          },
+          "denominator": 6,
+          "wins": 6,
+          "recorded_outcomes": {
+            "won": 6
+          },
+          "recorded_denominator": 6,
+          "recorded_hit_rate": 1.0,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.6096569663469354,
+            0.9999999999999999
+          ],
+          "calibrated_n": 6,
+          "brier": 0.03323354621003223,
+          "mean_probability": 0.8211358718517779,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "German Bundesliga | double_chance": {
+          "selections": 3,
+          "outcomes": {
+            "won": 3
+          },
+          "denominator": 3,
+          "wins": 3,
+          "recorded_outcomes": {
+            "won": 3
+          },
+          "recorded_denominator": 3,
+          "recorded_hit_rate": 1.0,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.43849391955098227,
+            1.0
+          ],
+          "calibrated_n": 3,
+          "brier": 0.049698379743318845,
+          "mean_probability": 0.7772210321074215,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "German Bundesliga | first_half_goals": {
+          "selections": 2,
+          "outcomes": {
+            "pending": 2
+          },
+          "denominator": 0,
+          "wins": 0,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": null,
+          "wilson_95": null,
+          "calibrated_n": 0,
+          "brier": null,
+          "mean_probability": null,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "German Bundesliga | goals": {
+          "selections": 8,
+          "outcomes": {
+            "won": 5,
+            "lost": 1,
+            "pending": 2
+          },
+          "denominator": 6,
+          "wins": 5,
+          "recorded_outcomes": {
+            "won": 5,
+            "lost": 1
+          },
+          "recorded_denominator": 6,
+          "recorded_hit_rate": 0.8333333333333334,
+          "hit_rate": 0.8333333333333334,
+          "wilson_95": [
+            0.43649056343635395,
+            0.9699474141282697
+          ],
+          "calibrated_n": 6,
+          "brier": 0.14582835313184836,
+          "mean_probability": 0.8365094740049126,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "German Bundesliga | result": {
+          "selections": 3,
+          "outcomes": {
+            "lost": 1,
+            "won": 1,
+            "pending": 1
+          },
+          "denominator": 2,
+          "wins": 1,
+          "recorded_outcomes": {
+            "lost": 1,
+            "won": 1
+          },
+          "recorded_denominator": 2,
+          "recorded_hit_rate": 0.5,
+          "hit_rate": 0.5,
+          "wilson_95": [
+            0.09452865480086614,
+            0.9054713451991339
+          ],
+          "calibrated_n": 2,
+          "brier": 0.27942889229947804,
+          "mean_probability": 0.6196583210857387,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "German Bundesliga | second_half_goals": {
+          "selections": 5,
+          "outcomes": {
+            "won": 2,
+            "lost": 1,
+            "awaiting_data": 1,
+            "pending": 1
+          },
+          "denominator": 3,
+          "wins": 2,
+          "recorded_outcomes": {
+            "won": 2,
+            "lost": 1
+          },
+          "recorded_denominator": 3,
+          "recorded_hit_rate": 0.6666666666666666,
+          "hit_rate": 0.6666666666666666,
+          "wilson_95": [
+            0.2076549551264879,
+            0.9385096847238394
+          ],
+          "calibrated_n": 3,
+          "brier": 0.2617241321637636,
+          "mean_probability": 0.8902063515561283,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "German Bundesliga | yellow_cards": {
+          "selections": 5,
+          "outcomes": {
+            "won": 4,
+            "pending": 1
+          },
+          "denominator": 4,
+          "wins": 4,
+          "recorded_outcomes": {
+            "won": 4
+          },
+          "recorded_denominator": 4,
+          "recorded_hit_rate": 1.0,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.5100999795960008,
+            1.0
+          ],
+          "calibrated_n": 4,
+          "brier": 0.016500120869952596,
+          "mean_probability": 0.8751318779253668,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Holland Eredivisie | corners": {
+          "selections": 10,
+          "outcomes": {
+            "won": 3,
+            "lost": 1,
+            "pending": 6
+          },
+          "denominator": 4,
+          "wins": 3,
+          "recorded_outcomes": {
+            "won": 3,
+            "lost": 1
+          },
+          "recorded_denominator": 4,
+          "recorded_hit_rate": 0.75,
+          "hit_rate": 0.75,
+          "wilson_95": [
+            0.3006360524426366,
+            0.9544139373553637
+          ],
+          "calibrated_n": 4,
+          "brier": 0.20980093832837837,
+          "mean_probability": 0.8506143299510566,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Holland Eredivisie | double_chance": {
+          "selections": 5,
+          "outcomes": {
+            "won": 3,
+            "lost": 2
+          },
+          "denominator": 5,
+          "wins": 3,
+          "recorded_outcomes": {
+            "won": 3,
+            "lost": 2
+          },
+          "recorded_denominator": 5,
+          "recorded_hit_rate": 0.6,
+          "hit_rate": 0.6,
+          "wilson_95": [
+            0.23071993220883708,
+            0.8823817688407467
+          ],
+          "calibrated_n": 5,
+          "brier": 0.2829770960206441,
+          "mean_probability": 0.7717094887637208,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Holland Eredivisie | first_half_goals": {
+          "selections": 5,
+          "outcomes": {
+            "pending": 5
+          },
+          "denominator": 0,
+          "wins": 0,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": null,
+          "wilson_95": null,
+          "calibrated_n": 0,
+          "brier": null,
+          "mean_probability": null,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Holland Eredivisie | goals": {
+          "selections": 9,
+          "outcomes": {
+            "lost": 1,
+            "won": 8
+          },
+          "denominator": 9,
+          "wins": 8,
+          "recorded_outcomes": {
+            "lost": 1,
+            "won": 8
+          },
+          "recorded_denominator": 9,
+          "recorded_hit_rate": 0.8888888888888888,
+          "hit_rate": 0.8888888888888888,
+          "wilson_95": [
+            0.5649937852319399,
+            0.9801096286728695
+          ],
+          "calibrated_n": 9,
+          "brier": 0.10338919097722545,
+          "mean_probability": 0.8363181907922685,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Holland Eredivisie | result": {
+          "selections": 3,
+          "outcomes": {
+            "won": 2,
+            "lost": 1
+          },
+          "denominator": 3,
+          "wins": 2,
+          "recorded_outcomes": {
+            "won": 2,
+            "lost": 1
+          },
+          "recorded_denominator": 3,
+          "recorded_hit_rate": 0.6666666666666666,
+          "hit_rate": 0.6666666666666666,
+          "wilson_95": [
+            0.2076549551264879,
+            0.9385096847238394
+          ],
+          "calibrated_n": 3,
+          "brier": 0.2679268065815374,
+          "mean_probability": 0.6946079625895293,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Holland Eredivisie | second_half_goals": {
+          "selections": 8,
+          "outcomes": {
+            "won": 2,
+            "awaiting_data": 1,
+            "pending": 5
+          },
+          "denominator": 2,
+          "wins": 2,
+          "recorded_outcomes": {
+            "won": 2
+          },
+          "recorded_denominator": 2,
+          "recorded_hit_rate": 1.0,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.34237195288961925,
+            1.0
+          ],
+          "calibrated_n": 2,
+          "brier": 0.0189536871056611,
+          "mean_probability": 0.8660078715045222,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Holland Eredivisie | yellow_cards": {
+          "selections": 4,
+          "outcomes": {
+            "won": 2,
+            "pending": 2
+          },
+          "denominator": 2,
+          "wins": 2,
+          "recorded_outcomes": {
+            "won": 2
+          },
+          "recorded_denominator": 2,
+          "recorded_hit_rate": 1.0,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.34237195288961925,
+            1.0
+          ],
+          "calibrated_n": 2,
+          "brier": 0.029186985540496996,
+          "mean_probability": 0.8292169103507516,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Italy Serie A | corners": {
+          "selections": 16,
+          "outcomes": {
+            "lost": 3,
+            "won": 2,
+            "awaiting_data": 2,
+            "pending": 9
+          },
+          "denominator": 5,
+          "wins": 2,
+          "recorded_outcomes": {
+            "lost": 2,
+            "won": 3
+          },
+          "recorded_denominator": 5,
+          "recorded_hit_rate": 0.6,
+          "hit_rate": 0.4,
+          "wilson_95": [
+            0.1176182311592533,
+            0.769280067791163
+          ],
+          "calibrated_n": 5,
+          "brier": 0.4520700495476504,
+          "mean_probability": 0.8285472227756662,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Italy Serie A | double_chance": {
+          "selections": 7,
+          "outcomes": {
+            "won": 4,
+            "lost": 3
+          },
+          "denominator": 7,
+          "wins": 4,
+          "recorded_outcomes": {
+            "won": 4,
+            "lost": 3
+          },
+          "recorded_denominator": 7,
+          "recorded_hit_rate": 0.5714285714285714,
+          "hit_rate": 0.5714285714285714,
+          "wilson_95": [
+            0.2504542304090258,
+            0.8417830777373732
+          ],
+          "calibrated_n": 7,
+          "brier": 0.27372216588617737,
+          "mean_probability": 0.7643633367008411,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Italy Serie A | first_half_goals": {
+          "selections": 3,
+          "outcomes": {
+            "awaiting_data": 1,
+            "pending": 2
+          },
+          "denominator": 0,
+          "wins": 0,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": null,
+          "wilson_95": null,
+          "calibrated_n": 0,
+          "brier": null,
+          "mean_probability": null,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Italy Serie A | goals": {
+          "selections": 10,
+          "outcomes": {
+            "won": 7,
+            "lost": 2,
+            "pending": 1
+          },
+          "denominator": 9,
+          "wins": 7,
+          "recorded_outcomes": {
+            "won": 7,
+            "lost": 2
+          },
+          "recorded_denominator": 9,
+          "recorded_hit_rate": 0.7777777777777778,
+          "hit_rate": 0.7777777777777778,
+          "wilson_95": [
+            0.4525833436728054,
+            0.9367762376877727
+          ],
+          "calibrated_n": 9,
+          "brier": 0.183399057947662,
+          "mean_probability": 0.8107009184953946,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Italy Serie A | result": {
+          "selections": 3,
+          "outcomes": {
+            "won": 1,
+            "pending": 2
+          },
+          "denominator": 1,
+          "wins": 1,
+          "recorded_outcomes": {
+            "won": 1
+          },
+          "recorded_denominator": 1,
+          "recorded_hit_rate": 1.0,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.20654329147389294,
+            1.0
+          ],
+          "calibrated_n": 1,
+          "brier": 0.09144329450216543,
+          "mean_probability": 0.6976040765781301,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Italy Serie A | second_half_goals": {
+          "selections": 10,
+          "outcomes": {
+            "awaiting_data": 4,
+            "pending": 6
+          },
+          "denominator": 0,
+          "wins": 0,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": null,
+          "wilson_95": null,
+          "calibrated_n": 0,
+          "brier": null,
+          "mean_probability": null,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Italy Serie A | yellow_cards": {
+          "selections": 7,
+          "outcomes": {
+            "lost": 2,
+            "awaiting_data": 1,
+            "pending": 4
+          },
+          "denominator": 2,
+          "wins": 0,
+          "recorded_outcomes": {
+            "won": 2
+          },
+          "recorded_denominator": 2,
+          "recorded_hit_rate": 1.0,
+          "hit_rate": 0.0,
+          "wilson_95": [
+            0.0,
+            0.6576280471103807
+          ],
+          "calibrated_n": 2,
+          "brier": 0.7044498262275036,
+          "mean_probability": 0.8355531907391713,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Liga Portugal 1 | corners": {
+          "selections": 7,
+          "outcomes": {
+            "pending": 7
+          },
+          "denominator": 0,
+          "wins": 0,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": null,
+          "wilson_95": null,
+          "calibrated_n": 0,
+          "brier": null,
+          "mean_probability": null,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Liga Portugal 1 | double_chance": {
+          "selections": 5,
+          "outcomes": {
+            "won": 4,
+            "lost": 1
+          },
+          "denominator": 5,
+          "wins": 4,
+          "recorded_outcomes": {
+            "won": 4,
+            "lost": 1
+          },
+          "recorded_denominator": 5,
+          "recorded_hit_rate": 0.8,
+          "hit_rate": 0.8,
+          "wilson_95": [
+            0.3755282641185388,
+            0.9637768390302125
+          ],
+          "calibrated_n": 5,
+          "brier": 0.16932692945089398,
+          "mean_probability": 0.7631213373073187,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Liga Portugal 1 | first_half_goals": {
+          "selections": 1,
+          "outcomes": {
+            "pending": 1
+          },
+          "denominator": 0,
+          "wins": 0,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": null,
+          "wilson_95": null,
+          "calibrated_n": 0,
+          "brier": null,
+          "mean_probability": null,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Liga Portugal 1 | goals": {
+          "selections": 7,
+          "outcomes": {
+            "won": 4,
+            "lost": 3
+          },
+          "denominator": 7,
+          "wins": 4,
+          "recorded_outcomes": {
+            "won": 4,
+            "lost": 3
+          },
+          "recorded_denominator": 7,
+          "recorded_hit_rate": 0.5714285714285714,
+          "hit_rate": 0.5714285714285714,
+          "wilson_95": [
+            0.2504542304090258,
+            0.8417830777373732
+          ],
+          "calibrated_n": 7,
+          "brier": 0.32456860713814,
+          "mean_probability": 0.8186577274690546,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Liga Portugal 1 | result": {
+          "selections": 2,
+          "outcomes": {
+            "won": 2
+          },
+          "denominator": 2,
+          "wins": 2,
+          "recorded_outcomes": {
+            "won": 2
+          },
+          "recorded_denominator": 2,
+          "recorded_hit_rate": 1.0,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.34237195288961925,
+            1.0
+          ],
+          "calibrated_n": 2,
+          "brier": 0.09767287924250972,
+          "mean_probability": 0.700528909919548,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Liga Portugal 1 | second_half_goals": {
+          "selections": 2,
+          "outcomes": {
+            "pending": 2
+          },
+          "denominator": 0,
+          "wins": 0,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": null,
+          "wilson_95": null,
+          "calibrated_n": 0,
+          "brier": null,
+          "mean_probability": null,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Liga Portugal 1 | yellow_cards": {
+          "selections": 4,
+          "outcomes": {
+            "pending": 4
+          },
+          "denominator": 0,
+          "wins": 0,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": null,
+          "wilson_95": null,
+          "calibrated_n": 0,
+          "brier": null,
+          "mean_probability": null,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Poland Ekstraklasa | corners": {
+          "selections": 2,
+          "outcomes": {
+            "pending": 2
+          },
+          "denominator": 0,
+          "wins": 0,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": null,
+          "wilson_95": null,
+          "calibrated_n": 0,
+          "brier": null,
+          "mean_probability": null,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Poland Ekstraklasa | first_half_goals": {
+          "selections": 7,
+          "outcomes": {
+            "won": 1,
+            "awaiting_data": 2,
+            "pending": 4
+          },
+          "denominator": 1,
+          "wins": 1,
+          "recorded_outcomes": {
+            "won": 1
+          },
+          "recorded_denominator": 1,
+          "recorded_hit_rate": 1.0,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.20654329147389294,
+            1.0
+          ],
+          "calibrated_n": 1,
+          "brier": 0.0024972491265066485,
+          "mean_probability": 0.9500275163064047,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Poland Ekstraklasa | goals": {
+          "selections": 5,
+          "outcomes": {
+            "pending": 5
+          },
+          "denominator": 0,
+          "wins": 0,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": null,
+          "wilson_95": null,
+          "calibrated_n": 0,
+          "brier": null,
+          "mean_probability": null,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Poland Ekstraklasa | result": {
+          "selections": 1,
+          "outcomes": {
+            "won": 1
+          },
+          "denominator": 1,
+          "wins": 1,
+          "recorded_outcomes": {
+            "won": 1
+          },
+          "recorded_denominator": 1,
+          "recorded_hit_rate": 1.0,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.20654329147389294,
+            1.0
+          ],
+          "calibrated_n": 1,
+          "brier": 0.1183330995747724,
+          "mean_probability": 0.6560042157601748,
+          "priced_n": 1,
+          "unit_stake_profit": 0.45999999999999996,
+          "unit_stake_roi": 0.45999999999999996
+        },
+        "Poland Ekstraklasa | second_half_goals": {
+          "selections": 11,
+          "outcomes": {
+            "lost": 1,
+            "awaiting_data": 1,
+            "pending": 9
+          },
+          "denominator": 1,
+          "wins": 0,
+          "recorded_outcomes": {
+            "lost": 1
+          },
+          "recorded_denominator": 1,
+          "recorded_hit_rate": 0.0,
+          "hit_rate": 0.0,
+          "wilson_95": [
+            0.0,
+            0.7934567085261071
+          ],
+          "calibrated_n": 1,
+          "brier": 0.8391203790244702,
+          "mean_probability": 0.9160351407148474,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Scottish Premiership | corners": {
+          "selections": 12,
+          "outcomes": {
+            "won": 5,
+            "lost": 1,
+            "pending": 6
+          },
+          "denominator": 6,
+          "wins": 5,
+          "recorded_outcomes": {
+            "lost": 3,
+            "won": 3
+          },
+          "recorded_denominator": 6,
+          "recorded_hit_rate": 0.5,
+          "hit_rate": 0.8333333333333334,
+          "wilson_95": [
+            0.43649056343635395,
+            0.9699474141282697
+          ],
+          "calibrated_n": 6,
+          "brier": 0.15355696332383043,
+          "mean_probability": 0.8121987219321202,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Scottish Premiership | first_half_goals": {
+          "selections": 5,
+          "outcomes": {
+            "won": 2,
+            "awaiting_data": 1,
+            "pending": 2
+          },
+          "denominator": 2,
+          "wins": 2,
+          "recorded_outcomes": {
+            "won": 2
+          },
+          "recorded_denominator": 2,
+          "recorded_hit_rate": 1.0,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.34237195288961925,
+            1.0
+          ],
+          "calibrated_n": 2,
+          "brier": 0.024645553210775533,
+          "mean_probability": 0.843985852012143,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Scottish Premiership | second_half_goals": {
+          "selections": 3,
+          "outcomes": {
+            "won": 2,
+            "pending": 1
+          },
+          "denominator": 2,
+          "wins": 2,
+          "recorded_outcomes": {
+            "won": 2
+          },
+          "recorded_denominator": 2,
+          "recorded_hit_rate": 1.0,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.34237195288961925,
+            1.0
+          ],
+          "calibrated_n": 2,
+          "brier": 0.005015212303883234,
+          "mean_probability": 0.9305351571577191,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Scottish Premiership | yellow_cards": {
+          "selections": 4,
+          "outcomes": {
+            "won": 1,
+            "pending": 3
+          },
+          "denominator": 1,
+          "wins": 1,
+          "recorded_outcomes": {
+            "won": 1
+          },
+          "recorded_denominator": 1,
+          "recorded_hit_rate": 1.0,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.20654329147389294,
+            1.0
+          ],
+          "calibrated_n": 1,
+          "brier": 0.06329606692280933,
+          "mean_probability": 0.7484129039024272,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Spanish La Liga | asian_handicap": {
+          "selections": 1,
+          "outcomes": {
+            "lost": 1
+          },
+          "denominator": 1,
+          "wins": 0,
+          "recorded_outcomes": {
+            "lost": 1
+          },
+          "recorded_denominator": 1,
+          "recorded_hit_rate": 0.0,
+          "hit_rate": 0.0,
+          "wilson_95": [
+            0.0,
+            0.7934567085261071
+          ],
+          "calibrated_n": 1,
+          "brier": 0.4323263649463389,
+          "mean_probability": 0.6575152963592094,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Spanish La Liga | corners": {
+          "selections": 13,
+          "outcomes": {
+            "pending": 7,
+            "void": 1,
+            "won": 4,
+            "lost": 1
+          },
+          "denominator": 5,
+          "wins": 4,
+          "recorded_outcomes": {
+            "void": 1,
+            "won": 4,
+            "lost": 1
+          },
+          "recorded_denominator": 5,
+          "recorded_hit_rate": 0.8,
+          "hit_rate": 0.8,
+          "wilson_95": [
+            0.3755282641185388,
+            0.9637768390302125
+          ],
+          "calibrated_n": 5,
+          "brier": 0.15316558370415384,
+          "mean_probability": 0.8117450325417173,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Spanish La Liga | double_chance": {
+          "selections": 2,
+          "outcomes": {
+            "lost": 2
+          },
+          "denominator": 2,
+          "wins": 0,
+          "recorded_outcomes": {
+            "lost": 2
+          },
+          "recorded_denominator": 2,
+          "recorded_hit_rate": 0.0,
+          "hit_rate": 0.0,
+          "wilson_95": [
+            0.0,
+            0.6576280471103807
+          ],
+          "calibrated_n": 2,
+          "brier": 0.5752285443676548,
+          "mean_probability": 0.7578576853775154,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Spanish La Liga | first_half_goals": {
+          "selections": 4,
+          "outcomes": {
+            "pending": 2,
+            "lost": 1,
+            "won": 1
+          },
+          "denominator": 2,
+          "wins": 1,
+          "recorded_outcomes": {
+            "lost": 1,
+            "won": 1
+          },
+          "recorded_denominator": 2,
+          "recorded_hit_rate": 0.5,
+          "hit_rate": 0.5,
+          "wilson_95": [
+            0.09452865480086614,
+            0.9054713451991339
+          ],
+          "calibrated_n": 2,
+          "brier": 0.4205014672398481,
+          "mean_probability": 0.9324321821788257,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Spanish La Liga | goals": {
+          "selections": 7,
+          "outcomes": {
+            "won": 4,
+            "lost": 2,
+            "pending": 1
+          },
+          "denominator": 6,
+          "wins": 4,
+          "recorded_outcomes": {
+            "won": 4,
+            "lost": 2
+          },
+          "recorded_denominator": 6,
+          "recorded_hit_rate": 0.6666666666666666,
+          "hit_rate": 0.6666666666666666,
+          "wilson_95": [
+            0.29998832134152864,
+            0.9032306674407831
+          ],
+          "calibrated_n": 6,
+          "brier": 0.23788405120768408,
+          "mean_probability": 0.8058115740514458,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Spanish La Liga | result": {
+          "selections": 3,
+          "outcomes": {
+            "won": 3
+          },
+          "denominator": 3,
+          "wins": 3,
+          "recorded_outcomes": {
+            "won": 3
+          },
+          "recorded_denominator": 3,
+          "recorded_hit_rate": 1.0,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.43849391955098227,
+            1.0
+          ],
+          "calibrated_n": 3,
+          "brier": 0.12537830901120073,
+          "mean_probability": 0.6486524842825842,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Spanish La Liga | second_half_goals": {
+          "selections": 7,
+          "outcomes": {
+            "won": 2,
+            "lost": 2,
+            "pending": 3
+          },
+          "denominator": 4,
+          "wins": 2,
+          "recorded_outcomes": {
+            "won": 2,
+            "lost": 2
+          },
+          "recorded_denominator": 4,
+          "recorded_hit_rate": 0.5,
+          "hit_rate": 0.5,
+          "wilson_95": [
+            0.15003570882017148,
+            0.8499642911798285
+          ],
+          "calibrated_n": 4,
+          "brier": 0.41706779770970653,
+          "mean_probability": 0.8640228580474851,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Spanish La Liga | yellow_cards": {
+          "selections": 6,
+          "outcomes": {
+            "won": 3,
+            "pending": 3
+          },
+          "denominator": 3,
+          "wins": 3,
+          "recorded_outcomes": {
+            "won": 3
+          },
+          "recorded_denominator": 3,
+          "recorded_hit_rate": 1.0,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.43849391955098227,
+            1.0
+          ],
+          "calibrated_n": 3,
+          "brier": 0.014772134736997275,
+          "mean_probability": 0.8806696882522923,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Turkey Super Lig | corners": {
+          "selections": 12,
+          "outcomes": {
+            "won": 7,
+            "awaiting_data": 1,
+            "pending": 4
+          },
+          "denominator": 7,
+          "wins": 7,
+          "recorded_outcomes": {
+            "won": 6,
+            "lost": 1
+          },
+          "recorded_denominator": 7,
+          "recorded_hit_rate": 0.8571428571428571,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.6456611570247934,
+            1.0
+          ],
+          "calibrated_n": 7,
+          "brier": 0.040715956840641124,
+          "mean_probability": 0.8028197989861706,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Turkey Super Lig | double_chance": {
+          "selections": 2,
+          "outcomes": {
+            "won": 1,
+            "lost": 1
+          },
+          "denominator": 2,
+          "wins": 1,
+          "recorded_outcomes": {
+            "won": 1,
+            "lost": 1
+          },
+          "recorded_denominator": 2,
+          "recorded_hit_rate": 0.5,
+          "hit_rate": 0.5,
+          "wilson_95": [
+            0.09452865480086614,
+            0.9054713451991339
+          ],
+          "calibrated_n": 2,
+          "brier": 0.2878964041043225,
+          "mean_probability": 0.7382593583475404,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Turkey Super Lig | first_half_goals": {
+          "selections": 3,
+          "outcomes": {
+            "lost": 1,
+            "won": 1,
+            "pending": 1
+          },
+          "denominator": 2,
+          "wins": 1,
+          "recorded_outcomes": {
+            "lost": 1,
+            "won": 1
+          },
+          "recorded_denominator": 2,
+          "recorded_hit_rate": 0.5,
+          "hit_rate": 0.5,
+          "wilson_95": [
+            0.09452865480086614,
+            0.9054713451991339
+          ],
+          "calibrated_n": 2,
+          "brier": 0.32480242262061865,
+          "mean_probability": 0.8289035923835779,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Turkey Super Lig | goals": {
+          "selections": 3,
+          "outcomes": {
+            "won": 3
+          },
+          "denominator": 3,
+          "wins": 3,
+          "recorded_outcomes": {
+            "won": 3
+          },
+          "recorded_denominator": 3,
+          "recorded_hit_rate": 1.0,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.43849391955098227,
+            1.0
+          ],
+          "calibrated_n": 3,
+          "brier": 0.03292234129677157,
+          "mean_probability": 0.8240009589421468,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Turkey Super Lig | result": {
+          "selections": 1,
+          "outcomes": {
+            "won": 1
+          },
+          "denominator": 1,
+          "wins": 1,
+          "recorded_outcomes": {
+            "won": 1
+          },
+          "recorded_denominator": 1,
+          "recorded_hit_rate": 1.0,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.20654329147389294,
+            1.0
+          ],
+          "calibrated_n": 1,
+          "brier": 0.08631293222111268,
+          "mean_probability": 0.7062093734968512,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Turkey Super Lig | yellow_cards": {
+          "selections": 11,
+          "outcomes": {
+            "won": 5,
+            "lost": 2,
+            "awaiting_data": 1,
+            "pending": 3
+          },
+          "denominator": 7,
+          "wins": 5,
+          "recorded_outcomes": {
+            "won": 5,
+            "lost": 2
+          },
+          "recorded_denominator": 7,
+          "recorded_hit_rate": 0.7142857142857143,
+          "hit_rate": 0.7142857142857143,
+          "wilson_95": [
+            0.35892909014821267,
+            0.9177828342909844
+          ],
+          "calibrated_n": 7,
+          "brier": 0.2425903491890982,
+          "mean_probability": 0.8380862896260642,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "UEFA Champions League | corners": {
+          "selections": 8,
+          "outcomes": {
+            "pending": 8
+          },
+          "denominator": 0,
+          "wins": 0,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": null,
+          "wilson_95": null,
+          "calibrated_n": 0,
+          "brier": null,
+          "mean_probability": null,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "UEFA Champions League | first_half_goals": {
+          "selections": 7,
+          "outcomes": {
+            "won": 3,
+            "lost": 1,
+            "pending": 3
+          },
+          "denominator": 4,
+          "wins": 3,
+          "recorded_outcomes": {
+            "won": 3,
+            "lost": 1
+          },
+          "recorded_denominator": 4,
+          "recorded_hit_rate": 0.75,
+          "hit_rate": 0.75,
+          "wilson_95": [
+            0.3006360524426366,
+            0.9544139373553637
+          ],
+          "calibrated_n": 4,
+          "brier": 0.21090591679616913,
+          "mean_probability": 0.8544414429356878,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "UEFA Champions League | goals": {
+          "selections": 3,
+          "outcomes": {
+            "lost": 1,
+            "won": 2
+          },
+          "denominator": 3,
+          "wins": 2,
+          "recorded_outcomes": {
+            "lost": 1,
+            "won": 2
+          },
+          "recorded_denominator": 3,
+          "recorded_hit_rate": 0.6666666666666666,
+          "hit_rate": 0.6666666666666666,
+          "wilson_95": [
+            0.2076549551264879,
+            0.9385096847238394
+          ],
+          "calibrated_n": 3,
+          "brier": 0.3125271443554083,
+          "mean_probability": 0.8293685430669219,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "UEFA Champions League | second_half_goals": {
+          "selections": 10,
+          "outcomes": {
+            "lost": 2,
+            "won": 3,
+            "pending": 5
+          },
+          "denominator": 5,
+          "wins": 3,
+          "recorded_outcomes": {
+            "lost": 2,
+            "won": 3
+          },
+          "recorded_denominator": 5,
+          "recorded_hit_rate": 0.6,
+          "hit_rate": 0.6,
+          "wilson_95": [
+            0.23071993220883708,
+            0.8823817688407467
+          ],
+          "calibrated_n": 5,
+          "brier": 0.29682947504186447,
+          "mean_probability": 0.8598249233832641,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "UEFA Champions League | yellow_cards": {
+          "selections": 4,
+          "outcomes": {
+            "pending": 4
+          },
+          "denominator": 0,
+          "wins": 0,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": null,
+          "wilson_95": null,
+          "calibrated_n": 0,
+          "brier": null,
+          "mean_probability": null,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "UEFA Conference League | first_half_goals": {
+          "selections": 2,
+          "outcomes": {
+            "won": 1,
+            "pending": 1
+          },
+          "denominator": 1,
+          "wins": 1,
+          "recorded_outcomes": {
+            "won": 1
+          },
+          "recorded_denominator": 1,
+          "recorded_hit_rate": 1.0,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.20654329147389294,
+            1.0
+          ],
+          "calibrated_n": 1,
+          "brier": 0.0063519518393765064,
+          "mean_probability": 0.9203008667589383,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "UEFA Conference League | goals": {
+          "selections": 1,
+          "outcomes": {
+            "won": 1
+          },
+          "denominator": 1,
+          "wins": 1,
+          "recorded_outcomes": {
+            "won": 1
+          },
+          "recorded_denominator": 1,
+          "recorded_hit_rate": 1.0,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.20654329147389294,
+            1.0
+          ],
+          "calibrated_n": 1,
+          "brier": 0.013544170555502272,
+          "mean_probability": 0.8836205750336329,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "UEFA Conference League | second_half_goals": {
+          "selections": 4,
+          "outcomes": {
+            "won": 2,
+            "pending": 2
+          },
+          "denominator": 2,
+          "wins": 2,
+          "recorded_outcomes": {
+            "won": 2
+          },
+          "recorded_denominator": 2,
+          "recorded_hit_rate": 1.0,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.34237195288961925,
+            1.0
+          ],
+          "calibrated_n": 2,
+          "brier": 0.024487337375975686,
+          "mean_probability": 0.84802774342593,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "UEFA Conference League | yellow_cards": {
+          "selections": 3,
+          "outcomes": {
+            "pending": 3
+          },
+          "denominator": 0,
+          "wins": 0,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": null,
+          "wilson_95": null,
+          "calibrated_n": 0,
+          "brier": null,
+          "mean_probability": null,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "UEFA Europa League | corners": {
+          "selections": 2,
+          "outcomes": {
+            "won": 1,
+            "pending": 1
+          },
+          "denominator": 1,
+          "wins": 1,
+          "recorded_outcomes": {
+            "won": 1
+          },
+          "recorded_denominator": 1,
+          "recorded_hit_rate": 1.0,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.20654329147389294,
+            1.0
+          ],
+          "calibrated_n": 1,
+          "brier": 0.037647892576560926,
+          "mean_probability": 0.805969351450445,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "UEFA Europa League | first_half_goals": {
+          "selections": 1,
+          "outcomes": {
+            "won": 1
+          },
+          "denominator": 1,
+          "wins": 1,
+          "recorded_outcomes": {
+            "won": 1
+          },
+          "recorded_denominator": 1,
+          "recorded_hit_rate": 1.0,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.20654329147389294,
+            1.0
+          ],
+          "calibrated_n": 1,
+          "brier": 0.02046673816647594,
+          "mean_probability": 0.8569379918829743,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "UEFA Europa League | goals": {
+          "selections": 2,
+          "outcomes": {
+            "lost": 1,
+            "pending": 1
+          },
+          "denominator": 1,
+          "wins": 0,
+          "recorded_outcomes": {
+            "lost": 1
+          },
+          "recorded_denominator": 1,
+          "recorded_hit_rate": 0.0,
+          "hit_rate": 0.0,
+          "wilson_95": [
+            0.0,
+            0.7934567085261071
+          ],
+          "calibrated_n": 1,
+          "brier": 0.6619774172996403,
+          "mean_probability": 0.8136199464735611,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "UEFA Europa League | second_half_goals": {
+          "selections": 3,
+          "outcomes": {
+            "won": 2,
+            "pending": 1
+          },
+          "denominator": 2,
+          "wins": 2,
+          "recorded_outcomes": {
+            "won": 2
+          },
+          "recorded_denominator": 2,
+          "recorded_hit_rate": 1.0,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.34237195288961925,
+            1.0
+          ],
+          "calibrated_n": 2,
+          "brier": 0.010953038639633745,
+          "mean_probability": 0.9023200927768842,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "UEFA Europa League | yellow_cards": {
+          "selections": 2,
+          "outcomes": {
+            "won": 1,
+            "pending": 1
+          },
+          "denominator": 1,
+          "wins": 1,
+          "recorded_outcomes": {
+            "lost": 1
+          },
+          "recorded_denominator": 1,
+          "recorded_hit_rate": 0.0,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.20654329147389294,
+            1.0
+          ],
+          "calibrated_n": 1,
+          "brier": 0.04576116994404235,
+          "mean_probability": 0.7860813941143914,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        }
+      },
+      "league": {
+        "Albania Kategoria e Pare": {
+          "selections": 6,
+          "outcomes": {
+            "pending": 6
+          },
+          "denominator": 0,
+          "wins": 0,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": null,
+          "wilson_95": null,
+          "calibrated_n": 0,
+          "brier": null,
+          "mean_probability": null,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Albania Super league": {
+          "selections": 13,
+          "outcomes": {
+            "awaiting_data": 3,
+            "lost": 1,
+            "pending": 9
+          },
+          "denominator": 1,
+          "wins": 0,
+          "recorded_outcomes": {
+            "lost": 1
+          },
+          "recorded_denominator": 1,
+          "recorded_hit_rate": 0.0,
+          "hit_rate": 0.0,
+          "wilson_95": [
+            0.0,
+            0.7934567085261071
+          ],
+          "calibrated_n": 1,
+          "brier": 0.4501956522524634,
+          "mean_probability": 0.6709662079810453,
+          "priced_n": 1,
+          "unit_stake_profit": -1,
+          "unit_stake_roi": -1.0
+        },
+        "Belgian Pro League": {
+          "selections": 16,
+          "outcomes": {
+            "pending": 16
+          },
+          "denominator": 0,
+          "wins": 0,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": null,
+          "wilson_95": null,
+          "calibrated_n": 0,
+          "brier": null,
+          "mean_probability": null,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Denmark Superliga": {
+          "selections": 20,
+          "outcomes": {
+            "awaiting_data": 8,
+            "pending": 12
+          },
+          "denominator": 0,
+          "wins": 0,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": null,
+          "wilson_95": null,
+          "calibrated_n": 0,
+          "brier": null,
+          "mean_probability": null,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "English Premier League": {
+          "selections": 52,
+          "outcomes": {
+            "won": 22,
+            "lost": 8,
+            "awaiting_data": 6,
+            "pending": 16
+          },
+          "denominator": 30,
+          "wins": 22,
+          "recorded_outcomes": {
+            "won": 25,
+            "lost": 5
+          },
+          "recorded_denominator": 30,
+          "recorded_hit_rate": 0.8333333333333334,
+          "hit_rate": 0.7333333333333333,
+          "wilson_95": [
+            0.5555169795568831,
+            0.8581750444608938
+          ],
+          "calibrated_n": 30,
+          "brier": 0.18860347729301313,
+          "mean_probability": 0.7996729420582391,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "France Ligue 1": {
+          "selections": 42,
+          "outcomes": {
+            "won": 20,
+            "lost": 3,
+            "awaiting_data": 3,
+            "pending": 16
+          },
+          "denominator": 23,
+          "wins": 20,
+          "recorded_outcomes": {
+            "won": 20,
+            "lost": 3
+          },
+          "recorded_denominator": 23,
+          "recorded_hit_rate": 0.8695652173913043,
+          "hit_rate": 0.8695652173913043,
+          "wilson_95": [
+            0.678721020269818,
+            0.954624234856553
+          ],
+          "calibrated_n": 23,
+          "brier": 0.12380279134544761,
+          "mean_probability": 0.807931661695458,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "German Bundesliga": {
+          "selections": 39,
+          "outcomes": {
+            "lost": 3,
+            "won": 22,
+            "awaiting_data": 2,
+            "pending": 12
+          },
+          "denominator": 25,
+          "wins": 22,
+          "recorded_outcomes": {
+            "lost": 3,
+            "won": 22
+          },
+          "recorded_denominator": 25,
+          "recorded_hit_rate": 0.88,
+          "hit_rate": 0.88,
+          "wilson_95": [
+            0.7004380781662651,
+            0.9583325864293191
+          ],
+          "calibrated_n": 25,
+          "brier": 0.10622679925970462,
+          "mean_probability": 0.8215637241036462,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Holland Eredivisie": {
+          "selections": 44,
+          "outcomes": {
+            "won": 20,
+            "lost": 5,
+            "awaiting_data": 1,
+            "pending": 18
+          },
+          "denominator": 25,
+          "wins": 20,
+          "recorded_outcomes": {
+            "won": 20,
+            "lost": 5
+          },
+          "recorded_denominator": 25,
+          "recorded_hit_rate": 0.8,
+          "hit_rate": 0.8,
+          "wilson_95": [
+            0.6086866446346177,
+            0.9113954589934752
+          ],
+          "calibrated_n": 25,
+          "brier": 0.16338614868994766,
+          "mean_probability": 0.8104856772892952,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Italy Serie A": {
+          "selections": 56,
+          "outcomes": {
+            "won": 14,
+            "lost": 10,
+            "awaiting_data": 8,
+            "pending": 24
+          },
+          "denominator": 24,
+          "wins": 14,
+          "recorded_outcomes": {
+            "won": 17,
+            "lost": 7
+          },
+          "recorded_denominator": 24,
+          "recorded_hit_rate": 0.7083333333333334,
+          "hit_rate": 0.5833333333333334,
+          "wilson_95": [
+            0.3883433764938864,
+            0.7553265275346177
+          ],
+          "calibrated_n": 24,
+          "brier": 0.305305828226151,
+          "mean_probability": 0.7982624248041351,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Liga Portugal 1": {
+          "selections": 28,
+          "outcomes": {
+            "won": 10,
+            "lost": 4,
+            "pending": 14
+          },
+          "denominator": 14,
+          "wins": 10,
+          "recorded_outcomes": {
+            "won": 10,
+            "lost": 4
+          },
+          "recorded_denominator": 14,
+          "recorded_hit_rate": 0.7142857142857143,
+          "hit_rate": 0.7142857142857143,
+          "wilson_95": [
+            0.4535045882751561,
+            0.882788120898909
+          ],
+          "calibrated_n": 14,
+          "brier": 0.23671147540760495,
+          "mean_probability": 0.7819477570470765,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Poland Ekstraklasa": {
+          "selections": 26,
+          "outcomes": {
+            "lost": 1,
+            "won": 2,
+            "awaiting_data": 3,
+            "pending": 20
+          },
+          "denominator": 3,
+          "wins": 2,
+          "recorded_outcomes": {
+            "lost": 1,
+            "won": 2
+          },
+          "recorded_denominator": 3,
+          "recorded_hit_rate": 0.6666666666666666,
+          "hit_rate": 0.6666666666666666,
+          "wilson_95": [
+            0.2076549551264879,
+            0.9385096847238394
+          ],
+          "calibrated_n": 3,
+          "brier": 0.3199835759085831,
+          "mean_probability": 0.8406889575938089,
+          "priced_n": 1,
+          "unit_stake_profit": 0.45999999999999996,
+          "unit_stake_roi": 0.45999999999999996
+        },
+        "Scottish Premiership": {
+          "selections": 24,
+          "outcomes": {
+            "won": 10,
+            "lost": 1,
+            "awaiting_data": 1,
+            "pending": 12
+          },
+          "denominator": 11,
+          "wins": 10,
+          "recorded_outcomes": {
+            "won": 8,
+            "lost": 3
+          },
+          "recorded_denominator": 11,
+          "recorded_hit_rate": 0.7272727272727273,
+          "hit_rate": 0.9090909090909091,
+          "wilson_95": [
+            0.6226353745137962,
+            0.9837682477371741
+          ],
+          "calibrated_n": 11,
+          "brier": 0.0949053979904645,
+          "mean_probability": 0.8336952048940792,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Spanish La Liga": {
+          "selections": 43,
+          "outcomes": {
+            "pending": 16,
+            "void": 1,
+            "won": 17,
+            "lost": 9
+          },
+          "denominator": 26,
+          "wins": 17,
+          "recorded_outcomes": {
+            "void": 1,
+            "won": 17,
+            "lost": 9
+          },
+          "recorded_denominator": 26,
+          "recorded_hit_rate": 0.6538461538461539,
+          "hit_rate": 0.6538461538461539,
+          "wilson_95": [
+            0.46220229009632996,
+            0.8058798502714787
+          ],
+          "calibrated_n": 26,
+          "brier": 0.2579092744619861,
+          "mean_probability": 0.8067595226262971,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Turkey Super Lig": {
+          "selections": 32,
+          "outcomes": {
+            "won": 18,
+            "lost": 4,
+            "awaiting_data": 2,
+            "pending": 8
+          },
+          "denominator": 22,
+          "wins": 18,
+          "recorded_outcomes": {
+            "won": 17,
+            "lost": 5
+          },
+          "recorded_denominator": 22,
+          "recorded_hit_rate": 0.7727272727272727,
+          "hit_rate": 0.8181818181818182,
+          "wilson_95": [
+            0.6148297802336213,
+            0.9269323397589488
+          ],
+          "calibrated_n": 22,
+          "brier": 0.15425553417134022,
+          "mean_probability": 0.8090400350941441,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "UEFA Champions League": {
+          "selections": 32,
+          "outcomes": {
+            "lost": 4,
+            "won": 8,
+            "pending": 20
+          },
+          "denominator": 12,
+          "wins": 8,
+          "recorded_outcomes": {
+            "lost": 4,
+            "won": 8
+          },
+          "recorded_denominator": 12,
+          "recorded_hit_rate": 0.6666666666666666,
+          "hit_rate": 0.6666666666666666,
+          "wilson_95": [
+            0.3906175873976139,
+            0.8618821601026385
+          ],
+          "calibrated_n": 12,
+          "brier": 0.272112706288352,
+          "mean_probability": 0.8504163348216531,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "UEFA Conference League": {
+          "selections": 10,
+          "outcomes": {
+            "won": 4,
+            "pending": 6
+          },
+          "denominator": 4,
+          "wins": 4,
+          "recorded_outcomes": {
+            "won": 4
+          },
+          "recorded_denominator": 4,
+          "recorded_hit_rate": 1.0,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.5100999795960008,
+            1.0
+          ],
+          "calibrated_n": 4,
+          "brier": 0.017217699286707536,
+          "mean_probability": 0.8749942321611078,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "UEFA Europa League": {
+          "selections": 10,
+          "outcomes": {
+            "won": 5,
+            "lost": 1,
+            "pending": 4
+          },
+          "denominator": 6,
+          "wins": 5,
+          "recorded_outcomes": {
+            "won": 4,
+            "lost": 2
+          },
+          "recorded_denominator": 6,
+          "recorded_hit_rate": 0.6666666666666666,
+          "hit_rate": 0.8333333333333334,
+          "wilson_95": [
+            0.43649056343635395,
+            0.9699474141282697
+          ],
+          "calibrated_n": 6,
+          "brier": 0.1312932158776645,
+          "mean_probability": 0.8445414782458567,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        }
+      },
+      "market": {
+        "asian_handicap": {
+          "selections": 2,
+          "outcomes": {
+            "lost": 1,
+            "won": 1
+          },
+          "denominator": 2,
+          "wins": 1,
+          "recorded_outcomes": {
+            "lost": 1,
+            "won": 1
+          },
+          "recorded_denominator": 2,
+          "recorded_hit_rate": 0.5,
+          "hit_rate": 0.5,
+          "wilson_95": [
+            0.09452865480086614,
+            0.9054713451991339
+          ],
+          "calibrated_n": 2,
+          "brier": 0.22724957329382836,
+          "mean_probability": 0.754305009473314,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "corners": {
+          "selections": 129,
+          "outcomes": {
+            "lost": 10,
+            "awaiting_data": 8,
+            "won": 31,
+            "pending": 79,
+            "void": 1
+          },
+          "denominator": 41,
+          "wins": 31,
+          "recorded_outcomes": {
+            "won": 30,
+            "lost": 11,
+            "void": 1
+          },
+          "recorded_denominator": 41,
+          "recorded_hit_rate": 0.7317073170731707,
+          "hit_rate": 0.7560975609756098,
+          "wilson_95": [
+            0.606563693455418,
+            0.8617514424897758
+          ],
+          "calibrated_n": 41,
+          "brier": 0.1949829244743514,
+          "mean_probability": 0.816070040084996,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "double_chance": {
+          "selections": 36,
+          "outcomes": {
+            "won": 26,
+            "lost": 10
+          },
+          "denominator": 36,
+          "wins": 26,
+          "recorded_outcomes": {
+            "won": 26,
+            "lost": 10
+          },
+          "recorded_denominator": 36,
+          "recorded_hit_rate": 0.7222222222222222,
+          "hit_rate": 0.7222222222222222,
+          "wilson_95": [
+            0.5600719978365485,
+            0.841518299741862
+          ],
+          "calibrated_n": 36,
+          "brier": 0.20150409418331486,
+          "mean_probability": 0.7636102165662559,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "first_half_goals": {
+          "selections": 66,
+          "outcomes": {
+            "won": 13,
+            "awaiting_data": 10,
+            "pending": 40,
+            "lost": 3
+          },
+          "denominator": 16,
+          "wins": 13,
+          "recorded_outcomes": {
+            "won": 13,
+            "lost": 3
+          },
+          "recorded_denominator": 16,
+          "recorded_hit_rate": 0.8125,
+          "hit_rate": 0.8125,
+          "wilson_95": [
+            0.5699064013154177,
+            0.9340852122641324
+          ],
+          "calibrated_n": 16,
+          "brier": 0.15401568501222065,
+          "mean_probability": 0.8738477576826337,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "goals": {
+          "selections": 79,
+          "outcomes": {
+            "won": 51,
+            "lost": 13,
+            "pending": 15
+          },
+          "denominator": 64,
+          "wins": 51,
+          "recorded_outcomes": {
+            "won": 51,
+            "lost": 13
+          },
+          "recorded_denominator": 64,
+          "recorded_hit_rate": 0.796875,
+          "hit_rate": 0.796875,
+          "wilson_95": [
+            0.6828613244878341,
+            0.8772669743730419
+          ],
+          "calibrated_n": 64,
+          "brier": 0.16791754148168403,
+          "mean_probability": 0.8171501340592449,
+          "priced_n": 1,
+          "unit_stake_profit": -1,
+          "unit_stake_roi": -1.0
+        },
+        "result": {
+          "selections": 18,
+          "outcomes": {
+            "lost": 4,
+            "won": 11,
+            "pending": 3
+          },
+          "denominator": 15,
+          "wins": 11,
+          "recorded_outcomes": {
+            "lost": 4,
+            "won": 11
+          },
+          "recorded_denominator": 15,
+          "recorded_hit_rate": 0.7333333333333333,
+          "hit_rate": 0.7333333333333333,
+          "wilson_95": [
+            0.4804911034231324,
+            0.8910272389681718
+          ],
+          "calibrated_n": 15,
+          "brier": 0.20102662976897584,
+          "mean_probability": 0.6654825510293659,
+          "priced_n": 1,
+          "unit_stake_profit": 0.45999999999999996,
+          "unit_stake_roi": 0.45999999999999996
+        },
+        "second_half_goals": {
+          "selections": 94,
+          "outcomes": {
+            "won": 18,
+            "lost": 7,
+            "awaiting_data": 15,
+            "pending": 54
+          },
+          "denominator": 25,
+          "wins": 18,
+          "recorded_outcomes": {
+            "won": 18,
+            "lost": 7
+          },
+          "recorded_denominator": 25,
+          "recorded_hit_rate": 0.72,
+          "hit_rate": 0.72,
+          "wilson_95": [
+            0.5242302810344169,
+            0.8571632616261843
+          ],
+          "calibrated_n": 25,
+          "brier": 0.2253472699375426,
+          "mean_probability": 0.8705586164957779,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "yellow_cards": {
+          "selections": 69,
+          "outcomes": {
+            "lost": 6,
+            "won": 21,
+            "awaiting_data": 4,
+            "pending": 38
+          },
+          "denominator": 27,
+          "wins": 21,
+          "recorded_outcomes": {
+            "won": 24,
+            "lost": 3
+          },
+          "recorded_denominator": 27,
+          "recorded_hit_rate": 0.8888888888888888,
+          "hit_rate": 0.7777777777777778,
+          "wilson_95": [
+            0.5924270453692919,
+            0.8939290451059105
+          ],
+          "calibrated_n": 27,
+          "brier": 0.18516824868543205,
+          "mean_probability": 0.8484119622626216,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        }
+      },
+      "month": {
+        "2026-10": {
+          "selections": 493,
+          "outcomes": {
+            "won": 172,
+            "lost": 54,
+            "awaiting_data": 37,
+            "pending": 229,
+            "void": 1
+          },
+          "denominator": 226,
+          "wins": 172,
+          "recorded_outcomes": {
+            "won": 174,
+            "lost": 52,
+            "void": 1
+          },
+          "recorded_denominator": 226,
+          "recorded_hit_rate": 0.7699115044247787,
+          "hit_rate": 0.7610619469026548,
+          "wilson_95": [
+            0.7013953051509154,
+            0.812001747427904
+          ],
+          "calibrated_n": 226,
+          "brier": 0.1883298405537105,
+          "mean_probability": 0.811459950532992,
+          "priced_n": 2,
+          "unit_stake_profit": -0.54,
+          "unit_stake_roi": -0.27
+        }
+      },
+      "confidence": {
+        "high": {
+          "selections": 33,
+          "outcomes": {
+            "won": 23,
+            "lost": 8,
+            "pending": 2
+          },
+          "denominator": 31,
+          "wins": 23,
+          "recorded_outcomes": {
+            "won": 23,
+            "lost": 8
+          },
+          "recorded_denominator": 31,
+          "recorded_hit_rate": 0.7419354838709677,
+          "hit_rate": 0.7419354838709677,
+          "wilson_95": [
+            0.5675352757228489,
+            0.8629845626313024
+          ],
+          "calibrated_n": 31,
+          "brier": 0.19117339938508035,
+          "mean_probability": 0.739300625051207,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "medium": {
+          "selections": 460,
+          "outcomes": {
+            "won": 149,
+            "lost": 46,
+            "awaiting_data": 37,
+            "pending": 227,
+            "void": 1
+          },
+          "denominator": 195,
+          "wins": 149,
+          "recorded_outcomes": {
+            "won": 151,
+            "lost": 44,
+            "void": 1
+          },
+          "recorded_denominator": 195,
+          "recorded_hit_rate": 0.7743589743589744,
+          "hit_rate": 0.764102564102564,
+          "wilson_95": [
+            0.6997680107512485,
+            0.8182322467401415
+          ],
+          "calibrated_n": 195,
+          "brier": 0.18787778761128762,
+          "mean_probability": 0.8229314330454811,
+          "priced_n": 2,
+          "unit_stake_profit": -0.54,
+          "unit_stake_roi": -0.27
+        }
+      },
+      "bookmaker": {
+        "Bet365": {
+          "selections": 2,
+          "outcomes": {
+            "pending": 1,
+            "lost": 1
+          },
+          "denominator": 1,
+          "wins": 0,
+          "recorded_outcomes": {
+            "lost": 1
+          },
+          "recorded_denominator": 1,
+          "recorded_hit_rate": 0.0,
+          "hit_rate": 0.0,
+          "wilson_95": [
+            0.0,
+            0.7934567085261071
+          ],
+          "calibrated_n": 1,
+          "brier": 0.4501956522524634,
+          "mean_probability": 0.6709662079810453,
+          "priced_n": 1,
+          "unit_stake_profit": -1,
+          "unit_stake_roi": -1.0
+        },
+        "Crown": {
+          "selections": 4,
+          "outcomes": {
+            "pending": 2,
+            "won": 1,
+            "awaiting_data": 1
+          },
+          "denominator": 1,
+          "wins": 1,
+          "recorded_outcomes": {
+            "won": 1
+          },
+          "recorded_denominator": 1,
+          "recorded_hit_rate": 1.0,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.20654329147389294,
+            1.0
+          ],
+          "calibrated_n": 1,
+          "brier": 0.1183330995747724,
+          "mean_probability": 0.6560042157601748,
+          "priced_n": 1,
+          "unit_stake_profit": 0.45999999999999996,
+          "unit_stake_roi": 0.45999999999999996
+        },
+        "unknown": {
+          "selections": 487,
+          "outcomes": {
+            "won": 171,
+            "lost": 53,
+            "awaiting_data": 36,
+            "pending": 226,
+            "void": 1
+          },
+          "denominator": 224,
+          "wins": 171,
+          "recorded_outcomes": {
+            "won": 173,
+            "lost": 51,
+            "void": 1
+          },
+          "recorded_denominator": 224,
+          "recorded_hit_rate": 0.7723214285714286,
+          "hit_rate": 0.7633928571428571,
+          "wilson_95": [
+            0.7035876040257346,
+            0.8143160623811024
+          ],
+          "calibrated_n": 224,
+          "brier": 0.1874732822022828,
+          "mean_probability": 0.8127811535567633,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        }
+      }
+    },
+    "coupon": {
+      "overall": {
+        "selections": 363,
+        "outcomes": {
+          "lost": 73,
+          "awaiting_data": 42,
+          "won": 214,
+          "pending": 34
+        },
+        "denominator": 287,
+        "wins": 214,
+        "recorded_outcomes": {},
+        "recorded_denominator": 0,
+        "recorded_hit_rate": null,
+        "hit_rate": 0.7456445993031359,
+        "wilson_95": [
+          0.6922437601837772,
+          0.7925562134100965
+        ],
+        "calibrated_n": 287,
+        "brier": 0.19041596630005295,
+        "mean_probability": 0.7453310875053468,
+        "priced_n": 287,
+        "unit_stake_profit": 93.71999999999998,
+        "unit_stake_roi": 0.3265505226480836
+      },
+      "league_market": {
+        "Denmark Superliga | first_half_goals": {
+          "selections": 8,
+          "outcomes": {
+            "awaiting_data": 8
+          },
+          "denominator": 0,
+          "wins": 0,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": null,
+          "wilson_95": null,
+          "calibrated_n": 0,
+          "brier": null,
+          "mean_probability": null,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "English Premier League | corners": {
+          "selections": 23,
+          "outcomes": {
+            "won": 23
+          },
+          "denominator": 23,
+          "wins": 23,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.8568788745827374,
+            1.0000000000000002
+          ],
+          "calibrated_n": 23,
+          "brier": 0.05268734310561162,
+          "mean_probability": 0.7704627928229395,
+          "priced_n": 23,
+          "unit_stake_profit": 20.4,
+          "unit_stake_roi": 0.8869565217391304
+        },
+        "English Premier League | goals": {
+          "selections": 42,
+          "outcomes": {
+            "won": 42
+          },
+          "denominator": 42,
+          "wins": 42,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.9161983874908382,
+            1.0000000000000002
+          ],
+          "calibrated_n": 42,
+          "brier": 0.06595594203071299,
+          "mean_probability": 0.7431811104480183,
+          "priced_n": 42,
+          "unit_stake_profit": 40.949999999999996,
+          "unit_stake_roi": 0.9749999999999999
+        },
+        "English Premier League | result": {
+          "selections": 3,
+          "outcomes": {
+            "won": 3
+          },
+          "denominator": 3,
+          "wins": 3,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.43849391955098227,
+            1.0
+          ],
+          "calibrated_n": 3,
+          "brier": 0.08042983289785689,
+          "mean_probability": 0.7163984610446253,
+          "priced_n": 3,
+          "unit_stake_profit": 0.5999999999999999,
+          "unit_stake_roi": 0.19999999999999996
+        },
+        "France Ligue 1 | asian_handicap": {
+          "selections": 31,
+          "outcomes": {
+            "lost": 31
+          },
+          "denominator": 31,
+          "wins": 0,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": 0.0,
+          "wilson_95": [
+            -1.3877787807814457e-17,
+            0.11025900073475385
+          ],
+          "calibrated_n": 31,
+          "brier": 0.5444692532229759,
+          "mean_probability": 0.7378815980821126,
+          "priced_n": 31,
+          "unit_stake_profit": -31,
+          "unit_stake_roi": -1.0
+        },
+        "German Bundesliga | corners": {
+          "selections": 19,
+          "outcomes": {
+            "won": 19
+          },
+          "denominator": 19,
+          "wins": 19,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.8318156346315496,
+            1.0000000000000002
+          ],
+          "calibrated_n": 19,
+          "brier": 0.055105427144743924,
+          "mean_probability": 0.76525454819157,
+          "priced_n": 19,
+          "unit_stake_profit": 16.33,
+          "unit_stake_roi": 0.8594736842105263
+        },
+        "German Bundesliga | result": {
+          "selections": 3,
+          "outcomes": {
+            "won": 3
+          },
+          "denominator": 3,
+          "wins": 3,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.43849391955098227,
+            1.0
+          ],
+          "calibrated_n": 3,
+          "brier": 0.04971898088468696,
+          "mean_probability": 0.777022465515723,
+          "priced_n": 3,
+          "unit_stake_profit": 0.6599999999999999,
+          "unit_stake_roi": 0.21999999999999997
+        },
+        "Holland Eredivisie | first_half_goals": {
+          "selections": 48,
+          "outcomes": {
+            "lost": 14,
+            "awaiting_data": 34
+          },
+          "denominator": 14,
+          "wins": 0,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": 0.0,
+          "wilson_95": [
+            0.0,
+            0.21531701192718142
+          ],
+          "calibrated_n": 14,
+          "brier": 0.5194314660651483,
+          "mean_probability": 0.7207159190579404,
+          "priced_n": 14,
+          "unit_stake_profit": -14,
+          "unit_stake_roi": -1.0
+        },
+        "Italy Serie A | goals": {
+          "selections": 34,
+          "outcomes": {
+            "pending": 34
+          },
+          "denominator": 0,
+          "wins": 0,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": null,
+          "wilson_95": null,
+          "calibrated_n": 0,
+          "brier": null,
+          "mean_probability": null,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Poland Ekstraklasa | corners": {
+          "selections": 14,
+          "outcomes": {
+            "won": 14
+          },
+          "denominator": 14,
+          "wins": 14,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.7846829880728186,
+            1.0
+          ],
+          "calibrated_n": 14,
+          "brier": 0.03705061916347831,
+          "mean_probability": 0.8075569521034522,
+          "priced_n": 14,
+          "unit_stake_profit": 10.849999999999998,
+          "unit_stake_roi": 0.7749999999999998
+        },
+        "Scottish Premiership | corners": {
+          "selections": 5,
+          "outcomes": {
+            "lost": 5
+          },
+          "denominator": 5,
+          "wins": 0,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": 0.0,
+          "wilson_95": [
+            -2.7755575615628914e-17,
+            0.43449149475208104
+          ],
+          "calibrated_n": 5,
+          "brier": 0.588218748040007,
+          "mean_probability": 0.7669533352455022,
+          "priced_n": 5,
+          "unit_stake_profit": -5,
+          "unit_stake_roi": -1.0
+        },
+        "Spanish La Liga | asian_handicap": {
+          "selections": 14,
+          "outcomes": {
+            "lost": 14
+          },
+          "denominator": 14,
+          "wins": 0,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": 0.0,
+          "wilson_95": [
+            0.0,
+            0.21531701192718142
+          ],
+          "calibrated_n": 14,
+          "brier": 0.647778684067288,
+          "mean_probability": 0.8048469551928011,
+          "priced_n": 14,
+          "unit_stake_profit": -14,
+          "unit_stake_roi": -1.0
+        },
+        "Spanish La Liga | corners": {
+          "selections": 7,
+          "outcomes": {
+            "won": 7
+          },
+          "denominator": 7,
+          "wins": 7,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.6456611570247934,
+            1.0
+          ],
+          "calibrated_n": 7,
+          "brier": 0.08478867773066082,
+          "mean_probability": 0.7088164286255717,
+          "priced_n": 7,
+          "unit_stake_profit": 5.98,
+          "unit_stake_roi": 0.8542857142857143
+        },
+        "Spanish La Liga | first_half_goals": {
+          "selections": 9,
+          "outcomes": {
+            "lost": 9
+          },
+          "denominator": 9,
+          "wins": 0,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": 0.0,
+          "wilson_95": [
+            0.0,
+            0.2991527535509594
+          ],
+          "calibrated_n": 9,
+          "brier": 0.49859121033037546,
+          "mean_probability": 0.7061042695999771,
+          "priced_n": 9,
+          "unit_stake_profit": -9,
+          "unit_stake_roi": -1.0
+        },
+        "Turkey Super Lig | result": {
+          "selections": 37,
+          "outcomes": {
+            "won": 37
+          },
+          "denominator": 37,
+          "wins": 37,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.9059390425448564,
+            1.0000000000000002
+          ],
+          "calibrated_n": 37,
+          "brier": 0.07583722378501233,
+          "mean_probability": 0.7246152250306505,
+          "priced_n": 37,
+          "unit_stake_profit": 23.630000000000003,
+          "unit_stake_roi": 0.6386486486486487
+        },
+        "UEFA Champions League | corners": {
+          "selections": 51,
+          "outcomes": {
+            "won": 51
+          },
+          "denominator": 51,
+          "wins": 51,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.9299509861127319,
+            0.9999999999999999
+          ],
+          "calibrated_n": 51,
+          "brier": 0.0703580952092894,
+          "mean_probability": 0.734748995837359,
+          "priced_n": 51,
+          "unit_stake_profit": 45.0,
+          "unit_stake_roi": 0.8823529411764706
+        },
+        "UEFA Conference League | result": {
+          "selections": 15,
+          "outcomes": {
+            "won": 15
+          },
+          "denominator": 15,
+          "wins": 15,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.7961107336956521,
+            1.0
+          ],
+          "calibrated_n": 15,
+          "brier": 0.07170674541574014,
+          "mean_probability": 0.7322188479079602,
+          "priced_n": 15,
+          "unit_stake_profit": 2.3199999999999985,
+          "unit_stake_roi": 0.15466666666666656
+        }
+      },
+      "league": {
+        "Denmark Superliga": {
+          "selections": 8,
+          "outcomes": {
+            "awaiting_data": 8
+          },
+          "denominator": 0,
+          "wins": 0,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": null,
+          "wilson_95": null,
+          "calibrated_n": 0,
+          "brier": null,
+          "mean_probability": null,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "English Premier League": {
+          "selections": 68,
+          "outcomes": {
+            "won": 68
+          },
+          "denominator": 68,
+          "wins": 68,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.9465268034119508,
+            1.0
+          ],
+          "calibrated_n": 68,
+          "brier": 0.06210658757959681,
+          "mean_probability": 0.7512271508364448,
+          "priced_n": 68,
+          "unit_stake_profit": 61.949999999999996,
+          "unit_stake_roi": 0.9110294117647059
+        },
+        "France Ligue 1": {
+          "selections": 31,
+          "outcomes": {
+            "lost": 31
+          },
+          "denominator": 31,
+          "wins": 0,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": 0.0,
+          "wilson_95": [
+            -1.3877787807814457e-17,
+            0.11025900073475385
+          ],
+          "calibrated_n": 31,
+          "brier": 0.5444692532229759,
+          "mean_probability": 0.7378815980821126,
+          "priced_n": 31,
+          "unit_stake_profit": -31,
+          "unit_stake_roi": -1.0
+        },
+        "German Bundesliga": {
+          "selections": 22,
+          "outcomes": {
+            "won": 22
+          },
+          "denominator": 22,
+          "wins": 22,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.8513404742740388,
+            1.0
+          ],
+          "calibrated_n": 22,
+          "brier": 0.05437091174564524,
+          "mean_probability": 0.7668592641903181,
+          "priced_n": 22,
+          "unit_stake_profit": 16.99,
+          "unit_stake_roi": 0.7722727272727272
+        },
+        "Holland Eredivisie": {
+          "selections": 48,
+          "outcomes": {
+            "lost": 14,
+            "awaiting_data": 34
+          },
+          "denominator": 14,
+          "wins": 0,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": 0.0,
+          "wilson_95": [
+            0.0,
+            0.21531701192718142
+          ],
+          "calibrated_n": 14,
+          "brier": 0.5194314660651483,
+          "mean_probability": 0.7207159190579404,
+          "priced_n": 14,
+          "unit_stake_profit": -14,
+          "unit_stake_roi": -1.0
+        },
+        "Italy Serie A": {
+          "selections": 34,
+          "outcomes": {
+            "pending": 34
+          },
+          "denominator": 0,
+          "wins": 0,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": null,
+          "wilson_95": null,
+          "calibrated_n": 0,
+          "brier": null,
+          "mean_probability": null,
+          "priced_n": 0,
+          "unit_stake_profit": 0,
+          "unit_stake_roi": null
+        },
+        "Poland Ekstraklasa": {
+          "selections": 14,
+          "outcomes": {
+            "won": 14
+          },
+          "denominator": 14,
+          "wins": 14,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.7846829880728186,
+            1.0
+          ],
+          "calibrated_n": 14,
+          "brier": 0.03705061916347831,
+          "mean_probability": 0.8075569521034522,
+          "priced_n": 14,
+          "unit_stake_profit": 10.849999999999998,
+          "unit_stake_roi": 0.7749999999999998
+        },
+        "Scottish Premiership": {
+          "selections": 5,
+          "outcomes": {
+            "lost": 5
+          },
+          "denominator": 5,
+          "wins": 0,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": 0.0,
+          "wilson_95": [
+            -2.7755575615628914e-17,
+            0.43449149475208104
+          ],
+          "calibrated_n": 5,
+          "brier": 0.588218748040007,
+          "mean_probability": 0.7669533352455022,
+          "priced_n": 5,
+          "unit_stake_profit": -5,
+          "unit_stake_roi": -1.0
+        },
+        "Spanish La Liga": {
+          "selections": 30,
+          "outcomes": {
+            "lost": 23,
+            "won": 7
+          },
+          "denominator": 30,
+          "wins": 7,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": 0.23333333333333334,
+          "wilson_95": [
+            0.11792239210501232,
+            0.40928672330324267
+          ],
+          "calibrated_n": 30,
+          "brier": 0.4716581071343346,
+          "mean_probability": 0.752817026649267,
+          "priced_n": 30,
+          "unit_stake_profit": -17.019999999999996,
+          "unit_stake_roi": -0.5673333333333332
+        },
+        "Turkey Super Lig": {
+          "selections": 37,
+          "outcomes": {
+            "won": 37
+          },
+          "denominator": 37,
+          "wins": 37,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.9059390425448564,
+            1.0000000000000002
+          ],
+          "calibrated_n": 37,
+          "brier": 0.07583722378501233,
+          "mean_probability": 0.7246152250306505,
+          "priced_n": 37,
+          "unit_stake_profit": 23.630000000000003,
+          "unit_stake_roi": 0.6386486486486487
+        },
+        "UEFA Champions League": {
+          "selections": 51,
+          "outcomes": {
+            "won": 51
+          },
+          "denominator": 51,
+          "wins": 51,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.9299509861127319,
+            0.9999999999999999
+          ],
+          "calibrated_n": 51,
+          "brier": 0.0703580952092894,
+          "mean_probability": 0.734748995837359,
+          "priced_n": 51,
+          "unit_stake_profit": 45.0,
+          "unit_stake_roi": 0.8823529411764706
+        },
+        "UEFA Conference League": {
+          "selections": 15,
+          "outcomes": {
+            "won": 15
+          },
+          "denominator": 15,
+          "wins": 15,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.7961107336956521,
+            1.0
+          ],
+          "calibrated_n": 15,
+          "brier": 0.07170674541574014,
+          "mean_probability": 0.7322188479079602,
+          "priced_n": 15,
+          "unit_stake_profit": 2.3199999999999985,
+          "unit_stake_roi": 0.15466666666666656
+        }
+      },
+      "market": {
+        "asian_handicap": {
+          "selections": 45,
+          "outcomes": {
+            "lost": 45
+          },
+          "denominator": 45,
+          "wins": 0,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": 0.0,
+          "wilson_95": [
+            0.0,
+            0.07865426194064076
+          ],
+          "calibrated_n": 45,
+          "brier": 0.5766099650412063,
+          "mean_probability": 0.7587152647387713,
+          "priced_n": 45,
+          "unit_stake_profit": -45,
+          "unit_stake_roi": -1.0
+        },
+        "corners": {
+          "selections": 119,
+          "outcomes": {
+            "won": 114,
+            "lost": 5
+          },
+          "denominator": 119,
+          "wins": 114,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": 0.957983193277311,
+          "wilson_95": [
+            0.9053997666684364,
+            0.9819217921520285
+          ],
+          "calibrated_n": 119,
+          "brier": 0.08319662197862453,
+          "mean_probability": 0.7549156171792234,
+          "priced_n": 119,
+          "unit_stake_profit": 93.55999999999999,
+          "unit_stake_roi": 0.7862184873949579
+        },
+        "first_half_goals": {
+          "selections": 65,
+          "outcomes": {
+            "lost": 23,
+            "awaiting_data": 42
+          },
+          "denominator": 23,
+          "wins": 0,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": 0.0,
+          "wilson_95": [
+            -1.3877787807814457e-17,
+            0.14312112541726274
+          ],
+          "calibrated_n": 23,
+          "brier": 0.5112765833863241,
+          "mean_probability": 0.7149983170961286,
+          "priced_n": 23,
+          "unit_stake_profit": -23,
+          "unit_stake_roi": -1.0
+        },
+        "goals": {
+          "selections": 76,
+          "outcomes": {
+            "won": 42,
+            "pending": 34
+          },
+          "denominator": 42,
+          "wins": 42,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.9161983874908382,
+            1.0000000000000002
+          ],
+          "calibrated_n": 42,
+          "brier": 0.06595594203071299,
+          "mean_probability": 0.7431811104480183,
+          "priced_n": 42,
+          "unit_stake_profit": 40.949999999999996,
+          "unit_stake_roi": 0.9749999999999999
+        },
+        "result": {
+          "selections": 58,
+          "outcomes": {
+            "won": 58
+          },
+          "denominator": 58,
+          "wins": 58,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.9378800031047062,
+            0.9999999999999999
+          ],
+          "calibrated_n": 58,
+          "brier": 0.0736556017694688,
+          "mean_probability": 0.728867393524733,
+          "priced_n": 58,
+          "unit_stake_profit": 27.21,
+          "unit_stake_roi": 0.46913793103448276
+        }
+      },
+      "month": {
+        "2026-10": {
+          "selections": 363,
+          "outcomes": {
+            "lost": 73,
+            "awaiting_data": 42,
+            "won": 214,
+            "pending": 34
+          },
+          "denominator": 287,
+          "wins": 214,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": 0.7456445993031359,
+          "wilson_95": [
+            0.6922437601837772,
+            0.7925562134100965
+          ],
+          "calibrated_n": 287,
+          "brier": 0.19041596630005295,
+          "mean_probability": 0.7453310875053468,
+          "priced_n": 287,
+          "unit_stake_profit": 93.71999999999998,
+          "unit_stake_roi": 0.3265505226480836
+        }
+      },
+      "confidence": {
+        "high": {
+          "selections": 6,
+          "outcomes": {
+            "won": 6
+          },
+          "denominator": 6,
+          "wins": 6,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": 1.0,
+          "wilson_95": [
+            0.6096569663469354,
+            0.9999999999999999
+          ],
+          "calibrated_n": 6,
+          "brier": 0.06507440689127193,
+          "mean_probability": 0.7467104632801741,
+          "priced_n": 6,
+          "unit_stake_profit": 1.2599999999999998,
+          "unit_stake_roi": 0.20999999999999996
+        },
+        "medium": {
+          "selections": 357,
+          "outcomes": {
+            "lost": 73,
+            "awaiting_data": 42,
+            "won": 208,
+            "pending": 34
+          },
+          "denominator": 281,
+          "wins": 208,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": 0.7402135231316725,
+          "wilson_95": [
+            0.6859446837842315,
+            0.7880029418434858
+          ],
+          "calibrated_n": 281,
+          "brier": 0.19309229852942195,
+          "mean_probability": 0.7453016346418274,
+          "priced_n": 281,
+          "unit_stake_profit": 92.46,
+          "unit_stake_roi": 0.3290391459074733
+        }
+      },
+      "bookmaker": {
+        "Bet365": {
+          "selections": 166,
+          "outcomes": {
+            "lost": 26,
+            "won": 131,
+            "pending": 9
+          },
+          "denominator": 157,
+          "wins": 131,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": 0.8343949044585988,
+          "wilson_95": [
+            0.7684069529665088,
+            0.8844092338906228
+          ],
+          "calibrated_n": 157,
+          "brier": 0.14110035041932303,
+          "mean_probability": 0.7435715996400257,
+          "priced_n": 157,
+          "unit_stake_profit": 68.27,
+          "unit_stake_roi": 0.43484076433121016
+        },
+        "Crown": {
+          "selections": 112,
+          "outcomes": {
+            "won": 72,
+            "pending": 17,
+            "awaiting_data": 16,
+            "lost": 7
+          },
+          "denominator": 79,
+          "wins": 72,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": 0.9113924050632911,
+          "wilson_95": [
+            0.828214686221526,
+            0.9564152581542464
+          ],
+          "calibrated_n": 79,
+          "brier": 0.11071379102126491,
+          "mean_probability": 0.7428620014026741,
+          "priced_n": 79,
+          "unit_stake_profit": 55.3,
+          "unit_stake_roi": 0.7
+        },
+        "Sbobet": {
+          "selections": 85,
+          "outcomes": {
+            "lost": 40,
+            "awaiting_data": 26,
+            "won": 11,
+            "pending": 8
+          },
+          "denominator": 51,
+          "wins": 11,
+          "recorded_outcomes": {},
+          "recorded_denominator": 0,
+          "recorded_hit_rate": null,
+          "hit_rate": 0.21568627450980393,
+          "wilson_95": [
+            0.12493811244188556,
+            0.3462662287881296
+          ],
+          "calibrated_n": 51,
+          "brier": 0.4656909376784618,
+          "mean_probability": 0.7545722129360635,
+          "priced_n": 51,
+          "unit_stake_profit": -29.85,
+          "unit_stake_roi": -0.5852941176470589
+        }
+      }
+    }
+  },
+  "capture_window": "2026-10-18T19:47:01Z through 2026-10-18T19:52:48Z; connector pages use separate read-only transactions, not one atomic snapshot",
+  "discrepancy_counts": {
+    "missing_or_invalid_score": 67,
+    "missing_or_nonfinal_count_evidence": 12,
+    "stored_vs_current_evidence_disagreement": 10
+  }
+}
