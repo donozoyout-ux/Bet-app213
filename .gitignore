@@ -46,3 +46,8 @@ scratch/
 *_probe.*
 *_js.txt
 odds_ajax.json
+
+# Keep archive payloads out of Git.
+*.jsonl.gz
+*.jsonl.gz.manifest.json
+/private-archive/
