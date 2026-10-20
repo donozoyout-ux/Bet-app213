@@ -18,6 +18,7 @@ from src.scrapers.goaloo.statistics import parse_statistics, fetch_statistics
 from src.scrapers.goaloo.client import SourceError
 from .storage import store_live, store_statistics
 from .resources import memory_constrained
+from .europe_capacity import HistoryCapacityError
 
 log=logging.getLogger('scraper.live')
 
@@ -187,7 +188,7 @@ class PriorityUpdater:
                         async with self.db.session() as session:
                             await store_statistics(session,await session.get(Match,match.id),stats)
                             await session.commit()
-                    except (SourceError,ValueError) as exc:
+                    except (SourceError,ValueError,HistoryCapacityError) as exc:
                         log.warning('[LIVE] statistics deferred match_id=%s error=%s',match.external_match_id,type(exc).__name__)
                 log.info('[LIVE] match_id=%s status=%s score=%s-%s minute=%s',
                     match.external_match_id,observation['status'],observation['ft_home'],observation['ft_away'],observation['live_minute'])
@@ -235,6 +236,10 @@ class PriorityUpdater:
                     await record_retry_success(session, stats_key)
                     await session.commit()
                 log.info('[STATS] recent league=%s match_id=%s',league.external_id,match.external_match_id)
+            except HistoryCapacityError:
+                # Capacity is not a source failure. Preserve durable retry state;
+                # the next scheduled cycle can remeasure without losing progress.
+                log.info('[STATS] historical enrichment deferred by capacity')
             except (SourceError,TimeoutError) as exc:
                 log.warning('[STATS] recent deferred league=%s error=%s',league.external_id,type(exc).__name__)
                 async with self.db.session() as session:

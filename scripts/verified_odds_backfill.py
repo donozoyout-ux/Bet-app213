@@ -156,6 +156,7 @@ async def run(ids, limit=25):
                         async with database.session() as session:
                             await capacity(session)
                             await session.execute(text('SELECT pg_advisory_xact_lock(213003)'))
+                            await capacity(session)  # A pre-lock measurement cannot authorize a later write.
                             item=await session.scalar(select(JobItem).where(
                                 JobItem.job_id==job_id,JobItem.match_id==stored['id']))
                             if item is None:

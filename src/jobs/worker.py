@@ -23,11 +23,21 @@ from src.models import MatchStatistics
 from src.scrapers.goaloo.statistics import fetch_statistics
 from .resources import wait_for_capacity
 from .live import priority_cycle
+from .europe_capacity import HistoryCapacityError, guard_history_write, historical
 
 log = logging.getLogger('scraper')
 LOCK_ID = 213002
 HISTORY_SLICE_SIZE = 25
 DURABLE_KINDS = ('backfill','update','stats_backfill','market_backfill','market_odds','match','domestic_history')
+
+
+async def pause_capacity(job_id, error):
+    """Preserve item state, counters and discovery checkpoints for explicit resume."""
+    async with database.session() as session:
+        job = await session.get(ScraperJob, job_id)
+        if job.status not in {'paused_disabled', 'manual_paused'}:
+            job.status, job.last_error = 'paused_capacity', str(error)[:500]
+            await session.commit()
 
 
 async def reconcile_owned_queue(session):
@@ -300,6 +310,11 @@ async def discover(job_id, client):
     async with database.session() as session:
         job = await session.get(ScraperJob, job_id)
         league = await session.get(League, job.league_id)
+        if job.status in {'paused_disabled', 'paused_capacity', 'manual_paused'}:
+            return
+        session.info['historical_import'] = job.kind != 'update'
+        if job.kind != 'update':
+            await guard_history_write(session, force=True)
         kind, start_year, league_id, external_id = job.kind, job.start_year, league.id, league.external_id
         competition_type, schedule_format = league.competition_type, league.schedule_format
         if job.discovery_complete:
@@ -452,10 +467,13 @@ async def discover(job_id, client):
                     from .europe_capacity import check_capacity
                     try:
                         await check_capacity(session)
-                    except RuntimeError as exc:
+                    except HistoryCapacityError as exc:
+                        await session.rollback()
+                        job = await session.get(ScraperJob, job_id)
                         job.status, job.last_error = 'paused_capacity', str(exc)[:500]
                         await session.commit()
                         return
+                session.info['historical_import'] = kind != 'update'
                 job.current_season, job.current_round = season_name, round_number
                 job.checkpoint_at = utcnow()
                 # A transaction commits each round plus job items; rediscovery is idempotent.
@@ -476,7 +494,25 @@ async def discover(job_id, client):
                             continue
                     if competition_type == 'national' and (data['kickoff_at'] is None or data['kickoff_at'].year < start_year):
                         continue
-                    match = await store_match(session, league_id, season_name, data)
+                    if kind == 'update':
+                        # A daily schedule can contain old seasons. Defer its old
+                        # rows without preventing near-term fixtures/live results.
+                        if counts.get('deferred_capacity') and historical(data.get('kickoff_at')):
+                            counts['deferred_capacity'] += 1
+                            continue
+                        try:
+                            # SQLAlchemy flushes pending ORM state *before* opening
+                            # a SAVEPOINT. Reject older fixtures before that flush;
+                            # store_match repeats admission inside the savepoint.
+                            if historical(data.get('kickoff_at')):
+                                await guard_history_write(session, data.get('kickoff_at'))
+                            async with session.begin_nested():
+                                match = await store_match(session, league_id, season_name, data)
+                        except HistoryCapacityError:
+                            counts['deferred_capacity'] = counts.get('deferred_capacity', 0) + 1
+                            continue
+                    else:
+                        match = await store_match(session, league_id, season_name, data)
                     if match.external_match_id not in seen:
                         seen.add(match.external_match_id)
                         counts['discovered'] += 1
@@ -514,13 +550,15 @@ async def run_job(job_id):
     log.info('[WORKER] job started id=%s', job_id)
     async with database.session() as session:
         job = await session.get(ScraperJob, job_id)
-        if not await league_enabled(session, job):
+        if job.status in {'paused_disabled', 'paused_capacity', 'manual_paused'} or not await league_enabled(session, job):
             return
         if job.kind != 'update' and session.bind.dialect.name == 'postgresql':
             from .europe_capacity import check_capacity
             try:
                 await check_capacity(session)
-            except RuntimeError as exc:
+            except HistoryCapacityError as exc:
+                await session.rollback()
+                job = await session.get(ScraperJob, job_id)
                 job.status, job.last_error = 'paused_capacity', str(exc)[:500]
                 await session.commit()
                 return
@@ -567,12 +605,17 @@ async def run_job(job_id):
                             from .europe_capacity import check_capacity
                             try:
                                 await check_capacity(session)
-                            except RuntimeError as exc:
+                            except HistoryCapacityError as exc:
+                                await session.rollback()
+                                job = await session.get(ScraperJob, job_id)
                                 job.status = 'paused_capacity'
                                 job.last_error = str(exc)[:500]
                                 await session.commit()
                                 return
                     await process_item(job_id, item_id, client)
+                    async with database.session() as state_session:
+                        if (await state_session.get(ScraperJob, job_id)).status in {'paused_capacity', 'paused_disabled'}:
+                            return
                     processed_slice += 1
                     if job.kind != 'update' and (processed_slice >= HISTORY_SLICE_SIZE or time.monotonic()-slice_started >= 180):
                         await yield_job(job_id)
@@ -596,6 +639,8 @@ async def run_job(job_id):
                 await capture_upcoming(session, job.league_id)
         except Exception as exc:
             log.warning('[PREDICTIONS] capture deferred: %s', type(exc).__name__)
+    except HistoryCapacityError as exc:
+        await pause_capacity(job_id, exc)
     except asyncio.CancelledError:
         # Job stays running; the next lock-owning worker resumes persisted items.
         raise
@@ -615,6 +660,10 @@ async def process_item(job_id, item_id, client):
             item = await session.get(JobItem, item_id)
             match = await session.get(Match, item.match_id)
             job = await session.get(ScraperJob, job_id)
+            if job.status in {'paused_disabled', 'paused_capacity', 'manual_paused'}:
+                return
+            session.info['historical_import'] = job.kind != 'update'
+            await guard_history_write(session, match.kickoff_at)
             season = await session.get(Season, match.season_id)
             external_id, final = match.external_match_id, is_final(match)
             job.current_season, job.current_round = season.season_name, match.round
@@ -669,6 +718,8 @@ async def process_item(job_id, item_id, client):
                     except (SourceError, httpx.HTTPError, TimeoutError, asyncio.TimeoutError) as exc:
                         log.warning('[MARKET_ODDS] half-time odds transient failure match_id=%s: %s', external_id, exc)
                         transient_errors.append(f'HT odds: {type(exc).__name__}: {str(exc)[:150]}')
+                    except HistoryCapacityError:
+                        raise
                     except Exception as exc:
                         log.warning('[MARKET_ODDS] half-time odds error match_id=%s: %s', external_id, exc)
                         transient_errors.append(f'HT odds: {type(exc).__name__}: {str(exc)[:150]}')
@@ -707,6 +758,8 @@ async def process_item(job_id, item_id, client):
                     except (SourceError, httpx.HTTPError, TimeoutError, asyncio.TimeoutError) as exc:
                         log.warning('[MARKET_ODDS] corner odds transient failure match_id=%s: %s', external_id, exc)
                         transient_errors.append(f'Corner odds: {type(exc).__name__}: {str(exc)[:150]}')
+                    except HistoryCapacityError:
+                        raise
                     except Exception as exc:
                         log.warning('[MARKET_ODDS] corner odds error match_id=%s: %s', external_id, exc)
                         transient_errors.append(f'Corner odds: {type(exc).__name__}: {str(exc)[:150]}')
@@ -783,6 +836,8 @@ async def process_item(job_id, item_id, client):
                 job.last_error = item.error
             await session.commit()
             log.info('[JOB] job_id=%s processed=%s/%s failed=%s', job.id, job.processed_matches, job.total_matches, job.failed_matches)
+    except HistoryCapacityError as exc:
+        await pause_capacity(job_id, exc)
     except asyncio.CancelledError:
         raise
     except Exception as exc:
