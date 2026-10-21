@@ -192,7 +192,7 @@ def empty_daily(day,reason='not_published',strategy='balanced'):
         'insufficient_prematch_data':'Adayların doğrulanmış örneklemi yetersiz.',
         'portfolio_rejected':'Kupon bağımsızlık veya risk koşullarını geçmedi.'}
     return dict(coupon_date=day,strategy=strategy,items=[],status='no_eligible_selections',reason=reason,
-                message=messages.get(reason,'Uygun seçim bulunamadı.'),selection_mode='dynamic',max_matches=4)
+                message=messages.get(reason,'Uygun seçim bulunamadı.'),selection_mode='dynamic')
 
 
 def price_valid(quote,now):
@@ -214,7 +214,7 @@ async def read_daily(session,now,strategy='balanced'):
         saved=await session.scalar(select(SavedCoupon).where(SavedCoupon.kind=='automatic',
             SavedCoupon.created_at>=start,SavedCoupon.created_at<=now,
             or_(SavedCoupon.payload['strategy'].as_string()==strategy,SavedCoupon.payload['strategy'].as_string().is_(None)) if strategy=='balanced' else SavedCoupon.payload['strategy'].as_string()==strategy).order_by(SavedCoupon.created_at.desc()).limit(1))
-        if saved is None or saved.payload.get('strategy','balanced')!=strategy or len(saved.payload.get('items',[]))>4:
+        if saved is None or saved.payload.get('strategy','balanced')!=strategy:
             return empty_daily(day,strategy=strategy)
         from src.analytics.saved_coupons import summary
         result={**summary(saved),**deepcopy(saved.payload)}
@@ -246,21 +246,21 @@ async def read_daily(session,now,strategy='balanced'):
     return result
 
 
-async def publish_daily(session,now,strategy='balanced'):
+async def publish_daily(session,now,strategy='balanced',force=False):
     from src.analytics.saved_coupons import automatic,detail
     if session.bind.dialect.name=='postgresql':
         await session.execute(text('SELECT pg_advisory_xact_lock(213010)'))
     tokens=await revisions(session,now)
     state=await session.get(DailyCouponPublication,(tokens['day'],strategy),options=[undefer(DailyCouponPublication.payload)])
-    if state and state.input_revision==tokens['coupon_input']:
+    if not force and state and state.input_revision==tokens['coupon_input']:
         current=await read_daily(session,now,strategy)
         if current.get('items') or not state.payload.get('items'):return current
-    coupon=await automatic(session,now,strategy,display_limit=4)
+    coupon=await automatic(session,now,strategy,stable_quotes=True)
     diagnostics=session.info.get('coupon_diagnostics',{})
     if coupon:
         data=await detail(session,coupon)
         data.update(session.info.get('automatic_current_payload') or {})
-        data.update(coupon_date=tokens['day'],strategy=strategy,selection_mode='dynamic',max_matches=4,
+        data.update(coupon_date=tokens['day'],strategy=strategy,status='published',selection_mode='dynamic',
             selection_policy=diagnostics.get('selection'))
         for i in data['items']:
             i['selection_explanation']=session.info.get('coupon_selection_explanations',{}).get((i['match']['id'],i['recommendation']['id']))

@@ -17,6 +17,7 @@ from src.analytics.coupon import DraftRequest,quote_draft
 
 TZ=ZoneInfo('Europe/Istanbul')
 DELIVERY_LOCK=213010
+HOURS=tuple(range(0,24,3))
 log=logging.getLogger(__name__)
 
 
@@ -41,21 +42,21 @@ def configuration():
 
 def window(now):
     local=now.astimezone(TZ)
-    if local.hour<12:return None
-    hour=18 if local.hour>=18 else 12
+    hour=(local.hour//3)*3
     return local.replace(hour=hour,minute=0,second=0,microsecond=0).isoformat()
 
 
 def message(coupon,items):
     created=aware(coupon.created_at).astimezone(TZ).strftime('%d.%m.%Y %H:%M')
-    lines=[f'BetApp213 • Kupon {coupon.root_id[:8]} • Sürüm {coupon.revision}',f'Oluşturulma: {created} Türkiye saati']
+    lines=[f'Kuponanalizii • Günün otomatik kuponu' if coupon.kind=='automatic' else 'Kuponanalizii • Kupon',f"Kupon tarihi: {coupon.payload.get('coupon_date',created.split()[0])} • {len(items)} seçim • Sürüm {coupon.revision}",f'Oluşturulma: {created} Türkiye saati']
     for i,item in enumerate(items,1):
         m=item['match'];r=item['recommendation'];q=item['quote']
         kickoff=datetime.fromisoformat(str(m['kickoff_at'])).astimezone(TZ).strftime('%d.%m %H:%M')
         observed=datetime.fromisoformat(q['observed_at']).astimezone(TZ).strftime('%d.%m %H:%M')
-        lines.append(f"{i}. {m['home_team']} — {m['away_team']} ({kickoff})\n{r['label']} • {q['bookmaker']} • {q['price']}\nOran gözlemi: {observed}")
-    lines.append(f"Toplam taslak oranı: {coupon.payload['combined_odds']}")
+        lines.append(f"{i}. {m['home_team']} — {m['away_team']} ({kickoff})\n{r['label']} • {q['bookmaker']} • {q['price']}\nOran gözlemi: {observed}\nModel: %{100*r['probability']:.1f} • Güvenilirlik: %{100*r['reliability']:.1f} • Kalite: %{100*r['score']:.1f}")
+    lines.append(f"Toplam kombine oran: {coupon.payload['combined_odds']}")
     if coupon.payload.get('mixed_bookmakers'):lines.append('Farklı kaynak fiyatlarının çarpımı; tek bookmaker teklifi değildir.')
+    if coupon.kind=='automatic':lines.append('Seçim gerekçesi: kalite eşikleri, taze gerçek fiyatlar ve bağımsızlık/risk bütçesi. Sabit maç sayısı uygulanmaz.')
     lines.append('Bilgilendirme amaçlıdır. Bahis oynanmadı; başarı veya kazanç garantisi yok.')
     return '\n\n'.join(lines)
 
@@ -82,7 +83,13 @@ async def prepare(db,now,coupon_id=None):
                 if existing:await session.commit();return dict(status=existing.status,delivery_id=existing.id)
                 retry=await session.get(CollectorRetry,'telegram:'+slot)
                 if retry and aware(retry.next_attempt_at)>now:await session.commit();return dict(status='waiting_for_quotes')
-            coupon=await session.get(SavedCoupon,coupon_id) if coupon_id else await automatic(session,now)
+            if coupon_id:
+                coupon=await session.get(SavedCoupon,coupon_id)
+            else:
+                # Publish the same complete dynamic slip shown in the UI under the delivery lock.
+                from src.analytics.publications import publish_daily
+                publication=await publish_daily(session,now,force=True)
+                coupon=await session.get(SavedCoupon,publication['id']) if publication.get('items') else None
             if coupon is None:
                 if slot:
                     key='telegram:'+slot;retry=await session.get(CollectorRetry,key)
@@ -104,12 +111,16 @@ async def prepare(db,now,coupon_id=None):
                 if slot:
                     key='telegram:'+slot;retry=await session.get(CollectorRetry,key)
                     if retry is None:retry=CollectorRetry(key=key);session.add(retry)
-                    end=datetime.fromisoformat(slot).replace(hour=18) if datetime.fromisoformat(slot).hour==12 else (datetime.fromisoformat(slot)+timedelta(days=1)).replace(hour=0)
+                    end=datetime.fromisoformat(slot)+timedelta(hours=3)
                     retry.failures=0;retry.reason='duplicate_version';retry.next_attempt_at=end
                 await session.commit();return dict(status='duplicate_version',delivery_id=existing.id)
             request=DraftRequest(selections=[dict(match_id=i['match']['id'],recommendation_id=i['recommendation']['id'],bookmaker=i['quote']['bookmaker']) for i in coupon.payload['items']])
             quotes=await quote_draft(session,request,now)
-            if not quotes['eligible'] or any(q['price']!=i['quote']['price'] for q,i in zip(quotes['items'],coupon.payload['items'])):
+            if not quotes['eligible'] or not quotes['items'] or len(quotes['items'])!=len(coupon.payload['items']) or any(q['price']!=i['quote']['price'] for q,i in zip(quotes['items'],coupon.payload['items'])):
+                if slot:
+                    key='telegram:'+slot;retry=await session.get(CollectorRetry,key)
+                    if retry is None:retry=CollectorRetry(key=key);session.add(retry)
+                    retry.failures=0;retry.reason='quotes_changed';retry.next_attempt_at=now+timedelta(minutes=5)
                 await session.commit();return dict(status='quotes_changed')
             items=[]
             for item,quote in zip(coupon.payload['items'],quotes['items']):items.append({**item,'quote':quote})
@@ -151,7 +162,7 @@ async def dispatch(db,now=None,coupon_id=None,transport=None):
             if len(content.encode('utf-16-le'))//2<=4000:
                 response=await client.post(f'https://api.telegram.org/bot{token}/sendMessage',json=dict(chat_id=chat,text=content,link_preview_options={'is_disabled':True}))
             else:
-                response=await client.post(f'https://api.telegram.org/bot{token}/sendDocument',data=dict(chat_id=chat,caption=f"BetApp213 • {claim['selections']} seçim • Toplam {claim['combined_odds']} • Oluşturulma {claim['created_at']} Türkiye saati. Tüm maçlar ve gözlenen fiyatlar ekte; başarı garantisi yok."),files={'document':(f"BetApp213-{claim['file_date']}.txt",content.encode(),'text/plain')})
+                response=await client.post(f'https://api.telegram.org/bot{token}/sendDocument',data=dict(chat_id=chat,caption=f"Kuponanalizii • {claim['selections']} seçim • Toplam {claim['combined_odds']} • Oluşturulma {claim['created_at']} Türkiye saati. Tüm maçlar ve gözlenen fiyatlar ekte; başarı garantisi yok."),files={'document':(f"Kuponanalizii-{claim['file_date']}.txt",content.encode(),'text/plain')})
             try:body=response.json()
             except ValueError:body={}
             result=body.get('result') if isinstance(body,dict) else None
@@ -214,14 +225,14 @@ async def status(session,now):
         if slot not in known:entries.append(dict(slot=slot,status=retry.reason,error_code=None))
     local=now.astimezone(TZ)
     known={e['slot'] for e in entries}
-    for hour in (12,18):
+    for hour in HOURS:
         slot=local.replace(hour=hour,minute=0,second=0,microsecond=0).isoformat()
-        if slot not in known:entries.append(dict(slot=slot,status='missed' if hour==12 and local.hour>=18 else 'pending' if local.hour>=hour else 'not_due',error_code=None))
+        if slot not in known:entries.append(dict(slot=slot,status='missed' if hour<(local.hour//3)*3 else 'pending' if local.hour>=hour else 'not_due',error_code=None))
     token,chat,_=configuration()
     state='configured' if configured else 'missing' if not token or not chat else 'invalid'
     from src.jobs.telegram_verification import snapshot
     connection=snapshot(now)
-    return dict(configured=configured,configuration_status=state,connection_verified=connection['connection_verified'],connection=connection,timezone='Europe/Istanbul',times=['12:00','18:00'],automatic_daily_limit=2,today=sorted(entries,key=lambda x:x['slot']))
+    return dict(configured=configured,configuration_status=state,connection_verified=connection['connection_verified'],connection=connection,timezone='Europe/Istanbul',times=[f'{hour:02}:00' for hour in HOURS],automatic_daily_limit=8,check_interval_hours=3,wake_policy='current_slot_only',retry_seconds=300,today=sorted(entries,key=lambda x:x['slot']))
 
 
 async def loop(db):

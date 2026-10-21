@@ -110,7 +110,7 @@ async def test_versioned_manual_edits_do_not_change_automatic(db):
         assert result['items'][0]['match']['score']=='2–1' and result['items'][0]['status']=='won'
 
 
-@pytest.mark.parametrize('hour,minute,expected',[(8,59,None),(9,0,12),(14,59,12),(15,0,18),(20,59,18),(21,0,None)])
+@pytest.mark.parametrize('hour,minute,expected',[(8,59,9),(9,0,12),(14,59,15),(15,0,18),(20,59,21),(21,0,0)])
 def test_istanbul_daily_windows(hour,minute,expected):
     now=datetime(2026,10,8,hour,minute,tzinfo=timezone.utc)
     slot=window(now)
@@ -155,7 +155,7 @@ async def verify_scheduling(db):
         assert len(rows)==2 and len({r.slot for r in rows})==2
         safe=await status(session,evening)
         assert TOKEN not in str(safe) and CHAT not in str(safe)
-        assert safe['automatic_daily_limit']==2
+        assert safe['automatic_daily_limit']==8
 
 
 async def test_schedule_both_slots_and_restart_ledger(db,configured):

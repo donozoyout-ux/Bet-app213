@@ -49,7 +49,7 @@ def strong(rec):
     return coupon_qualified(rec)
 
 
-async def automatic(session,now,strategy='balanced',display_limit=None):
+async def automatic(session,now,strategy='balanced',display_limit=None,stable_quotes=False):
     from src.analytics.daily_pool import daily_pool
     records=await daily_pool(session,now)
     groups={r['match']['id']:[c for c in r['recommendations'] if c['id'] in {b['id'] for b in r['coupon_candidates']} and strong(c)] for r in records}
@@ -74,10 +74,10 @@ async def automatic(session,now,strategy='balanced',display_limit=None):
     if not items:return None
     await lock_coupons(session)
     publication_policy=POLICY_VERSION if display_limit is None else f'{POLICY_VERSION}-daily-{display_limit}'
-    digest=hashlib.sha256(f'{now.astimezone(COUPON_TZ).date().isoformat()}:{strategy}:{publication_policy}:{fingerprint(items,include_observation=display_limit is None)}'.encode()).hexdigest()
+    digest=hashlib.sha256(f'{now.astimezone(COUPON_TZ).date().isoformat()}:{strategy}:{publication_policy}:{fingerprint(items,include_observation=not (stable_quotes or display_limit is not None))}'.encode()).hexdigest()
     existing=await session.scalar(select(SavedCoupon).where(SavedCoupon.automatic_fingerprint==digest))
     if existing:return existing
-    if display_limit is not None:
+    if stable_quotes or display_limit is not None:
         start=now.astimezone(COUPON_TZ).replace(hour=0,minute=0,second=0,microsecond=0)
         previous=await session.scalars(select(SavedCoupon).where(SavedCoupon.kind=='automatic',
             SavedCoupon.created_at>=start,SavedCoupon.created_at<=now).order_by(SavedCoupon.created_at.desc()))

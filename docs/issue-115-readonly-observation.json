@@ -1,0 +1,2443 @@
+{
+  "/api/coupons/daily": {
+    "http_status": 200,
+    "data": {
+      "status": "no_eligible_selections",
+      "reason": "line_mismatch",
+      "message": "Market çizgisi veya periyodu eşleşmiyor.",
+      "coupon_date": "2026-10-21",
+      "data_updates": {
+        "checked_at": "2026-10-21T15:25:41.980599+00:00",
+        "analysis_generated_at": "2026-10-21T15:25:15.118005+00:00",
+        "price_observed_at": "2026-10-21T14:47:59.786089+00:00"
+      },
+      "selections": 0,
+      "diagnostics": {
+        "last_price_observed_at": "2026-10-21T15:02:38.844704+00:00",
+        "rejections": {
+          "btts": {
+            "no_source_rows": 0,
+            "line_mismatch": 0,
+            "stale": 0,
+            "unsupported_bookmaker": 0,
+            "missing_stage_price": 0,
+            "source_market_unavailable": 10,
+            "unknown_observation": 0,
+            "observed_after_cutoff": 0
+          },
+          "cards": {
+            "no_source_rows": 0,
+            "line_mismatch": 0,
+            "stale": 0,
+            "unsupported_bookmaker": 0,
+            "missing_stage_price": 0,
+            "source_market_unavailable": 6,
+            "unknown_observation": 0,
+            "observed_after_cutoff": 0
+          },
+          "corners": {
+            "no_source_rows": 0,
+            "line_mismatch": 44,
+            "stale": 6,
+            "unsupported_bookmaker": 0,
+            "missing_stage_price": 0,
+            "source_market_unavailable": 0,
+            "unknown_observation": 0,
+            "observed_after_cutoff": 0
+          },
+          "double_chance": {
+            "no_source_rows": 0,
+            "line_mismatch": 0,
+            "stale": 0,
+            "unsupported_bookmaker": 0,
+            "missing_stage_price": 0,
+            "source_market_unavailable": 15,
+            "unknown_observation": 0,
+            "observed_after_cutoff": 0
+          },
+          "first_half_goals": {
+            "no_source_rows": 0,
+            "line_mismatch": 28,
+            "stale": 2,
+            "unsupported_bookmaker": 0,
+            "missing_stage_price": 0,
+            "source_market_unavailable": 0,
+            "unknown_observation": 0,
+            "observed_after_cutoff": 0
+          },
+          "goals": {
+            "no_source_rows": 0,
+            "line_mismatch": 26,
+            "stale": 4,
+            "unsupported_bookmaker": 0,
+            "missing_stage_price": 0,
+            "source_market_unavailable": 0,
+            "unknown_observation": 0,
+            "observed_after_cutoff": 0
+          },
+          "red_cards": {
+            "no_source_rows": 0,
+            "line_mismatch": 0,
+            "stale": 0,
+            "unsupported_bookmaker": 0,
+            "missing_stage_price": 0,
+            "source_market_unavailable": 6,
+            "unknown_observation": 0,
+            "observed_after_cutoff": 0
+          },
+          "result": {
+            "no_source_rows": 0,
+            "line_mismatch": 0,
+            "stale": 15,
+            "unsupported_bookmaker": 0,
+            "missing_stage_price": 0,
+            "source_market_unavailable": 0,
+            "unknown_observation": 0,
+            "observed_after_cutoff": 0
+          },
+          "second_half_goals": {
+            "no_source_rows": 0,
+            "line_mismatch": 0,
+            "stale": 0,
+            "unsupported_bookmaker": 0,
+            "missing_stage_price": 0,
+            "source_market_unavailable": 30,
+            "unknown_observation": 0,
+            "observed_after_cutoff": 0
+          },
+          "yellow_cards": {
+            "no_source_rows": 0,
+            "line_mismatch": 0,
+            "stale": 0,
+            "unsupported_bookmaker": 0,
+            "missing_stage_price": 0,
+            "source_market_unavailable": 30,
+            "unknown_observation": 0,
+            "observed_after_cutoff": 0
+          }
+        },
+        "checked_at": "2026-10-21T15:25:24.182665+00:00",
+        "markets": {
+          "btts": {
+            "selections": 10,
+            "source_market_unavailable": 10
+          },
+          "cards": {
+            "selections": 6,
+            "source_market_unavailable": 6
+          },
+          "corners": {
+            "selections": 50,
+            "line_mismatch": 44,
+            "matched_prices": 6,
+            "odds_stale": 6
+          },
+          "double_chance": {
+            "selections": 15,
+            "source_market_unavailable": 15
+          },
+          "first_half_goals": {
+            "selections": 30,
+            "line_mismatch": 28,
+            "matched_prices": 2,
+            "odds_stale": 2
+          },
+          "goals": {
+            "selections": 30,
+            "line_mismatch": 26,
+            "matched_prices": 4,
+            "odds_stale": 4
+          },
+          "red_cards": {
+            "selections": 6,
+            "source_market_unavailable": 6
+          },
+          "result": {
+            "selections": 15,
+            "matched_prices": 15,
+            "odds_stale": 15
+          },
+          "second_half_goals": {
+            "selections": 30,
+            "source_market_unavailable": 30
+          },
+          "yellow_cards": {
+            "selections": 30,
+            "source_market_unavailable": 30
+          }
+        },
+        "daily": {
+          "selections": 222,
+          "price_rejected": 33,
+          "quality_rejected": 189
+        },
+        "basis": "current_database_exact_quotes",
+        "max_age_seconds": 900,
+        "last_quality_price_observed_at": "2026-10-21T14:47:59.786089+00:00",
+        "source_coverage": {
+          "priced_matches": 10,
+          "fresh_price_matches": 0,
+          "fresh_price_fields": 0,
+          "bookmaker_matches": {
+            "Bet365": 10,
+            "Crown": 10,
+            "Sbobet": 10
+          },
+          "last_price_observed_at": "2026-10-21T15:02:38.844704+00:00"
+        },
+        "coupon_date": "2026-10-21",
+        "total_matches": 10,
+        "inspected_matches": 10,
+        "analyzed_matches": 10,
+        "fresh_analysis_matches": 10,
+        "quality_matches": 5,
+        "eligible_matches": 0,
+        "match_rejections": {
+          "insufficient_prematch_data": 5,
+          "price_rejected": 5
+        },
+        "last_analysis_generated_at": "2026-10-21T15:25:15.118005+00:00",
+        "candidate_coverage_complete": true,
+        "price_rejections": {
+          "line_mismatch": 19,
+          "source_market_unavailable": 13,
+          "odds_stale": 1
+        },
+        "selected_matches": 0
+      }
+    }
+  },
+  "/api/odds-coverage": {
+    "http_status": 200,
+    "data": {
+      "last_price_observed_at": "2026-10-21T15:17:14.577046+00:00",
+      "rejections": {
+        "corners": {
+          "no_source_rows": 61,
+          "line_mismatch": 4,
+          "stale": 0,
+          "unsupported_bookmaker": 0,
+          "missing_stage_price": 0,
+          "source_market_unavailable": 0,
+          "unknown_observation": 0,
+          "observed_after_cutoff": 0
+        },
+        "first_half_goals": {
+          "no_source_rows": 0,
+          "line_mismatch": 29,
+          "stale": 0,
+          "unsupported_bookmaker": 0,
+          "missing_stage_price": 0,
+          "source_market_unavailable": 0,
+          "unknown_observation": 0,
+          "observed_after_cutoff": 0
+        },
+        "goals": {
+          "no_source_rows": 0,
+          "line_mismatch": 8,
+          "stale": 0,
+          "unsupported_bookmaker": 0,
+          "missing_stage_price": 0,
+          "source_market_unavailable": 0,
+          "unknown_observation": 0,
+          "observed_after_cutoff": 0
+        },
+        "result": {
+          "no_source_rows": 0,
+          "line_mismatch": 0,
+          "stale": 2,
+          "unsupported_bookmaker": 0,
+          "missing_stage_price": 0,
+          "source_market_unavailable": 0,
+          "unknown_observation": 0,
+          "observed_after_cutoff": 0
+        },
+        "second_half_goals": {
+          "no_source_rows": 0,
+          "line_mismatch": 0,
+          "stale": 0,
+          "unsupported_bookmaker": 0,
+          "missing_stage_price": 0,
+          "source_market_unavailable": 38,
+          "unknown_observation": 0,
+          "observed_after_cutoff": 0
+        },
+        "yellow_cards": {
+          "no_source_rows": 0,
+          "line_mismatch": 0,
+          "stale": 0,
+          "unsupported_bookmaker": 0,
+          "missing_stage_price": 0,
+          "source_market_unavailable": 25,
+          "unknown_observation": 0,
+          "observed_after_cutoff": 0
+        }
+      },
+      "checked_at": "2026-10-21T15:25:47.884253+00:00",
+      "markets": {
+        "corners": {
+          "selections": 65,
+          "line_mismatch": 4,
+          "no_source_rows": 61
+        },
+        "first_half_goals": {
+          "selections": 30,
+          "line_mismatch": 29,
+          "matched_prices": 1,
+          "fresh_prices": 1
+        },
+        "goals": {
+          "selections": 8,
+          "line_mismatch": 8
+        },
+        "result": {
+          "selections": 2,
+          "matched_prices": 2,
+          "odds_stale": 2
+        },
+        "second_half_goals": {
+          "selections": 38,
+          "source_market_unavailable": 38
+        },
+        "yellow_cards": {
+          "selections": 25,
+          "source_market_unavailable": 25
+        }
+      },
+      "daily": {
+        "selections": 10,
+        "price_rejected": 10
+      },
+      "basis": "current_database_exact_quotes",
+      "max_age_seconds": 900,
+      "cache": {
+        "status": "fresh",
+        "checked_at": "2026-10-21T15:25:47.884253+00:00",
+        "stale": false,
+        "generated_at": "2026-10-20T18:39:16.907197+00:00",
+        "latest_generated_at": "2026-10-21T15:25:31.186498+00:00",
+        "expires_at": "2026-10-21T15:32:21.188170+00:00",
+        "model_version": "quality-poisson-v3-specialist-adapters-v1",
+        "publication_versions": {
+          "1": "66eba6c4b2762d70a1b3d9fa78cdeb63dc97fdba785a329107c254a602e89697",
+          "2": "3f1a16a637d47b8515b86b33f05ee6be5fdd9e4011123bafdad0fee08c3676bd",
+          "3": "a1106b903b5d67c96d97fba6f203aa93a48e1b466dbdb8faf4b09c48190f15f2",
+          "4": "5c92797ad9c1c98a2e638f690e26ad7aca9a2ed84c84e0212ba2fbadd141bc72",
+          "5": "39c4ce056dfed3596398eee589d15e541bedda03f015317d93dd12fea043271a",
+          "6": "5aa0220af95e52702b3d568e11b99bcc53abcab59e6d63fb0e7e30c2fd0ae543",
+          "7": "97fb35f18f75c9587744223bac881fb6f27c980fd192b91b98687884cb9a2fff",
+          "23": "90400a9bf52d02b880e3b83f5592c7f0bcecc0689ae6fae759a0b6ab460649a5",
+          "24": "8ff791fbc7f0e52caeb489aeab9c8bd0a098ebcc0554ad14317cb6b2bf734803",
+          "25": "b9878923a52c3d3c4e83ead8c034ca1cbf960457f7d618417aed52ed654de01a",
+          "8": "ce2efb85f7faa70806c3e349bbc472a5e8156f570198b5d23d50aba7e25868d3",
+          "11": "448ddef31c61fb20724e6c81387c19b254d902de72f3cbb836dccdf99a4b7fb0",
+          "12": "66dea396305bc633e3b146af4519cd6a38f8aacb2a53846de8918d091b135b99",
+          "10": "b98195dbf426bbdd52829ee604f4e09ed11f2b370c14b2d6aec73ddb8594249d",
+          "9": "341fede056446339320f47de4390eb00be4a8e4f18c683f84133f7bf1d819058"
+        },
+        "source_revisions": {
+          "1": "eb4b045758763bde778c2ac58f93ee3c6c7c8f223f44241ffed7d41be97141bb",
+          "2": "6a529b63ca88991c0ba55a5110d3eaca7355e8c698c4340b0268372846d0e70a",
+          "3": "56c2a3d13c899b5e49dac4589315f08a6a6e5492320e9566119fb6ddc2f4ae31",
+          "4": "c9866f42654983438366f9879dad72ba0d61354ba871ef496d2bb87fa3a0619c",
+          "5": "0067fcdaf4405d354e93d25f0abe3ccc487b7f80d0b179e16ee10f000863204c",
+          "6": "6ed194f79a50a577072eb56e3e886de419c126ad5d023df0bce5f69be25862b9",
+          "7": "00fc0116320654177aeb38431d83f8f931cffbe2a8ed6b4c4ae3d388760dd020",
+          "23": "7ca629c47f060ba9621c71c729f3ed3404f478335a6f68dcafcd182684af925d",
+          "24": "fadf7a86291b45fecb11593a7d10f2a7d51eb9c1c23a4eb9853c3c05f455418c",
+          "25": "728efbabafb1765eacb0ed85816db792695a4ac66022094445f040cb91ee7ac2",
+          "8": "e1b945870b0bd46794a01dd96a8f5dd223d059bfdb23bb420bc575a009cee115",
+          "11": "98abf0ac1acfa57fd32fe667a93d0a0096ceafa157030cc38fc4797a40937df9",
+          "12": "9103c361132248a77e3a5a30da5cdfb1f202e27355c590e530dc7af3e79e6db1",
+          "10": "70b76fbb3f1eb7d56195c0c5a62929be57ddfec7698979000c7592253859b334",
+          "9": "5db16a24fc3abe138a3cc4795d7af9ff9ffcbdd39dc36b370a786a04ea847742"
+        },
+        "missing_leagues": [],
+        "stale_leagues": [],
+        "scheduled_matches": 139,
+        "statistical_matches": 84,
+        "quality_matches": 84,
+        "verified_price_matches": 1
+      },
+      "source_scope": "enabled_upcoming_7_days",
+      "source_match_count": 139,
+      "source_rows": [
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Bet365",
+          "line": -0.0,
+          "source_rows": 7,
+          "latest_fields": {
+            "home": {
+              "priced": 7,
+              "observed": 7,
+              "fresh": 1
+            },
+            "away": {
+              "priced": 7,
+              "observed": 7,
+              "fresh": 1
+            }
+          },
+          "last_observed_at": "2026-10-21T15:25:00.331550+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Bet365",
+          "line": -0.25,
+          "source_rows": 24,
+          "latest_fields": {
+            "home": {
+              "priced": 24,
+              "observed": 24,
+              "fresh": 7
+            },
+            "away": {
+              "priced": 24,
+              "observed": 24,
+              "fresh": 7
+            }
+          },
+          "last_observed_at": "2026-10-21T15:22:56.682233+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Bet365",
+          "line": -0.5,
+          "source_rows": 16,
+          "latest_fields": {
+            "home": {
+              "priced": 16,
+              "observed": 16,
+              "fresh": 1
+            },
+            "away": {
+              "priced": 16,
+              "observed": 16,
+              "fresh": 1
+            }
+          },
+          "last_observed_at": "2026-10-21T15:23:31.617425+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Bet365",
+          "line": -0.75,
+          "source_rows": 15,
+          "latest_fields": {
+            "home": {
+              "priced": 15,
+              "observed": 15,
+              "fresh": 5
+            },
+            "away": {
+              "priced": 15,
+              "observed": 15,
+              "fresh": 5
+            }
+          },
+          "last_observed_at": "2026-10-21T15:24:09.784484+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Bet365",
+          "line": -1.0,
+          "source_rows": 12,
+          "latest_fields": {
+            "home": {
+              "priced": 12,
+              "observed": 12,
+              "fresh": 4
+            },
+            "away": {
+              "priced": 12,
+              "observed": 12,
+              "fresh": 4
+            }
+          },
+          "last_observed_at": "2026-10-21T15:24:40.420422+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Bet365",
+          "line": -1.25,
+          "source_rows": 5,
+          "latest_fields": {
+            "home": {
+              "priced": 5,
+              "observed": 5,
+              "fresh": 2
+            },
+            "away": {
+              "priced": 5,
+              "observed": 5,
+              "fresh": 2
+            }
+          },
+          "last_observed_at": "2026-10-21T15:22:18.254476+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Bet365",
+          "line": -1.5,
+          "source_rows": 9,
+          "latest_fields": {
+            "home": {
+              "priced": 9,
+              "observed": 9,
+              "fresh": 0
+            },
+            "away": {
+              "priced": 9,
+              "observed": 9,
+              "fresh": 0
+            }
+          },
+          "last_observed_at": "2026-10-21T15:05:38.793171+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Bet365",
+          "line": -1.75,
+          "source_rows": 6,
+          "latest_fields": {
+            "home": {
+              "priced": 6,
+              "observed": 6,
+              "fresh": 2
+            },
+            "away": {
+              "priced": 6,
+              "observed": 6,
+              "fresh": 2
+            }
+          },
+          "last_observed_at": "2026-10-21T15:19:22.449447+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Bet365",
+          "line": -2.0,
+          "source_rows": 2,
+          "latest_fields": {
+            "home": {
+              "priced": 2,
+              "observed": 2,
+              "fresh": 0
+            },
+            "away": {
+              "priced": 2,
+              "observed": 2,
+              "fresh": 0
+            }
+          },
+          "last_observed_at": "2026-10-21T14:49:19.716651+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Bet365",
+          "line": 0.25,
+          "source_rows": 16,
+          "latest_fields": {
+            "home": {
+              "priced": 16,
+              "observed": 16,
+              "fresh": 4
+            },
+            "away": {
+              "priced": 16,
+              "observed": 16,
+              "fresh": 4
+            }
+          },
+          "last_observed_at": "2026-10-21T15:24:23.514262+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Bet365",
+          "line": 0.5,
+          "source_rows": 3,
+          "latest_fields": {
+            "home": {
+              "priced": 3,
+              "observed": 3,
+              "fresh": 0
+            },
+            "away": {
+              "priced": 3,
+              "observed": 3,
+              "fresh": 0
+            }
+          },
+          "last_observed_at": "2026-10-21T15:05:05.723598+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Bet365",
+          "line": 0.75,
+          "source_rows": 9,
+          "latest_fields": {
+            "home": {
+              "priced": 9,
+              "observed": 9,
+              "fresh": 2
+            },
+            "away": {
+              "priced": 9,
+              "observed": 9,
+              "fresh": 2
+            }
+          },
+          "last_observed_at": "2026-10-21T15:21:36.906560+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Bet365",
+          "line": 1.0,
+          "source_rows": 8,
+          "latest_fields": {
+            "home": {
+              "priced": 8,
+              "observed": 8,
+              "fresh": 1
+            },
+            "away": {
+              "priced": 8,
+              "observed": 8,
+              "fresh": 1
+            }
+          },
+          "last_observed_at": "2026-10-21T15:22:00.835066+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Bet365",
+          "line": 1.25,
+          "source_rows": 2,
+          "latest_fields": {
+            "home": {
+              "priced": 2,
+              "observed": 2,
+              "fresh": 0
+            },
+            "away": {
+              "priced": 2,
+              "observed": 2,
+              "fresh": 0
+            }
+          },
+          "last_observed_at": "2026-10-21T14:46:30.708690+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Bet365",
+          "line": 1.5,
+          "source_rows": 2,
+          "latest_fields": {
+            "home": {
+              "priced": 2,
+              "observed": 2,
+              "fresh": 0
+            },
+            "away": {
+              "priced": 2,
+              "observed": 2,
+              "fresh": 0
+            }
+          },
+          "last_observed_at": "2026-10-21T15:06:56.480382+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Bet365",
+          "line": 1.75,
+          "source_rows": 2,
+          "latest_fields": {
+            "home": {
+              "priced": 2,
+              "observed": 2,
+              "fresh": 2
+            },
+            "away": {
+              "priced": 2,
+              "observed": 2,
+              "fresh": 2
+            }
+          },
+          "last_observed_at": "2026-10-21T15:23:20.888079+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Bet365",
+          "line": 2.0,
+          "source_rows": 1,
+          "latest_fields": {
+            "home": {
+              "priced": 1,
+              "observed": 1,
+              "fresh": 0
+            },
+            "away": {
+              "priced": 1,
+              "observed": 1,
+              "fresh": 0
+            }
+          },
+          "last_observed_at": "2026-10-21T15:04:26.248122+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Crown",
+          "line": -0.0,
+          "source_rows": 8,
+          "latest_fields": {
+            "home": {
+              "priced": 8,
+              "observed": 8,
+              "fresh": 2
+            },
+            "away": {
+              "priced": 8,
+              "observed": 8,
+              "fresh": 2
+            }
+          },
+          "last_observed_at": "2026-10-21T15:25:00.384442+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Crown",
+          "line": -0.25,
+          "source_rows": 25,
+          "latest_fields": {
+            "home": {
+              "priced": 25,
+              "observed": 25,
+              "fresh": 7
+            },
+            "away": {
+              "priced": 25,
+              "observed": 25,
+              "fresh": 7
+            }
+          },
+          "last_observed_at": "2026-10-21T15:22:56.721598+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Crown",
+          "line": -0.5,
+          "source_rows": 15,
+          "latest_fields": {
+            "home": {
+              "priced": 15,
+              "observed": 15,
+              "fresh": 1
+            },
+            "away": {
+              "priced": 15,
+              "observed": 15,
+              "fresh": 1
+            }
+          },
+          "last_observed_at": "2026-10-21T15:19:04.093870+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Crown",
+          "line": -0.75,
+          "source_rows": 16,
+          "latest_fields": {
+            "home": {
+              "priced": 16,
+              "observed": 16,
+              "fresh": 6
+            },
+            "away": {
+              "priced": 16,
+              "observed": 16,
+              "fresh": 6
+            }
+          },
+          "last_observed_at": "2026-10-21T15:23:31.689552+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Crown",
+          "line": -1.0,
+          "source_rows": 11,
+          "latest_fields": {
+            "home": {
+              "priced": 11,
+              "observed": 11,
+              "fresh": 3
+            },
+            "away": {
+              "priced": 11,
+              "observed": 11,
+              "fresh": 3
+            }
+          },
+          "last_observed_at": "2026-10-21T15:24:40.495825+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Crown",
+          "line": -1.25,
+          "source_rows": 6,
+          "latest_fields": {
+            "home": {
+              "priced": 6,
+              "observed": 6,
+              "fresh": 3
+            },
+            "away": {
+              "priced": 6,
+              "observed": 6,
+              "fresh": 3
+            }
+          },
+          "last_observed_at": "2026-10-21T15:22:18.290264+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Crown",
+          "line": -1.5,
+          "source_rows": 9,
+          "latest_fields": {
+            "home": {
+              "priced": 9,
+              "observed": 9,
+              "fresh": 0
+            },
+            "away": {
+              "priced": 9,
+              "observed": 9,
+              "fresh": 0
+            }
+          },
+          "last_observed_at": "2026-10-21T15:05:38.886438+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Crown",
+          "line": -1.75,
+          "source_rows": 5,
+          "latest_fields": {
+            "home": {
+              "priced": 5,
+              "observed": 5,
+              "fresh": 1
+            },
+            "away": {
+              "priced": 5,
+              "observed": 5,
+              "fresh": 1
+            }
+          },
+          "last_observed_at": "2026-10-21T15:11:41.586753+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Crown",
+          "line": -2.0,
+          "source_rows": 2,
+          "latest_fields": {
+            "home": {
+              "priced": 2,
+              "observed": 2,
+              "fresh": 0
+            },
+            "away": {
+              "priced": 2,
+              "observed": 2,
+              "fresh": 0
+            }
+          },
+          "last_observed_at": "2026-10-21T14:49:19.789419+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Crown",
+          "line": 0.25,
+          "source_rows": 14,
+          "latest_fields": {
+            "home": {
+              "priced": 14,
+              "observed": 14,
+              "fresh": 3
+            },
+            "away": {
+              "priced": 14,
+              "observed": 14,
+              "fresh": 3
+            }
+          },
+          "last_observed_at": "2026-10-21T15:19:39.215135+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Crown",
+          "line": 0.5,
+          "source_rows": 4,
+          "latest_fields": {
+            "home": {
+              "priced": 4,
+              "observed": 4,
+              "fresh": 0
+            },
+            "away": {
+              "priced": 4,
+              "observed": 4,
+              "fresh": 0
+            }
+          },
+          "last_observed_at": "2026-10-21T15:05:05.790764+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Crown",
+          "line": 0.75,
+          "source_rows": 9,
+          "latest_fields": {
+            "home": {
+              "priced": 9,
+              "observed": 9,
+              "fresh": 2
+            },
+            "away": {
+              "priced": 9,
+              "observed": 9,
+              "fresh": 2
+            }
+          },
+          "last_observed_at": "2026-10-21T15:21:36.992873+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Crown",
+          "line": 1.0,
+          "source_rows": 7,
+          "latest_fields": {
+            "home": {
+              "priced": 7,
+              "observed": 7,
+              "fresh": 1
+            },
+            "away": {
+              "priced": 7,
+              "observed": 7,
+              "fresh": 1
+            }
+          },
+          "last_observed_at": "2026-10-21T15:22:01.073247+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Crown",
+          "line": 1.25,
+          "source_rows": 3,
+          "latest_fields": {
+            "home": {
+              "priced": 3,
+              "observed": 3,
+              "fresh": 0
+            },
+            "away": {
+              "priced": 3,
+              "observed": 3,
+              "fresh": 0
+            }
+          },
+          "last_observed_at": "2026-10-21T14:46:30.795062+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Crown",
+          "line": 1.5,
+          "source_rows": 3,
+          "latest_fields": {
+            "home": {
+              "priced": 3,
+              "observed": 3,
+              "fresh": 1
+            },
+            "away": {
+              "priced": 3,
+              "observed": 3,
+              "fresh": 1
+            }
+          },
+          "last_observed_at": "2026-10-21T15:21:19.794618+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Crown",
+          "line": 2.0,
+          "source_rows": 2,
+          "latest_fields": {
+            "home": {
+              "priced": 2,
+              "observed": 2,
+              "fresh": 1
+            },
+            "away": {
+              "priced": 2,
+              "observed": 2,
+              "fresh": 1
+            }
+          },
+          "last_observed_at": "2026-10-21T15:23:20.981700+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Sbobet",
+          "line": -0.0,
+          "source_rows": 9,
+          "latest_fields": {
+            "home": {
+              "priced": 9,
+              "observed": 9,
+              "fresh": 3
+            },
+            "away": {
+              "priced": 9,
+              "observed": 9,
+              "fresh": 3
+            }
+          },
+          "last_observed_at": "2026-10-21T15:25:00.342657+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Sbobet",
+          "line": -0.25,
+          "source_rows": 26,
+          "latest_fields": {
+            "home": {
+              "priced": 26,
+              "observed": 26,
+              "fresh": 6
+            },
+            "away": {
+              "priced": 26,
+              "observed": 26,
+              "fresh": 6
+            }
+          },
+          "last_observed_at": "2026-10-21T15:22:56.692421+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Sbobet",
+          "line": -0.5,
+          "source_rows": 13,
+          "latest_fields": {
+            "home": {
+              "priced": 13,
+              "observed": 13,
+              "fresh": 1
+            },
+            "away": {
+              "priced": 13,
+              "observed": 13,
+              "fresh": 1
+            }
+          },
+          "last_observed_at": "2026-10-21T15:23:31.631819+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Sbobet",
+          "line": -0.75,
+          "source_rows": 18,
+          "latest_fields": {
+            "home": {
+              "priced": 18,
+              "observed": 18,
+              "fresh": 7
+            },
+            "away": {
+              "priced": 18,
+              "observed": 18,
+              "fresh": 7
+            }
+          },
+          "last_observed_at": "2026-10-21T15:24:09.797212+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Sbobet",
+          "line": -1.0,
+          "source_rows": 9,
+          "latest_fields": {
+            "home": {
+              "priced": 9,
+              "observed": 9,
+              "fresh": 2
+            },
+            "away": {
+              "priced": 9,
+              "observed": 9,
+              "fresh": 2
+            }
+          },
+          "last_observed_at": "2026-10-21T15:24:40.483258+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Sbobet",
+          "line": -1.25,
+          "source_rows": 5,
+          "latest_fields": {
+            "home": {
+              "priced": 5,
+              "observed": 5,
+              "fresh": 1
+            },
+            "away": {
+              "priced": 5,
+              "observed": 5,
+              "fresh": 1
+            }
+          },
+          "last_observed_at": "2026-10-21T15:17:28.505420+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Sbobet",
+          "line": -1.5,
+          "source_rows": 9,
+          "latest_fields": {
+            "home": {
+              "priced": 9,
+              "observed": 9,
+              "fresh": 1
+            },
+            "away": {
+              "priced": 9,
+              "observed": 9,
+              "fresh": 1
+            }
+          },
+          "last_observed_at": "2026-10-21T15:22:18.267892+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Sbobet",
+          "line": -1.75,
+          "source_rows": 5,
+          "latest_fields": {
+            "home": {
+              "priced": 5,
+              "observed": 5,
+              "fresh": 2
+            },
+            "away": {
+              "priced": 5,
+              "observed": 5,
+              "fresh": 2
+            }
+          },
+          "last_observed_at": "2026-10-21T15:19:22.461944+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Sbobet",
+          "line": -2.0,
+          "source_rows": 3,
+          "latest_fields": {
+            "home": {
+              "priced": 3,
+              "observed": 3,
+              "fresh": 0
+            },
+            "away": {
+              "priced": 3,
+              "observed": 3,
+              "fresh": 0
+            }
+          },
+          "last_observed_at": "2026-10-21T14:49:19.729065+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Sbobet",
+          "line": 0.25,
+          "source_rows": 14,
+          "latest_fields": {
+            "home": {
+              "priced": 14,
+              "observed": 14,
+              "fresh": 3
+            },
+            "away": {
+              "priced": 14,
+              "observed": 14,
+              "fresh": 3
+            }
+          },
+          "last_observed_at": "2026-10-21T15:19:39.203060+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Sbobet",
+          "line": 0.5,
+          "source_rows": 5,
+          "latest_fields": {
+            "home": {
+              "priced": 5,
+              "observed": 5,
+              "fresh": 0
+            },
+            "away": {
+              "priced": 5,
+              "observed": 5,
+              "fresh": 0
+            }
+          },
+          "last_observed_at": "2026-10-21T15:05:05.736315+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Sbobet",
+          "line": 0.75,
+          "source_rows": 8,
+          "latest_fields": {
+            "home": {
+              "priced": 8,
+              "observed": 8,
+              "fresh": 2
+            },
+            "away": {
+              "priced": 8,
+              "observed": 8,
+              "fresh": 2
+            }
+          },
+          "last_observed_at": "2026-10-21T15:21:36.918568+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Sbobet",
+          "line": 1.0,
+          "source_rows": 8,
+          "latest_fields": {
+            "home": {
+              "priced": 8,
+              "observed": 8,
+              "fresh": 1
+            },
+            "away": {
+              "priced": 8,
+              "observed": 8,
+              "fresh": 1
+            }
+          },
+          "last_observed_at": "2026-10-21T15:22:00.969834+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Sbobet",
+          "line": 1.25,
+          "source_rows": 3,
+          "latest_fields": {
+            "home": {
+              "priced": 3,
+              "observed": 3,
+              "fresh": 0
+            },
+            "away": {
+              "priced": 3,
+              "observed": 3,
+              "fresh": 0
+            }
+          },
+          "last_observed_at": "2026-10-21T15:06:56.577816+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Sbobet",
+          "line": 1.5,
+          "source_rows": 1,
+          "latest_fields": {
+            "home": {
+              "priced": 1,
+              "observed": 1,
+              "fresh": 0
+            },
+            "away": {
+              "priced": 1,
+              "observed": 1,
+              "fresh": 0
+            }
+          },
+          "last_observed_at": "2026-10-21T15:00:30.320984+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Sbobet",
+          "line": 1.75,
+          "source_rows": 2,
+          "latest_fields": {
+            "home": {
+              "priced": 2,
+              "observed": 2,
+              "fresh": 2
+            },
+            "away": {
+              "priced": 2,
+              "observed": 2,
+              "fresh": 2
+            }
+          },
+          "last_observed_at": "2026-10-21T15:23:20.942171+00:00"
+        },
+        {
+          "market": "asian_handicap",
+          "period": "full_time",
+          "bookmaker": "Sbobet",
+          "line": 2.0,
+          "source_rows": 1,
+          "latest_fields": {
+            "home": {
+              "priced": 1,
+              "observed": 1,
+              "fresh": 0
+            },
+            "away": {
+              "priced": 1,
+              "observed": 1,
+              "fresh": 0
+            }
+          },
+          "last_observed_at": "2026-10-21T15:04:26.261313+00:00"
+        },
+        {
+          "market": "corners",
+          "period": "full_time",
+          "bookmaker": "Bet365",
+          "line": 10.0,
+          "source_rows": 9,
+          "latest_fields": {
+            "over": {
+              "priced": 9,
+              "observed": 9,
+              "fresh": 1
+            },
+            "under": {
+              "priced": 9,
+              "observed": 9,
+              "fresh": 1
+            }
+          },
+          "last_observed_at": "2026-10-21T15:18:12.960337+00:00"
+        },
+        {
+          "market": "corners",
+          "period": "full_time",
+          "bookmaker": "Bet365",
+          "line": 10.5,
+          "source_rows": 1,
+          "latest_fields": {
+            "over": {
+              "priced": 1,
+              "observed": 1,
+              "fresh": 0
+            },
+            "under": {
+              "priced": 1,
+              "observed": 1,
+              "fresh": 0
+            }
+          },
+          "last_observed_at": "2026-10-21T10:29:58.752391+00:00"
+        },
+        {
+          "market": "corners",
+          "period": "full_time",
+          "bookmaker": "Bet365",
+          "line": 8.5,
+          "source_rows": 2,
+          "latest_fields": {
+            "over": {
+              "priced": 2,
+              "observed": 2,
+              "fresh": 0
+            },
+            "under": {
+              "priced": 2,
+              "observed": 2,
+              "fresh": 0
+            }
+          },
+          "last_observed_at": "2026-10-21T10:48:43.904101+00:00"
+        },
+        {
+          "market": "corners",
+          "period": "full_time",
+          "bookmaker": "Bet365",
+          "line": 9.0,
+          "source_rows": 13,
+          "latest_fields": {
+            "over": {
+              "priced": 13,
+              "observed": 13,
+              "fresh": 0
+            },
+            "under": {
+              "priced": 13,
+              "observed": 13,
+              "fresh": 0
+            }
+          },
+          "last_observed_at": "2026-10-21T14:28:18.800531+00:00"
+        },
+        {
+          "market": "corners",
+          "period": "full_time",
+          "bookmaker": "Bet365",
+          "line": 9.5,
+          "source_rows": 21,
+          "latest_fields": {
+            "over": {
+              "priced": 21,
+              "observed": 21,
+              "fresh": 0
+            },
+            "under": {
+              "priced": 21,
+              "observed": 21,
+              "fresh": 0
+            }
+          },
+          "last_observed_at": "2026-10-21T15:02:38.839256+00:00"
+        },
+        {
+          "market": "corners",
+          "period": "full_time",
+          "bookmaker": "Crown",
+          "line": 10.0,
+          "source_rows": 3,
+          "latest_fields": {
+            "over": {
+              "priced": 3,
+              "observed": 3,
+              "fresh": 0
+            },
+            "under": {
+              "priced": 3,
+              "observed": 3,
+              "fresh": 0
+            }
+          },
+          "last_observed_at": "2026-10-21T14:24:21.077979+00:00"
+        },
+        {
+          "market": "corners",
+          "period": "full_time",
+          "bookmaker": "Crown",
+          "line": 9.0,
+          "source_rows": 1,
+          "latest_fields": {
+            "over": {
+              "priced": 1,
+              "observed": 1,
+              "fresh": 0
+            },
+            "under": {
+              "priced": 1,
+              "observed": 1,
+              "fresh": 0
+            }
+          },
+          "last_observed_at": "2026-10-21T14:28:18.805281+00:00"
+        },
+        {
+          "market": "corners",
+          "period": "full_time",
+          "bookmaker": "Crown",
+          "line": 9.5,
+          "source_rows": 6,
+          "latest_fields": {
+            "over": {
+              "priced": 6,
+              "observed": 6,
+              "fresh": 0
+            },
+            "under": {
+              "priced": 6,
+              "observed": 6,
+              "fresh": 0
+            }
+          },
+          "last_observed_at": "2026-10-21T15:02:38.844704+00:00"
+        },
+        {
+          "market": "first_half_goals",
+          "period": "first_half",
+          "bookmaker": "Bet365",
+          "line": 0.75,
+          "source_rows": 2,
+          "latest_fields": {
+            "over": {
+              "priced": 2,
+              "observed": 2,
+              "fresh": 1
+            },
+            "under": {
+              "priced": 2,
+              "observed": 2,
+              "fresh": 1
+            }
+          },
+          "last_observed_at": "2026-10-21T15:11:53.511909+00:00"
+        },
+        {
+          "market": "first_half_goals",
+          "period": "first_half",
+          "bookmaker": "Bet365",
+          "line": 1.0,
+          "source_rows": 40,
+          "latest_fields": {
+            "over": {
+              "priced": 40,
+              "observed": 40,
+              "fresh": 6
+            },
+            "under": {
+              "priced": 40,
+              "observed": 40,
+              "fresh": 6
+            }
+          },
+          "last_observed_at": "2026-10-21T15:25:12.298057+00:00"
+        },
+        {
+          "market": "first_half_goals",
+          "period": "first_half",
+          "bookmaker": "Bet365",
+          "line": 1.25,
+          "source_rows": 71,
+          "latest_fields": {
+            "over": {
+              "priced": 71,
+              "observed": 71,
+              "fresh": 9
+            },
+            "under": {
+              "priced": 71,
+              "observed": 71,
+              "fresh": 9
+            }
+          },
+          "last_observed_at": "2026-10-21T15:25:28.284755+00:00"
+        },
+        {
+          "market": "first_half_goals",
+          "period": "first_half",
+          "bookmaker": "Bet365",
+          "line": 1.5,
+          "source_rows": 21,
+          "latest_fields": {
+            "over": {
+              "priced": 21,
+              "observed": 21,
+              "fresh": 2
+            },
+            "under": {
+              "priced": 21,
+              "observed": 21,
+              "fresh": 2
+            }
+          },
+          "last_observed_at": "2026-10-21T15:17:14.564503+00:00"
+        },
+        {
+          "market": "first_half_goals",
+          "period": "first_half",
+          "bookmaker": "Bet365",
+          "line": 1.75,
+          "source_rows": 3,
+          "latest_fields": {
+            "over": {
+              "priced": 3,
+              "observed": 3,
+              "fresh": 0
+            },
+            "under": {
+              "priced": 3,
+              "observed": 3,
+              "fresh": 0
+            }
+          },
+          "last_observed_at": "2026-10-21T15:00:08.220521+00:00"
+        },
+        {
+          "market": "first_half_goals",
+          "period": "first_half",
+          "bookmaker": "Crown",
+          "line": 0.75,
+          "source_rows": 3,
+          "latest_fields": {
+            "over": {
+              "priced": 3,
+              "observed": 3,
+              "fresh": 1
+            },
+            "under": {
+              "priced": 3,
+              "observed": 3,
+              "fresh": 1
+            }
+          },
+          "last_observed_at": "2026-10-21T15:11:53.520190+00:00"
+        },
+        {
+          "market": "first_half_goals",
+          "period": "first_half",
+          "bookmaker": "Crown",
+          "line": 1.0,
+          "source_rows": 50,
+          "latest_fields": {
+            "over": {
+              "priced": 50,
+              "observed": 50,
+              "fresh": 8
+            },
+            "under": {
+              "priced": 50,
+              "observed": 50,
+              "fresh": 8
+            }
+          },
+          "last_observed_at": "2026-10-21T15:25:12.307331+00:00"
+        },
+        {
+          "market": "first_half_goals",
+          "period": "first_half",
+          "bookmaker": "Crown",
+          "line": 1.25,
+          "source_rows": 64,
+          "latest_fields": {
+            "over": {
+              "priced": 64,
+              "observed": 64,
+              "fresh": 8
+            },
+            "under": {
+              "priced": 64,
+              "observed": 64,
+              "fresh": 8
+            }
+          },
+          "last_observed_at": "2026-10-21T15:25:28.294406+00:00"
+        },
+        {
+          "market": "first_half_goals",
+          "period": "first_half",
+          "bookmaker": "Crown",
+          "line": 1.5,
+          "source_rows": 19,
+          "latest_fields": {
+            "over": {
+              "priced": 19,
+              "observed": 19,
+              "fresh": 1
+            },
+            "under": {
+              "priced": 19,
+              "observed": 19,
+              "fresh": 1
+            }
+          },
+          "last_observed_at": "2026-10-21T15:17:14.577046+00:00"
+        },
+        {
+          "market": "first_half_goals",
+          "period": "first_half",
+          "bookmaker": "Crown",
+          "line": 1.75,
+          "source_rows": 3,
+          "latest_fields": {
+            "over": {
+              "priced": 3,
+              "observed": 3,
+              "fresh": 0
+            },
+            "under": {
+              "priced": 3,
+              "observed": 3,
+              "fresh": 0
+            }
+          },
+          "last_observed_at": "2026-10-21T15:00:08.231289+00:00"
+        },
+        {
+          "market": "first_half_goals",
+          "period": "first_half",
+          "bookmaker": "Sbobet",
+          "line": 0.75,
+          "source_rows": 3,
+          "latest_fields": {
+            "over": {
+              "priced": 3,
+              "observed": 3,
+              "fresh": 1
+            },
+            "under": {
+              "priced": 3,
+              "observed": 3,
+              "fresh": 1
+            }
+          },
+          "last_observed_at": "2026-10-21T15:11:53.516140+00:00"
+        },
+        {
+          "market": "first_half_goals",
+          "period": "first_half",
+          "bookmaker": "Sbobet",
+          "line": 1.0,
+          "source_rows": 51,
+          "latest_fields": {
+            "over": {
+              "priced": 51,
+              "observed": 51,
+              "fresh": 8
+            },
+            "under": {
+              "priced": 51,
+              "observed": 51,
+              "fresh": 8
+            }
+          },
+          "last_observed_at": "2026-10-21T15:25:12.302859+00:00"
+        },
+        {
+          "market": "first_half_goals",
+          "period": "first_half",
+          "bookmaker": "Sbobet",
+          "line": 1.25,
+          "source_rows": 62,
+          "latest_fields": {
+            "over": {
+              "priced": 62,
+              "observed": 62,
+              "fresh": 8
+            },
+            "under": {
+              "priced": 62,
+              "observed": 62,
+              "fresh": 8
+            }
+          },
+          "last_observed_at": "2026-10-21T15:25:28.289613+00:00"
+        },
+        {
+          "market": "first_half_goals",
+          "period": "first_half",
+          "bookmaker": "Sbobet",
+          "line": 1.5,
+          "source_rows": 20,
+          "latest_fields": {
+            "over": {
+              "priced": 20,
+              "observed": 20,
+              "fresh": 1
+            },
+            "under": {
+              "priced": 20,
+              "observed": 20,
+              "fresh": 1
+            }
+          },
+          "last_observed_at": "2026-10-21T15:17:14.569629+00:00"
+        },
+        {
+          "market": "first_half_goals",
+          "period": "first_half",
+          "bookmaker": "Sbobet",
+          "line": 1.75,
+          "source_rows": 3,
+          "latest_fields": {
+            "over": {
+              "priced": 3,
+              "observed": 3,
+              "fresh": 0
+            },
+            "under": {
+              "priced": 3,
+              "observed": 3,
+              "fresh": 0
+            }
+          },
+          "last_observed_at": "2026-10-21T15:00:08.226118+00:00"
+        },
+        {
+          "market": "goals",
+          "period": "full_time",
+          "bookmaker": "Bet365",
+          "line": 2.25,
+          "source_rows": 12,
+          "latest_fields": {
+            "over": {
+              "priced": 12,
+              "observed": 12,
+              "fresh": 3
+            },
+            "under": {
+              "priced": 12,
+              "observed": 12,
+              "fresh": 3
+            }
+          },
+          "last_observed_at": "2026-10-21T15:23:31.622470+00:00"
+        },
+        {
+          "market": "goals",
+          "period": "full_time",
+          "bookmaker": "Bet365",
+          "line": 2.5,
+          "source_rows": 27,
+          "latest_fields": {
+            "over": {
+              "priced": 27,
+              "observed": 27,
+              "fresh": 7
+            },
+            "under": {
+              "priced": 27,
+              "observed": 27,
+              "fresh": 7
+            }
+          },
+          "last_observed_at": "2026-10-21T15:25:00.334696+00:00"
+        },
+        {
+          "market": "goals",
+          "period": "full_time",
+          "bookmaker": "Bet365",
+          "line": 2.75,
+          "source_rows": 29,
+          "latest_fields": {
+            "over": {
+              "priced": 29,
+              "observed": 29,
+              "fresh": 9
+            },
+            "under": {
+              "priced": 29,
+              "observed": 29,
+              "fresh": 9
+            }
+          },
+          "last_observed_at": "2026-10-21T15:24:40.426239+00:00"
+        },
+        {
+          "market": "goals",
+          "period": "full_time",
+          "bookmaker": "Bet365",
+          "line": 3.0,
+          "source_rows": 32,
+          "latest_fields": {
+            "over": {
+              "priced": 32,
+              "observed": 32,
+              "fresh": 8
+            },
+            "under": {
+              "priced": 32,
+              "observed": 32,
+              "fresh": 8
+            }
+          },
+          "last_observed_at": "2026-10-21T15:24:23.518304+00:00"
+        },
+        {
+          "market": "goals",
+          "period": "full_time",
+          "bookmaker": "Bet365",
+          "line": 3.25,
+          "source_rows": 22,
+          "latest_fields": {
+            "over": {
+              "priced": 22,
+              "observed": 22,
+              "fresh": 3
+            },
+            "under": {
+              "priced": 22,
+              "observed": 22,
+              "fresh": 3
+            }
+          },
+          "last_observed_at": "2026-10-21T15:23:20.927112+00:00"
+        },
+        {
+          "market": "goals",
+          "period": "full_time",
+          "bookmaker": "Bet365",
+          "line": 3.5,
+          "source_rows": 9,
+          "latest_fields": {
+            "over": {
+              "priced": 9,
+              "observed": 9,
+              "fresh": 1
+            },
+            "under": {
+              "priced": 9,
+              "observed": 9,
+              "fresh": 1
+            }
+          },
+          "last_observed_at": "2026-10-21T15:17:28.496442+00:00"
+        },
+        {
+          "market": "goals",
+          "period": "full_time",
+          "bookmaker": "Bet365",
+          "line": 3.75,
+          "source_rows": 4,
+          "latest_fields": {
+            "over": {
+              "priced": 4,
+              "observed": 4,
+              "fresh": 0
+            },
+            "under": {
+              "priced": 4,
+              "observed": 4,
+              "fresh": 0
+            }
+          },
+          "last_observed_at": "2026-10-21T14:57:47.421386+00:00"
+        },
+        {
+          "market": "goals",
+          "period": "full_time",
+          "bookmaker": "Bet365",
+          "line": 4.0,
+          "source_rows": 2,
+          "latest_fields": {
+            "over": {
+              "priced": 2,
+              "observed": 2,
+              "fresh": 0
+            },
+            "under": {
+              "priced": 2,
+              "observed": 2,
+              "fresh": 0
+            }
+          },
+          "last_observed_at": "2026-10-21T15:00:30.309346+00:00"
+        },
+        {
+          "market": "goals",
+          "period": "full_time",
+          "bookmaker": "Bet365",
+          "line": 4.25,
+          "source_rows": 2,
+          "latest_fields": {
+            "over": {
+              "priced": 2,
+              "observed": 2,
+              "fresh": 0
+            },
+            "under": {
+              "priced": 2,
+              "observed": 2,
+              "fresh": 0
+            }
+          },
+          "last_observed_at": "2026-10-21T14:48:24.106186+00:00"
+        },
+        {
+          "market": "goals",
+          "period": "full_time",
+          "bookmaker": "Crown",
+          "line": 2.25,
+          "source_rows": 11,
+          "latest_fields": {
+            "over": {
+              "priced": 11,
+              "observed": 11,
+              "fresh": 3
+            },
+            "under": {
+              "priced": 11,
+              "observed": 11,
+              "fresh": 3
+            }
+          },
+          "last_observed_at": "2026-10-21T15:23:31.692799+00:00"
+        },
+        {
+          "market": "goals",
+          "period": "full_time",
+          "bookmaker": "Crown",
+          "line": 2.5,
+          "source_rows": 27,
+          "latest_fields": {
+            "over": {
+              "priced": 27,
+              "observed": 27,
+              "fresh": 6
+            },
+            "under": {
+              "priced": 27,
+              "observed": 27,
+              "fresh": 6
+            }
+          },
+          "last_observed_at": "2026-10-21T15:23:07.524684+00:00"
+        },
+        {
+          "market": "goals",
+          "period": "full_time",
+          "bookmaker": "Crown",
+          "line": 2.75,
+          "source_rows": 33,
+          "latest_fields": {
+            "over": {
+              "priced": 33,
+              "observed": 33,
+              "fresh": 12
+            },
+            "under": {
+              "priced": 33,
+              "observed": 33,
+              "fresh": 12
+            }
+          },
+          "last_observed_at": "2026-10-21T15:25:00.387989+00:00"
+        },
+        {
+          "market": "goals",
+          "period": "full_time",
+          "bookmaker": "Crown",
+          "line": 3.0,
+          "source_rows": 30,
+          "latest_fields": {
+            "over": {
+              "priced": 30,
+              "observed": 30,
+              "fresh": 6
+            },
+            "under": {
+              "priced": 30,
+              "observed": 30,
+              "fresh": 6
+            }
+          },
+          "last_observed_at": "2026-10-21T15:24:09.812505+00:00"
+        },
+        {
+          "market": "goals",
+          "period": "full_time",
+          "bookmaker": "Crown",
+          "line": 3.25,
+          "source_rows": 20,
+          "latest_fields": {
+            "over": {
+              "priced": 20,
+              "observed": 20,
+              "fresh": 3
+            },
+            "under": {
+              "priced": 20,
+              "observed": 20,
+              "fresh": 3
+            }
+          },
+          "last_observed_at": "2026-10-21T15:23:20.987836+00:00"
+        },
+        {
+          "market": "goals",
+          "period": "full_time",
+          "bookmaker": "Crown",
+          "line": 3.5,
+          "source_rows": 10,
+          "latest_fields": {
+            "over": {
+              "priced": 10,
+              "observed": 10,
+              "fresh": 1
+            },
+            "under": {
+              "priced": 10,
+              "observed": 10,
+              "fresh": 1
+            }
+          },
+          "last_observed_at": "2026-10-21T15:17:28.523100+00:00"
+        },
+        {
+          "market": "goals",
+          "period": "full_time",
+          "bookmaker": "Crown",
+          "line": 3.75,
+          "source_rows": 5,
+          "latest_fields": {
+            "over": {
+              "priced": 5,
+              "observed": 5,
+              "fresh": 0
+            },
+            "under": {
+              "priced": 5,
+              "observed": 5,
+              "fresh": 0
+            }
+          },
+          "last_observed_at": "2026-10-21T14:57:47.495346+00:00"
+        },
+        {
+          "market": "goals",
+          "period": "full_time",
+          "bookmaker": "Crown",
+          "line": 4.0,
+          "source_rows": 1,
+          "latest_fields": {
+            "over": {
+              "priced": 1,
+              "observed": 1,
+              "fresh": 0
+            },
+            "under": {
+              "priced": 1,
+              "observed": 1,
+              "fresh": 0
+            }
+          },
+          "last_observed_at": "2026-10-21T15:00:30.390623+00:00"
+        },
+        {
+          "market": "goals",
+          "period": "full_time",
+          "bookmaker": "Crown",
+          "line": 4.25,
+          "source_rows": 2,
+          "latest_fields": {
+            "over": {
+              "priced": 2,
+              "observed": 2,
+              "fresh": 0
+            },
+            "under": {
+              "priced": 2,
+              "observed": 2,
+              "fresh": 0
+            }
+          },
+          "last_observed_at": "2026-10-21T14:48:24.188194+00:00"
+        },
+        {
+          "market": "goals",
+          "period": "full_time",
+          "bookmaker": "Sbobet",
+          "line": 2.25,
+          "source_rows": 13,
+          "latest_fields": {
+            "over": {
+              "priced": 13,
+              "observed": 13,
+              "fresh": 3
+            },
+            "under": {
+              "priced": 13,
+              "observed": 13,
+              "fresh": 3
+            }
+          },
+          "last_observed_at": "2026-10-21T15:23:31.634681+00:00"
+        },
+        {
+          "market": "goals",
+          "period": "full_time",
+          "bookmaker": "Sbobet",
+          "line": 2.5,
+          "source_rows": 28,
+          "latest_fields": {
+            "over": {
+              "priced": 28,
+              "observed": 28,
+              "fresh": 7
+            },
+            "under": {
+              "priced": 28,
+              "observed": 28,
+              "fresh": 7
+            }
+          },
+          "last_observed_at": "2026-10-21T15:25:00.345472+00:00"
+        },
+        {
+          "market": "goals",
+          "period": "full_time",
+          "bookmaker": "Sbobet",
+          "line": 2.75,
+          "source_rows": 29,
+          "latest_fields": {
+            "over": {
+              "priced": 29,
+              "observed": 29,
+              "fresh": 9
+            },
+            "under": {
+              "priced": 29,
+              "observed": 29,
+              "fresh": 9
+            }
+          },
+          "last_observed_at": "2026-10-21T15:24:40.488060+00:00"
+        },
+        {
+          "market": "goals",
+          "period": "full_time",
+          "bookmaker": "Sbobet",
+          "line": 3.0,
+          "source_rows": 32,
+          "latest_fields": {
+            "over": {
+              "priced": 32,
+              "observed": 32,
+              "fresh": 8
+            },
+            "under": {
+              "priced": 32,
+              "observed": 32,
+              "fresh": 8
+            }
+          },
+          "last_observed_at": "2026-10-21T15:24:23.533713+00:00"
+        },
+        {
+          "market": "goals",
+          "period": "full_time",
+          "bookmaker": "Sbobet",
+          "line": 3.25,
+          "source_rows": 21,
+          "latest_fields": {
+            "over": {
+              "priced": 21,
+              "observed": 21,
+              "fresh": 4
+            },
+            "under": {
+              "priced": 21,
+              "observed": 21,
+              "fresh": 4
+            }
+          },
+          "last_observed_at": "2026-10-21T15:23:20.946215+00:00"
+        },
+        {
+          "market": "goals",
+          "period": "full_time",
+          "bookmaker": "Sbobet",
+          "line": 3.5,
+          "source_rows": 9,
+          "latest_fields": {
+            "over": {
+              "priced": 9,
+              "observed": 9,
+              "fresh": 0
+            },
+            "under": {
+              "priced": 9,
+              "observed": 9,
+              "fresh": 0
+            }
+          },
+          "last_observed_at": "2026-10-21T15:04:26.284619+00:00"
+        },
+        {
+          "market": "goals",
+          "period": "full_time",
+          "bookmaker": "Sbobet",
+          "line": 3.75,
+          "source_rows": 4,
+          "latest_fields": {
+            "over": {
+              "priced": 4,
+              "observed": 4,
+              "fresh": 0
+            },
+            "under": {
+              "priced": 4,
+              "observed": 4,
+              "fresh": 0
+            }
+          },
+          "last_observed_at": "2026-10-21T14:57:47.432336+00:00"
+        },
+        {
+          "market": "goals",
+          "period": "full_time",
+          "bookmaker": "Sbobet",
+          "line": 4.0,
+          "source_rows": 1,
+          "latest_fields": {
+            "over": {
+              "priced": 1,
+              "observed": 1,
+              "fresh": 0
+            },
+            "under": {
+              "priced": 1,
+              "observed": 1,
+              "fresh": 0
+            }
+          },
+          "last_observed_at": "2026-10-21T15:00:30.324683+00:00"
+        },
+        {
+          "market": "goals",
+          "period": "full_time",
+          "bookmaker": "Sbobet",
+          "line": 4.25,
+          "source_rows": 2,
+          "latest_fields": {
+            "over": {
+              "priced": 2,
+              "observed": 2,
+              "fresh": 0
+            },
+            "under": {
+              "priced": 2,
+              "observed": 2,
+              "fresh": 0
+            }
+          },
+          "last_observed_at": "2026-10-21T14:48:24.118062+00:00"
+        },
+        {
+          "market": "result",
+          "period": "full_time",
+          "bookmaker": "Bet365",
+          "line": null,
+          "source_rows": 139,
+          "latest_fields": {
+            "home": {
+              "priced": 139,
+              "observed": 139,
+              "fresh": 31
+            },
+            "draw": {
+              "priced": 139,
+              "observed": 139,
+              "fresh": 31
+            },
+            "away": {
+              "priced": 139,
+              "observed": 139,
+              "fresh": 31
+            }
+          },
+          "last_observed_at": "2026-10-21T15:25:00.328250+00:00"
+        },
+        {
+          "market": "result",
+          "period": "full_time",
+          "bookmaker": "Crown",
+          "line": null,
+          "source_rows": 139,
+          "latest_fields": {
+            "home": {
+              "priced": 139,
+              "observed": 139,
+              "fresh": 31
+            },
+            "draw": {
+              "priced": 139,
+              "observed": 139,
+              "fresh": 31
+            },
+            "away": {
+              "priced": 139,
+              "observed": 139,
+              "fresh": 31
+            }
+          },
+          "last_observed_at": "2026-10-21T15:25:00.349576+00:00"
+        },
+        {
+          "market": "result",
+          "period": "full_time",
+          "bookmaker": "Sbobet",
+          "line": null,
+          "source_rows": 139,
+          "latest_fields": {
+            "home": {
+              "priced": 139,
+              "observed": 139,
+              "fresh": 31
+            },
+            "draw": {
+              "priced": 139,
+              "observed": 139,
+              "fresh": 31
+            },
+            "away": {
+              "priced": 139,
+              "observed": 139,
+              "fresh": 31
+            }
+          },
+          "last_observed_at": "2026-10-21T15:25:00.339641+00:00"
+        }
+      ]
+    }
+  }
+}
