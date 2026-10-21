@@ -277,6 +277,23 @@ async def daily_coupon(strategy: Literal['balanced','cautious','value']='balance
         return await read_daily(session,utcnow(),strategy)
 
 
+@router.get('/coupons/diagnostics')
+async def daily_coupon_diagnostics(session=Depends(session_dependency)):
+    """Current candidate census only; no generation, collection or delivery."""
+    from src.analytics.daily_pool import daily_pool
+    from zoneinfo import ZoneInfo
+    from src.analytics.publications import read_daily
+    now=utcnow()
+    async def inspect_current():
+        await daily_pool(session,now)
+        publication=await read_daily(session,now)
+        return {**session.info['coupon_diagnostics'],'checked_at':now,
+            'publication':dict(status=publication.get('status','published' if publication.get('items') else 'no_eligible_selections'),reason=publication.get('reason'),selections=len(publication.get('items',[])),checked_at=publication.get('data_updates',{}).get('checked_at'),mixed_bookmakers=publication.get('mixed_bookmakers',False)),
+            'read_only':True}
+    async with asyncio.timeout(4):
+        return await summary_cache.get(session.bind,('daily_coupon_diagnostics',now.astimezone(ZoneInfo('Europe/Istanbul')).date()),inspect_current)
+
+
 @router.get('/dashboard/revision')
 async def dashboard_revision(session=Depends(session_dependency)):
     from src.analytics.publications import revisions

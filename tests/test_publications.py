@@ -36,7 +36,7 @@ async def test_daily_read_restart_same_inputs_and_expiry(db,monkeypatch):
     await pool_fixture(db,6)
     async with db.session() as session:
         data=await publish_daily(session,NOW);await session.commit()
-        assert 0<len(data['items'])<=4
+        assert 4<len(data['items'])<=6  # Complete dynamic portfolio, no display cap.
         identity=data['id']
         first=await revisions(session,NOW)
     other=Database(str(db.engine.url))
