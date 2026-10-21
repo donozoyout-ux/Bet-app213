@@ -113,7 +113,8 @@ async def test_uncertain_noon_is_not_resent_with_new_evening_observations(db,mon
     assert len(calls)==1
     async with db.session() as session:
         assert len((await session.scalars(select(TelegramDelivery))).all())==1
-        assert len((await session.scalars(select(SavedCoupon))).all())==2
+        # A refreshed observation reuses the published slip; uncertainty still blocks resending.
+        assert len((await session.scalars(select(SavedCoupon))).all())==1
 
 
 async def test_rescheduled_database_date_cannot_be_hidden_by_cached_today(db):
