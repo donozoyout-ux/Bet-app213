@@ -1702,3 +1702,9 @@ body:has([data-page=predictions]:not([hidden])) .desktop-nav {background:#091A30
 .trend-panel{margin:1rem 0;padding:1rem;border:1px solid #254b7a;border-radius:.75rem;background:#102139;overflow-wrap:anywhere}
 .trend-panel p{font-size:.85rem;line-height:1.65}.trend-panel svg{display:block;width:100%;max-height:180px}
 .trend-period{padding:.75rem 0;border-bottom:1px solid #254b7a}.trend-period details{margin:.6rem 0}
+
+/* Actual observed success rates remain visible even with sparse cohorts. */
+.trend-comparison-chart{display:grid;gap:.7rem;margin:.9rem 0}
+.trend-comparison-row{display:grid;gap:.25rem;font-size:.85rem}
+.trend-comparison-track{height:1rem;border-radius:999px;background:#263c57;overflow:hidden}
+.trend-comparison-fill{height:100%;background:#36c5cc;border-radius:inherit}
