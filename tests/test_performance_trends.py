@@ -33,7 +33,7 @@ def test_cluster_dependence_incomplete_and_probability_valid_denominator():
     for r in data:r['match_id']=1
     summary=summarize(data)
     assert summary['distinct_matches']==summary['effective_matches']==1
-    assert not summary['sufficient'] and summary['chart_rate'] is None
+    assert not summary['sufficient'] and summary['chart_rate']==.8
     assert summary['brier_score']==pytest.approx(.16)
     assert summary['mean_probability']==pytest.approx(.8)
     data[0]['probability']=None
@@ -90,13 +90,21 @@ async def test_real_api_trend_mobile_and_desktop(api,db,width):
             await expect(page.locator('#trend-periods')).to_contain_text('7 gün / önceki 7 gün')
             await page.locator('#trend-window').select_option('30')
             await expect(page.locator('.trend-period:visible')).to_contain_text('30 gün / önceki 30 gün')
+            await expect(page.locator('.trend-period:visible .trend-bar')).to_have_count(2)
             await page.locator('#trend-window').select_option('7')
             await expect(page.locator('.trend-period:visible')).to_contain_text('7 gün / önceki 7 gün')
-            await expect(page.locator('#trend-chart')).to_contain_text('yeterli tamamlanmış örneklem yok')
-            assert await page.locator('#trend-chart circle').count()==0
+            await expect(page.locator('#trend-chart')).to_contain_text('Örneklem düşük')
+            await expect(page.locator('#trend-chart circle')).to_have_count(1)
+            await page.locator('#trend-chart circle').focus()
+            await expect(page.locator('.trend-tooltip')).to_contain_text('Sonuçlanan 2 · Kazandı 1 · Kaybetti 1')
+            await expect(page.locator('.trend-tooltip')).to_contain_text('Veri eksik 1 · İncelenmeli 1')
+            await expect(page.locator('.trend-tooltip')).to_contain_text('Brier 0.340')
+            await expect(page.locator('.trend-period:visible .trend-bar')).to_have_count(2)
             assert await page.evaluate('document.documentElement.scrollWidth<=innerWidth')
             if os.getenv('UI_SCREENSHOT_DIR'):
                 target=Path(os.environ['UI_SCREENSHOT_DIR']);target.mkdir(parents=True,exist_ok=True)
+                await page.locator('#trend-chart circle').blur()
+                await page.add_style_tag(content='.bottom-nav,.terminal-header,.skip-link,.floating-tools{visibility:hidden!important}')
                 await page.locator('.trend-panel').screenshot(path=str(target/f'trends-{width}.png'))
             assert not errors
         finally:
@@ -137,8 +145,42 @@ async def test_chart_gaps_and_descriptive_increase(api):
             await page.goto('http://test/#performance')
             await expect(page.locator('#trend-chart circle')).to_have_count(2)
             # Only vertical uncertainty whiskers: no line across seven missing days.
-            await expect(page.locator('#trend-chart line')).to_have_count(2)
+            await expect(page.locator('#trend-chart path[stroke="#38bdf8"]')).to_have_count(1)
             await expect(page.locator('#trend-status')).to_have_text('İyileşme kanıtlanmadı')
             await expect(page.locator('#trend-periods')).to_contain_text('Artış sinyali; kalıcılık/öğrenme kanıtı değil')
+        finally:
+            await page.unroute_all(behavior='ignoreErrors');await browser.close()
+
+
+def test_weekly_weighted_aggregation_and_daily_density():
+    data=rows(1,1,date(2026,10,13))+rows(3,0,date(2026,10,14),10)
+    report=build_trends(data,AS_OF)
+    assert report['aggregation']=='weekly'
+    week=report['weekly'][-1]
+    assert week['date']=='2026-10-12' and week['end_exclusive']=='2026-10-19'
+    assert week['decided']==4 and week['chart_rate']==.25
+    assert week['brier_score']==pytest.approx(.49)
+    dense=[r for i in range(14) for r in rows(5,3,AS_OF-timedelta(days=i+1),i*10)]
+    assert build_trends(dense,AS_OF)['aggregation']=='daily'
+
+
+async def test_no_decided_empty_state_and_capture_date_filters(api,db):
+    await fixture(db)
+    data=(await api.get('/api/performance-trends?as_of=2026-10-10&date_from=2026-10-09')).json()
+    assert not any(p['decided'] for p in data['daily'])
+    assert (await api.get('/api/performance-trends?date_from=2026-10-10&date_to=2026-10-01')).status_code==400
+    async with async_playwright() as p:
+        browser=await p.chromium.launch();page=await browser.new_page()
+        async def forward(route):
+            response=await api.get(route.request.url.removeprefix('http://test'))
+            await route.fulfill(status=response.status_code,body=response.content,content_type=response.headers.get('content-type','application/json'))
+        await page.route('**/*',forward)
+        try:
+            await page.goto('http://test/#performance')
+            await page.locator('#trend-as-of').fill('2026-10-01')
+            await page.locator('#trend-as-of').dispatch_event('change')
+            await expect(page.locator('#trend-chart')).to_contain_text('Henüz sonuçlanan tahmin yok')
+            await expect(page.locator('#trend-chart circle')).to_have_count(0)
+            await expect(page.locator('#trend-chart svg')).to_be_visible()
         finally:
             await page.unroute_all(behavior='ignoreErrors');await browser.close()
