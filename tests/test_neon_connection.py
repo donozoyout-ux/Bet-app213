@@ -27,3 +27,11 @@ def test_neon_sslmode_only_keeps_asyncpg():
 def test_unsafe_or_unknown_security_options_are_rejected(dsn):
     with pytest.raises(ValueError):
         Database(dsn)
+
+
+def test_neon_pooler_avoids_rejected_startup_options():
+    from src.db import Database
+    db = Database('postgresql://user:pass@ep-sample-pooler.us-east-2.aws.neon.tech/app?sslmode=require&channel_binding=require')
+    assert db.engine.url.drivername == 'postgresql+psycopg'
+    assert db.engine.url.query['channel_binding'] == 'require'
+    assert db.engine.url.query['sslmode'] == 'require'
