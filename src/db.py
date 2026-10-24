@@ -23,13 +23,23 @@ class Database:
             raise ValueError('Production requires PostgreSQL')
         options = {}
         if url.startswith('postgresql+asyncpg://'):
-            # Neon/libpq connection strings use sslmode; asyncpg.connect expects ssl.
+            # Neon uses libpq channel_binding=require. asyncpg does not support it;
+            # use psycopg3/libpq when channel binding must be enforced, never strip it.
             parsed = make_url(url)
             sslmode = parsed.query.get('sslmode')
-            if sslmode is not None:
-                if sslmode not in ('require', 'verify-ca', 'verify-full'):
-                    raise ValueError('DATABASE_URL sslmode must require TLS')
-                url = parsed.difference_update_query(['sslmode'])
+            if sslmode is not None and sslmode not in ('require', 'verify-ca', 'verify-full'):
+                raise ValueError('DATABASE_URL sslmode must require TLS')
+            channel_binding = parsed.query.get('channel_binding')
+            if channel_binding is not None and channel_binding not in ('require', 'prefer', 'disable'):
+                raise ValueError('Unsupported DATABASE_URL channel_binding option')
+            use_libpq = channel_binding == 'require'
+            if use_libpq:
+                if sslmode is None:
+                    raise ValueError('channel_binding=require needs sslmode=require or stricter')
+                url = parsed.set(drivername='postgresql+psycopg')
+            else:
+                # asyncpg takes SSL policy in connect_args, not in the URL.
+                url = parsed.difference_update_query(['sslmode', 'channel_binding'])
             # Reserve HTTP connections; a scraper process has only its lock + one writer.
             worker = os.getenv('BETAPP_PROCESS_ROLE') == 'scraper'
             options = dict(pool_size=2 if worker else 5, max_overflow=0,
@@ -37,7 +47,12 @@ class Database:
                            connect_args={'timeout': 5, 'command_timeout': 15,
                                'server_settings': {'application_name': 'betapp-scraper' if worker else 'betapp-web',
                                    'statement_timeout': '12000', 'lock_timeout': '2000'}})
-            if sslmode is not None:
+            if use_libpq:
+                # psycopg/libpq honors sslmode and channel_binding from the URL.
+                options['connect_args'] = {'connect_timeout': 5,
+                    'application_name': 'betapp-scraper' if worker else 'betapp-web',
+                    'options': '-c statement_timeout=12000 -c lock_timeout=2000'}
+            elif sslmode is not None:
                 options['connect_args']['ssl'] = sslmode
         self.engine = create_async_engine(url, pool_pre_ping=True, **options) if url else None
         if self.engine:
