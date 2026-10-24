@@ -219,6 +219,26 @@ async def test_retention_only_authenticated_aged_own_releases(tmp_path,monkeypat
     assert old not in fake.releases and recent in fake.releases and legacy in fake.releases
 
 
+async def test_upload_primitive_rejects_plaintext_before_any_network():
+    fake=FakeGitHub()
+    archive=ReleaseArchive('test/private','synthetic',KEY,budget_bytes=1000000,keep_days=30,transport=httpx.MockTransport(fake))
+    try:
+        with pytest.raises(ValueError):await archive.publish(data(),b'Goaloo raw prices',[],0)
+        assert not fake.requests
+    finally:await archive.close()
+
+
+async def test_corrupt_server_readback_leaves_draft_and_no_report(tmp_path,monkeypatch):
+    fake=FakeGitHub();stub_source(monkeypatch,data())
+    def corrupt(request):
+        response=fake(request)
+        if '/releases/assets/' in request.url.path:return httpx.Response(200,content=b'x'*len(response.content))
+        return response
+    config=env(tmp_path)
+    with pytest.raises(ValueError):await daily(config,NOW,transport=httpx.MockTransport(corrupt))
+    assert fake.releases[0]['draft'] and not Path(config['ARCHIVE_REPORT']).exists()
+
+
 async def test_coverage_counts_include_empty_league_and_no_match_identity(db):
     from tests.test_performance_status import fixture
     from src.models import League

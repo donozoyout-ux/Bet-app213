@@ -7,7 +7,7 @@ from datetime import date
 from urllib.parse import urlparse
 import httpx
 from src.archive.crypto import unseal
-from src.archive.schema import MAX_BYTES, canonical
+from src.archive.schema import MAX_BYTES, canonical, validate
 
 PREFIX='owned-audit-v2-'
 ASSET='owned-audit.enc.json'
@@ -94,6 +94,9 @@ class ReleaseArchive:
         return data
 
     async def publish(self, data, blob, releases, total):
+        # Validate before the first mutation, even for callers outside the CLI.
+        if canonical(unseal(blob,self.key))!=canonical(validate(data)):
+            raise ValueError('Upload must match the authenticated allowlisted snapshot')
         day=data['coverage']['day'];tag=PREFIX+day
         if total+len(blob)>self.budget:raise ValueError('Archive storage budget exceeded')
         manifest=canonical(dict(schema='owned-release-v2',day=day,sha256=hashlib.sha256(blob).hexdigest(),bytes=len(blob))).decode()
