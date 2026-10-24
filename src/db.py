@@ -49,9 +49,10 @@ class Database:
                                    'statement_timeout': '12000', 'lock_timeout': '2000'}})
             if use_libpq:
                 # psycopg/libpq honors sslmode and channel_binding from the URL.
+                # Neon PgBouncer pooler rejects arbitrary startup `options=-c ...`.
+                # Keep bounded app-side pool/timeouts; do not send session GUCs at startup.
                 options['connect_args'] = {'connect_timeout': 5,
-                    'application_name': 'betapp-scraper' if worker else 'betapp-web',
-                    'options': '-c statement_timeout=12000 -c lock_timeout=2000'}
+                    'application_name': 'betapp-scraper' if worker else 'betapp-web'}
             elif sslmode is not None:
                 options['connect_args']['ssl'] = sslmode
         self.engine = create_async_engine(url, pool_pre_ping=True, **options) if url else None
