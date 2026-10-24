@@ -102,7 +102,53 @@ function winningNotification(){
    oscillator.start();oscillator.stop(winsAudio.currentTime+.11);
  }catch(_){}
 }
+function trendDetail(d,label){
+return `${label} · Sonuçlanan ${d.decided} · Kazandı ${d.won} · Kaybetti ${d.lost} · Bekliyor ${d.pending} · Veri eksik ${d.awaiting_data} · İncelenmeli ${d.disputed} · Geçersiz ${d.void} · Başarı ${pct(d.success_rate)} · Ortalama model güveni ${pct(d.mean_probability)} · Brier ${d.brier_score==null?'—':d.brier_score.toFixed(3)}${d.sufficient?'':' · Örneklem düşük'}`;
+}
+function renderPeriodBars(card,c){
+const bars=node('div','','trend-bars');bars.setAttribute('aria-label',`${c.days} günlük dönem karşılaştırma grafiği`);
+for(const [key,label] of [['previous','Önceki dönem'],['recent','Son dönem']]){
+ const d=c[key],column=node('div','','trend-bar-column');
+ const track=node('div','','trend-bar-track'),bar=node('div','',`trend-bar ${key}`);
+ if(d.success_rate!=null)bar.style.height=`${d.success_rate*100}%`;
+ else bar.classList.add('no-data');
+ track.append(bar);column.append(node('strong',pct(d.success_rate)),track,node('b',`${label} · ${c.days} gün`),node('span',`${d.won} / ${d.decided} kazandı · ${d.lost} kaybetti`));
+ if(!d.sufficient)column.append(node('small',d.decided?'Örneklem düşük':'Sonuçlanan tahmin yok','muted'));
+ column.tabIndex=0;column.title=trendDetail(d,`${d.start} – ${d.end_exclusive} (hariç)`);column.setAttribute('aria-label',column.title);bars.append(column);
+}
+const delta=c.raw_difference;
+const difference=node('p',delta==null?'Fark hesaplanamıyor · sonuçlanan tahmin yok':`${delta>=0?'+':''}${(delta*100).toFixed(1)} puan · Gözlenen fark; öğrenme kanıtı değildir`,delta==null?'muted':delta>0?'trend-positive':delta<0?'trend-negative':'muted');
+card.append(bars,difference);
+}
+function renderTrendChart(data){
+const chart=$('trend-chart');chart.replaceChildren();
+const weekly=data.aggregation==='weekly',series=weekly?data.weekly:data.daily;
+chart.append(node('h3',weekly?'Haftalık başarı trendi':'Günlük başarı trendi'),node('p','Çizgi = başarı oranı · Alt etiket = sonuçlanan tahmin adedi · Noktaya dokunun veya odaklanın.','muted'));
+const chartWidth=globalThis.innerWidth<600?360:720;
+const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox',`0 0 ${chartWidth} 230`);svg.setAttribute('role','group');svg.setAttribute('aria-label','Zamana göre başarı oranı ve sonuçlanan tahmin sayısı');
+const make=(tag,attrs,text)=>{const el=document.createElementNS(svg.namespaceURI,tag);for(const [k,v] of Object.entries(attrs))el.setAttribute(k,v);if(text!=null)el.textContent=text;svg.append(el);return el;};
+for(const rate of [0,50,100]){const y=180-rate*1.5;make('path',{d:`M44 ${y}H${chartWidth-20}`,stroke:'#29415e'});make('text',{x:3,y:y+4,fill:'#94a3b8','font-size':12},`%${rate}`);}
+const tooltip=node('p','Tarih, sonuç ve model ayrıntıları için bir noktayı seçin.','trend-tooltip');tooltip.setAttribute('role','status');
+let previous=null,points=0;
+for(let i=0;i<(series||[]).length;i++){
+ const d=series[i],x=50+i*(chartWidth-75)/Math.max(1,series.length-1),label=d.end_exclusive?`${d.date} – ${d.end_exclusive} (hariç)`:d.date;
+ if((weekly&&i%(chartWidth<600?2:1)===0)||(!weekly&&i%10===0)||i===series.length-1)make('text',{x,y:220,'text-anchor':'middle',fill:'#94a3b8','font-size':11},d.date.slice(5));
+ if(d.chart_rate==null){previous=null;continue;}
+ const y=180-d.chart_rate*150;
+ if(previous)make('path',{d:`M${previous.x} ${previous.y}L${x} ${y}`,stroke:'#38bdf8','stroke-width':2.5,fill:'none'});
+ const dot=make('circle',{cx:x,cy:y,r:5,fill:'#38bdf8',stroke:d.sufficient?'#38bdf8':'#94a3b8','stroke-width':2,tabindex:0,role:'button','aria-label':trendDetail(d,label)});
+ const title=document.createElementNS(svg.namespaceURI,'title');title.textContent=trendDetail(d,label);dot.append(title);
+ for(const event of ['pointerenter','focus','click'])dot.addEventListener(event,()=>{tooltip.textContent=trendDetail(d,label);});
+ if(weekly||i%3===0)make('text',{x,y:199,'text-anchor':'middle',fill:'#94a3b8','font-size':11},`${d.decided}`);
+ previous={x,y};points++;
+}
+chart.append(svg,tooltip);
+if(!points)chart.append(node('p',data.truncated?'Veri sınırına ulaşıldı; grafik gösterilemiyor. Filtreleri daraltın.':'Henüz sonuçlanan tahmin yok. Bekleyen veya eksik kayıtlar başarı oranına katılmaz.','muted'));
+else if(series.some(d=>d.decided&&!d.sufficient))chart.append(node('p','Örneklem düşük · gri kenarlı noktalar gözlemdir; güvenilir gelişim karşılaştırması değildir.','muted'));
+}
+let latestTrends=null;
 function renderTrends(data){
+latestTrends=data;
 if(!data.comparisons)return;
 write('trend-status',data.truncated?'Veri sınırına ulaşıldı · İyileşme kanıtlanmadı':'İyileşme kanıtlanmadı');
 write('trend-model',`Model değişikliği doğrulanmadı · Kayıtlı sürümler: ${data.model_versions.join(', ')||'Yok'} · ${data.as_of} öncesi 60 gün · İlk gözlenen maç günü: ${data.first_observed_kickoff||'Yok'}`);
@@ -110,30 +156,27 @@ if($('trend-as-of')&&!value('trend-as-of'))$('trend-as-of').value=data.as_of;
 const periods=$('trend-periods');periods.replaceChildren();
 for(const comparison of data.comparisons){
  const card=node('article','','trend-period');card.dataset.days=String(comparison.days);card.hidden=String(comparison.days)!==(value('trend-window')||'7');card.append(node('h3',`${comparison.days} gün / önceki ${comparison.days} gün`));
- card.append(node('p',comparison.eligible?`Ham başarı farkı: ${comparison.raw_difference==null?'—':(comparison.raw_difference*100).toFixed(1)+' yüzde puan'} · ${comparison.direction==='increase'?'Artış sinyali; kalıcılık/öğrenme kanıtı değil':comparison.direction==='decrease'?'Düşüş sinyali':'Belirsizlik aralıkları ayrışmıyor'}`:'Yetersiz veya eksik örneklem · güvenilir gelişim karşılaştırması yapılamıyor'));
+ renderPeriodBars(card,comparison);
+ const evidence=node('details');evidence.append(node('summary','Dönem ayrıntıları ve belirsizlik'));
+ evidence.append(node('p',comparison.eligible?`Ham başarı farkı: ${comparison.raw_difference==null?'—':(comparison.raw_difference*100).toFixed(1)+' yüzde puan'} · ${comparison.direction==='increase'?'Artış sinyali; kalıcılık/öğrenme kanıtı değil':comparison.direction==='decrease'?'Düşüş sinyali':'Belirsizlik aralıkları ayrışmıyor'}`:'Yetersiz veya eksik örneklem · güvenilir gelişim karşılaştırması yapılamıyor'));
  for(const [key,label] of [['recent','Son dönem'],['previous','Önceki dönem']]){
   const p=comparison[key];const interval=p.cluster_95?`${pct(p.cluster_95.lower)} – ${pct(p.cluster_95.upper)}`:'—';
-  card.append(node('p',`${label}: ${p.start} ≤ gün < ${p.end_exclusive} · ${p.won}/${p.decided} tuttu · ${p.lost} kaybetti · ${p.distinct_matches} farklı maç (${p.effective_matches.toFixed(1)} etkin) · Başarı ${pct(p.success_rate)} · Maç gruplu %95 aralık ${interval}`));
-  card.append(node('p',`Model olasılığı ${pct(p.mean_probability)} · Aynı ${p.probability_valid} kayıtta gerçekleşen ${pct(p.calibration_observed)} · Brier ${p.brier_score==null?'—':p.brier_score.toFixed(3)} · Bekliyor ${p.pending} / Veri eksik ${p.awaiting_data} / İncelenmeli ${p.disputed} / Geçersiz ${p.void} · Maç gününden sonra kaydedilen karar ${p.late_recorded??0} (zamanı bilinen ${p.settlement_timestamp_available??0})`));
-  if(p.calibration_gap!=null&&p.calibration_gap<0)card.append(node('p','Model olasılığı gerçekleşenden yüksek: aşırı güven olasılığı.'));
+  evidence.append(node('p',`${label}: ${p.start} ≤ gün < ${p.end_exclusive} · ${p.won}/${p.decided} tuttu · ${p.lost} kaybetti · ${p.distinct_matches} farklı maç (${p.effective_matches.toFixed(1)} etkin) · Başarı ${pct(p.success_rate)} · Maç gruplu %95 aralık ${interval}`));
+  evidence.append(node('p',`Model olasılığı ${pct(p.mean_probability)} · Aynı ${p.probability_valid} kayıtta gerçekleşen ${pct(p.calibration_observed)} · Brier ${p.brier_score==null?'—':p.brier_score.toFixed(3)} · Bekliyor ${p.pending} / Veri eksik ${p.awaiting_data} / İncelenmeli ${p.disputed} / Geçersiz ${p.void} · Maç gününden sonra kaydedilen karar ${p.late_recorded??0} (zamanı bilinen ${p.settlement_timestamp_available??0})`));
+  if(p.calibration_gap!=null&&p.calibration_gap<0)evidence.append(node('p','Model olasılığı gerçekleşenden yüksek: aşırı güven olasılığı.'));
   const detail=node('details');detail.append(node('summary',label+' · Lig / market / sürüm dağılımı'));
   for(const group of ['league','market','model_version'])for(const b of p.breakdowns[group])detail.append(node('p',`${group}: ${b.name} · ${b.won}/${b.decided} · ${b.distinct_matches} maç · ${b.sufficient?pct(b.success_rate):'Yetersiz örneklem'} · Brier ${b.brier_score==null?'—':b.brier_score.toFixed(3)}`));
-  card.append(detail);
+  evidence.append(detail);
  }
+ card.append(evidence);
  periods.append(card);
 }
 const daily=$('trend-daily');daily.replaceChildren();for(const d of data.daily){const row=node('tr');for(const v of [d.date,`${d.won}/${d.decided}`,d.lost,d.distinct_matches,pct(d.success_rate),pct(d.mean_probability),d.brier_score==null?'—':d.brier_score.toFixed(3),`${d.pending} / ${d.awaiting_data} / ${d.disputed} / ${d.void}`])cell(row,String(v));daily.append(row);}
-const chart=$('trend-chart');chart.replaceChildren();
-const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 620 140');svg.setAttribute('role','img');svg.setAttribute('aria-label','Son 60 günlük başarı; yetersiz veya eksik günlerde boşluk. Ayrıntılar günlük sayım tablosunda.');
-let previous=null;for(let i=0;i<data.daily.length;i++){const d=data.daily[i];if(d.chart_rate==null){previous=null;continue;}const x=12+i*10,y=125-d.chart_rate*110;
-const line=(x1,y1,x2,y2)=>{const el=document.createElementNS(svg.namespaceURI,'line');for(const [k,v] of Object.entries({x1,y1,x2,y2}))el.setAttribute(k,v);el.setAttribute('stroke','#66dda1');svg.append(el);};
-line(x,125-d.cluster_95.lower*110,x,125-d.cluster_95.upper*110);if(previous)line(previous.x,previous.y,x,y);
-const dot=document.createElementNS(svg.namespaceURI,'circle');dot.setAttribute('cx',x);dot.setAttribute('cy',y);dot.setAttribute('r',3);dot.setAttribute('fill','#66dda1');svg.append(dot);previous={x,y};}
-chart.append(node('p','Günlük başarı %0–%100 · soldan sağa son 60 gün · çizgiler maç gruplu belirsizlik aralığı'),svg);if(!data.daily.some(d=>d.chart_rate!=null))chart.append(node('p','Günlük çizgi için yeterli tamamlanmış örneklem yok.'));
+renderTrendChart(data);
 }
-function refreshTrends(){if(!$('trend-periods'))return;const q=new URLSearchParams();for(const [id,key] of [['trend-as-of','as_of'],['performance-league','league'],['performance-market','market'],['performance-exact','exact_market'],['performance-confidence','confidence']])if(value(id))q.set(key,value(id));write('trend-status','Gelişim verisi yükleniyor…');return request('trends','/api/performance-trends?'+q,renderTrends,()=>{write('trend-status','Gelişim verisi alınamadı · İyileşme kanıtlanmadı');for(const id of ['trend-periods','trend-chart','trend-daily'])$(id)?.replaceChildren();write('trend-model','');});}
+function refreshTrends(){if(!$('trend-periods'))return;const q=new URLSearchParams();for(const [id,key] of [['performance-from','date_from'],['performance-to','date_to'],['trend-as-of','as_of'],['performance-league','league'],['performance-market','market'],['performance-exact','exact_market'],['performance-confidence','confidence']])if(value(id))q.set(key,value(id));write('trend-status','Gelişim verisi yükleniyor…');return request('trends','/api/performance-trends?'+q,renderTrends,()=>{write('trend-status','Gelişim verisi alınamadı · İyileşme kanıtlanmadı');for(const id of ['trend-periods','trend-chart','trend-daily'])$(id)?.replaceChildren();write('trend-model','');});}
 if($('trend-as-of'))$('trend-as-of').onchange=refreshTrends;
-if($('trend-window'))$('trend-window').onchange=()=>document.querySelectorAll('.trend-period').forEach(card=>{card.hidden=card.dataset.days!==value('trend-window');});
+if($('trend-window'))$('trend-window').onchange=()=>{document.querySelectorAll('.trend-period').forEach(card=>{card.hidden=card.dataset.days!==value('trend-window');});if(latestTrends)renderTrendChart(latestTrends);};
 function renderMarketEvidence(markets){
 const box=$('performance-markets');if(!box)return;
 box.replaceChildren();

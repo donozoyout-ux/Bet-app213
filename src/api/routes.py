@@ -622,12 +622,13 @@ async def yesterday_winners(session=Depends(session_dependency)):
 
 
 @router.get('/performance-trends')
-async def performance_trends(as_of: Date | None=None,league: str | None=None,market: str='all',exact_market: str | None=None,confidence: Literal['high','medium','low'] | None=None,session=Depends(session_dependency)):
+async def performance_trends(as_of: Date | None=None,league: str | None=None,market: str='all',exact_market: str | None=None,confidence: Literal['high','medium','low'] | None=None,date_from: Date | None=None,date_to: Date | None=None,session=Depends(session_dependency)):
     from src.analytics.performance_trends import trends, ISTANBUL
+    if date_from and date_to and date_from>date_to:raise HTTPException(400,'Invalid date range')
     anchor=as_of or utcnow().astimezone(ISTANBUL).date()
     if anchor<Date(1970,1,1) or anchor>utcnow().astimezone(ISTANBUL).date():
         raise HTTPException(status_code=400,detail='Observation date must be between 1970 and today')
-    return await performance_cache.get(session.bind, ('trends-v1',anchor,league,market,exact_market,confidence),lambda:trends(session,anchor,league,market,exact_market,confidence))
+    return await performance_cache.get(session.bind, ('trends-v2',anchor,league,market,exact_market,confidence,date_from,date_to),lambda:trends(session,anchor,league,market,exact_market,confidence,date_from,date_to))
 
 
 @router.get('/market-performance')

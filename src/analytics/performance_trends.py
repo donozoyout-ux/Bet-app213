@@ -29,7 +29,7 @@ def summarize(rows):
     observed=sum(r['outcome']=='won' for r in valid)/len(valid) if valid else None
     unresolved=sum(counts[k] for k in ('pending','awaiting_data','disputed'))
     enough=n>=MIN_DECIDED and len(clusters)>=MIN_MATCHES and effective>=MIN_MATCHES
-    return dict(late_recorded=sum(r.get('late_recorded') is True for r in rows),settlement_timestamp_available=sum(r.get('late_recorded') is not None for r in rows),total=len(rows),decided=n,won=won,lost=counts['lost'],pending=counts['pending'],awaiting_data=counts['awaiting_data'],disputed=counts['disputed'],void=counts['void'],distinct_matches=len(clusters),effective_matches=effective,success_rate=rate,wilson_95=wilson_interval(won,n),cluster_95=dict(lower=max(0,rate-radius),upper=min(1,rate+radius)) if n else None,probability_valid=len(valid),mean_probability=mean,calibration_observed=observed,calibration_gap=observed-mean if valid else None,brier_score=sum((r['probability']-int(r['outcome']=='won'))**2 for r in valid)/len(valid) if valid else None,incomplete=bool(unresolved),sufficient=enough,chart_rate=rate if enough and not unresolved else None,model_versions=sorted({r['model_version'] for r in rows}))
+    return dict(late_recorded=sum(r.get('late_recorded') is True for r in rows),settlement_timestamp_available=sum(r.get('late_recorded') is not None for r in rows),total=len(rows),decided=n,won=won,lost=counts['lost'],pending=counts['pending'],awaiting_data=counts['awaiting_data'],disputed=counts['disputed'],void=counts['void'],distinct_matches=len(clusters),effective_matches=effective,success_rate=rate,wilson_95=wilson_interval(won,n),cluster_95=dict(lower=max(0,rate-radius),upper=min(1,rate+radius)) if n else None,probability_valid=len(valid),mean_probability=mean,calibration_observed=observed,calibration_gap=observed-mean if valid else None,brier_score=sum((r['probability']-int(r['outcome']=='won'))**2 for r in valid)/len(valid) if valid else None,incomplete=bool(unresolved),sufficient=enough,chart_rate=rate,model_versions=sorted({r['model_version'] for r in rows}))
 
 
 def build_trends(rows, as_of, *, truncated=False, duplicate_picks_excluded=0):
@@ -51,16 +51,28 @@ def build_trends(rows, as_of, *, truncated=False, duplicate_picks_excluded=0):
             direction='increase' if recent['cluster_95']['lower']>previous['cluster_95']['upper'] else 'decrease' if recent['cluster_95']['upper']<previous['cluster_95']['lower'] else 'uncertain'
         comparisons.append(dict(days=days,recent=recent,previous=previous,eligible=eligible,raw_difference=difference,direction=direction))
     daily=[dict(date=(lower+timedelta(days=i)).isoformat(),**summarize([r for r in rows if r['day']==lower+timedelta(days=i)])) for i in range(60)]
+    weekly=[]
+    # Monday-based calendar weeks, clipped to the bounded observation window.
+    cursor=lower
+    while cursor<as_of:
+        stop=min(cursor+timedelta(days=7-cursor.weekday()),as_of)
+        weekly.append(dict(date=cursor.isoformat(),end_exclusive=stop.isoformat(),
+                           **summarize([r for r in rows if cursor<=r['day']<stop])))
+        cursor=stop
+    active=[d for d in daily if d['total']]
+    aggregation='daily' if len(active)>=14 and sum(d['decided']>=5 for d in active)>=len(active)*.7 else 'weekly'
     if truncated:
-        for d in daily:d['chart_rate']=None
-    return dict(as_of=as_of.isoformat(),timezone='Europe/Istanbul',cohort_basis='match_kickoff_date',today_excluded=True,min_decided=MIN_DECIDED,min_distinct_matches=MIN_MATCHES,min_effective_matches=MIN_MATCHES,truncated=truncated,duplicate_picks_excluded=duplicate_picks_excluded,first_observed_kickoff=min((r['day'] for r in rows),default=None),model_versions=sorted({r['model_version'] for r in rows}),model_update_verified=False,improvement_proven=False,daily=daily,comparisons=comparisons)
+        for d in daily+weekly:d['chart_rate']=None
+    return dict(as_of=as_of.isoformat(),timezone='Europe/Istanbul',cohort_basis='match_kickoff_date',today_excluded=True,min_decided=MIN_DECIDED,min_distinct_matches=MIN_MATCHES,min_effective_matches=MIN_MATCHES,truncated=truncated,duplicate_picks_excluded=duplicate_picks_excluded,first_observed_kickoff=min((r['day'] for r in rows),default=None),model_versions=sorted({r['model_version'] for r in rows}),model_update_verified=False,improvement_proven=False,daily=daily,weekly=weekly,aggregation=aggregation,comparisons=comparisons)
 
 
-async def trends(session,as_of,league=None,market='all',exact_market=None,confidence=None):
+async def trends(session,as_of,league=None,market='all',exact_market=None,confidence=None,date_from=None,date_to=None):
     start=datetime.combine(as_of-timedelta(days=60),time(),ISTANBUL)
     end=datetime.combine(as_of,time(),ISTANBUL)
     query=select(PredictionSnapshot,Match,MatchStatistics,League.name).join(Match,Match.id==PredictionSnapshot.match_id).join(League,League.id==Match.league_id).outerjoin(MatchStatistics,MatchStatistics.match_id==Match.id).options(defer(Match.raw),defer(MatchStatistics.raw)).where(Match.kickoff_at>=start,Match.kickoff_at<end).order_by(Match.kickoff_at,Match.id).limit(MAX_SNAPSHOTS+1)
     if league:query=query.where(League.id==int(league)) if league.isdigit() else query.where(League.name.ilike('%'+league+'%'))
+    if date_from:query=query.where(PredictionSnapshot.captured_at>=datetime.combine(date_from,time(),ISTANBUL))
+    if date_to:query=query.where(PredictionSnapshot.captured_at<datetime.combine(date_to+timedelta(days=1),time(),ISTANBUL))
     records=(await session.execute(query)).all();truncated=len(records)>MAX_SNAPSHOTS;records=records[:MAX_SNAPSHOTS]
     frozen=await decisions_many(session,[r[1].id for r in records]) if records else {}
     rows=[];duplicates=0
