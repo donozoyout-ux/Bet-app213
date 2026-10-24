@@ -86,6 +86,9 @@ async def trends(session,as_of,league=None,market='all',exact_market=None,confid
             if not market_matches([pick],market) or exact_market and pick.get('id')!=exact_market or confidence and pick.get('confidence')!=confidence:continue
             saved=frozen.get(match.id,{}).get(index)
             outcome,_,_=display_result(snapshot,match,stats,pick,saved)
+            # A score-only retrospective evaluation is not a persisted result.
+            # Reconciliation still excludes disputed/missing/void ledger entries.
+            if not saved and outcome in {'won','lost'}:outcome='awaiting_data'
             kickoff_day=aware(match.kickoff_at).astimezone(ISTANBUL).date()
             late=aware(saved.recorded_at).astimezone(ISTANBUL).date()>kickoff_day if saved else None
             rows.append(dict(day=kickoff_day,late_recorded=late,match_id=match.id,league=league_name,market=pick['market'],model_version=snapshot.model_version,probability=pick.get('probability'),outcome=outcome))

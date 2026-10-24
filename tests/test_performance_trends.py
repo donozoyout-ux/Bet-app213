@@ -181,6 +181,6 @@ async def test_no_decided_empty_state_and_capture_date_filters(api,db):
             await page.locator('#trend-as-of').dispatch_event('change')
             await expect(page.locator('#trend-chart')).to_contain_text('Henüz sonuçlanan tahmin yok')
             await expect(page.locator('#trend-chart circle')).to_have_count(0)
-            await expect(page.locator('#trend-chart svg')).to_be_visible()
+            await expect(page.locator('#trend-chart svg')).to_have_count(0)
         finally:
             await page.unroute_all(behavior='ignoreErrors');await browser.close()

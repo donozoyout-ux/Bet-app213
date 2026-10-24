@@ -628,7 +628,7 @@ async def performance_trends(as_of: Date | None=None,league: str | None=None,mar
     anchor=as_of or utcnow().astimezone(ISTANBUL).date()
     if anchor<Date(1970,1,1) or anchor>utcnow().astimezone(ISTANBUL).date():
         raise HTTPException(status_code=400,detail='Observation date must be between 1970 and today')
-    return await performance_cache.get(session.bind, ('trends-v2',anchor,league,market,exact_market,confidence,date_from,date_to),lambda:trends(session,anchor,league,market,exact_market,confidence,date_from,date_to))
+    return await performance_cache.get(session.bind, ('trends-v3',anchor,league,market,exact_market,confidence,date_from,date_to),lambda:trends(session,anchor,league,market,exact_market,confidence,date_from,date_to))
 
 
 @router.get('/market-performance')

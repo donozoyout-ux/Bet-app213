@@ -120,6 +120,11 @@ async def home_script():
     return FileResponse(Path(__file__).resolve().with_name('dashboard-home.js'), media_type='application/javascript')
 
 
+@app.get('/dashboard-results.js', include_in_schema=False)
+async def results_script():
+    return FileResponse(Path(__file__).resolve().with_name('dashboard-results.js'), media_type='application/javascript')
+
+
 @app.get('/dashboard.js', include_in_schema=False)
 async def dashboard_script():
     return FileResponse(Path(__file__).resolve().with_name('dashboard.js'), media_type='application/javascript')
