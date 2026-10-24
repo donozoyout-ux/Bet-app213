@@ -140,6 +140,7 @@
     box.append(element('p',`Bu görünümde ${recs.length} seçim · ${r.sample_size} maçlık örneklem. Model olasılığı gerçekleşmiş başarı oranı değildir.`,'model-note'));
   }
   function refresh() {
+    globalThis.BetAppResults?.refresh();
     request('home-coupon-list','/api/coupons/daily?strategy=balanced',renderCoupon);
     request('home-live-list','/api/matches?view=live&include_odds=true&limit=3',renderLive);
     request('home-movement-list','/api/matches?view=upcoming&include_odds=true&limit=12',renderMovements);
