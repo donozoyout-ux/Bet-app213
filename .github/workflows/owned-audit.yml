@@ -1,0 +1,54 @@
+name: Daily encrypted owned audit
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '35 3 * * *'
+permissions:
+  contents: read
+concurrency:
+  group: owned-audit-v2
+  cancel-in-progress: false
+jobs:
+  daily:
+    if: vars.OWNED_AUDIT_ENABLED == 'true'
+    environment: owned-audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+      - name: Authenticate, export, restore verify and publish private daily archive
+        env:
+          ARCHIVE_ACTIVATED: 'true'
+          ARCHIVE_DATABASE_URL: ${{ secrets.ARCHIVE_DATABASE_URL }}
+          ARCHIVE_ENCRYPTION_KEY: ${{ secrets.ARCHIVE_ENCRYPTION_KEY }}
+          ARCHIVE_GITHUB_TOKEN: ${{ secrets.ARCHIVE_GITHUB_TOKEN }}
+          ARCHIVE_REPOSITORY: ${{ vars.ARCHIVE_REPOSITORY }}
+          ARCHIVE_RIGHTS_REFERENCE: ${{ vars.ARCHIVE_RIGHTS_REFERENCE }}
+          ARCHIVE_BUDGET_BYTES: ${{ vars.ARCHIVE_BUDGET_BYTES }}
+          ARCHIVE_KEEP_DAYS: ${{ vars.ARCHIVE_KEEP_DAYS }}
+          ARCHIVE_EXPECTED_LEAGUES: ${{ vars.ARCHIVE_EXPECTED_LEAGUES }}
+          NEON_QUOTA_BYTES: ${{ vars.NEON_QUOTA_BYTES }}
+          ARCHIVE_REPORT: ${{ runner.temp }}/coverage.json
+          TELEGRAM_BOT_TOKEN: ''
+          TELEGRAM_CHAT_ID: ''
+          NVIDIA_API_KEY: ''
+          DATABASE_URL: ''
+        run: python -m src.archive.cli daily
+      - name: Small aggregate coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-coverage-${{ github.run_id }}
+          path: ${{ runner.temp }}/coverage.json
+          if-no-files-found: error
+          retention-days: 30
+          overwrite: true
+      - name: Failure notice
+        if: failure()
+        run: echo '::error::Daily archive failed. Inspect this Actions run; no Telegram message is sent.'
+      - name: Remove local report
+        if: always()
+        run: rm -f -- "$RUNNER_TEMP/coverage.json"
