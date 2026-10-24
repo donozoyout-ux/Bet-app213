@@ -101,7 +101,14 @@ async def additional_statistics(session,match,cutoff):
         Match.kickoff_at<=cutoff-timedelta(hours=3),Match.kickoff_at>=cutoff-timedelta(days=3*366),
         Match.created_at<=cutoff,Match.updated_at<=cutoff,or_(Match.last_scraped_at.is_(None),Match.last_scraped_at<=cutoff),
         ).order_by(Match.kickoff_at.desc(),Match.id.desc())
-    if history_key not in history_cache:history_cache[history_key]=(await session.execute(query)).all()
+    if history_key not in history_cache:
+        from .history_cache import historical_rows, enabled, MAX_ROWS
+        cached_rows = await historical_rows(session, match.league_id, cutoff, match.id)
+        if cached_rows is None:
+            if enabled():query=query.limit(MAX_ROWS)
+            history_cache[history_key]=(await session.execute(query)).all()
+        else:
+            history_cache[history_key]=[(m,s) for m,s,home,away in cached_rows]
     rows=history_cache[history_key]
     result={}
     for market,metric,basis in [('corners','corners','corners'),('cards','cards','yellow_plus_red'),('yellow_cards','cards','yellow_only'),('red_cards','cards','red_only')]:

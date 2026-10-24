@@ -1,4 +1,5 @@
 """Durable, atomically published league boards. HTTP never runs the model."""
+from src.match_views import upcoming_predicate
 import asyncio
 import hashlib
 import json
@@ -21,6 +22,7 @@ payload_cache=ReadCache(ttl=600,limit=4)
 
 MODEL_VERSION='quality-poisson-v3-specialist-adapters-v1'
 _DISABLED=','.join(sorted(filter(None,os.getenv('DISABLED_MARKET_ENGINES','').split(','))))
+if os.getenv('HYBRID_HISTORY_ENABLED','false').lower()=='true':MODEL_VERSION='quality-poisson-v3-hybrid1-adapters-v1'
 if _DISABLED:MODEL_VERSION+='-flags-'+hashlib.sha256(_DISABLED.encode()).hexdigest()[:12]
 TTL=timedelta(minutes=10)
 REFRESH_LOCK=213006
@@ -132,7 +134,7 @@ async def read_board(session,league,date,team,now,statistical_all=False,include_
     with stage('board_payload'):
         payloads=await payload_cache.get(session.bind,key,load_payloads) if valid else {}
     # Current statuses prevent a cached prematch pick appearing after kickoff or completion.
-    eligible=dict((await session.execute(select(Match.id,Match.kickoff_at).join(League).where(League.enabled.is_(True),Match.status=='scheduled',Match.kickoff_at>now,Match.kickoff_at<=now+timedelta(days=7)))).all())
+    eligible=dict((await session.execute(select(Match.id,Match.kickoff_at).join(League).where(League.enabled.is_(True),Match.status=='scheduled',Match.kickoff_at>now,upcoming_predicate(now)))).all())
     items=[];availability=[];engine_analysis=[];times=[];expiries=[];revisions={};missing=[];stale=[];evaluated=0;versions={}
     for id,board,version,read_version in rows:
         if board is None or board.model_version!=MODEL_VERSION:missing.append(id);continue
@@ -179,4 +181,11 @@ async def read_board(session,league,date,team,now,statistical_all=False,include_
         'scheduled_matches':len(eligible),
         'statistical_matches':len({i['match']['id'] for i in items}),
         'quality_matches':len({i['match']['id'] for i in items if any(quality(r) for r in i['recommendations'])})}
+    from .history_cache import enabled as hybrid_enabled
+    if hybrid_enabled():
+        from src.match_views import active_bounds
+        start,end=active_bounds(now)
+        session.info['prediction_snapshot']['active_window']=dict(
+            semantics='today_plus_3_calendar_days',timezone=DISPLAY_TIMEZONE,start=start,end=end,
+            rolling_72h_end=now+timedelta(hours=72))
     return items,now,evaluated

@@ -1,5 +1,6 @@
 """Forward-only, immutable prematch picks; settlement uses published final data."""
 from collections import defaultdict
+from src.match_views import upcoming_predicate
 import math
 from sqlalchemy import select, case
 from sqlalchemy.orm import defer
@@ -220,7 +221,7 @@ async def capture_upcoming(session,league_id):
     from src.models import utcnow
     from src.analytics.service import statistics,revision
     now=utcnow();query,_,_=match_query()
-    query=query.where(League.enabled.is_(True),Match.league_id==league_id,Match.status=='scheduled',Match.kickoff_at>now,Match.kickoff_at<=now+timedelta(days=7))
+    query=query.where(League.enabled.is_(True),Match.league_id==league_id,Match.status=='scheduled',Match.kickoff_at>now,upcoming_predicate(now))
     rows=(await session.execute(query.order_by(Match.kickoff_at,Match.id))).all();rev=await revision(session);created=False
     for row in rows:
         result=await statistics(session,row[0],match_response(row),now,rev)

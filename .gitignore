@@ -48,3 +48,7 @@ scratch/
 odds_ajax.json
 *.enc.json
 archive-output/
+
+# Runtime season totals; never use Git commits as a mutable database.
+data/aggregates/*.csv
+data/aggregates/.season-*

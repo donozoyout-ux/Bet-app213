@@ -3,6 +3,7 @@
 Called only by the advisory-lock-owning scraper, between durable items. Each
 cycle is bounded; old jobs retain their running state and completed checkpoints.
 """
+from src.match_views import upcoming_predicate
 import asyncio
 import logging
 import time
@@ -88,7 +89,7 @@ class PriorityUpdater:
         from .storage import store_odds,store_market_odds
         now=utcnow();tasks=[]
         async with self.db.session() as session:
-            matches={m.id:m for m in await session.scalars(select(Match).join(League).where(League.enabled.is_(True),Match.status=='scheduled',Match.kickoff_at>now,Match.kickoff_at<=now+timedelta(days=7)))}
+            matches={m.id:m for m in await session.scalars(select(Match).join(League).where(League.enabled.is_(True),Match.status=='scheduled',Match.kickoff_at>now,upcoming_predicate(now)))}
             retries={r.key:r for r in await session.scalars(select(CollectorRetry).where(CollectorRetry.key.like('quotes:%')))}
             for board in await session.scalars(select(PredictionBoard).join(League).where(League.enabled.is_(True))):
                 records=board.payload.get('coupon_records',board.payload.get('items',[]))
@@ -261,6 +262,16 @@ async def priority_cycle(db,client):
         except asyncio.CancelledError:raise
         except Exception as exc:
             log.warning('[SETTLEMENT] sweep deferred error=%s', type(exc).__name__)
+    from src.analytics.history_cache import enabled as hybrid_enabled
+    if hybrid_enabled() and time.monotonic() >= getattr(db, 'next_season_archive', 0):
+        db.next_season_archive = time.monotonic() + 600
+        try:
+            from src.analytics.season_archive import refresh
+            async with asyncio.timeout(15):
+                await refresh(db)
+        except asyncio.CancelledError:raise
+        except Exception as exc:
+            log.warning('[HISTORY] aggregate refresh deferred error=%s', type(exc).__name__)
     if memory_constrained():return
     if time.monotonic()<getattr(db,'next_prediction_refresh',0):return
     db.next_prediction_refresh=time.monotonic()+10

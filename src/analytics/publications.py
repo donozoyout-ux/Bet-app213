@@ -11,6 +11,7 @@ from sqlalchemy.orm import undefer,defer
 from src.models import (BoardEdition, BoardHead, DailyCouponPublication, PredictionBoard,
                         Match, League, Odds1X2, AsianTotals, AsianHandicap, MarketOdds, SavedCoupon)
 from src.jobs.worker import aware
+from src.match_views import upcoming_predicate
 
 
 def analysis_evidence(value):
@@ -146,7 +147,7 @@ async def revisions(session,now):
         for a,b,c,d,g,model in boards}
     matches=(await session.execute(select(Match.id,Match.kickoff_at,Match.updated_at,Match.league_id).join(League)
         .where(League.enabled.is_(True),Match.status=='scheduled',Match.kickoff_at>now,
-               Match.kickoff_at<=now+timedelta(days=7)).order_by(Match.id))).all()
+               upcoming_predicate(now)).order_by(Match.id))).all()
     ids=[r.id for r in matches]
     from src.models import PublishedMatchAnalysis
     analysis_rows=(await session.execute(select(PublishedMatchAnalysis.match_id,PublishedMatchAnalysis.version,

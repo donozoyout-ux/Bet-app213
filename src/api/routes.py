@@ -1,3 +1,4 @@
+from src.match_views import upcoming_predicate, active_bounds
 from datetime import date as Date, datetime, timezone, timedelta
 from typing import Literal
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
@@ -233,9 +234,10 @@ async def predictions(league: str | None = None, date: Date | None = None,
         item['strongest_prediction']=item['recommendations'][0]['id']
     calculated.sort(key=lambda item:not any(priced(r) for r in item['recommendations']))
     primary = [item for item in calculated if aware(item['match']['kickoff_at']) <= now + timedelta(hours=72)]
+    from src.analytics.history_cache import enabled as hybrid_enabled
     enough=len(primary)>=min(5,limit)
-    chosen=calculated if date or not enough else primary
-    return {'availability':summarize_availability(session.info.get('count_availability',[]),market,len(chosen)), 'items':chosen[:limit],'window_hours':72 if enough and not date else 168,'generated_at':session.info['prediction_snapshot']['generated_at'],'cache':session.info['prediction_snapshot']}
+    chosen=calculated if hybrid_enabled() or date or not enough else primary
+    return {'availability':summarize_availability(session.info.get('count_availability',[]),market,len(chosen)), 'items':chosen[:limit],'window_hours':int((active_bounds(now)[1]-now).total_seconds()/3600) if hybrid_enabled() else (72 if enough and not date else 168),'generated_at':session.info['prediction_snapshot']['generated_at'],'cache':session.info['prediction_snapshot']}
 
 
 async def calculate_predictions(session,league,date,team=None,statistical_all=False,include_engine_analysis=False):
@@ -326,7 +328,7 @@ async def odds_coverage(session=Depends(session_dependency)):
     for row in analysis:
         attach_coverage(row['market_engines'],row.pop('candidates'))
     from src.models import League
-    ids=list(await session.scalars(select(Match.id).join(League).where(League.enabled.is_(True),Match.status=='scheduled',Match.kickoff_at>now,Match.kickoff_at<=now+timedelta(days=7))))
+    ids=list(await session.scalars(select(Match.id).join(League).where(League.enabled.is_(True),Match.status=='scheduled',Match.kickoff_at>now,upcoming_predicate(now))))
     return {**report(records,now),'cache':session.info['prediction_snapshot'], 'engine_analysis':analysis,
             'source_scope':'enabled_upcoming_7_days','source_match_count':len(ids),
             'source_rows': await source_report(session, now, match_ids=ids)}
@@ -393,7 +395,7 @@ async def uncached_predictions(session,league,date,team=None,now=None,publish=Tr
     now = now or utcnow()
     query, home, away = match_query()
     query = query.where(League.enabled.is_(True), Match.status == 'scheduled', Match.kickoff_at > now,
-                        Match.kickoff_at <= now + timedelta(days=7))
+                        upcoming_predicate(now))
     if league:
         query = query.where(League.id == int(league)) if league.isdigit() else query.where(League.name.ilike(f'%{league}%'))
     if date:
@@ -658,3 +660,10 @@ async def market_performance(league: str | None=None,market: Literal['all','resu
 async def stats_rollout():
     from src.jobs.worker import enqueue_stats_rollout
     return [job_response(job) for job in await enqueue_stats_rollout()]
+
+
+@router.get('/history/seasons')
+async def history_seasons(session=Depends(session_dependency)):
+    from src.analytics.season_archive import read_or_query
+    async with asyncio.timeout(4):
+        return await read_or_query(session)
