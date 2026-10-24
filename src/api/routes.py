@@ -151,7 +151,7 @@ async def matches(league: str | None = None, season: str | None = None,
     if view == 'live':
         query = query.where(Match.status.in_(LIVE_STATUSES))
     elif view == 'today':
-        start, end = day_bounds(now.astimezone(zone).date(), display_timezone)
+        start, end = day_bounds(date or now.astimezone(zone).date(), display_timezone)
         query = query.where(Match.kickoff_at >= start, Match.kickoff_at < end)
     elif view == 'upcoming':
         query = query.where(Match.status == 'scheduled', Match.kickoff_at > now)
@@ -163,7 +163,7 @@ async def matches(league: str | None = None, season: str | None = None,
         query = query.where(Season.season_name == season.replace('/', '-'))
     if round is not None:
         query = query.where(Match.round == round)
-    if date:
+    if date and view != 'today':
         start, end = day_bounds(date, display_timezone)
         query = query.where(Match.kickoff_at >= start, Match.kickoff_at < end)
     if status:
@@ -198,6 +198,19 @@ async def matches(league: str | None = None, season: str | None = None,
         for item in items:
             item['odds'] = grouped.get(item['id'], [])
     return {'items': items, 'total': total, 'limit': limit, 'offset': offset, 'upcoming_expanded': upcoming_expanded}
+
+
+@router.get('/prediction-fixtures')
+async def prediction_fixtures(date: Date | None=None,league: int | None=Query(default=None,gt=0,le=2147483647),
+        status: Literal['all','upcoming','live','finished']='all',
+        limit: int=Query(default=25,ge=1,le=100),offset: int=Query(default=0,ge=0),
+        session=Depends(session_dependency)):
+    from src.analytics.fixture_predictions import fixture_page
+    from .read_cache import fixture_cache
+    now=utcnow();day=date or now.astimezone(ZoneInfo(DISPLAY_TIMEZONE)).date()
+    if not 1970<=day.year<=2100:raise HTTPException(400,'Date must be between 1970 and 2100')
+    return await fixture_cache.get(session.bind,('fixtures-v1',day,league,status,limit,offset),
+        lambda:fixture_page(session,day,now,league=league,status=status,limit=limit,offset=offset))
 
 
 @router.get('/predictions', response_model=PredictionPage)

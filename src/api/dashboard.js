@@ -163,9 +163,10 @@
   async function health() {
     if(document.hidden || healthBusy)return;healthBusy=true;
     try {
-    try {await api('/health');write('api-health','Bağlı');document.querySelector('.connection')?.classList.toggle('connected',true);write('system-api','HTTP 200');}catch(_){document.querySelector('.connection')?.classList.toggle('connected',false);write('api-health',requestError(_));write('system-api','Bağlantı bekleniyor');}
+    try {await api('/health');write('api-health','API yanıtı · Veri tazeliği ayrı');document.querySelector('.connection')?.classList.toggle('connected',false);write('system-api','HTTP 200');}catch(_){document.querySelector('.connection')?.classList.toggle('connected',false);write('api-health',requestError(_));write('system-api','Bağlantı bekleniyor');}
     try {
       const system=await api('/api/status');
+      write('api-health',system.database==='connected'?'Veri erişimi var · Tazelik ayrı':'Veri bağlantısı yok');
       write('system-db',[system.database_engine,system.database].filter(Boolean).join(' • '));write('hero-status',system.database === 'connected' ? 'Veritabanı bağlı' : 'PostgreSQL kullanılamıyor');write('services-status',system.database === 'connected' ? 'Veritabanı bağlı' : 'Veri bekleniyor');
       write('total-matches',system.total_matches == null ? empty : system.total_matches);
       write('new-matches-24h',system.new_matches_24h == null ? empty : system.new_matches_24h);
@@ -180,7 +181,7 @@
       write('system-summary',system.total_odds == null ? 'Veri bekleniyor' : `${system.total_odds} bookmaker piyasa kaydı`);
       const [live,today]=await Promise.allSettled([api('/api/matches?view=live&limit=1'),api('/api/matches?view=today&display_timezone=Europe%2FIstanbul&limit=1')]);write('live-matches',live.status==='fulfilled'?live.value.total:'Veri bekleniyor');write('today-matches',today.status==='fulfilled'?today.value.total:'Veri bekleniyor');
       if(!globalThis.BetAppUI || globalThis.BetAppUI.active('matches'))await loadSeasons();
-    } catch (_) {write('system-db',requestError(_));['total-matches','new-matches-24h','latest-new-match','live-matches','today-matches','system-summary','fixture-last-success','collection-last-update','collection-summary','collection-failures'].forEach(id=>write(id,'Veri bekleniyor'));}
+    } catch (_) {write('api-health','Veri bağlantısı doğrulanamadı');write('system-db',requestError(_));['total-matches','new-matches-24h','latest-new-match','live-matches','today-matches','system-summary','fixture-last-success','collection-last-update','collection-summary','collection-failures'].forEach(id=>write(id,'Veri bekleniyor'));}
     refreshPredictions();
     } finally {healthBusy=false;}
   }

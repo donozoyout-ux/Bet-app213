@@ -42,5 +42,6 @@ class ReadCache:
 summary_cache = ReadCache(ttl=20)
 prediction_cache = ReadCache(ttl=30)
 performance_cache = ReadCache(ttl=30)
+fixture_cache = ReadCache(ttl=15, limit=64)
 
 revision_cache = ReadCache(ttl=3)

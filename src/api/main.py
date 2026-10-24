@@ -129,6 +129,11 @@ async def results_script():
 async def dashboard_script():
     return FileResponse(Path(__file__).resolve().with_name('dashboard.js'), media_type='application/javascript')
 
+
+@app.get('/dashboard-fixtures.js', include_in_schema=False)
+async def fixture_script():
+    return FileResponse(Path(__file__).resolve().with_name('dashboard-fixtures.js'), media_type='application/javascript')
+
 @app.get('/dashboard-odds.js', include_in_schema=False)
 async def dashboard_odds_script():
     return FileResponse(Path(__file__).resolve().with_name('dashboard-odds.js'), media_type='application/javascript')
