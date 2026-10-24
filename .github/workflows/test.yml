@@ -61,4 +61,5 @@ jobs:
           node tests/coupon_runtime.cjs
           node --check src/api/dashboard-home.js
           node --check src/api/dashboard-results.js
+          node --check src/api/dashboard-fixtures.js
           node tests/home_runtime.cjs
