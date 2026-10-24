@@ -178,9 +178,11 @@ async def test_daily_publish_readback_restore_and_repeated_day(tmp_path,monkeypa
     def forbidden(*args,**kwargs):raise AssertionError('Source re-read on repeated day')
     monkeypatch.setattr(cli,'snapshot',forbidden)
     before=len([r for r in fake.requests if r.method=='POST'])
-    config['ARCHIVE_REPORT']=str(tmp_path/'retry.json')
     assert await daily(config,NOW,transport=httpx.MockTransport(fake))==result
     assert len(fake.releases)==1 and len([r for r in fake.requests if r.method=='POST'])==before
+    Path(config['ARCHIVE_REPORT']).write_text('conflicting report')
+    with pytest.raises(ValueError):await daily(config,NOW,transport=httpx.MockTransport(fake))
+    assert Path(config['ARCHIVE_REPORT']).read_text()=='conflicting report'
 
 
 @pytest.mark.parametrize('draft_assets',[False,True])

@@ -45,6 +45,7 @@ jobs:
           path: ${{ runner.temp }}/coverage.json
           if-no-files-found: error
           retention-days: 30
+          overwrite: true
       - name: Failure notice
         if: failure()
         run: echo '::error::Daily archive failed. Inspect this Actions run; no Telegram message is sent.'

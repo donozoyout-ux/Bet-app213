@@ -44,7 +44,13 @@ def configuration(env):
 def emit_report(data, path):
     data=validate(data);report=data['coverage']
     Path(path).parent.mkdir(parents=True,exist_ok=True)
-    write_new(path,canonical(report))
+    raw=canonical(report)
+    try:write_new(path,raw)
+    except FileExistsError:
+        # Repeating the same verified day is a no-op; a different report at the
+        # same path is a conflict and must never be silently overwritten.
+        with Path(path).open('rb') as existing:
+            if existing.read(len(raw)+1)!=raw:raise ValueError('Existing report conflicts with verified archive')
     # Fixed messages only; no source exceptions, names, DSNs or record payloads.
     summary=os.getenv('GITHUB_STEP_SUMMARY')
     if summary:
