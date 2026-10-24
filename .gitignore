@@ -46,3 +46,5 @@ scratch/
 *_probe.*
 *_js.txt
 odds_ajax.json
+*.enc.json
+archive-output/

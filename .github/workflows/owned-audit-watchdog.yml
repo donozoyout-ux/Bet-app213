@@ -1,0 +1,22 @@
+name: Daily archive missing-run check
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '35 12 * * *'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  missing-run:
+    if: vars.OWNED_AUDIT_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install 'httpx>=0.27,<1'
+      - run: python -m src.archive.watchdog
+        env:
+          GH_TOKEN: ${{ github.token }}
