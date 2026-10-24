@@ -1,0 +1,38 @@
+name: Encrypted owned audit snapshots
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '35 3 * * 0'
+permissions:
+  contents: read
+concurrency:
+  group: owned-audit-snapshot
+  cancel-in-progress: false
+jobs:
+  snapshot:
+    if: vars.OWNED_AUDIT_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: owned-audit
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+      - name: Export, authenticate, restore-verify, upload encrypted private Release
+        env:
+          ARCHIVE_DATABASE_URL: ${{ secrets.ARCHIVE_DATABASE_URL }}
+          ARCHIVE_ENCRYPTION_KEY: ${{ secrets.ARCHIVE_ENCRYPTION_KEY }}
+          ARCHIVE_GITHUB_TOKEN: ${{ secrets.ARCHIVE_GITHUB_TOKEN }}
+          ARCHIVE_REPOSITORY: ${{ vars.ARCHIVE_REPOSITORY }}
+          ARCHIVE_RIGHTS_REFERENCE: ${{ vars.ARCHIVE_RIGHTS_REFERENCE }}
+          ARCHIVE_OUTPUT: ${{ runner.temp }}/owned-audit.enc.json
+          ARCHIVE_UPLOAD_ENABLED: 'true'
+          TELEGRAM_BOT_TOKEN: ''
+          TELEGRAM_CHAT_ID: ''
+          NVIDIA_API_KEY: ''
+        run: python -m src.archive.cli export
+      - name: Remove local ciphertext
+        if: always()
+        run: rm -f -- "$RUNNER_TEMP/owned-audit.enc.json"

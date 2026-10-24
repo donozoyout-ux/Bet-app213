@@ -14,6 +14,12 @@ log = logging.getLogger(__name__)
 
 class Database:
     def __init__(self, url: str):
+        if settings.storage_backend not in {'postgresql','archive'}:
+            raise ValueError('STORAGE_BACKEND must be postgresql or archive')
+        if settings.storage_backend=='archive':
+            # Explicit read-only outage mode; never create an ephemeral replacement DB.
+            url=''
+
         if url.startswith(('postgres://', 'postgresql://')):
             url = 'postgresql+asyncpg://' + url.split('://', 1)[1]
         if url and not url.startswith(('postgresql+asyncpg://', 'sqlite+aiosqlite://')):

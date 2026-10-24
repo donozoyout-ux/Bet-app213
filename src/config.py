@@ -7,6 +7,7 @@ load_dotenv()
 
 @dataclass(frozen=True)
 class Settings:
+    storage_backend: str = os.getenv('STORAGE_BACKEND', 'postgresql')
     database_url: str = os.getenv('DATABASE_URL', '')
     app_env: str = os.getenv('APP_ENV', 'development')
     log_level: str = os.getenv('LOG_LEVEL', 'INFO')

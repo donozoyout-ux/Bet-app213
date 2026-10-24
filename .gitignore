@@ -46,3 +46,10 @@ scratch/
 *_probe.*
 *_js.txt
 odds_ajax.json
+# Private archive artifacts (never git history)
+*.enc.json
+*.db-wal
+*.db-shm
+*.sqlite-wal
+*.sqlite-shm
+archive-output/

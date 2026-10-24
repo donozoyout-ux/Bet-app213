@@ -47,7 +47,7 @@ async def diagnostics():
 
 async def session_dependency():
     if not database.configured or not database.ready:
-        raise HTTPException(503, 'Database not ready. Configure DATABASE_URL and initialize PostgreSQL.')
+        raise HTTPException(503, 'Database not ready. Live data unavailable. Configure durable storage; /archive contains historical summaries only.')
     async with database.session() as session:
         async with asyncio.timeout(12):
             yield session
