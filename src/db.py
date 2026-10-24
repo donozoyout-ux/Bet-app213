@@ -4,6 +4,7 @@ import os
 import time
 from sqlalchemy import event
 from sqlalchemy import select, text
+from sqlalchemy.engine import make_url
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from src.config import settings
 from src.models import Base, League, Bookmaker
@@ -22,6 +23,13 @@ class Database:
             raise ValueError('Production requires PostgreSQL')
         options = {}
         if url.startswith('postgresql+asyncpg://'):
+            # Neon/libpq connection strings use sslmode; asyncpg.connect expects ssl.
+            parsed = make_url(url)
+            sslmode = parsed.query.get('sslmode')
+            if sslmode is not None:
+                if sslmode not in ('require', 'verify-ca', 'verify-full'):
+                    raise ValueError('DATABASE_URL sslmode must require TLS')
+                url = parsed.difference_update_query(['sslmode'])
             # Reserve HTTP connections; a scraper process has only its lock + one writer.
             worker = os.getenv('BETAPP_PROCESS_ROLE') == 'scraper'
             options = dict(pool_size=2 if worker else 5, max_overflow=0,
@@ -29,6 +37,8 @@ class Database:
                            connect_args={'timeout': 5, 'command_timeout': 15,
                                'server_settings': {'application_name': 'betapp-scraper' if worker else 'betapp-web',
                                    'statement_timeout': '12000', 'lock_timeout': '2000'}})
+            if sslmode is not None:
+                options['connect_args']['ssl'] = sslmode
         self.engine = create_async_engine(url, pool_pre_ping=True, **options) if url else None
         if self.engine:
             @event.listens_for(self.engine.sync_engine, 'before_cursor_execute')
