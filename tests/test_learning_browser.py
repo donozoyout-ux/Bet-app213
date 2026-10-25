@@ -12,7 +12,7 @@ from src.models import LearningReport, LearningHead, LearningLesson, LearningSli
 from src.analytics.learning_metrics import METHOD
 
 
-async def edition(db, *, empty=False, fingerprint=None):
+async def edition(db, *, empty=False, fingerprint=None, title=None):
     data=json.loads(Path('docs/learning-phase-2-example.json').read_text(encoding='utf-8'))
     async with db.session() as session:
         report=LearningReport(method_version=METHOD, data_fingerprint=fingerprint or data['data_fingerprint'],
@@ -22,7 +22,7 @@ async def edition(db, *, empty=False, fingerprint=None):
         if not empty:
             for i,row in enumerate(data['lessons']):
                 payload=deepcopy(row['payload'])
-                if i==0:payload['title']='<img src=x onerror="window.pwned=true">'
+                if i==0:payload['title']=title or '<img src=x onerror="window.pwned=true">'
                 session.add(LearningLesson(report_id=report.id,scope_key=row['scope_key'],payload=payload))
             for row in data['slices']:
                 session.add(LearningSlice(report_id=report.id,**row))
@@ -47,7 +47,7 @@ async def test_learning_navigation_schema_filters_and_safe_evidence(api,db,width
         await page.route('**/*',forward)
         try:
             await page.goto('http://test/#performance')
-            nav='.bottom-nav' if width<=600 else '.desktop-nav'
+            nav='#primary-navigation'
             await page.locator(nav+' [data-page-link=lessons]').click()
             await expect(page.locator('#learning-page')).to_contain_text('55 kayıt',timeout=15000)
             await expect(page.locator('#learning-status')).to_contain_text('Eski rapor')
