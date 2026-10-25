@@ -129,28 +129,26 @@ if(!(series||[]).some(d=>d.chart_rate!=null)){
  else chart.append(node('p','Henüz sonuçlanan tahmin yok.','chart-empty'));
  return;
 }
-chart.append(node('h3',weekly?'Haftalık başarı trendi':'Günlük başarı trendi'),node('p','Çizgi = başarı oranı · Alt etiket = sonuçlanan tahmin adedi · Noktaya dokunun veya odaklanın.','muted'));
+// The chart is intentionally text-free; detailed figures remain in the table and accessible point descriptions.
 const chartWidth=Math.max(280,Math.round(chart.clientWidth || 360)),chartHeight=globalThis.innerWidth<600?200:240,plotBottom=chartHeight-50,plotHeight=plotBottom-30;
 const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox',`0 0 ${chartWidth} ${chartHeight}`);svg.setAttribute('role','group');svg.setAttribute('aria-label','Zamana göre başarı oranı ve sonuçlanan tahmin sayısı');
 const make=(tag,attrs,text)=>{const el=document.createElementNS(svg.namespaceURI,tag);for(const [k,v] of Object.entries(attrs))el.setAttribute(k,v);if(text!=null)el.textContent=text;svg.append(el);return el;};
-for(const rate of [0,50,100]){const y=plotBottom-rate*plotHeight/100;make('path',{d:`M44 ${y}H${chartWidth-20}`,stroke:'#29415e'});make('text',{x:3,y:y+4,fill:'#94a3b8','font-size':12},`%${rate}`);}
-const tooltip=node('p','Tarih, sonuç ve model ayrıntıları için bir noktayı seçin.','trend-tooltip');tooltip.setAttribute('role','status');
+for(const rate of [0,50,100]){const y=plotBottom-rate*plotHeight/100;make('path',{d:`M44 ${y}H${chartWidth-20}`,stroke:'#29415e'});}
+const tooltip=node('p','','trend-tooltip');tooltip.setAttribute('role','status');
 let previous=null,points=0;
 for(let i=0;i<(series||[]).length;i++){
  const d=series[i],x=50+i*(chartWidth-75)/Math.max(1,series.length-1),label=d.end_exclusive?`${d.date} – ${d.end_exclusive} (hariç)`:d.date;
- if((weekly&&i%(chartWidth<600?2:1)===0)||(!weekly&&i%10===0)||i===series.length-1)make('text',{x,y:chartHeight-10,'text-anchor':'middle',fill:'#94a3b8','font-size':11},d.date.slice(5).split('-').reverse().join('.'));
  if(d.chart_rate==null){previous=null;continue;}
  const y=plotBottom-d.chart_rate*plotHeight;
  if(previous)make('path',{d:`M${previous.x} ${previous.y}L${x} ${y}`,stroke:'#38bdf8','stroke-width':2.5,fill:'none'});
  const dot=make('circle',{cx:x,cy:y,r:5,fill:'#38bdf8',stroke:d.sufficient?'#38bdf8':'#94a3b8','stroke-width':2,tabindex:0,role:'button','aria-label':trendDetail(d,label)});
  const title=document.createElementNS(svg.namespaceURI,'title');title.textContent=trendDetail(d,label);dot.append(title);
  for(const event of ['pointerenter','focus','click'])dot.addEventListener(event,()=>{tooltip.textContent=trendDetail(d,label);});
- if(weekly||i%3===0)make('text',{x,y:chartHeight-30,'text-anchor':'middle',fill:'#94a3b8','font-size':11},`${d.decided}`);
  previous={x,y};points++;
 }
 chart.append(svg,tooltip);
 if(!points)chart.append(node('p',data.truncated?'Veri sınırına ulaşıldı; grafik gösterilemiyor. Filtreleri daraltın.':'Henüz sonuçlanan tahmin yok. Bekleyen veya eksik kayıtlar başarı oranına katılmaz.','muted'));
-else if(series.some(d=>d.decided&&!d.sufficient))chart.append(node('p','Örneklem düşük · gri kenarlı noktalar gözlemdir; güvenilir gelişim karşılaştırması değildir.','muted'));
+// Low-sample caution remains in the nearby comparison/evidence panel, not superimposed on the graphic.
 }
 let latestTrends=null;
 globalThis.addEventListener?.('resize',()=>{if(state.page==='performance' && latestTrends)renderTrendChart(latestTrends);});
