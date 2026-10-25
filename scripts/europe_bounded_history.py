@@ -139,6 +139,8 @@ async def run(ids, limit, albania_pilot=False, recent_first=False, activate=Fals
                                 await check_capacity(session)
                                 # Shared storage get-or-create is protected from concurrent writers.
                                 await session.execute(text('SELECT pg_advisory_xact_lock(213003)'))
+                                session.info['historical_import'] = True
+                                await check_capacity(session)  # Refresh after waiting for the queue lock.
                                 match = await session.scalar(select(Match).where(Match.external_match_id == row['external_match_id']))
                                 if match is None:
                                     match = await store_match(session, league_id, season, row)
