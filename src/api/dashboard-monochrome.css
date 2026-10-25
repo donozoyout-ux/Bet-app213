@@ -88,3 +88,75 @@ html, body {background:#f7f8fa!important;color:#171717;}
   .desktop-nav {background:#fff!important;}
   .terminal-header {background:#fff!important;}
 }
+
+
+/* Contrast repair: legacy components still paint navy within otherwise white cards.
+   Normalize every content surface, not only the top-level dashboard panels. */
+:where(
+ .coupon-fixture,.coupon-totals,.fixture-pick,.live-fixture,.live-teams strong,
+ .movement-prices strong,.model-featured,.model-note,.probability-ring>div,
+ .home-results .prediction-card,.daily-selection,.pick-primary,.other-pick,
+ .insight-note,.coverage-link,.empty-state,.skeleton,
+ .coupon-rationale,.coupon-empty-reason,.learning-metric,.learning-card,
+ .learning-evidence,.learning-explainer,.learning-card .learning-ai,
+ .analysis-match-card,.analysis-tabs,.card-analysis-tabs,
+ .performance-result-group,.performance-result-card,.sample-group th,
+ .trend-panel,.trend-bar-track,.trend-tooltip,.results-tooltip,
+ .results-metrics>div,.fixtures-summary>div,.daily-fixture-pick,
+ .fixture-fact,.analysis-detail,.fixture-facts>div,
+ .trend-period,.trend-bar-column,.bottom-nav,
+ #predictions-section .analysis-match-card
+) {
+  background:#fff!important;background-image:none!important;
+  color:#171717!important;border-color:#dedfe3!important;
+}
+:where(.coupon-fixture,.model-featured,.performance-result-card,
+ .analysis-match-card,.daily-selection,.daily-fixture-pick):is(:hover,:focus-visible){
+  background:#f2f3f5!important;color:#171717!important;border-color:#90959d!important;
+}
+:where(.analysis-match-card,.performance-result-card,.coupon-fixture,
+ .model-featured,.daily-fixture-pick,.live-fixture) :where(span,strong,small,b,p){
+  color:#171717!important;
+}
+:where(.model-featured span,.model-note,.coupon-fixture small,
+ .daily-selection small,.results-tooltip,.trend-tooltip,.learning-card small,
+ .home-results .card-meta,.performance-result-card small){
+  color:#555d66!important;
+}
+:where(.coupon-fixture .fixture-pick,.coupon-totals,.fixture-pick,
+ .movement-prices strong,.live-teams strong,.fixture-fact,
+ .trend-bar-track,.results-metrics>div,.fixtures-summary>div){
+  background:#f3f4f6!important;color:#171717!important;
+}
+:where(.coupon-totals,.coupon-totals *, .probability-ring>div *,
+ .home-results .prediction-card *, .panel-empty *){
+  color:#171717!important;
+}
+:where(.coupon-fixture[aria-pressed=true],.analysis-match-card[aria-pressed=true],
+ #predictions-section .analysis-match-card[aria-pressed=true],
+ .daily-fixture-pick[aria-pressed=true]){
+  background:#e8e9ec!important;color:#111!important;border-color:#171717!important;
+}
+:where(.bottom-nav,.desktop-nav){background:#fff!important;}
+:where(.bottom-nav a,.desktop-nav a){color:#171717!important;}
+:where(.bottom-nav a[aria-current=page],.desktop-nav a[aria-current=page]){
+  background:#eceef0!important;color:#111!important;border-color:#171717!important;
+}
+:where(.probability-ring){background:conic-gradient(#161616 var(--fill,0%),#e5e7eb 0)!important;}
+:where(.metric-icon,#sidebar-toggle){
+  background:#f0f1f3!important;background-image:none!important;
+  border-color:#d6d9df!important;color:#171717!important;
+}
+:where(.quality-tag,.movement-change,.trend-positive){color:#11643b!important;}
+:where(.trend-negative){color:#af2437!important;}
+:where(.fixtures-panel button[aria-pressed=true],.market-tabs button[aria-selected=true],
+ .analysis-tabs [aria-selected=true],.card-analysis-tabs [aria-selected=true]){
+  color:#fff!important;background:#171717!important;border-color:#171717!important;
+}
+:where(.hero-actions .primary-button,.coupon-edit-button,
+ .coupon-totals + a.primary-button,.primary-button){
+  color:#fff!important;background:#171717!important;background-image:none!important;
+}
+:where(.hero-actions .primary-button *, .primary-button *){color:#fff!important;}
+/* A black primary-action treatment is intentional; elsewhere, dark backgrounds
+   are removed so inheriting black text cannot become unreadable. */
