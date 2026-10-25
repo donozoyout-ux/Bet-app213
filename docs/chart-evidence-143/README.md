@@ -15,7 +15,7 @@
 
 Kontroller sırasında bir maç daha tamamlandığından eksik sonuç sayısı 23'ten 25'e yükseldi. Bu bir zaman aralığı gözlemidir; ekran görüntülerindeki sayılar üretim verisi değildir.
 
-Kök neden: grafikler yalnızca tamamlanmış günleri çiziyor, bugünkü sonuçları dışarıda bırakıyordu. Sıfır sonuç durumu ayrıca açıklamasız yatay çizgiye benziyordu. Sonuçlandırma motorunda düzeltme gerektiren kanıt bulunmadı; eksik ilk yarı skoru uydurulmadı.
+İki kök neden doğrulandı. Grafikler yalnızca tamamlanmış günleri çiziyor, bugünkü sonuçları dışarıda bırakıyordu. Sıfır sonuç durumu ayrıca açıklamasız yatay çizgiye benziyordu. Daha sonra ham `live.score_html` kontrolünde ilk yarı skorlarının kaynakta bulunduğu görüldü: örneğin dahili 456 numaralı maçın 0–2 sonucu yanında `Score 1st Half: 0-0`, 458 numaralı maçta 2–0, 459 numaralı maçta 0–2 kayıtlıydı. Ayrıştırıcı ve `store_live` yalnızca tam maç skorunu aktarıyordu. Dolayısıyla yalnızca normalize sütunların boşluğuna bakarak kaynağın eksik olduğu söylenemez.
 
 ## Değişiklik
 
@@ -25,11 +25,16 @@ Kök neden: grafikler yalnızca tamamlanmış günleri çiziyor, bugünkü sonu�
 - Ana Sayfa ve Performans'ta **Bugün** kutusu, kayıtlı/kazanan/kaybeden/bekleyen/eksik/çelişkili/geçersiz seçim sayılarını gösterir. Bu kutu dönem karşılaştırmalarından açıkça ayrıdır.
 - Sonuçsuz tamamlanmış dönemlerde başarı çizgisi yerine etiketli seçim sayısı çubukları gösterilir. Gerçek sıfırlar `0`; hesaplanamayan başarı `N/A`/`—` olarak kalır. Bekleyen kayıtlar kazanan veya kaybeden sayılmaz.
 - API hatasında önceki bugünkü sayılar kaldırılır; ağ hatası sıfır sonuç gibi gösterilmez.
-- Veri toplama, immutable snapshot, sonuçlandırma, Telegram, NVIDIA ve hibrit geçmiş ayarları değiştirilmez.
+- Canlı ayrıştırıcı, yalnızca aynı ana skor alanındaki açık `Score 1st Half` etiketini ve tamamlanmış ilk yarı fazını kabul eder. Eksik/çelişkili/maç skorundan büyük değerler atlanır; mevcut skor veya ikinci yarı metninden ilk yarı tahmini yapılmaz. `store_live` doğrulanmış ilk yarıyı da kaydeder.
+- Settlement worker, mevcut cursor üzerinden en fazla 100 bitmiş ve sonuç bekleyen maçın saklanmış canlı HTML'ini kontrol eder. Kaynak durumu/maç skoru mevcut kayıtla aynı, gözlem zamanı geçerli, ilk yarı alanları boş/uyumlu olmalıdır. PostgreSQL'de satırlar `SKIP LOCKED` ile korunur. Kanıtın gözlem zamanı ve tamamlama zamanı ayrı kaydedilir. Yeni ağ isteği veya tekrar scrape yapılmaz.
+- Aynı transaction içinde mevcut settlement kuralları çalışır. Eski kararlar ve immutable snapshot'lar değişmez; yalnızca artık kanıtı tamamlanmış, henüz kararı olmayan seçimler sonuçlanır. Başarısız transaction tüm tamamlamayı ve cursor ilerlemesini geri alır. GET bu onarımı çalıştırmaz.
+- Tahmin kuralları, kuponlar, veri toplama zamanlaması, Telegram, NVIDIA ve hibrit geçmiş ayarları değiştirilmez. İlk yarı normalleştirmesi ve worker'ın saklanmış kanıtı tamamlama adımı bu PR'ın açık kapsamıdır.
 
 ## Test ve görseller
 
 `tests/test_chart_evidence_143.py`: gerçek FastAPI/SQLite ile SQL'in salt okunurluğu ve sınırı, idempotent okumalar, İstanbul gece yarısı, capture-date/market filtreleri, geçmiş referans tarihi ve Chromium durumları. Tarayıcı çağrıları yalnızca izole ASGI uygulamasına yönlendirilir.
+
+`tests/test_halftime_recovery.py`: açık etiket, yanlış dönem/dış skor alanı, eksik/çelişkili değer, mevcut kaydı koruma, yeni canlı gözlem, kayıtlı HTML'den worker tamamlama, ilk/ikinci yarı sonuçlandırma, snapshot/önceki karar değişmezliği ve tekrar çalıştırma idempotensi. Üretimde bu tamamlama çalıştırılmadı; yalnızca izole testlerde doğrulandı.
 
 | Durum | 390px | 1536px |
 | --- | --- | --- |

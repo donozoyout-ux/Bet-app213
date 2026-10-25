@@ -66,8 +66,8 @@ async def store_live(session, match, observation, observed_at):
     if match.status in {'live','half_time','extra_time','penalties'} and status=='scheduled':return False
     match.status=status
     match.live_minute=observation['live_minute']
-    for field in ('ft_home','ft_away'):
-        if observation[field] is not None:setattr(match,field,observation[field])
+    for field in ('ft_home','ft_away','ht_home','ht_away'):
+        if observation.get(field) is not None:setattr(match,field,observation[field])
     match.status_observed_at=observed_at
     match.last_scraped_at=observed_at
     match.raw={**(match.raw or {}),'live':observation['raw']}
