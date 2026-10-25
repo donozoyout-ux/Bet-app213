@@ -5,7 +5,7 @@ from zoneinfo import ZoneInfo
 import math
 from sqlalchemy import select
 from sqlalchemy.orm import defer
-from src.models import PredictionSnapshot, Match, MatchStatistics, League
+from src.models import PredictionSnapshot, Match, MatchStatistics, League, utcnow
 from src.analytics.performance import display_result, wilson_interval
 from src.analytics.recommendations import market_matches
 from src.analytics.settlements import decisions_many
@@ -92,4 +92,4 @@ async def trends(session,as_of,league=None,market='all',exact_market=None,confid
             kickoff_day=aware(match.kickoff_at).astimezone(ISTANBUL).date()
             late=aware(saved.recorded_at).astimezone(ISTANBUL).date()>kickoff_day if saved else None
             rows.append(dict(day=kickoff_day,late_recorded=late,match_id=match.id,league=league_name,market=pick['market'],model_version=snapshot.model_version,probability=pick.get('probability'),outcome=outcome))
-    return build_trends(rows,as_of,truncated=truncated,duplicate_picks_excluded=duplicates)
+    return dict(build_trends(rows,as_of,truncated=truncated,duplicate_picks_excluded=duplicates),checked_at=utcnow())

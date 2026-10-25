@@ -1756,3 +1756,15 @@ body:has([data-page=predictions]:not([hidden])) .desktop-nav {background:#091A30
 @media(max-width:900px){.fixtures-summary{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:599px){.fixtures-panel{padding:.85rem}.fixtures-heading h2{font-size:1.25rem}.fixtures-summary{grid-template-columns:repeat(3,minmax(0,1fr))}.fixtures-summary>div{padding:.55rem}.fixtures-summary span{font-size:.72rem}.fixtures-summary strong{font-size:1.2rem}.fixtures-heading p{display:none}.fixtures-controls{align-items:stretch}.fixtures-controls label{flex:1;min-width:0}.fixture-date-shortcuts{width:100%}.fixture-date-shortcuts button{flex:1}.daily-fixture{padding:.8rem}.fixture-facts{grid-template-columns:1fr}.daily-fixture-pick{gap:.35rem}.daily-fixture-pick span:first-child{width:100%}.fixtures-pagination>div{width:100%}.fixtures-pagination button{flex:1}.fixture-status{max-width:100%;overflow-wrap:anywhere}}
 @media(max-width:599px){#home-results-chart svg{height:200px;max-height:200px}.results-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.daily-results-panel .panel-heading{align-items:flex-start}.results-metrics strong{font-size:1.3rem}}
+
+/* #132: evidence states remain legible in sparse, stale and unavailable cohorts. */
+.cohort-coverage{padding:.85rem 1rem;margin:.85rem 0;background:#0c1b2d;border:1px solid #29415e;border-left:3px solid #67d7ec;border-radius:.65rem;min-width:0;overflow-wrap:anywhere;color:#d7e7f5;line-height:1.65}
+.cohort-coverage p{font-size:.86rem;margin:.5rem 0}.cohort-coverage small{color:#b7c7df;font-size:.78rem}
+.evidence-badge{display:inline-flex;align-items:center;border:1px solid #46617a;background:#142b43;color:#cbd5e1;border-radius:1rem;padding:.22rem .6rem;font-size:.76rem;margin:.35rem .4rem .35rem 0;font-weight:600;line-height:1.45}
+.evidence-badge[data-state=fresh]{color:#a5e8f2;border-color:#47818e}.evidence-badge[data-state=stale]{color:#f7d99d;border-color:#927844}.evidence-badge[data-state=error]{color:#ffb6c3;border-color:#9a5263}
+.learning-next-step{padding:.8rem 1rem;border:1px solid #355275;border-radius:.6rem;background:#10243d;color:#d5e8f3;line-height:1.75;overflow-wrap:anywhere}
+.bounded-count-timeline{display:block;width:100%;height:240px;max-height:240px;overflow:hidden}
+#trend-chart,#home-results-chart{min-width:0}#learning-summary:empty{display:none}
+@media(max-width:599px){.bounded-count-timeline{height:200px;max-height:200px}.cohort-coverage{padding:.7rem .8rem}.learning-next-step{padding:.7rem}.learning-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.cohort-coverage summary{cursor:pointer;min-height:36px;color:#a5dce9;font-size:.82rem}.cohort-coverage summary:focus-visible{outline:2px solid #67d7ec;outline-offset:3px}

@@ -1,0 +1,21 @@
+{
+  "observed_utc": "2026-10-25T07:17:00Z",
+  "access": "read-only Render SQL; public API GET; no credentials read or changed",
+  "matches": 12390,
+  "finished_matches": 9705,
+  "snapshots": 97,
+  "raw_saved_picks": 191,
+  "finished_snapshots": 0,
+  "invalid_postkickoff_snapshots": 0,
+  "snapshots_before_today": 0,
+  "latest_decisions": 0,
+  "terminal_decisions": 0,
+  "first_capture_utc": "2026-10-24T20:35:46.140966Z",
+  "last_capture_utc": "2026-10-25T00:28:46.433025Z",
+  "last_decision": null,
+  "hybrid_history_enabled": false,
+  "settlement_log_window_start_utc": "2026-10-24T20:30:00Z",
+  "settlement_error_log_matches_in_window": 0,
+  "worker_heartbeat": "not instrumented; no execution-health claim",
+  "lesson_issue_search": "No open issue with learning in title found; existing #113 chart semantics preserved"
+}

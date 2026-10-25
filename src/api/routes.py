@@ -667,3 +667,11 @@ async def history_seasons(session=Depends(session_dependency)):
     from src.analytics.season_archive import read_or_query
     async with asyncio.timeout(4):
         return await read_or_query(session)
+
+
+@router.get('/chart-diagnostics')
+async def chart_diagnostics(session=Depends(session_dependency)):
+    from src.analytics.chart_diagnostics import chart_diagnostics as inspect_charts
+    from src.api.read_cache import chart_cache
+    async with asyncio.timeout(6):
+        return await chart_cache.get(session.bind, 'cohort-v1', lambda: inspect_charts(session))

@@ -96,7 +96,7 @@ async def test_home_line_chart_real_api_keyboard_touch_and_restart(api,db,monkey
                 await expect(page.locator('#home-results-settled')).to_have_text('0')
                 await expect(page.locator('#home-results-rate')).to_have_text('—')
                 await expect(page.locator('#home-results-chart')).to_contain_text('Henüz sonuçlanan tahmin yok')
-                await expect(page.locator('#home-results-chart svg')).to_have_count(0)
+                await expect(page.locator('#home-results-chart svg')).to_have_count(1)
                 await expect(page.locator('#home-results-daily tr')).to_have_count(7)
             elif state=='truncated':
                 await expect(page.locator('#home-results-settled')).to_have_text('—')
@@ -185,8 +185,9 @@ async def test_performance_chart_bounded_height_and_compact_empty(api,db,monkeyp
                     await page.wait_for_function("document.querySelector('#trend-chart svg').viewBox.baseVal.width > 1000")
             else:
                 await expect(chart).to_contain_text('Henüz sonuçlanan tahmin yok')
-                await expect(chart.locator('svg')).to_have_count(0)
-                assert (await chart.bounding_box())['height']<150
+                await expect(chart.locator('svg')).to_have_count(1)
+                assert (await chart.locator('svg').bounding_box())['height']==(200 if width==390 else 240)
+                assert (await chart.bounding_box())['height']<420
             assert (await page.locator('.trend-period:visible .trend-bar-track').first.bounding_box())['height']==64
             assert await page.evaluate('document.documentElement.scrollWidth<=innerWidth')
             if os.getenv('CHART_SCREENSHOT_DIR'):

@@ -8,7 +8,7 @@
   const node=(tag,text='',cls='')=>{const el=document.createElement(tag);el.textContent=text;el.className=cls;return el;};
   const rate=value=>value==null?'—':`%${(value*100).toLocaleString('tr-TR',{maximumFractionDigits:1})}`;
   const localDate=value=>new Intl.DateTimeFormat('tr-TR',{timeZone:'Europe/Istanbul',day:'numeric',month:'long',year:'numeric'}).format(new Date(value+'T12:00:00+03:00'));
-  const detail=d=>`${localDate(d.date)} · Kazandı ${d.won} · Kaybetti ${d.lost} · Sonuçlanan ${d.decided} · Bekliyor ${d.pending} · Veri eksik ${d.awaiting_data} · İncelenmeli ${d.disputed} · Geçersiz ${d.void}${d.decided?` · Başarı ${rate(d.success_rate)}`:' · Sonuçlanan tahmin yok'}`;
+  const detail=d=>`${localDate(d.date)} · Kayıtlı seçim ${d.total} · Kazandı ${d.won} · Kaybetti ${d.lost} · Sonuçlanan ${d.decided} · Bekliyor ${d.pending} · Veri eksik ${d.awaiting_data} · İncelenmeli ${d.disputed} · Geçersiz ${d.void}${d.decided?` · Başarı ${rate(d.success_rate)}`:' · Sonuçlanan tahmin yok'}`;
   let latest=null,controller=null,generation=0;
 
   function unavailable(text){
@@ -20,6 +20,7 @@
   }
 
   function render(data){
+    globalThis.BetAppEvidence?.validateTrends(data);
     const days=Number($('home-results-window').value)||7;
     const series=data.daily.slice(-days),summary=data.comparisons.find(c=>c.days===days)?.recent;
     if(data.truncated){unavailable('Veri sınırına ulaşıldı. Eksik toplamlar gösterilmiyor; Performans sayfasında filtreleri daraltın.');return;}
@@ -27,12 +28,13 @@
     latest=data;
     for(const [id,key] of [['settled','decided'],['won','won'],['lost','lost']])$('home-results-'+id).textContent=String(summary[key]);
     $('home-results-rate').textContent=rate(summary.success_rate);
-    $('home-results-summary').textContent=`Son ${days} tamamlanmış İstanbul günü · ${summary.start} – ${series.at(-1).date} · ${summary.decided} sonuçlanan: ${summary.won} kazandı, ${summary.lost} kaybetti${summary.decided?`, gözlenen başarı ${rate(summary.success_rate)}`:'. Başarı oranı hesaplanamaz'}. ${summary.sufficient?'Gözlemsel sonuçlar':'Örneklem yetersiz'} · Modelin geliştiğini kanıtlamaz.`;
+    $('home-results-summary').textContent=`Son ${days} tamamlanmış İstanbul günü · ${summary.start} – ${series.at(-1).date} · ${summary.total} kayıtlı seçim · ${summary.pending} bekleyen · ${summary.awaiting_data} sonuç verisi eksik · ${summary.decided} sonuçlanan: ${summary.won} kazandı, ${summary.lost} kaybetti${summary.decided?`, gözlenen başarı ${rate(summary.success_rate)}`:'. Başarı oranı hesaplanamaz'}. ${summary.sufficient?'Gözlemsel sonuçlar':'Örneklem yetersiz'} · Modelin geliştiğini kanıtlamaz.`;
     const table=$('home-results-daily');table.replaceChildren();
-    for(const d of series){const row=node('tr');for(const value of [localDate(d.date),d.won,d.lost,d.decided,d.pending,d.awaiting_data,d.disputed,d.void,rate(d.success_rate)])row.append(node('td',String(value)));table.append(row);}
+    for(const d of series){const row=node('tr');for(const value of [localDate(d.date),d.total,d.won,d.lost,d.decided,d.pending,d.awaiting_data,d.disputed,d.void,rate(d.success_rate)])row.append(node('td',String(value)));table.append(row);}
     const chart=$('home-results-chart');chart.replaceChildren();
-    if(!series.some(d=>d.decided)){
-      chart.append(node('p','Henüz sonuçlanan tahmin yok. Günlük sayılar 0; bekleyen, eksik, incelenmeli ve geçersiz kayıtlar kazanç/kayıp sayılmaz.','chart-empty'));
+    if(!series.some(d=>d.decided) && globalThis.BetAppEvidence){
+      globalThis.BetAppEvidence.emptyTimeline(chart,series,`${days} günlük kayıtlı sonuçlar`);
+      globalThis.BetAppEvidence.badge(chart,data.checked_at);
       return;
     }
     const mobile=globalThis.innerWidth<600,width=Math.max(280,Math.round(chart.clientWidth||360)),height=mobile?200:240;
@@ -66,10 +68,12 @@
       });
     }
     chart.append(svg,tooltip);
+    globalThis.BetAppEvidence?.badge(chart,data.checked_at);
   }
 
   async function refresh(){
     if(!active() || controller)return;
+    globalThis.BetAppEvidence?.refresh();
     controller=new AbortController();const current=++generation;
     panel.setAttribute('aria-busy','true');
     try{

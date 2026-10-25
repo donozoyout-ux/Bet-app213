@@ -1,0 +1,446 @@
+{
+  "observed_utc": "2026-10-25T07:17:01.941665+00:00",
+  "source": "public production GET only",
+  "pages": [
+    {
+      "page": "home",
+      "width": 1536,
+      "errors": [],
+      "network": [
+        {
+          "path": "leagues",
+          "status": 200
+        },
+        {
+          "path": "matches",
+          "status": 200
+        },
+        {
+          "path": "scraper/status",
+          "status": 200
+        },
+        {
+          "path": "predictions/yesterday-winners",
+          "status": 200
+        },
+        {
+          "path": "matches",
+          "status": 200
+        },
+        {
+          "path": "predictions",
+          "status": 200
+        },
+        {
+          "path": "leagues",
+          "status": 503
+        },
+        {
+          "path": "dashboard/revision",
+          "status": 503
+        },
+        {
+          "path": "bookmakers",
+          "status": 503
+        },
+        {
+          "path": "coupons/daily",
+          "status": 200
+        },
+        {
+          "path": "performance-trends",
+          "status": 200,
+          "shape": {
+            "as_of": "str",
+            "timezone": "str",
+            "cohort_basis": "str",
+            "today_excluded": "bool",
+            "min_decided": "int",
+            "min_distinct_matches": "int",
+            "min_effective_matches": "int",
+            "truncated": "bool",
+            "duplicate_picks_excluded": "int",
+            "first_observed_kickoff": "NoneType",
+            "model_versions": "list",
+            "model_update_verified": "bool",
+            "improvement_proven": "bool",
+            "daily": "list",
+            "weekly": "list",
+            "aggregation": "str",
+            "comparisons": "list"
+          },
+          "cohorts": [
+            {
+              "days": 7,
+              "saved_picks": 0,
+              "decided": 0,
+              "pending": 0,
+              "missing": 0
+            },
+            {
+              "days": 30,
+              "saved_picks": 0,
+              "decided": 0,
+              "pending": 0,
+              "missing": 0
+            }
+          ]
+        },
+        {
+          "path": "status",
+          "status": 200
+        },
+        {
+          "path": "matches",
+          "status": 200
+        },
+        {
+          "path": "matches",
+          "status": 200
+        }
+      ],
+      "visible": true,
+      "svg_count": 0,
+      "panel_text": "Günlük Tahmin Sonuçları\n\nMaç başlangıcının İstanbul günü · Bugün hariç · Tüm ligler, marketler ve güven düzeyleri\n\nDönem\nSon 7 gün\nSon 30 gün\nSonuçlanan\n0\nKazandı\n0\nKaybetti\n0\nGözlenen başarı\n—\n\nSon 7 tamamlanmış İstanbul günü · 2026-10-18 – 2026-10-24 · 0 sonuçlanan: 0 kazandı, 0 kaybetti. Başarı oranı hesaplanamaz. Örneklem yetersiz · Modelin geliştiğini kanıtlamaz.\n\n● Kazandı\n┄ Kaybetti\n┅ Toplam sonuçlanan\n\nHenüz sonuçlanan tahmin yok. Günlük sayılar 0; bekleyen, eksik, incelenmeli ve geçersiz kayıtlar kazanç/kayıp sayılmaz.\n\nGünlük sayımları tablo olarak göster\n\nYalnızca kayıtlı maç öncesi seçimler ve doğrulanmış sonuç kararları. Sonuçlanan = kazandı + kaybetti. Bekleyen, eksik, incelenmeli ve geçersiz seçimler başarıya katılmaz. Geciken kararlar geçmiş günleri değiştirebilir; düşük örneklem gelişim veya gelecek başarı kanıtı değildir.\n\nSonuçları yenile\nFiltreler ve belirsizlik →",
+      "horizontal_overflow": false,
+      "results_script_loaded": true,
+      "learning_script_loaded": true
+    },
+    {
+      "page": "performance",
+      "width": 1536,
+      "errors": [],
+      "network": [
+        {
+          "path": "performance-trends",
+          "status": 200,
+          "shape": {
+            "as_of": "str",
+            "timezone": "str",
+            "cohort_basis": "str",
+            "today_excluded": "bool",
+            "min_decided": "int",
+            "min_distinct_matches": "int",
+            "min_effective_matches": "int",
+            "truncated": "bool",
+            "duplicate_picks_excluded": "int",
+            "first_observed_kickoff": "NoneType",
+            "model_versions": "list",
+            "model_update_verified": "bool",
+            "improvement_proven": "bool",
+            "daily": "list",
+            "weekly": "list",
+            "aggregation": "str",
+            "comparisons": "list"
+          },
+          "cohorts": [
+            {
+              "days": 7,
+              "saved_picks": 0,
+              "decided": 0,
+              "pending": 0,
+              "missing": 0
+            },
+            {
+              "days": 30,
+              "saved_picks": 0,
+              "decided": 0,
+              "pending": 0,
+              "missing": 0
+            }
+          ]
+        },
+        {
+          "path": "market-performance",
+          "status": 200
+        }
+      ],
+      "visible": true,
+      "svg_count": 0,
+      "panel_text": "Henüz sonuçlanan tahmin yok. Bekleyen veya eksik kayıtlar başarı oranına katılmaz.",
+      "horizontal_overflow": false,
+      "results_script_loaded": true,
+      "learning_script_loaded": true
+    },
+    {
+      "page": "lessons",
+      "width": 1536,
+      "errors": [],
+      "network": [
+        {
+          "path": "learning/summary",
+          "status": 200,
+          "learning_status": "ready",
+          "summary": {
+            "predictions": 0,
+            "matches": 0,
+            "effective_matches": 0,
+            "success_rate": null,
+            "mean_probability": null,
+            "observed_minus_expected": null,
+            "brier_score": null,
+            "log_loss": null,
+            "success_interval": null,
+            "gap_interval": null,
+            "calibration": []
+          },
+          "checked_at": "2026-10-25T07:10:29.777960+00:00"
+        },
+        {
+          "path": "leagues",
+          "status": 200
+        },
+        {
+          "path": "learning/coverage",
+          "status": 200
+        },
+        {
+          "path": "learning/statistics",
+          "status": 200
+        },
+        {
+          "path": "learning/statistics",
+          "status": 200
+        },
+        {
+          "path": "learning/statistics",
+          "status": 200
+        },
+        {
+          "path": "learning/lessons",
+          "status": 200
+        },
+        {
+          "path": "learning/reports",
+          "status": 200
+        }
+      ],
+      "visible": true,
+      "svg_count": 0,
+      "panel_text": "Örneklem yetersiz · Gözlem\n25 Eki 2026 03:33\nÖrneklem yetersiz\n\nLig: Tüm ligler · Market: Tümü · Model: Tümü\n\nÖrneklem\n0 tahmin / 0 maç\nBeklenen başarı\n—\nGerçekleşen başarı\n—\nGüven seviyesi\nDüşük\n\nYeterli veri birikiyor. Bu kayıt doğrulanmış bir ders değildir.\n\nEtkin örneklem: 0 / 100 maç · En az 100 ek bağımsız maç eşdeğeri gerekli. Bu sayıya ulaşmak tek başına güçlü kanıt değildir.\n\nAyrıntıları Gör",
+      "horizontal_overflow": false,
+      "results_script_loaded": true,
+      "learning_script_loaded": true
+    },
+    {
+      "page": "home",
+      "width": 390,
+      "errors": [],
+      "network": [
+        {
+          "path": "performance-trends",
+          "status": 200,
+          "shape": {
+            "as_of": "str",
+            "timezone": "str",
+            "cohort_basis": "str",
+            "today_excluded": "bool",
+            "min_decided": "int",
+            "min_distinct_matches": "int",
+            "min_effective_matches": "int",
+            "truncated": "bool",
+            "duplicate_picks_excluded": "int",
+            "first_observed_kickoff": "NoneType",
+            "model_versions": "list",
+            "model_update_verified": "bool",
+            "improvement_proven": "bool",
+            "daily": "list",
+            "weekly": "list",
+            "aggregation": "str",
+            "comparisons": "list"
+          },
+          "cohorts": [
+            {
+              "days": 7,
+              "saved_picks": 0,
+              "decided": 0,
+              "pending": 0,
+              "missing": 0
+            },
+            {
+              "days": 30,
+              "saved_picks": 0,
+              "decided": 0,
+              "pending": 0,
+              "missing": 0
+            }
+          ]
+        },
+        {
+          "path": "status",
+          "status": 200
+        },
+        {
+          "path": "leagues",
+          "status": 200
+        },
+        {
+          "path": "leagues",
+          "status": 200
+        },
+        {
+          "path": "predictions/yesterday-winners",
+          "status": 200
+        },
+        {
+          "path": "coupons/daily",
+          "status": 200
+        },
+        {
+          "path": "matches",
+          "status": 200
+        },
+        {
+          "path": "scraper/status",
+          "status": 503
+        },
+        {
+          "path": "bookmakers",
+          "status": 200
+        },
+        {
+          "path": "predictions",
+          "status": 200
+        },
+        {
+          "path": "matches",
+          "status": 503
+        },
+        {
+          "path": "matches",
+          "status": 200
+        },
+        {
+          "path": "matches",
+          "status": 200
+        },
+        {
+          "path": "dashboard/revision",
+          "status": 200
+        }
+      ],
+      "visible": true,
+      "svg_count": 0,
+      "panel_text": "Günlük Tahmin Sonuçları\n\nMaç başlangıcının İstanbul günü · Bugün hariç · Tüm ligler, marketler ve güven düzeyleri\n\nDönem\nSon 7 gün\nSon 30 gün\nSonuçlanan\n0\nKazandı\n0\nKaybetti\n0\nGözlenen başarı\n—\n\nSon 7 tamamlanmış İstanbul günü · 2026-10-18 – 2026-10-24 · 0 sonuçlanan: 0 kazandı, 0 kaybetti. Başarı oranı hesaplanamaz. Örneklem yetersiz · Modelin geliştiğini kanıtlamaz.\n\n● Kazandı\n┄ Kaybetti\n┅ Toplam sonuçlanan\n\nHenüz sonuçlanan tahmin yok. Günlük sayılar 0; bekleyen, eksik, incelenmeli ve geçersiz kayıtlar kazanç/kayıp sayılmaz.\n\nGünlük sayımları tablo olarak göster\n\nYalnızca kayıtlı maç öncesi seçimler ve doğrulanmış sonuç kararları. Sonuçlanan = kazandı + kaybetti. Bekleyen, eksik, incelenmeli ve geçersiz seçimler başarıya katılmaz. Geciken kararlar geçmiş günleri değiştirebilir; düşük örneklem gelişim veya gelecek başarı kanıtı değildir.\n\nSonuçları yenile\nFiltreler ve belirsizlik →",
+      "horizontal_overflow": false,
+      "results_script_loaded": true,
+      "learning_script_loaded": true
+    },
+    {
+      "page": "performance",
+      "width": 390,
+      "errors": [],
+      "network": [
+        {
+          "path": "performance-trends",
+          "status": 200,
+          "shape": {
+            "as_of": "str",
+            "timezone": "str",
+            "cohort_basis": "str",
+            "today_excluded": "bool",
+            "min_decided": "int",
+            "min_distinct_matches": "int",
+            "min_effective_matches": "int",
+            "truncated": "bool",
+            "duplicate_picks_excluded": "int",
+            "first_observed_kickoff": "NoneType",
+            "model_versions": "list",
+            "model_update_verified": "bool",
+            "improvement_proven": "bool",
+            "daily": "list",
+            "weekly": "list",
+            "aggregation": "str",
+            "comparisons": "list"
+          },
+          "cohorts": [
+            {
+              "days": 7,
+              "saved_picks": 0,
+              "decided": 0,
+              "pending": 0,
+              "missing": 0
+            },
+            {
+              "days": 30,
+              "saved_picks": 0,
+              "decided": 0,
+              "pending": 0,
+              "missing": 0
+            }
+          ]
+        },
+        {
+          "path": "market-performance",
+          "status": 200
+        }
+      ],
+      "visible": true,
+      "svg_count": 0,
+      "panel_text": "Henüz sonuçlanan tahmin yok. Bekleyen veya eksik kayıtlar başarı oranına katılmaz.",
+      "horizontal_overflow": false,
+      "results_script_loaded": true,
+      "learning_script_loaded": true
+    },
+    {
+      "page": "lessons",
+      "width": 390,
+      "errors": [],
+      "network": [
+        {
+          "path": "learning/summary",
+          "status": 200,
+          "learning_status": "ready",
+          "summary": {
+            "predictions": 0,
+            "matches": 0,
+            "effective_matches": 0,
+            "success_rate": null,
+            "mean_probability": null,
+            "observed_minus_expected": null,
+            "brier_score": null,
+            "log_loss": null,
+            "success_interval": null,
+            "gap_interval": null,
+            "calibration": []
+          },
+          "checked_at": "2026-10-25T07:10:29.777960+00:00"
+        },
+        {
+          "path": "leagues",
+          "status": 200
+        },
+        {
+          "path": "learning/coverage",
+          "status": 200
+        },
+        {
+          "path": "learning/statistics",
+          "status": 200
+        },
+        {
+          "path": "learning/lessons",
+          "status": 200
+        },
+        {
+          "path": "learning/statistics",
+          "status": 200
+        },
+        {
+          "path": "learning/statistics",
+          "status": 200
+        },
+        {
+          "path": "learning/reports",
+          "status": 200
+        }
+      ],
+      "visible": true,
+      "svg_count": 0,
+      "panel_text": "Örneklem yetersiz · Gözlem\n25 Eki 2026 03:33\nÖrneklem yetersiz\n\nLig: Tüm ligler · Market: Tümü · Model: Tümü\n\nÖrneklem\n0 tahmin / 0 maç\nBeklenen başarı\n—\nGerçekleşen başarı\n—\nGüven seviyesi\nDüşük\n\nYeterli veri birikiyor. Bu kayıt doğrulanmış bir ders değildir.\n\nEtkin örneklem: 0 / 100 maç · En az 100 ek bağımsız maç eşdeğeri gerekli. Bu sayıya ulaşmak tek başına güçlü kanıt değildir.\n\nAyrıntıları Gör",
+      "horizontal_overflow": false,
+      "results_script_loaded": true,
+      "learning_script_loaded": true
+    }
+  ]
+}
