@@ -76,7 +76,10 @@ async def quote_draft(session, request, now):
         if row is None or not row[1]:continue
         match=row[0]
         if match.status!='scheduled' or not match.kickoff_at or aware(match.kickoff_at)<=now:entry['reason']='match_started';continue
-        if aware(match.kickoff_at)>now+timedelta(days=7):entry['reason']='outside_manual_window';continue
+        from src.match_views import active_bounds
+        from src.analytics.history_cache import enabled as hybrid_enabled
+        end=active_bounds(now)[1]
+        if (aware(match.kickoff_at)>=end if hybrid_enabled() else aware(match.kickoff_at)>end):entry['reason']='outside_manual_window';continue
         board=boards.get(match.league_id)
         if board is None or board.model_version!=MODEL_VERSION or aware(board.generated_at)>now or aware(board.expires_at)<=now:entry['reason']='analysis_stale';continue
         from src.analytics.daily_pool import board_candidates

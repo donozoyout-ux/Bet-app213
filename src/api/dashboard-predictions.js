@@ -249,7 +249,7 @@
           button.type='button';button.onclick=()=>globalThis.BetAppDashboard?.selectMatch ? globalThis.BetAppDashboard.selectMatch(item.match.id,true) : select(item.match.id,true);row.append(button);list.append(row);shown++;
         }box.append(list);
       }else{for(const item of page.items){if(item.recommendations?.length && (!state.confidence || item.recommendations.some(r=>r.confidence===state.confidence))){box.append(card({...item,recommendations:item.recommendations.filter(r=>!state.confidence || r.confidence===state.confidence)}));shown++;}}}
-      if(!shown)box.append(node('p','Bu filtrede eşikleri geçen tahmin bulunmuyor.'));const note=$('prediction-window');if(note)note.textContent=`${state.view==='best'?'En güçlü seçilmiş tahminler • Önümüzdeki 7 gün':'Önümüzdeki '+(page.window_hours===72?'72 saat':'7 gün')} • ${date(page.generated_at)}`;}
+      if(!shown)box.append(node('p','Bu filtrede eşikleri geçen tahmin bulunmuyor.'));const note=$('prediction-window');if(note)note.textContent=`${page.cache?.active_window ? (state.view==='best'?'En güçlü seçilmiş tahminler • ':'')+'Bugün + sonraki 3 gün' : state.view==='best'?'En güçlü seçilmiş tahminler • Önümüzdeki 7 gün':'Önümüzdeki '+(page.window_hours===72?'72 saat':'7 gün')} • ${date(page.generated_at)}`;}
     catch(_){if(generation!==state.generation)return;box.replaceChildren();box.append(node('p','Veri hazırlanıyor • Bağlantı bekleniyor'));}
   }
   function setTab(tab){

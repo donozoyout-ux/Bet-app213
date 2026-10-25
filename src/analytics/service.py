@@ -20,18 +20,29 @@ def mark_model_changes(session, flush_context, instances):
     if any(isinstance(obj, (Match, League, Team, Odds1X2, MatchStatistics, AsianHandicap, AsianTotals, MarketOdds))
            for obj in session.new | session.dirty | session.deleted):
         session.info['model_changed'] = True
+    # Finished observations carry timestamp fingerprints per league. Only names
+    # need eager invalidation; unrelated live/statistics writes must not flush all leagues.
+    if any(isinstance(obj, Team) and session.is_modified(obj)
+           for obj in session.new | session.dirty | session.deleted):
+        session.info['history_changed'] = True
 
 
 @event.listens_for(Session, 'after_commit')
 def invalidate_after_commit(session):
+    session.info.pop('hybrid_history', None)
     # Job counters and immutable prediction snapshots do not invalidate models.
     if session.info.pop('model_changed', False):
         _cache.clear()
+        from .history_cache import invalidate
+        if session.info.pop('history_changed', False):
+            invalidate(session.bind)
 
 
 @event.listens_for(Session, 'after_rollback')
 def discard_model_changes(session):
+    session.info.pop('hybrid_history', None)
     session.info.pop('model_changed', None)
+    session.info.pop('history_changed', None)
 
 
 async def revision(session, match_id=None):
@@ -94,7 +105,8 @@ async def statistics(session, match, context, now, data_revision=None):
     time_key = aware(match.kickoff_at).isoformat() if historical else int(cutoff.timestamp() // CACHE_SECONDS)
     key = (session.bind, match.id, match.league_id, match.home_team_id, match.away_team_id,
            context['competition_type'], aware(match.kickoff_at), match.status, historical, time_key, data_revision,
-           __import__('os').getenv('DISABLED_MARKET_ENGINES', ''))
+           __import__('os').getenv('DISABLED_MARKET_ENGINES', ''),
+           __import__('os').getenv('HYBRID_HISTORY_ENABLED', 'false'))
     cached = _cache.get(key)
     if cached and not session.info.get('force_model_refresh') and time.monotonic() - cached[0] < CACHE_SECONDS:
         _cache.move_to_end(key)
@@ -113,8 +125,15 @@ async def statistics(session, match, context, now, data_revision=None):
     history_key=(match.league_id,cutoff)
     history_cache=session.info.setdefault('recommendation_history',{})
     if history_key not in history_cache:
-        rows=(await session.execute(query)).all()
-        history_cache[history_key]=[Result(*row[:5],aware(row[5]),row[6],row[7],row[8]) for row in rows]
+        from .history_cache import historical_rows
+        cached_rows = await historical_rows(session, match.league_id, cutoff, match.id)
+        if cached_rows is None:
+            rows=(await session.execute(query)).all()
+            history_cache[history_key]=[Result(*row[:5],aware(row[5]),row[6],row[7],row[8]) for row in rows]
+        else:
+            history_cache[history_key]=[Result(m.id,m.home_team_id,m.away_team_id,m.ft_home,m.ft_away,
+                aware(m.kickoff_at),home,away,m.season_id) for m,stats,home,away in cached_rows
+                if m.ft_home is not None and m.ft_away is not None and min(m.ft_home,m.ft_away)>=0]
     history=history_cache[history_key]
     markets = await market_rows(session, Odds1X2, match.id)
     bookmakers, valid = [], []
