@@ -164,6 +164,8 @@ async def test_chart_visibility_navigation_errors_and_screenshots(api,monkeypatc
                     await expect(page.locator('#home-results-rate')).to_have_text('—')
                 await page.locator('#home-results-window').select_option('30')
                 await expect(page.locator('#home-results-daily tr')).to_have_count(30)
+                await expect(page.locator('#home-results-daily tr').first.locator('td')).to_have_count(10)
+                await expect(page.locator('#home-results-daily tr').first.locator('td').nth(1)).to_have_text('0')
             root=Path(os.environ.get('UI_132_SCREENSHOTS','docs/ui-132'))
             if os.getenv('UI_132_SCREENSHOTS') and mode=='empty':
                 root.mkdir(parents=True,exist_ok=True)

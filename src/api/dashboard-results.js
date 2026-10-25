@@ -8,7 +8,7 @@
   const node=(tag,text='',cls='')=>{const el=document.createElement(tag);el.textContent=text;el.className=cls;return el;};
   const rate=value=>value==null?'—':`%${(value*100).toLocaleString('tr-TR',{maximumFractionDigits:1})}`;
   const localDate=value=>new Intl.DateTimeFormat('tr-TR',{timeZone:'Europe/Istanbul',day:'numeric',month:'long',year:'numeric'}).format(new Date(value+'T12:00:00+03:00'));
-  const detail=d=>`${localDate(d.date)} · Kazandı ${d.won} · Kaybetti ${d.lost} · Sonuçlanan ${d.decided} · Bekliyor ${d.pending} · Veri eksik ${d.awaiting_data} · İncelenmeli ${d.disputed} · Geçersiz ${d.void}${d.decided?` · Başarı ${rate(d.success_rate)}`:' · Sonuçlanan tahmin yok'}`;
+  const detail=d=>`${localDate(d.date)} · Kayıtlı seçim ${d.total} · Kazandı ${d.won} · Kaybetti ${d.lost} · Sonuçlanan ${d.decided} · Bekliyor ${d.pending} · Veri eksik ${d.awaiting_data} · İncelenmeli ${d.disputed} · Geçersiz ${d.void}${d.decided?` · Başarı ${rate(d.success_rate)}`:' · Sonuçlanan tahmin yok'}`;
   let latest=null,controller=null,generation=0;
 
   function unavailable(text){
@@ -30,7 +30,7 @@
     $('home-results-rate').textContent=rate(summary.success_rate);
     $('home-results-summary').textContent=`Son ${days} tamamlanmış İstanbul günü · ${summary.start} – ${series.at(-1).date} · ${summary.total} kayıtlı seçim · ${summary.pending} bekleyen · ${summary.awaiting_data} sonuç verisi eksik · ${summary.decided} sonuçlanan: ${summary.won} kazandı, ${summary.lost} kaybetti${summary.decided?`, gözlenen başarı ${rate(summary.success_rate)}`:'. Başarı oranı hesaplanamaz'}. ${summary.sufficient?'Gözlemsel sonuçlar':'Örneklem yetersiz'} · Modelin geliştiğini kanıtlamaz.`;
     const table=$('home-results-daily');table.replaceChildren();
-    for(const d of series){const row=node('tr');for(const value of [localDate(d.date),d.won,d.lost,d.decided,d.pending,d.awaiting_data,d.disputed,d.void,rate(d.success_rate)])row.append(node('td',String(value)));table.append(row);}
+    for(const d of series){const row=node('tr');for(const value of [localDate(d.date),d.total,d.won,d.lost,d.decided,d.pending,d.awaiting_data,d.disputed,d.void,rate(d.success_rate)])row.append(node('td',String(value)));table.append(row);}
     const chart=$('home-results-chart');chart.replaceChildren();
     if(!series.some(d=>d.decided) && globalThis.BetAppEvidence){
       globalThis.BetAppEvidence.emptyTimeline(chart,series,`${days} günlük kayıtlı sonuçlar`);
