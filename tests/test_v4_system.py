@@ -1,4 +1,4 @@
-"""V4 user-visible diagnostics and common navy palette; isolated test records only."""
+"""User-visible diagnostics and shared monochrome palette; isolated test records only."""
 import os
 import subprocess
 from pathlib import Path
@@ -10,7 +10,7 @@ from tests.test_predictions import NOW
 
 
 @pytest.mark.parametrize('width',[320,390,768,1024,1536])
-async def test_shared_blue_routes_and_publication_census(api,db,monkeypatch,width):
+async def test_shared_monochrome_routes_and_publication_census(api,db,monkeypatch,width):
     import src.api.routes as routes
     monkeypatch.setattr(routes,'utcnow',lambda:NOW)
     await fixtures(db,4);await edition(db)
@@ -40,7 +40,7 @@ async def test_shared_blue_routes_and_publication_census(api,db,monkeypatch,widt
                 await page.goto('http://test/#'+name)
                 await page.wait_for_load_state('networkidle')
                 assert await page.evaluate('document.documentElement.scrollWidth<=innerWidth'),name
-                assert await page.evaluate('getComputedStyle(document.body).backgroundColor')=='rgb(247, 248, 250)'
+                assert await page.evaluate('getComputedStyle(document.body).backgroundColor')=='rgb(255, 255, 255)'
                 assert await page.evaluate('getComputedStyle(document.documentElement).getPropertyValue("--primary").trim()')=='#111111'
                 if name=='home':
                     await expect(page.locator('#prediction-cards .prediction-card')).to_have_count(4)
