@@ -40,8 +40,8 @@ async def test_shared_blue_routes_and_publication_census(api,db,monkeypatch,widt
                 await page.goto('http://test/#'+name)
                 await page.wait_for_load_state('networkidle')
                 assert await page.evaluate('document.documentElement.scrollWidth<=innerWidth'),name
-                assert await page.evaluate('getComputedStyle(document.body).backgroundColor')=='rgb(7, 20, 38)'
-                assert await page.evaluate('getComputedStyle(document.documentElement).getPropertyValue("--primary").trim()')=='#2684FF'
+                assert await page.evaluate('getComputedStyle(document.body).backgroundColor')=='rgb(247, 248, 250)'
+                assert await page.evaluate('getComputedStyle(document.documentElement).getPropertyValue("--primary").trim()')=='#111111'
                 if name=='home':
                     await expect(page.locator('#prediction-cards .prediction-card')).to_have_count(4)
                     await expect(page.locator('#home-publication-health')).to_contain_text('Planlı maç: 4')
