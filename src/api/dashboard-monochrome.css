@@ -1,0 +1,90 @@
+/* White-first / black-accent theme. Scoped override of the legacy navy design.
+   Kept separate for easy rollback and to avoid changing application logic. */
+:root {
+  --app-bg:#f7f8fa; --surface:#ffffff; --surface-raised:#ffffff;
+  --primary:#111111; --electric:#242424; --text:#171717;
+  --muted:#60666e; --border:#d9dce1; --primary-soft:#f1f2f4;
+  --success:#137a47; --danger:#b4233a; --warning:#986100;
+  --shadow:0 .25rem 1rem #0000000b;
+  color-scheme:light; color:var(--text); background:var(--app-bg);
+}
+html, body {background:#f7f8fa!important;color:#171717;}
+.app-sidebar, .desktop-nav, .terminal-header, .sync-strip {
+  background:#fff!important; color:#171717!important; border-color:#e1e3e7!important;
+}
+.app-sidebar .brand, .brand-accent, .desktop-nav a, .terminal-header button,
+.sync-strip, .search-label input, .connection {color:#171717!important;}
+.desktop-nav a:hover, .desktop-nav a.active, .desktop-nav a[aria-current=page]{
+  background:#f0f1f3!important;color:#000!important;
+}
+#dashboard-shell,[data-page] {color:#171717;}
+.dashboard-panel, .home-summary article, .board-controls,
+.cohort-coverage, .learning-next-step, .fixtures-panel,
+.minimal-analysis, .prediction-card, .fixture-card,
+.trend-period, .results-metrics > *, .market-card,
+.card, .match-row, .data-table, .daily-fixture,
+.panel-empty, .home-coupon, .home-live {
+  background:#fff!important; background-image:none!important;
+  color:#171717!important; border-color:#dedfe3!important;
+  box-shadow:0 .25rem 1rem #00000008!important;
+}
+.dashboard-panel *, .home-summary article *, .cohort-coverage *,
+.learning-next-step *, .fixtures-panel *, .minimal-analysis *,
+.trend-period *, .results-metrics * {text-shadow:none;}
+.muted, .section-heading p, .home-summary p,
+.cohort-coverage small, .panel-footnote, .card-meta, .pick-meta{
+  color:#626770!important;
+}
+.evidence-badge {background:#f3f4f6!important;color:#202124!important;border-color:#d4d7dc!important;}
+.evidence-badge[data-state=fresh] {color:#11643b!important;border-color:#9fcbb2!important;}
+.evidence-badge[data-state=stale] {color:#8b5600!important;border-color:#dfc58d!important;}
+.evidence-badge[data-state=error] {color:#ad2438!important;border-color:#e2afb8!important;}
+:where(input, select, textarea, button) {
+  background-color:#fff; color:#171717; border-color:#cdd1d7;
+}
+:where(input, select, textarea)::placeholder {color:#777e87;}
+:where(input, select, textarea):focus-visible, button:focus-visible, a:focus-visible{
+  outline:2px solid #1c1c1c!important;outline-offset:3px;
+}
+:where(.primary-button, .hero-actions .primary-button) {
+  color:#fff!important;background:#141414!important;background-image:none!important;
+  border-color:#141414!important;box-shadow:none!important;
+}
+:where(.secondary-button, .text-link, .prediction-open, .eyebrow) {color:#171717!important;}
+:where(.secondary-button) {background:#fff!important;border-color:#222!important;}
+:where(.data-table, .data-table th, .data-table td, table, th, td){
+  color:#171717;border-color:#e5e7eb;
+}
+:where(thead, th){background:#f0f1f3!important;}
+:where(.fixture-status, .confidence-badge, .market-tabs button, .fixtures-panel button){
+  background:#f3f4f6!important;color:#202124!important;border-color:#d4d7dc!important;
+}
+:where(.fixtures-panel button[aria-pressed=true], .market-tabs button[aria-selected=true]){
+  background:#161616!important;color:#fff!important;border-color:#161616!important;
+}
+.platform-intro {
+  background:#fff!important;color:#171717!important;border-bottom:1px solid #e1e3e7!important;
+}
+.platform-intro::before,.platform-intro::after {
+  background:linear-gradient(90deg,#fffffff5 0%,#ffffffd6 48%,#ffffff75 100%)!important;
+}
+.hero-backdrop {opacity:.16!important;filter:grayscale(1)!important;}
+.platform-intro h1,.platform-intro h1 span,.hero-copy p,
+.hero-features h2,.hero-features p,.hero-footnote,.hero-tag {
+  color:#171717!important;text-shadow:none!important;
+}
+.hero-tag {background:#f5f5f5!important;border-color:#dedfe3!important;}
+.hero-features > div {background:#ffffffed!important;border-color:#e1e3e7!important;}
+.metric-icon {color:#202124!important;}
+#home-results-chart svg,#trend-chart svg,.bounded-count-timeline {
+  background:transparent!important;
+}
+#home-results-chart, #trend-chart {background:#fff!important;color:#171717!important;}
+#home-results-chart :where(path,circle), #trend-chart :where(path,circle){
+  vector-effect:non-scaling-stroke;
+}
+@media(max-width:767px){
+  .app-sidebar .brand {color:#111!important;}
+  .desktop-nav {background:#fff!important;}
+  .terminal-header {background:#fff!important;}
+}
