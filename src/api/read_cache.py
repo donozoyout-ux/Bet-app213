@@ -47,3 +47,5 @@ fixture_cache = ReadCache(ttl=15, limit=64)
 revision_cache = ReadCache(ttl=3)
 
 chart_cache = ReadCache(ttl=60, limit=4)
+
+catalog_cache = ReadCache(ttl=60, limit=4)

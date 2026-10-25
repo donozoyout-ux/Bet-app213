@@ -74,6 +74,8 @@ async def lifespan(app: FastAPI):
     await database.close()
 
 app = FastAPI(title='Kuponanalizii', version='2.0.0', lifespan=lifespan)
+from src.api.capacity import DatabaseCapacityMiddleware
+app.add_middleware(DatabaseCapacityMiddleware)
 # Gunicorn's module-only target resolves `application`; Uvicorn continues using :app.
 application = app
 

@@ -93,12 +93,16 @@ async def uncached_status():
 
 
 @router.get('/leagues', response_model=list[LeagueResponse])
-async def leagues(session=Depends(session_dependency)):
-    return (await session.scalars(select(League).where(League.enabled.is_(True)).order_by(League.competition_type, League.priority, League.name))).all()
+async def leagues(session=Depends(session_dependency, scope='function')):
+    from .read_cache import catalog_cache
+    async def load():
+        rows=(await session.scalars(select(League).where(League.enabled.is_(True)).order_by(League.competition_type, League.priority, League.name))).all()
+        return [LeagueResponse.model_validate(row) for row in rows]
+    return await catalog_cache.get(session.bind,'leagues',load)
 
 
 @router.get('/leagues/{league_id}/seasons', response_model=list[SeasonResponse])
-async def seasons(league_id: int, session=Depends(session_dependency)):
+async def seasons(league_id: int, session=Depends(session_dependency, scope='function')):
     if not await session.scalar(select(League.id).where(League.id==league_id,League.enabled.is_(True))):
         raise HTTPException(404, 'League not found (use the internal ID from /api/leagues)')
     rows = (await session.scalars(select(Season).where(Season.league_id == league_id).order_by(Season.season_name.desc()))).all()
@@ -113,8 +117,12 @@ async def seasons(league_id: int, session=Depends(session_dependency)):
 
 
 @router.get('/bookmakers', response_model=list[BookmakerResponse])
-async def bookmakers(session=Depends(session_dependency)):
-    return (await session.scalars(select(Bookmaker).order_by(Bookmaker.id))).all()
+async def bookmakers(session=Depends(session_dependency, scope='function')):
+    from .read_cache import catalog_cache
+    async def load():
+        rows=(await session.scalars(select(Bookmaker).order_by(Bookmaker.id))).all()
+        return [BookmakerResponse.model_validate(row) for row in rows]
+    return await catalog_cache.get(session.bind,'bookmakers',load)
 
 
 def match_query():
@@ -140,7 +148,7 @@ async def matches(league: str | None = None, season: str | None = None,
                   display_timezone: str = DISPLAY_TIMEZONE,
                   sort: Literal['kickoff','league','team'] = 'kickoff',
                   upcoming_days: int = Query(default=7, ge=1, le=3650),
-                  session=Depends(session_dependency)):
+                  session=Depends(session_dependency, scope='function')):
     query, home, away = match_query()
     query = query.where(League.enabled.is_(True))
     try:
@@ -205,7 +213,7 @@ async def matches(league: str | None = None, season: str | None = None,
 async def prediction_fixtures(date: Date | None=None,league: int | None=Query(default=None,gt=0,le=2147483647),
         status: Literal['all','upcoming','live','finished']='all',
         limit: int=Query(default=25,ge=1,le=100),offset: int=Query(default=0,ge=0),
-        session=Depends(session_dependency)):
+        session=Depends(session_dependency, scope='function')):
     from src.analytics.fixture_predictions import fixture_page
     from .read_cache import fixture_cache
     now=utcnow();day=date or now.astimezone(ZoneInfo(DISPLAY_TIMEZONE)).date()
@@ -218,7 +226,7 @@ async def prediction_fixtures(date: Date | None=None,league: int | None=Query(de
 async def predictions(league: str | None = None, date: Date | None = None,
                       limit: int = Query(default=8, ge=1, le=20), priced_only: bool=False,
                       confidence: Literal['high','medium','low'] | None=None, min_probability: float=Query(default=0,ge=0,le=1),
-                      market: Literal['all','result','goals','btts','corners','cards','yellow_cards','red_cards','asian_handicap','double_chance','first_half_goals','second_half_goals']='all', session=Depends(session_dependency)):
+                      market: Literal['all','result','goals','btts','corners','cards','yellow_cards','red_cards','asian_handicap','double_chance','first_half_goals','second_half_goals']='all', session=Depends(session_dependency, scope='function')):
     calculated,now,evaluated=await calculate_predictions(session,league,date)
     calculated=[{**item,'recommendations':[r for r in item['recommendations'] if market_matches([r],market) and (not confidence or r['confidence']==confidence) and r['probability']>=min_probability]} for item in calculated]
     if priced_only:
@@ -260,12 +268,12 @@ from src.analytics.coupon import DraftRequest, quote_draft, settle_draft
 
 
 @router.post('/coupon/quote')
-async def coupon_quote(request: DraftRequest, session=Depends(session_dependency)):
+async def coupon_quote(request: DraftRequest, session=Depends(session_dependency, scope='function')):
     async with asyncio.timeout(4):return await quote_draft(session,request,utcnow())
 
 
 @router.post('/coupon/status')
-async def coupon_status(request: DraftRequest, session=Depends(session_dependency)):
+async def coupon_status(request: DraftRequest, session=Depends(session_dependency, scope='function')):
     async with asyncio.timeout(4):return await settle_draft(session,request)
 
 
@@ -274,7 +282,7 @@ from src.models import SavedCoupon
 
 
 @router.post('/coupons/automatic')
-async def automatic_coupon(strategy: Literal['balanced','cautious','value']='balanced', max_matches: str | None=Query(default=None,include_in_schema=False),session=Depends(session_dependency)):
+async def automatic_coupon(strategy: Literal['balanced','cautious','value']='balanced', max_matches: str | None=Query(default=None,include_in_schema=False),session=Depends(session_dependency, scope='function')):
     if max_matches is not None:raise HTTPException(422,'Automatic coupon size is determined by the dynamic engine; remove max_matches')
     from src.analytics.publications import publish_daily
     with profile('daily_evaluation'):
@@ -286,14 +294,14 @@ async def automatic_coupon(strategy: Literal['balanced','cautious','value']='bal
 
 
 @router.get('/coupons/daily')
-async def daily_coupon(strategy: Literal['balanced','cautious','value']='balanced',session=Depends(session_dependency)):
+async def daily_coupon(strategy: Literal['balanced','cautious','value']='balanced',session=Depends(session_dependency, scope='function')):
     from src.analytics.publications import read_daily
     with profile('daily_read'):
         return await read_daily(session,utcnow(),strategy)
 
 
 @router.get('/coupons/diagnostics')
-async def daily_coupon_diagnostics(session=Depends(session_dependency)):
+async def daily_coupon_diagnostics(session=Depends(session_dependency, scope='function')):
     """Current candidate census only; no generation, collection or delivery."""
     from src.analytics.daily_pool import daily_pool
     from zoneinfo import ZoneInfo
@@ -310,14 +318,14 @@ async def daily_coupon_diagnostics(session=Depends(session_dependency)):
 
 
 @router.get('/dashboard/revision')
-async def dashboard_revision(session=Depends(session_dependency)):
+async def dashboard_revision(session=Depends(session_dependency, scope='function')):
     from src.analytics.publications import revisions
     async with asyncio.timeout(4):
         return await revision_cache.get(session.bind,'publication_manifest',lambda:revisions(session,utcnow()))
 
 
 @router.get('/odds-coverage')
-async def odds_coverage(session=Depends(session_dependency)):
+async def odds_coverage(session=Depends(session_dependency, scope='function')):
     from src.analytics.odds_diagnostics import report, source_report
     records,now,_=await calculate_predictions(session,None,None,include_engine_analysis=True)
     from copy import deepcopy
@@ -335,19 +343,19 @@ async def odds_coverage(session=Depends(session_dependency)):
 
 
 @router.post('/coupons')
-async def create_coupon(request: DraftRequest,x_coupon_key: str | None=Header(default=None),session=Depends(session_dependency)):
+async def create_coupon(request: DraftRequest,x_coupon_key: str | None=Header(default=None),session=Depends(session_dependency, scope='function')):
     async with asyncio.timeout(10):
         row=await save_manual(session,request,x_coupon_key,utcnow());await session.commit();return await coupon_detail(session,row)
 
 
 @router.put('/coupons/{coupon_id}')
-async def edit_coupon(coupon_id: str,request: DraftRequest,x_coupon_key: str | None=Header(default=None),session=Depends(session_dependency)):
+async def edit_coupon(coupon_id: str,request: DraftRequest,x_coupon_key: str | None=Header(default=None),session=Depends(session_dependency, scope='function')):
     async with asyncio.timeout(10):
         row=await save_manual(session,request,x_coupon_key,utcnow(),base_id=coupon_id);await session.commit();return await coupon_detail(session,row)
 
 
 @router.get('/coupons')
-async def coupon_history(x_coupon_key: str | None=Header(default=None),limit: int=Query(default=10,ge=1,le=50),offset: int=Query(default=0,ge=0),session=Depends(session_dependency)):
+async def coupon_history(x_coupon_key: str | None=Header(default=None),limit: int=Query(default=10,ge=1,le=50),offset: int=Query(default=0,ge=0),session=Depends(session_dependency, scope='function')):
     allowed=SavedCoupon.owner_hash.is_(None)
     if x_coupon_key:allowed=or_(allowed,SavedCoupon.owner_hash==owner_hash(x_coupon_key))
     query=select(SavedCoupon.id,SavedCoupon.root_id,SavedCoupon.revision,SavedCoupon.kind,SavedCoupon.created_at,func.json_array_length(SavedCoupon.payload['items']).label('selections'),SavedCoupon.payload['combined_odds'].label('combined_odds')).where(allowed).order_by(SavedCoupon.created_at.desc(),SavedCoupon.revision.desc(),SavedCoupon.id).limit(limit).offset(offset)
@@ -355,12 +363,12 @@ async def coupon_history(x_coupon_key: str | None=Header(default=None),limit: in
 
 
 @router.get('/coupons/{coupon_id}')
-async def get_coupon(coupon_id: str,x_coupon_key: str | None=Header(default=None),session=Depends(session_dependency)):
+async def get_coupon(coupon_id: str,x_coupon_key: str | None=Header(default=None),session=Depends(session_dependency, scope='function')):
     return await coupon_detail(session,await accessible(session,coupon_id,x_coupon_key))
 
 
 @router.get('/telegram/status')
-async def telegram_status(session=Depends(session_dependency)):
+async def telegram_status(session=Depends(session_dependency, scope='function')):
     from src.jobs.telegram import status
     return await status(session,utcnow())
 
@@ -377,14 +385,14 @@ async def telegram_test_message():
     return await send_test_message()
 
 
-@router.post('/telegram/tick',dependencies=[Depends(require_scraper_token),Depends(session_dependency)])
+@router.post('/telegram/tick',dependencies=[Depends(require_scraper_token),Depends(session_dependency, scope='function')])
 async def telegram_tick():
     from src.jobs.telegram import dispatch
     async with asyncio.timeout(25):return await dispatch(database)
 
 
 @router.post('/coupons/{coupon_id}/telegram',dependencies=[Depends(require_scraper_token)])
-async def share_coupon(coupon_id: str,x_coupon_key: str | None=Header(default=None),session=Depends(session_dependency)):
+async def share_coupon(coupon_id: str,x_coupon_key: str | None=Header(default=None),session=Depends(session_dependency, scope='function')):
     await accessible(session,coupon_id,x_coupon_key)
     await session.rollback()  # Release the HTTP reader before claiming and sending.
     from src.jobs.telegram import dispatch
@@ -431,7 +439,7 @@ async def uncached_predictions(session,league,date,team=None,now=None,publish=Tr
 
 @router.get('/predictions/best',response_model=GlobalPicks)
 async def global_predictions(league: str | None=None,date: Date | None=None,team: str | None=None,sort: Literal['ranking','kickoff','probability','odds','value']='ranking',bookmaker: Literal['all','Crown','Bet365','Sbobet'] | None=None,limit: int=Query(default=20,ge=1,le=100),offset: int=Query(default=0,ge=0),
-                             statistical_all: bool=False, priced_only: bool=False, market: Literal['all','result','goals','btts','corners','cards','yellow_cards','red_cards','asian_handicap','double_chance','first_half_goals','second_half_goals']='all',confidence: Literal['high','medium','low'] | None=None,min_probability: float=Query(default=0,ge=0,le=1),session=Depends(session_dependency)):
+                             statistical_all: bool=False, priced_only: bool=False, market: Literal['all','result','goals','btts','corners','cards','yellow_cards','red_cards','asian_handicap','double_chance','first_half_goals','second_half_goals']='all',confidence: Literal['high','medium','low'] | None=None,min_probability: float=Query(default=0,ge=0,le=1),session=Depends(session_dependency, scope='function')):
     matches,now,evaluated=await calculate_predictions(session,league,date,team,statistical_all=statistical_all)
     picks=[{'match':item['match'],'recommendation':r,'as_of':item['as_of']} for item in matches for r in item['recommendations'] if market_matches([r],market) and (not confidence or r['confidence']==confidence) and r['probability']>=min_probability]
     def _vo(r):
@@ -464,7 +472,7 @@ async def global_predictions(league: str | None=None,date: Date | None=None,team
 
 
 @router.get('/matches/{match_id}/statistics', response_model=Statistics)
-async def match_statistics(match_id: int, session=Depends(session_dependency)):
+async def match_statistics(match_id: int, session=Depends(session_dependency, scope='function')):
     with profile('analysis_read'):
         return await read_published_statistics(match_id,session)
 
@@ -506,7 +514,7 @@ async def odds_data_bulk(session, match_ids):
 
 
 @router.get('/matches/{match_id}', response_model=MatchDetail)
-async def match_detail(match_id: int, session=Depends(session_dependency)):
+async def match_detail(match_id: int, session=Depends(session_dependency, scope='function')):
     query, _, _ = match_query()
     row = (await session.execute(query.where(Match.id == match_id,League.enabled.is_(True)))).first()
     if not row:
@@ -515,21 +523,21 @@ async def match_detail(match_id: int, session=Depends(session_dependency)):
 
 
 @router.get('/matches/{match_id}/odds', response_model=list[OddsResponse])
-async def match_odds(match_id: int, session=Depends(session_dependency)):
+async def match_odds(match_id: int, session=Depends(session_dependency, scope='function')):
     if not await session.scalar(select(Match.id).join(League).where(Match.id==match_id,League.enabled.is_(True))):
         raise HTTPException(404, 'Match not found')
     return await odds_data(session, match_id)
 
 
 @router.get('/scraper/status', response_model=ScraperStatus)
-async def scraper_status(session=Depends(session_dependency)):
+async def scraper_status(session=Depends(session_dependency, scope='function')):
     rows = (await session.execute(select(ScraperJob, League.name).join(League).where(League.enabled.is_(True)).order_by(ScraperJob.id.desc()).limit(10))).all()
     return {'status': 'running' if any(j.status in {'queued', 'running'} for j, _ in rows) else 'idle',
             'jobs': [job_response(j, name) for j, name in rows]}
 
 
 @router.get('/scraper/jobs/{job_id}', response_model=JobResponse)
-async def job_detail(job_id: int, session=Depends(session_dependency)):
+async def job_detail(job_id: int, session=Depends(session_dependency, scope='function')):
     row = (await session.execute(select(ScraperJob, League.name).join(League).where(ScraperJob.id == job_id,League.enabled.is_(True)))).first()
     if not row:
         raise HTTPException(404, 'Scraper job not found')
@@ -546,29 +554,29 @@ async def submit(kind, request, session, match_id=None):
 
 
 @router.post('/scraper/backfill', response_model=JobResponse, status_code=202, dependencies=[Depends(require_scraper_token)])
-async def backfill(request: JobRequest, session=Depends(session_dependency)):
+async def backfill(request: JobRequest, session=Depends(session_dependency, scope='function')):
     return await submit('backfill', request, session)
 
 
 @router.post('/scraper/update', response_model=JobResponse, status_code=202, dependencies=[Depends(require_scraper_token)])
-async def daily_update(request: JobRequest, session=Depends(session_dependency)):
+async def daily_update(request: JobRequest, session=Depends(session_dependency, scope='function')):
     return await submit('update', request, session)
 
 
 @router.post('/scraper/update-all', response_model=list[JobResponse], status_code=202, dependencies=[Depends(require_scraper_token)])
-async def daily_update_all(session=Depends(session_dependency)):
+async def daily_update_all(session=Depends(session_dependency, scope='function')):
     jobs = await enqueue_all_updates()
     names = dict((await session.execute(select(League.id, League.name))).all())
     return [job_response(job, names.get(job.league_id)) for job in jobs]
 
 
 @router.post('/scraper/stats-backfill', response_model=JobResponse, status_code=202, dependencies=[Depends(require_scraper_token)])
-async def statistics_backfill(request: JobRequest, session=Depends(session_dependency)):
+async def statistics_backfill(request: JobRequest, session=Depends(session_dependency, scope='function')):
     return await submit('stats_backfill',request,session)
 
 
 @router.post('/scraper/statistics/{match_id}', response_model=JobResponse, status_code=202, dependencies=[Depends(require_scraper_token)])
-async def statistics_single(match_id: int, session=Depends(session_dependency)):
+async def statistics_single(match_id: int, session=Depends(session_dependency, scope='function')):
     match=await session.get(Match,match_id)
     if not match or match.status!='finished':raise HTTPException(404,'Stored completed match not found')
     league=await session.get(League,match.league_id)
@@ -576,7 +584,7 @@ async def statistics_single(match_id: int, session=Depends(session_dependency)):
 
 
 @router.post('/scraper/match/{match_id}', response_model=JobResponse, status_code=202, dependencies=[Depends(require_scraper_token)])
-async def scrape_match(match_id: int, session=Depends(session_dependency)):
+async def scrape_match(match_id: int, session=Depends(session_dependency, scope='function')):
     match = await session.get(Match, match_id)
     if not match:
         raise HTTPException(404, 'Match not found')
@@ -585,7 +593,7 @@ async def scrape_match(match_id: int, session=Depends(session_dependency)):
 
 
 @router.get('/predictions/yesterday-winners')
-async def yesterday_winners(session=Depends(session_dependency)):
+async def yesterday_winners(session=Depends(session_dependency, scope='function')):
     """Yesterday's actual winning picks published strictly before kickoff (Istanbul day)."""
     from src.models import PredictionSnapshot
     from src.analytics.performance import settle
@@ -637,7 +645,7 @@ async def yesterday_winners(session=Depends(session_dependency)):
 
 
 @router.get('/performance-trends')
-async def performance_trends(as_of: Date | None=None,league: str | None=None,market: str='all',exact_market: str | None=None,confidence: Literal['high','medium','low'] | None=None,date_from: Date | None=None,date_to: Date | None=None,session=Depends(session_dependency)):
+async def performance_trends(as_of: Date | None=None,league: str | None=None,market: str='all',exact_market: str | None=None,confidence: Literal['high','medium','low'] | None=None,date_from: Date | None=None,date_to: Date | None=None,session=Depends(session_dependency, scope='function')):
     from src.analytics.performance_trends import trends, ISTANBUL
     if date_from and date_to and date_from>date_to:raise HTTPException(400,'Invalid date range')
     anchor=as_of or utcnow().astimezone(ISTANBUL).date()
@@ -647,7 +655,7 @@ async def performance_trends(as_of: Date | None=None,league: str | None=None,mar
 
 
 @router.get('/market-performance')
-async def market_performance(league: str | None=None,market: Literal['all','result','goals','btts','corners','cards','yellow_cards','red_cards','asian_handicap','double_chance','first_half_goals','second_half_goals']='all',exact_market: str | None=None,date_from: Date | None=None,date_to: Date | None=None,confidence: Literal['high','medium','low'] | None=None,limit: int=Query(default=50,ge=1,le=100),offset: int=Query(default=0,ge=0),session=Depends(session_dependency)):
+async def market_performance(league: str | None=None,market: Literal['all','result','goals','btts','corners','cards','yellow_cards','red_cards','asian_handicap','double_chance','first_half_goals','second_half_goals']='all',exact_market: str | None=None,date_from: Date | None=None,date_to: Date | None=None,confidence: Literal['high','medium','low'] | None=None,limit: int=Query(default=50,ge=1,le=100),offset: int=Query(default=0,ge=0),session=Depends(session_dependency, scope='function')):
     if date_from and date_to and date_from>date_to:raise HTTPException(400,'Invalid date range')
     from src.analytics.performance import performance
     start=day_bounds(date_from,DISPLAY_TIMEZONE)[0] if date_from else None
@@ -656,22 +664,40 @@ async def market_performance(league: str | None=None,market: Literal['all','resu
         lambda: performance(session,league,start,end,market,exact_market,confidence,limit,offset))
 
 
-@router.post('/scraper/stats-backfill-enabled',response_model=list[JobResponse],dependencies=[Depends(require_scraper_token),Depends(session_dependency)])
+@router.post('/scraper/stats-backfill-enabled',response_model=list[JobResponse],dependencies=[Depends(require_scraper_token),Depends(session_dependency, scope='function')])
 async def stats_rollout():
     from src.jobs.worker import enqueue_stats_rollout
     return [job_response(job) for job in await enqueue_stats_rollout()]
 
 
 @router.get('/history/seasons')
-async def history_seasons(session=Depends(session_dependency)):
+async def history_seasons(session=Depends(session_dependency, scope='function')):
     from src.analytics.season_archive import read_or_query
     async with asyncio.timeout(4):
         return await read_or_query(session)
 
 
 @router.get('/chart-diagnostics')
-async def chart_diagnostics(session=Depends(session_dependency)):
+async def chart_diagnostics(session=Depends(session_dependency, scope='function')):
     from src.analytics.chart_diagnostics import chart_diagnostics as inspect_charts
     from src.api.read_cache import chart_cache
     async with asyncio.timeout(6):
         return await chart_cache.get(session.bind, 'cohort-v1', lambda: inspect_charts(session))
+
+
+@router.get('/runtime-health')
+async def runtime_health():
+    result = dict(pool=database.pool_health(), database_ready=database.ready,
+        settlement_worker=None, database_probe='not_ready')
+    if database.ready:
+        try:
+            from src.jobs.settlement import health
+            async with asyncio.timeout(3):
+                async with database.session() as session:
+                    result['settlement_worker'] = await health(session)
+            result['database_probe'] = 'connected'
+        except Exception as exc:
+            result['database_probe'] = 'unavailable'
+            result['probe_error_type'] = type(exc).__name__
+    result['pool'] = database.pool_health()
+    return result

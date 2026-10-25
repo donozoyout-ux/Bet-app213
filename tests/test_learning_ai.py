@@ -244,23 +244,26 @@ async def test_runner_enabled_ai_has_separate_pool_and_cleanup(monkeypatch):
     import src.jobs.runner as runner
     import src.jobs.telegram as telegram
     import src.analytics.learning as learning
+    import src.jobs.settlement as settlement
     seen={};closed=[];pools=[]
     async def close_main():closed.append('main')
     main=SimpleNamespace(close=close_main)
-    def create(url):
+    def create(url, *, role):
         number=len(pools)
         async def close():closed.append(number)
-        db=SimpleNamespace(close=close);pools.append(db);return db
+        db=SimpleNamespace(close=close,role=role);pools.append(db);return db
     async def work():await asyncio.sleep(.01)
     async def wait(name,db):seen[name]=db;await asyncio.Event().wait()
     monkeypatch.setattr(runner,'database',main);monkeypatch.setattr(runner,'Database',create)
     monkeypatch.setattr(runner,'work',work);monkeypatch.setattr(runner,'os',SimpleNamespace(name='nt'))
     monkeypatch.setattr(telegram,'loop',lambda db:wait('telegram',db))
     monkeypatch.setattr(learning,'loop',lambda db:wait('learning',db))
+    monkeypatch.setattr(settlement,'loop',lambda db:wait('settlement',db))
     monkeypatch.setattr(ai,'loop',lambda db:wait('ai',db));monkeypatch.setattr(ai,'config',lambda:CFG)
     await runner.run()
-    assert seen=={'telegram':main,'learning':pools[0],'ai':pools[1]}
-    assert closed==[1,0,'main']
+    assert seen=={'telegram':main,'learning':pools[0],'settlement':pools[1],'ai':pools[2]}
+    assert [db.role for db in pools]==['learning','settlement','ai']
+    assert closed==[2,0,1,'main']
 
 
 @pytest.mark.parametrize('field,value',[('data_fingerprint','wrong'),('method_version','wrong')])

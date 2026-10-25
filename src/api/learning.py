@@ -32,26 +32,26 @@ async def edition(session, report_id):
 
 
 @router.get('/summary')
-async def summary(report_id:int|None=Query(None,ge=1),session=Depends(session_dependency)):
+async def summary(report_id:int|None=Query(None,ge=1),session=Depends(session_dependency, scope='function')):
     report=await edition(session,report_id)
     return dict(status='ready',**metadata(report,session),summary=report.summary) if report else dict(status='warming',summary=None)
 
 
 @router.get('/coverage')
-async def coverage(report_id:int|None=Query(None,ge=1),session=Depends(session_dependency)):
+async def coverage(report_id:int|None=Query(None,ge=1),session=Depends(session_dependency, scope='function')):
     report=await edition(session,report_id)
     return dict(status='ready',**metadata(report,session),coverage=report.coverage) if report else dict(status='warming',coverage=None)
 
 
 @router.get('/reports')
-async def reports(limit:int=Query(20,ge=1,le=100),offset:int=Query(0,ge=0,le=100000),session=Depends(session_dependency)):
+async def reports(limit:int=Query(20,ge=1,le=100),offset:int=Query(0,ge=0,le=100000),session=Depends(session_dependency, scope='function')):
     rows=await session.scalars(select(LearningReport).order_by(LearningReport.id.desc()).offset(offset).limit(limit))
     return dict(items=[metadata(r) for r in rows],total=await session.scalar(select(func.count(LearningReport.id))),limit=limit,offset=offset)
 
 
 @router.get('/statistics')
 async def statistics(kind:Literal['league','market','model','league_market','calibration']='market',
-        report_id:int|None=Query(None,ge=1),limit:int=Query(20,ge=1,le=100),offset:int=Query(0,ge=0,le=100000),session=Depends(session_dependency)):
+        report_id:int|None=Query(None,ge=1),limit:int=Query(20,ge=1,le=100),offset:int=Query(0,ge=0,le=100000),session=Depends(session_dependency, scope='function')):
     report=await edition(session,report_id)
     if report is None:
         return dict(status='warming',items=[],total=0,limit=limit,offset=offset)
@@ -62,7 +62,7 @@ async def statistics(kind:Literal['league','market','model','league_market','cal
 
 
 @router.get('/lessons')
-async def lessons(report_id:int|None=Query(None,ge=1),limit:int=Query(20,ge=1,le=100),offset:int=Query(0,ge=0,le=100000),session=Depends(session_dependency)):
+async def lessons(report_id:int|None=Query(None,ge=1),limit:int=Query(20,ge=1,le=100),offset:int=Query(0,ge=0,le=100000),session=Depends(session_dependency, scope='function')):
     report=await edition(session,report_id)
     if report is None:
         return dict(status='warming',items=[],total=0,limit=limit,offset=offset)

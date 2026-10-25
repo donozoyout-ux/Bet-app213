@@ -60,6 +60,8 @@ async def chart_diagnostics(session, now=None):
     def outcomes(c):
         return dict(saved_picks=c['saved_picks'], settled=c['won']+c['lost'],
             **{key:c[key] for key in ('won','lost','pending','awaiting_data','disputed','void')})
+    from src.jobs.settlement import health
+    worker_health = await health(session, now)
     return dict(checked_at=now, cache_seconds=60, truncated=truncated, sample_limit=MAX_SNAPSHOTS,
         scope='all_saved_prematch_picks_unfiltered', matches=dict(total=total, finished=finished),
         snapshots=dict(examined=len(records), prematch=counts['prematch_snapshots'],
@@ -68,7 +70,7 @@ async def chart_diagnostics(session, now=None):
             first_capture=min(captures) if captures else None, last_capture=max(captures) if captures else None),
         outcomes=outcomes(counts), today_and_future_picks=counts['today_and_future_picks'],
         cohorts={str(days):outcomes(c) for days,c in cohorts.items()},
-        settlement_worker=dict(interval_seconds=60, heartbeat='not_instrumented',
+        settlement_worker=dict(**worker_health,
             persisted_decisions=counts['persisted_decisions'], last_decision_at=latest),
         explanation='bounded_sample' if truncated else 'no_finished_captured_matches' if not counts['finished_snapshots']
             else 'no_verified_settlements' if not counts['won']+counts['lost'] else 'verified_settlements_available')
