@@ -483,3 +483,17 @@ class BoardReadPublication(Base):
     evaluated: Mapped[int] = mapped_column()
     coupon_records: Mapped[list] = mapped_column(JSON, deferred=True)
     engine_analysis: Mapped[list] = mapped_column(JSON, deferred=True)
+
+
+class WorkerCheckpoint(Base):
+    """Additive runtime checkpoint v1; source records and decisions are untouched."""
+    __tablename__ = 'worker_checkpoints'
+    name: Mapped[str] = mapped_column(String(32), primary_key=True)
+    attempted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    last_success_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    next_attempt_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    cursor: Mapped[int] = mapped_column(default=0)
+    examined: Mapped[int] = mapped_column(default=0)
+    written: Mapped[int] = mapped_column(default=0)
+    failures: Mapped[int] = mapped_column(default=0)
+    error_type: Mapped[str | None] = mapped_column(String(80))

@@ -48,9 +48,9 @@ async def test_12000_fixtures_are_not_97_picks_or_settlements(api,db):
     assert report['outcomes']['settled']==0 and report['snapshots']['finished']==0
     assert report['today_and_future_picks']==97
     assert all(c['settled']==c['saved_picks']==0 for c in report['cohorts'].values())
-    assert report['settlement_worker']['heartbeat']=='not_instrumented'
+    assert report['settlement_worker']['heartbeat']=='warming'
     assert report['explanation']=='no_finished_captured_matches'
-    assert len(statements)==3 and all(q.lstrip().startswith('SELECT') for q in statements)
+    assert len(statements)==4 and all(q.lstrip().startswith('SELECT') for q in statements)
     assert any('LIMIT' in q for q in statements)
     assert (await api.get('/api/chart-diagnostics')).status_code==200
 

@@ -2,7 +2,7 @@
 from copy import deepcopy
 import hashlib
 import json
-from sqlalchemy import select
+from sqlalchemy import select, func
 from src.models import PredictionSnapshot, PredictionSettlement, Match, MatchStatistics, utcnow
 
 VERSION = 'settlement-v1'
@@ -42,32 +42,44 @@ async def decisions(session, match_id):
     return (await decisions_many(session, [match_id])).get(match_id, {})
 
 
-async def settle_snapshot(session, snapshot, match, stats):
-    """First terminal result wins, even under concurrent workers. Caller commits."""
+def terminal_records(snapshot, match, stats, existing, now):
+    """Create only first terminal decisions from immutable pre-kickoff evidence."""
     from src.analytics.performance import settle
     from src.jobs.worker import aware
     if not match.kickoff_at or aware(snapshot.captured_at) >= aware(match.kickoff_at):
-        return 0
-    if session.bind.dialect.name == 'postgresql':
-        from sqlalchemy.dialects.postgresql import insert
-    else:
-        from sqlalchemy.dialects.sqlite import insert
-    existing = await decisions(session, match.id)
-    count = 0
+        return []
+    proof = evidence(match, stats)
+    records = []
     for index, pick in enumerate(snapshot.picks):
         if index in existing:
             continue
         outcome, actual = settle(match, stats, pick)
         if outcome not in TERMINAL:
             continue
-        proof = evidence(match, stats)
-        result = await session.execute(insert(PredictionSettlement).values(match_id=match.id,
-            pick_index=index, revision=1, outcome=outcome, actual={'value': actual}, evidence=proof,
+        records.append(dict(match_id=match.id, pick_index=index, revision=1,
+            outcome=outcome, actual={'value': actual}, evidence=proof,
             snapshot_hash=snapshot_digest(snapshot), evidence_hash=digest(proof), evaluator_version=VERSION,
-            recorded_at=utcnow(), actor='worker', reason='first_verified_terminal_observation')
-            .on_conflict_do_nothing(index_elements=['match_id', 'pick_index', 'revision']))
+            recorded_at=now, actor='worker', reason='first_verified_terminal_observation'))
+    return records
+
+
+async def insert_terminal_records(session, records):
+    if session.bind.dialect.name == 'postgresql':
+        from sqlalchemy.dialects.postgresql import insert
+    else:
+        from sqlalchemy.dialects.sqlite import insert
+    count = 0
+    for start in range(0, len(records), 128):
+        result = await session.execute(insert(PredictionSettlement).values(records[start:start+128])
+            .on_conflict_do_nothing(index_elements=['match_id','pick_index','revision']))
         count += result.rowcount
     return count
+
+
+async def settle_snapshot(session, snapshot, match, stats):
+    """First terminal result wins, even under concurrent workers. Caller commits."""
+    existing = await decisions(session, match.id)
+    return await insert_terminal_records(session, terminal_records(snapshot, match, stats, existing, utcnow()))
 
 
 async def settle_match(session, match):
@@ -162,14 +174,25 @@ async def resolved_predictions(session, *, after_id=0, limit=200):
     return items
 
 
-async def settle_batch(session, *, after_match_id=0, limit=100):
+async def settle_batch(session, *, after_match_id=0, limit=100, only_unsettled=False):
     """Bounded legacy backfill. Returns last examined match for durable caller cursor."""
     if not 1 <= limit <= 1000 or after_match_id < 0:
         raise ValueError('Invalid batch cursor or limit')
-    rows = (await session.execute(select(PredictionSnapshot, Match, MatchStatistics).join(
-        Match, Match.id == PredictionSnapshot.match_id).outerjoin(MatchStatistics, MatchStatistics.match_id == Match.id)
-        .where(Match.id > after_match_id, Match.status.in_(['finished','cancelled','abandoned']))
-        .order_by(Match.id).limit(limit))).all()
-    for snapshot, match, stats in rows:
-        await settle_snapshot(session, snapshot, match, stats)
+    from sqlalchemy.orm import defer
+    query = (select(PredictionSnapshot, Match, MatchStatistics).options(
+        defer(Match.raw), defer(MatchStatistics.raw)).join(Match, Match.id == PredictionSnapshot.match_id)
+        .outerjoin(MatchStatistics, MatchStatistics.match_id == Match.id)
+        .where(Match.id > after_match_id, Match.status.in_(['finished','cancelled','abandoned'])))
+    if only_unsettled:
+        recorded = select(func.count(PredictionSettlement.id)).where(
+            PredictionSettlement.match_id == Match.id, PredictionSettlement.revision == 1).correlate(Match).scalar_subquery()
+        query = query.where(PredictionSnapshot.captured_at < Match.kickoff_at,
+            recorded < func.json_array_length(PredictionSnapshot.picks))
+    rows = (await session.execute(query.order_by(Match.id).limit(limit))).all()
+    frozen = await decisions_many(session, [match.id for snapshot,match,stats in rows]) if rows else {}
+    now = utcnow()
+    records = [record for snapshot,match,stats in rows
+        for record in terminal_records(snapshot,match,stats,frozen.get(match.id,{}),now)]
+    written = await insert_terminal_records(session, records)
+    session.info['settlement_batch'] = dict(examined=len(rows), written=written)
     return rows[-1][1].id if rows else 0

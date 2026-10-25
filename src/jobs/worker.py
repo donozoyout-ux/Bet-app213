@@ -649,6 +649,7 @@ async def process_item(job_id, item_id, client):
                         ),
                     ).limit(1)
                 )
+                await session.commit()  # Release the read transaction before Goaloo I/O.
                 if not has_ht or not final:
                     try:
                         ht_odds = await fetch_halftime_odds(client, external_id, final)
@@ -687,6 +688,7 @@ async def process_item(job_id, item_id, client):
                         ),
                     ).limit(1)
                 )
+                await session.commit()  # Persist HT evidence and release before another source call.
                 if not has_corners or not final:
                     try:
                         corner_odds = await fetch_corner_odds(client, external_id, half_time=False, final=final)
