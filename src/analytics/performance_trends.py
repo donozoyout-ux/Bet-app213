@@ -66,9 +66,12 @@ def build_trends(rows, as_of, *, truncated=False, duplicate_picks_excluded=0):
     return dict(as_of=as_of.isoformat(),timezone='Europe/Istanbul',cohort_basis='match_kickoff_date',today_excluded=True,min_decided=MIN_DECIDED,min_distinct_matches=MIN_MATCHES,min_effective_matches=MIN_MATCHES,truncated=truncated,duplicate_picks_excluded=duplicate_picks_excluded,first_observed_kickoff=min((r['day'] for r in rows),default=None),model_versions=sorted({r['model_version'] for r in rows}),model_update_verified=False,improvement_proven=False,daily=daily,weekly=weekly,aggregation=aggregation,comparisons=comparisons)
 
 
-async def trends(session,as_of,league=None,market='all',exact_market=None,confidence=None,date_from=None,date_to=None):
+async def trends(session,as_of,league=None,market='all',exact_market=None,confidence=None,date_from=None,date_to=None,*,now=None):
+    now=now or utcnow()
+    include_today=as_of==now.astimezone(ISTANBUL).date()
     start=datetime.combine(as_of-timedelta(days=60),time(),ISTANBUL)
-    end=datetime.combine(as_of,time(),ISTANBUL)
+    # Today's observations are returned separately, never mixed into completed-day comparisons.
+    end=datetime.combine(as_of+timedelta(days=int(include_today)),time(),ISTANBUL)
     query=select(PredictionSnapshot,Match,MatchStatistics,League.name).join(Match,Match.id==PredictionSnapshot.match_id).join(League,League.id==Match.league_id).outerjoin(MatchStatistics,MatchStatistics.match_id==Match.id).options(defer(Match.raw),defer(MatchStatistics.raw)).where(Match.kickoff_at>=start,Match.kickoff_at<end).order_by(Match.kickoff_at,Match.id).limit(MAX_SNAPSHOTS+1)
     if league:query=query.where(League.id==int(league)) if league.isdigit() else query.where(League.name.ilike('%'+league+'%'))
     if date_from:query=query.where(PredictionSnapshot.captured_at>=datetime.combine(date_from,time(),ISTANBUL))
@@ -92,4 +95,6 @@ async def trends(session,as_of,league=None,market='all',exact_market=None,confid
             kickoff_day=aware(match.kickoff_at).astimezone(ISTANBUL).date()
             late=aware(saved.recorded_at).astimezone(ISTANBUL).date()>kickoff_day if saved else None
             rows.append(dict(day=kickoff_day,late_recorded=late,match_id=match.id,league=league_name,market=pick['market'],model_version=snapshot.model_version,probability=pick.get('probability'),outcome=outcome))
-    return dict(build_trends(rows,as_of,truncated=truncated,duplicate_picks_excluded=duplicates),checked_at=utcnow())
+    current_day=dict(date=as_of.isoformat(),**summarize([r for r in rows if r['day']==as_of])) if include_today and not truncated else None
+    return dict(build_trends(rows,as_of,truncated=truncated,duplicate_picks_excluded=duplicates),
+                current_day=current_day,checked_at=now)

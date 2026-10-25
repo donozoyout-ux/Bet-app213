@@ -15,6 +15,7 @@
       || !d.daily.every(r=>row(r)&&/^\d{4}-\d{2}-\d{2}$/.test(r.date))
       || !d.weekly.every(row)||![7,30].every(n=>d.comparisons.some(c=>c.days===n&&row(c.recent)&&row(c.previous))))throw new Error('Invalid outcome cohort');
     if(d.daily.some(r=>r.chart_rate!=null&&(!Number.isFinite(r.chart_rate)||r.chart_rate<0||r.chart_rate>1||!r.decided)))throw new Error('Invalid outcome rate');
+    if(d.current_day!=null && (!row(d.current_day)||d.current_day.date!==d.as_of))throw new Error('Invalid current-day cohort');
     return d;
   }
   function stamp(value,stale=false){
@@ -40,15 +41,32 @@
       catch(_){data=null;for(const id of hosts){const box=$(id);if(box){box.replaceChildren(node('span','Kapsam kontrolü alınamadı','evidence-badge'),node('p','Maç ve kayıtlı tahmin toplamları şu anda doğrulanamadı. Grafik, kendi sonuç API’sinin durumunu ayrıca gösterir.'));box.firstChild.dataset.state='error';}}}
       finally{pending=null;}})();return pending;
   }
-  function emptyTimeline(chart,series,label){
-    chart.append(node('p','Henüz sonuçlanan tahmin yok · 0 doğrulanmış sonuç. Başarı oranı hesaplanamaz.','chart-empty'));
-    const width=Math.max(280,Math.round(chart.clientWidth||360)),height=innerWidth<600?200:240;
-    const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.classList.add('bounded-count-timeline');svg.setAttribute('viewBox',`0 0 ${width} ${height}`);svg.setAttribute('role','img');svg.setAttribute('aria-label',label+' · 0 doğrulanmış sonuç; başarı oranı yok');
+  function counts(chart,summary,label){
+    const categories=[['total','Kayıtlı'],['won','Kazandı'],['lost','Kaybetti'],['pending','Bekliyor'],['awaiting_data','Veri eksik'],['disputed','İncelenmeli'],['void','Geçersiz']];
+    const width=Math.max(280,Math.round(chart.clientWidth||360)),height=238,max=Math.max(1,summary.total);
+    const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.classList.add('bounded-count-timeline');svg.setAttribute('viewBox',`0 0 ${width} ${height}`);svg.setAttribute('role','img');
+    svg.setAttribute('aria-label',label+' · '+categories.map(([key,name])=>`${name}: ${summary[key]}`).join(' · '));
     const make=(tag,attrs,text)=>{const e=document.createElementNS(svg.namespaceURI,tag);for(const[k,v]of Object.entries(attrs))e.setAttribute(k,v);if(text!=null)e.textContent=text;svg.append(e);};
-    const left=34,right=width-25,bottom=height-45;
-    make('path',{d:`M${left} 25V${bottom}H${right}`,stroke:'#355275',fill:'none'});
-    make('path',{d:`M${left} ${bottom}H${right}`,stroke:'#67d7ec','stroke-width':3,'data-series':'empty-count',fill:'none'});
-    chart.append(svg);
+    categories.forEach(([key,name],i)=>{const y=12+i*32,available=width-148;
+      make('text',{x:4,y:y+15,fill:'#333','font-size':12},name);
+      make('rect',{x:94,y,width:available,height:20,rx:3,fill:'#f1f1f1'});
+      make('rect',{x:94,y,width:available*summary[key]/max,height:20,rx:3,fill:key==='total'?'#111':'#666','data-count':key,'data-value':summary[key]});
+      make('text',{x:width-8,y:y+15,'text-anchor':'end',fill:'#111','font-size':12},String(summary[key]));
+    });chart.append(svg);
   }
-  globalThis.BetAppEvidence=Object.freeze({refresh,validateTrends,badge,emptyTimeline});
+  function emptyTimeline(chart,series,label){
+    chart.append(node('p','Tamamlanmış günler · Henüz sonuçlanan tahmin yok · 0 doğrulanmış sonuç. Başarı oranı hesaplanamaz.','chart-empty'));
+    const summary=Object.fromEntries(['total','won','lost','pending','awaiting_data','disputed','void'].map(key=>[key,series.reduce((n,d)=>n+d[key],0)]));
+    chart.append(node('p',label+' · Seçim sayıları; başarı eğilimi değildir.','muted'));counts(chart,summary,label);
+  }
+  function currentDay(chart,data){
+    const id=chart.id+'-current-day';let box=$(id);
+    if(!data?.current_day||data.truncated){box?.remove();return;}
+    if(!box){box=node('section','','current-day-evidence');box.id=id;(chart.parentElement.querySelector('.results-legend')||chart).before(box);}
+    const d=data.current_day;box.replaceChildren(node('h3','Bugün · '+d.date+' · İstanbul'));
+    box.append(node('p','Gün henüz tamamlanmadı. Bu kayıtlar aşağıdaki 7/30 günlük dönem karşılaştırmasına dahil değildir. Aynı sayfa filtreleri uygulanır.','muted'));
+    counts(box,d,'Bugünkü kayıtlı seçimler');
+    box.append(node('p',`${d.decided} doğrulanmış sonuç · ${d.won} kazandı / ${d.lost} kaybetti · Başarı: ${d.success_rate==null?'N/A — henüz hesaplanamaz':(100*d.success_rate).toLocaleString('tr-TR',{maximumFractionDigits:1})+'%'} · Gözlenen sonuç; modelin geliştiğini kanıtlamaz.`, 'current-day-summary'));
+  }
+  globalThis.BetAppEvidence=Object.freeze({refresh,validateTrends,badge,emptyTimeline,currentDay});
 })();

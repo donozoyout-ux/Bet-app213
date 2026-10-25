@@ -158,8 +158,10 @@ async def test_chart_visibility_navigation_errors_and_screenshots(api,monkeypatc
                 await expect(home.locator('svg')).to_have_count(0)
             else:
                 await expect(home.locator('svg')).to_be_visible()
-                await expect(home.locator('path[data-series]')).to_have_count(1 if mode=='empty' else 3)
+                await expect(home.locator('path[data-series]')).to_have_count(0 if mode=='empty' else 3)
                 if mode=='empty':
+                    await expect(home.locator('rect[data-count]')).to_have_count(7)
+                    await expect(home.locator('[data-count=total]')).to_have_attribute('data-value','0')
                     await expect(home).to_contain_text('0 doğrulanmış sonuç')
                     await expect(page.locator('#home-results-rate')).to_have_text('—')
                 await page.locator('#home-results-window').select_option('30')
@@ -179,7 +181,7 @@ async def test_chart_visibility_navigation_errors_and_screenshots(api,monkeypatc
                 await expect(chart.locator('svg')).to_have_count(0)
             else:
                 await expect(chart.locator('svg')).to_be_visible()
-                assert (await chart.locator('svg').bounding_box())['height']==(200 if width==390 else 240)
+                assert (await chart.locator('svg').bounding_box())['height']==pytest.approx(200 if width==390 else 240,abs=.01)
                 if mode=='empty':
                     await expect(chart).to_contain_text('0 doğrulanmış sonuç')
                     await expect(chart.locator('circle')).to_have_count(0)

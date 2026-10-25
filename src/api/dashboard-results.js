@@ -13,6 +13,8 @@
 
   function unavailable(text){
     latest=null;
+    const legend=panel.querySelector('.results-legend');if(legend)legend.hidden=true;
+    globalThis.BetAppEvidence?.currentDay($('home-results-chart'),null);
     $('home-results-chart').replaceChildren(node('p',text,'chart-empty'));
     $('home-results-summary').textContent='Sonuç sayıları ve başarı oranı doğrulanamadı.';
     $('home-results-daily').replaceChildren();
@@ -26,6 +28,8 @@
     if(data.truncated){unavailable('Veri sınırına ulaşıldı. Eksik toplamlar gösterilmiyor; Performans sayfasında filtreleri daraltın.');return;}
     if(!summary || series.length!==days){unavailable('Günlük sonuç verisi doğrulanamadı.');return;}
     latest=data;
+    const legend=panel.querySelector('.results-legend');if(legend)legend.hidden=!series.some(d=>d.decided);
+    globalThis.BetAppEvidence?.currentDay($('home-results-chart'),data);
     for(const [id,key] of [['settled','decided'],['won','won'],['lost','lost']])$('home-results-'+id).textContent=String(summary[key]);
     $('home-results-rate').textContent=rate(summary.success_rate);
     $('home-results-summary').textContent=`Son ${days} tamamlanmış İstanbul günü · ${summary.start} – ${series.at(-1).date} · ${summary.total} kayıtlı seçim · ${summary.pending} bekleyen · ${summary.awaiting_data} sonuç verisi eksik · ${summary.decided} sonuçlanan: ${summary.won} kazandı, ${summary.lost} kaybetti${summary.decided?`, gözlenen başarı ${rate(summary.success_rate)}`:'. Başarı oranı hesaplanamaz'}. ${summary.sufficient?'Gözlemsel sonuçlar':'Örneklem yetersiz'} · Modelin geliştiğini kanıtlamaz.`;
