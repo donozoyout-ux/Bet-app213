@@ -174,3 +174,8 @@ async def match_analysis_script():
 @app.get('/dashboard-revision.js',include_in_schema=False)
 async def revision_script():
     return FileResponse(Path(__file__).resolve().with_name('dashboard-revision.js'),media_type='application/javascript')
+
+
+@app.get('/dashboard-evidence.js', include_in_schema=False)
+async def evidence_script():
+    return FileResponse(Path(__file__).resolve().with_name('dashboard-evidence.js'), media_type='application/javascript')

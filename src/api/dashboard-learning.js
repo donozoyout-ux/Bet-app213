@@ -29,6 +29,8 @@
     for(const [name,value] of [['Kaydedilen tahmin',num(c.saved_predictions)],['Sonuçlanan',num(c.recorded_terminal)],['Gerçekleşen başarı',pct(s.success_rate)],['Beklenen başarı',pct(s.mean_probability)],['Brier skoru',num(s.brier_score)],['Öğrenme durumu',state.data.lessons.some(r=>r.status==='supported_candidate')?'Ders adayı var':'Gözlem aşaması']])metric(name,value);
     put('learning-coverage',`${state.data.lessons.some(r=>r.ai?.status==='ready')?'':'AI anlatımı hazır değil; kayıtlı istatistiksel kanıt gösteriliyor. '}${num(s.predictions)} geçerli sonuç · ${num(s.matches)} maç · Maç bekleyen: ${num(c.match_pending)} · Sonuç verisi bekleyen: ${num(c.result_data_pending)} · Geçersiz: ${num(c.exclusions?.void)} · Log loss: ${num(s.log_loss)}`);
     put('learning-status',`${m.stale?'Eski rapor · Güncelleme bekleniyor. ':''}${$('learning-report').value?'Arşiv raporu · ':''}Rapor #${m.report_id} · ${date(m.created_at)} · Son kaynak kontrolü: ${date(m.checked_at)}`);
+    globalThis.BetAppEvidence?.badge($('learning-status'),m.checked_at,m.stale);
+    put('learning-next-step',s.predictions===0?'Henüz doğrulanmış sonuç örneklemi yok. Kaydedilen seçimlerin maçlarının tamamlanması ve sonuç kararlarının kaydedilmesi bekleniyor. Geçmiş maç sayısı bir öğrenme sonucu değildir.':'Kayıtlı sonuçlar gözleniyor. Düşük örneklem, öğrenme veya gelecek başarı kanıtı değildir; ders adayları uygulanmış model değişikliği anlamına gelmez.');
   }
   function scopes(){const box=$('learning-scope');box.replaceChildren();option(box,'','Tümü');const filter=$('learning-kind').value;
     for(const r of state.data?.lessons || [])if(filter==='all' || kind(r)===filter)option(box,r.scope_key,`${label(r)}${r.league_id!=null && r.market?' · '+(markets[r.market] || r.market):''}`);
@@ -68,9 +70,10 @@
   }
   async function refresh(force=false){if(!globalThis.BetAppUI?.active('lessons'))return;if(state.controller && !force)return;
     state.controller?.abort();const controller=new AbortController(),signal=controller.signal;state.controller=controller;const generation=++state.generation;
+    globalThis.BetAppEvidence?.refresh();
     $('learning-lessons').setAttribute('aria-busy','true');put('learning-status','Öğrenme verileri yükleniyor…');
     try{const selected=$('learning-report').value;const summary=await get('learning/summary'+(selected?'?report_id='+selected:''),signal);
-      if(summary.status==='warming'){state.data=null;$('learning-summary').replaceChildren();$('learning-lessons').replaceChildren();put('learning-status','Yeterli veri birikiyor. İlk öğrenme raporu hazırlanıyor.');put('learning-coverage','');put('learning-page','');put('learning-statistics','');scopes();return;}
+      if(summary.status==='warming'){state.data=null;$('learning-summary').replaceChildren();$('learning-lessons').replaceChildren();put('learning-status','Yeterli veri birikiyor. İlk öğrenme raporu hazırlanıyor.');put('learning-coverage','');put('learning-page','');put('learning-statistics','');put('learning-next-step','İlk rapor hazırlanırken kayıtlı seçimlerin ve sonuçların kapsamını aşağıdaki sayılardan izleyebilirsiniz. Maç arşivi, doğrulanmış ders sayısı değildir.');$('learning-lessons').append(el('p','Henüz raporlanmış ders yok. Yeni bir analiz veya geçmişe dönük tahmin bu ekranda üretilmez.','panel-empty'));scopes();return;}
       const id=summary.report_id;if(!Number.isInteger(id) || !summary.summary)throw new Error('Geçersiz özet');
       if(!force && state.data?.meta.report_id===id){
         if(state.data.lessons.some(r=>r.ai?.status==='not_prepared')){
@@ -87,7 +90,7 @@
       if(generation!==state.generation)return;state.leagues=new Map(leagues.map(r=>[String(r.id),r.name]));
       lessons.sort((a,b)=>(Date.parse(b.date)||0)-(Date.parse(a.date)||0) || a.scope_key.localeCompare(b.scope_key));
       state.data={meta:summary,summary:summary.summary,coverage:coverage.coverage,lessons,statistics:{league:leagueStats,market:marketStats,model:modelStats}};state.offset=0;scopes();renderSummary();render();
-    }catch(e){if(generation===state.generation && !signal.aborted){state.data=null;$('learning-summary').replaceChildren();$('learning-lessons').replaceChildren();put('learning-status','Öğrenme API verileri alınamadı. Raporu Yenile ile yeniden deneyin.');put('learning-coverage','');put('learning-statistics','');put('learning-page','');scopes();}}
+    }catch(e){if(generation===state.generation && !signal.aborted){state.data=null;$('learning-summary').replaceChildren();$('learning-lessons').replaceChildren();put('learning-next-step','Rapor içeriği doğrulanamadı; önceki sayılar güncelmiş gibi gösterilmiyor.');put('learning-status','Öğrenme API verileri alınamadı. Raporu Yenile ile yeniden deneyin.');put('learning-coverage','');put('learning-statistics','');put('learning-page','');scopes();}}
     finally{if(generation===state.generation){state.controller=null;$('learning-lessons').setAttribute('aria-busy','false');if(!state.data){$('learning-previous').disabled=true;$('learning-next').disabled=true;}}}
   }
   $('learning-refresh').onclick=()=>refresh(true);$('learning-report').onchange=()=>refresh(true);
