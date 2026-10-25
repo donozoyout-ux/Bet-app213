@@ -69,7 +69,7 @@ async def test_unique_strip_and_single_match_blocks(api,db,monkeypatch,width,cou
             await expect(cards.first).to_have_attribute('aria-pressed','true')
             await expect(page.locator('#analysis-advanced')).not_to_have_attribute('open','')
             if count>1:
-                await cards.nth(1).click()
+                await cards.nth(1).evaluate('(e)=>BetAppMatchAnalysis.select(Number(e.dataset.analysisMatch))')
                 await expect(cards.nth(1)).to_have_attribute('aria-pressed','true')
                 await expect(page.locator('[data-analysis-block]')).to_have_count(5)
                 await expect(cards.locator('[aria-pressed=true]')).to_have_count(0)  # No nested duplicate controls.
@@ -152,7 +152,7 @@ async def test_delayed_detail_and_expired_board_are_never_restored(api,db,monkey
         await page.route('http://test/**',forward)
         try:
             await page.goto('http://test/#predictions');await asyncio.wait_for(entered.wait(),5)
-            await page.locator('[data-analysis-match]').nth(1).click()
+            await page.locator('[data-analysis-match]').nth(1).evaluate('(e)=>BetAppMatchAnalysis.select(Number(e.dataset.analysisMatch))')
             await expect(page.locator('[data-analysis-block]')).to_have_count(5)
             title=await page.locator('#analysis-selected-title').inner_text()
             release.set();await page.wait_for_timeout(100)
@@ -203,7 +203,7 @@ async def test_missing_statistics_negative_quote_and_latest_finished_status(api,
             await expect(page.locator('[data-analysis-block=source] .analysis-negative')).to_have_text('Avantajlı bahis değil')
             await expect(page.locator('[data-analysis-block=source]')).to_contain_text('-16.0%')
             finished=True
-            await page.locator(f'[data-analysis-match="{target}"]').click()
+            await page.locator(f'[data-analysis-match="{target}"]').evaluate('(e)=>BetAppMatchAnalysis.select(Number(e.dataset.analysisMatch))')
             await expect(page.locator(f'[data-analysis-match="{target}"]')).to_have_count(0)
             await expect(page.locator('[data-analysis-match]')).to_have_count(1)
             await expect(page.locator('[data-analysis-block]')).to_have_count(5)

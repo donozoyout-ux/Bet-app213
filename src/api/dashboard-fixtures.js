@@ -1,6 +1,8 @@
 /* Complete daily fixtures, with original prematch snapshots and recorded evidence. */
 (() => {
   'use strict';
+const matchLink=(id,text)=>{const a=document.createElement('a');a.href='/match/'+id;a.target='_blank';a.rel='noopener noreferrer';a.textContent=text;return a;};
+
   const $=id=>document.getElementById(id),panel=$('prediction-fixtures');if(!panel)return;
   const state={offset:0,status:'all',controller:null,generation:0,data:null,fingerprint:null,lastRead:0,clock:null,today:null,dateChosen:false};
   const active=()=>!document.hidden && globalThis.BetAppUI?.active('predictions');
@@ -64,7 +66,7 @@
     const card=node('article','','daily-fixture');card.dataset.fixtureId=String(m.id);
     const heading=node('div','','fixture-heading');
     heading.append(node('span',`${time(m.kickoff_at)} · ${m.league}`,'fixture-meta'),node('span',statusText(m),'fixture-status'));
-    const teams=node('div','','fixture-scoreline');teams.append(node('h3',`${m.home_team} — ${m.away_team}`),node('strong',scoreText(m),'fixture-score'));
+    const teams=node('div','','fixture-scoreline');const headingLink=node('h3');headingLink.append(matchLink(m.id,`${m.home_team} — ${m.away_team}`));teams.append(headingLink,node('strong',scoreText(m),'fixture-score'));
     const source=node('p',`${freshness(m)} · ${m.source||'Kaynak bilinmiyor'} · ${dateTime(m.score.observed_at)}`,'fixture-provenance');
     source.dataset.fixtureFreshness=String(m.id);
     const picks=node('div','','fixture-picks');

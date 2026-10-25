@@ -1,6 +1,8 @@
 /* Kuponanalizii: API presentation, URL history and lazy loading. No model calculations. */
 (() => {
 'use strict';
+const matchLink=(id,text)=>{const a=document.createElement('a');a.href='/match/'+id;a.target='_blank';a.rel='noopener noreferrer';a.textContent=text;return a;};
+
 const $=id=>document.getElementById(id),value=id=>$(id)?.value || '';
 const node=(tag,text='',cls='')=>{const el=document.createElement(tag);el.textContent=text;el.className=cls;return el;};
 const write=(id,text)=>{if($(id))$(id).textContent=text;},pct=v=>v==null?'—':'%'+(100*v).toFixed(1),num=v=>v==null?'—':Number(v).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -18,7 +20,7 @@ function done(id){const box=$(id);if(box){box.setAttribute('aria-busy','false');
 function errorText(e){if(e.code==='analysis_publication_pending')return 'Kaydedilmiş maç analizi güncelleniyor; arka plan yayını bekleniyor.';if(e.code==='analysis_archive_missing')return 'Kayıtlı maç öncesi analiz yok; geçmişe dönük tahmin üretilmez.';if(e.name==='TimeoutError' || e.status===504)return 'API isteği zaman aşımına uğradı. Yeniden deneyin.';return e.status===503?'PostgreSQL verileri şu anda kullanılamıyor. Yeniden bağlantı bekleniyor.':'API kullanılamıyor. Bağlantı bekleniyor; diğer bölümleri kullanabilirsiniz.';}
 async function api(path,signal){const r=await fetch(path,{signal:signal || AbortSignal.timeout(15000)});if(!r.ok){const e=new Error('API unavailable');e.status=r.status;try{e.code=(await r.json()).detail?.code;}catch(_){}throw e;}return r.json();}
 async function request(key,path,success,failure){const pending=state.controllers.get(key);if(pending && !pending.signal.aborted && pending.path===path)return;pending?.abort();const c=new AbortController();c.path=path;state.controllers.set(key,c);try{const started=Date.now();const data=await api(path,AbortSignal.any([c.signal,AbortSignal.timeout(15000)]));if(!c.signal.aborted){if(data.cache?.checked_at)data.requestElapsed=Date.now()-started;success(data);}}catch(e){if(!c.signal.aborted){if(['home','picks'].includes(key))globalThis.BetAppRevision?.failed('predictions');failure?.(e);}}finally{if(state.controllers.get(key)===c)state.controllers.delete(key);}}
-function openRow(row,id){row.dataset.matchId=String(id);row.tabIndex=0;row.setAttribute('aria-label','Maç analizini aç');row.onclick=()=>globalThis.BetAppDashboard?.selectMatch(id);row.onkeydown=e=>{if(['Enter',' '].includes(e.key)){e.preventDefault();row.onclick();}};}
+function openRow(row,id){row.dataset.matchId=String(id);const cell=row.querySelector('.match-name')||row.children[0];const a=matchLink(id,'');while(cell.firstChild)a.append(cell.firstChild);cell.append(a);}
 function availabilityMessage(a){return ({insufficient_data:'Yetersiz istatistiksel geçmiş. Tam korner veya sarı + kırmızı kart kayıtları bekleniyor.',no_upcoming_matches:'Bu tarih ve lig için yaklaşan maç yok.',filtered_out:'Nitelikli tahminler var; güven veya olasılık filtresi dışında.',no_qualified_recommendations:'Modelin kalite ve sıralama eşiklerini geçen tahmin yok.'})[a?.status] || 'Bu filtrede modelin seçtiği nitelikli tahmin yok.';}
 const oddsReasons={no_source_rows:'Kaynakta bu market satırı yok',source_market_unavailable:'Kaynak bu marketi sağlamıyor',line_mismatch:'Market çizgisi eşleşmiyor',odds_stale:'Oranın güncelliği yitirilmiş',odds_unknown:'Oran zamanı doğrulanmamış',unsupported_bookmaker:'Bahis şirketi desteklenmiyor',observed_after_cutoff:'Kanıt zamanı veri kesiminden sonra',missing_stage_price:'Kaynakta bu seçim için fiyat yok',match_not_scheduled:'Maç başlamış veya planlı değil'};
 const oddsReason=vo=>oddsReasons[vo?.reason] || ((vo?.freshness==='stale' || vo?.expires_at && Date.parse(vo.expires_at)<=now())?'Oranın güncelliği yitirilmiş':vo?.message || 'Oran henüz doğrulanmadı');
@@ -28,7 +30,7 @@ const now=()=>checkedClock?checkedClock.stamp+Date.now()-checkedClock.received:D
 const upcoming=m=>m.status==='scheduled' && Date.parse(m.kickoff_at)>now();
 const fresh=vo=>vo?.has_odds && vo.coupon_eligible && vo.freshness==='fresh' && (!vo.expires_at || Date.parse(vo.expires_at)>now());
 function snapshotNote(p){const c=p.cache || {};write('upcoming-board',c.active_window?'Bugün + sonraki 3 gün':'Önümüzdeki 7 gün');return `${c.active_window?'Bugün + sonraki 3 gün · ':''}Analiz: ${date(p.generated_at)} · Veri kontrolü: ${date(c.checked_at)}${(c.stale || c.expires_at && Date.parse(c.expires_at)<=now())?' · Veriler güncel değil; yeni analiz bekleniyor':''}`;}
-function card(item){const m=item.match,recs=(item.recommendations || []).slice(0,2);if(!recs.length)return null;const el=node('article','','prediction-card');el.classList.add('home-market-card');el.setAttribute('role','button');el.setAttribute('aria-label',`${m.home_team} — ${m.away_team}, analizi aç`);el.tabIndex=0;el.dataset.matchId=String(m.id);
+function card(item){const m=item.match,recs=(item.recommendations || []).slice(0,2);if(!recs.length)return null;const el=matchLink(m.id,'');el.className='prediction-card';el.classList.add('home-market-card');el.setAttribute('aria-label',`${m.home_team} — ${m.away_team}, analizi aç`);el.tabIndex=0;el.dataset.matchId=String(m.id);
  const meta=node('div','','card-meta');meta.append(node('span',m.league,'league-label'),node('time',date(m.kickoff_at)));el.append(meta);const teams=node('h3','','card-teams');teams.append(node('span',m.home_team),node('span',m.away_team));el.append(teams);
  const primary=node('div','','pick-primary');primary.append(node('span','✦ MODELİN ÖNE ÇIKARDIĞI','eyebrow'));const line=node('div','','pick-line');line.append(node('span',pickLabel(recs[0])),node('strong',pct(recs[0].probability)));primary.append(line);
  const vo=recs[0].verified_odds;
@@ -47,7 +49,7 @@ function card(item){const m=item.match,recs=(item.recommendations || []).slice(0
    row.append(node('span',pickLabel(r)),node('b',`${pct(r.probability)} · ${confidences[r.confidence]}${oddsTxt}`));
    el.append(row);
  }
- const footer=node('div','','card-footer');footer.append(node('span',`${recs.length} nitelikli seçim`),node('span','Analizi Aç →','prediction-open'));el.append(footer);el.onclick=()=>globalThis.BetAppDashboard?.selectMatch(m.id);el.onkeydown=e=>{if(e.target===el && ['Enter',' '].includes(e.key)){e.preventDefault();el.onclick();}};return el;
+ const footer=node('div','','card-footer');footer.append(node('span',`${recs.length} nitelikli seçim`),node('span','Analizi Aç →','prediction-open'));el.append(footer);return el;
 }
 function renderCards(id,items,message){const box=$(id);if(!box)return;box.replaceChildren();for(const item of items){if(!upcoming(item.match))continue;const el=card(item);if(el)box.append(el);}if(!box.children.length)empty(id,message || 'Modelin kalite eşiklerini geçen yaklaşan maç tahmini bulunmuyor.');done(id);}
 // Model-only selections are statistical estimates, not priced coupon entries.
@@ -58,16 +60,15 @@ function yesterday(){
     const box=$('yesterday-winners');if(!box)return;
     box.replaceChildren();
     for(const pick of (data.items || []).slice(0,2)){
-      const el=node('article','','prediction-card');
+      const el=matchLink(pick.match_id,'');el.className='prediction-card';
       const meta=node('div','','card-meta');
       meta.append(node('span',pick.league,'league-label'),node('time',date(pick.kickoff_at)));
       el.append(meta);
       el.append(node('h3',pick.home_team+' — '+pick.away_team,'card-teams'));
       el.append(node('p','✓ Kazandı · '+pickLabel(pick),'pick-line'));
       el.append(node('p','Maç sonucu: '+(pick.ft_home==null?'—':pick.ft_home)+' - '+(pick.ft_away==null?'—':pick.ft_away),'pick-meta'));
-      el.tabIndex=0;el.setAttribute('role','button');
-      el.onclick=()=>globalThis.BetAppDashboard?.selectMatch(pick.match_id);
-      el.onkeydown=e=>{if(['Enter',' '].includes(e.key)){e.preventDefault();el.onclick();}};
+      el.tabIndex=0;
+
       box.append(el);
     }
     if(!box.children.length)empty('yesterday-winners','Dün maç öncesinde kaydedilip kazandığı doğrulanan tahmin bulunmuyor.');

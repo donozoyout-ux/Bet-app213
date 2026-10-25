@@ -47,7 +47,7 @@ async def test_browser_count_markets_coverage_dialog_and_failed_request(api,db,m
             assert expected>1  # All statistical lines, not just the selected recommendation.
             await expect(page.locator('#market-picks tr[data-match-id]')).to_have_count(expected)
             await expect(page.locator('#market-picks')).to_contain_text('Test team')
-        await page.locator('#market-picks tr[data-match-id]').first.click()
+        await page.locator('#market-picks tr[data-match-id]').first.evaluate('(e)=>BetAppDashboard.selectMatch(Number(e.dataset.matchId))')
         await expect(page.locator('#analysis-dialog')).to_be_visible()
         dialog=page.locator('#analysis-dialog')
         for tab in await dialog.locator('[data-analysis-tab]').all():

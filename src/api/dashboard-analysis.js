@@ -107,7 +107,7 @@
     const strip=$('analysis-match-strip');strip.replaceChildren();
     for(const item of state.items) {
       const m=item.match,r=item.recommendation,status=coupon(item);
-      const button=node('button','','analysis-match-card');button.type='button';button.dataset.analysisMatch=String(m.id);
+      const button=node('a','','analysis-match-card');button.href='/match/'+m.id;button.target='_blank';button.rel='noopener noreferrer';button.dataset.analysisMatch=String(m.id);
       button.setAttribute('aria-pressed',String(m.id===state.selected));button.setAttribute('aria-controls','analysis-selected');
       button.append(node('span',`${m.league} · ${date(m.kickoff_at)}`,'analysis-card-meta'),
         node('strong',`${m.home_team} / ${m.away_team}`,'analysis-card-teams'),node('span',r.label,'analysis-card-pick'),
@@ -115,10 +115,10 @@
         node('span',priceFresh(r.verified_odds)?`${num(r.verified_odds.best_price)} · ${r.verified_odds.best_bookmaker}`:reason(r.verified_odds),'analysis-card-price'),
         node('small',status.text,status.eligible?'analysis-eligible':'analysis-model-only'));
       if(priceFresh(r.verified_odds) && validNumber(r.verified_odds.best_value) && r.verified_odds.best_value<=0)button.append(node('small','Negatif değer · Avantajlı bahis değil','analysis-negative'));
-      button.onclick=()=>select(m.id);
-      button.onkeydown=event=>{const all=[...strip.querySelectorAll('button')],index=all.indexOf(button);
+
+      button.onkeydown=event=>{const all=[...strip.querySelectorAll('a')],index=all.indexOf(button);
         const next=event.key==='ArrowRight'?index+1:event.key==='ArrowLeft'?index-1:event.key==='Home'?0:event.key==='End'?all.length-1:null;
-        if(next==null)return;event.preventDefault();const target=all[(next+all.length)%all.length];target.focus();target.scrollIntoView({block:'nearest',inline:'center'});target.click();};
+        if(next==null)return;event.preventDefault();const target=all[(next+all.length)%all.length];target.focus();target.scrollIntoView({block:'nearest',inline:'center'});};
       strip.append(button);
     }
     $('analysis-strip-previous').disabled=state.items.length===0;$('analysis-strip-next').disabled=state.items.length===0;
@@ -355,6 +355,6 @@
       else select(state.selected,true);
     }
   }
-  globalThis.BetAppMatchAnalysis=Object.freeze({refresh,deactivate,acceptRevision});
+  globalThis.BetAppMatchAnalysis=Object.freeze({refresh,deactivate,acceptRevision,select});
   setInterval(tick,1000);
 })();

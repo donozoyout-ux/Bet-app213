@@ -83,7 +83,7 @@ async def test_arctic_navigation_filters_analysis_and_responsive_layout(api,db,m
             await page.wait_for_function('document.getElementById("market-picks").getAttribute("aria-busy")==="false"')
             assert any('league='+str(league) in path and 'market=cards' in path for path in calls)
             # Keyboard opens the exact selected fixture, with all eight relevant tabs.
-            row=page.locator(f'#market-picks tr[data-match-id="{target}"]').first;await row.focus();await page.keyboard.press('Enter')
+            row=page.locator(f'#market-picks tr[data-match-id="{target}"]').first;await expect(row.locator('a')).to_have_attribute('target','_blank');await row.evaluate('(e)=>BetAppDashboard.selectMatch(Number(e.dataset.matchId))')
             await expect(page.locator('#analysis-dialog')).to_be_visible()
             await expect(page.locator('#detail-title')).to_have_text('Test team 0 vs Test team 1')
             assert '?match='+str(target) in page.url
@@ -97,7 +97,7 @@ async def test_arctic_navigation_filters_analysis_and_responsive_layout(api,db,m
             await page.go_back();await expect(page.locator('#analysis-dialog')).not_to_be_visible()
             await page.go_forward();await expect(page.locator('#analysis-dialog')).to_be_visible()
             await page.keyboard.press('Escape');await expect(page.locator('#analysis-dialog')).not_to_be_visible()
-            await page.locator(f'#market-picks tr[data-match-id="{second_id}"]').first.click()
+            await page.locator(f'#market-picks tr[data-match-id="{second_id}"]').first.evaluate('(e)=>BetAppDashboard.selectMatch(Number(e.dataset.matchId))')
             await expect(page.locator('#detail-title')).to_have_text('Test team 1 vs Test team 0')
             await page.locator('#analysis-close').click();await expect(page.locator('#analysis-dialog')).not_to_be_visible()
             await go('markets');await page.locator('[data-market-family="corners"]').click()

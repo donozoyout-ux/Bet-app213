@@ -1,6 +1,6 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const html=fs.readFileSync('src/api/dashboard.html','utf8'),recorded=JSON.parse(fs.readFileSync('tests/fixtures/predictions_runtime.json','utf8'));
-class Element{constructor(){this.children=[];this.textContent='';this.value='';this.dataset={};this.style={};this.classList={toggle(){},add(){},remove(){}};}append(...nodes){this.children.push(...nodes);}replaceChildren(){this.children=[];this.textContent='';}setAttribute(k,v){this[k]=v;}removeAttribute(k){delete this[k];}focus(){}text(){return [this.textContent,...this.children.map(n=>n.text())].join(' ');}}
+class Element{constructor(){this.children=[];this.textContent='';this.value='';this.dataset={};this.style={};this.classList={toggle(){},add(){},remove(){}};}append(...nodes){this.children.push(...nodes);}replaceChildren(){this.children=[];this.textContent='';}setAttribute(k,v){this[k]=v;}removeAttribute(k){delete this[k];}querySelector(){return null;}focus(){}text(){return [this.textContent,...this.children.map(n=>n.text())].join(' ');}}
 async function run(mode){const elements=new Map([...html.matchAll(/\bid="([^"]+)"/g)].map(m=>[m[1],new Element()])),calls=[],clicked=[];let releaseFirst;
 const all=recorded.page.items.flatMap(item=>item.recommendations.map(recommendation=>({match:item.match,recommendation,as_of:item.as_of})));
 if(mode==='populated' && all.length)all[0].recommendation.verified_odds={has_odds:true,coupon_eligible:true,freshness:'fresh',best_price:1.75,best_bookmaker:'Bet365',best_value:0.04,bookmakers:{Bet365:{current_odds:1.75}},best_implied_probability:0.5714};
@@ -10,12 +10,12 @@ if(path.startsWith('/api/predictions/best')){const q=new URLSearchParams(path.sp
 else if(path.startsWith('/api/predictions?'))payload={...recorded.page,items:mode==='empty'?[]:recorded.page.items};else if(path.startsWith('/api/market-performance'))payload={summary,families:[],markets:[],items:[],total:0};else if(path==='/api/leagues')payload=[];else payload={database_connected:true,enabled_leagues:[],stats_coverage_by_league:[],queued_stats_backfills:[]};return {ok:!(mode==='failed-board' && path.startsWith('/api/predictions/best')),status:503,json:async()=>structuredClone(payload)};}};
 vm.createContext(sandbox);vm.runInContext(fs.readFileSync('src/api/dashboard-market.js','utf8'),sandbox);const settle=async()=>{for(let i=0;i<10;i++)await new Promise(resolve=>setImmediate(resolve));};await settle();
 assert(!calls.some(p=>p.startsWith('/api/market-performance')));assert(!calls.some(p=>p.includes('/statistics')));
-if(mode==='populated'){const card=elements.get('prediction-cards').children[0];assert(card.text().includes('Arsenal'));assert(card.text().includes('1,75'));card.onclick();assert.equal(clicked[0],recorded.page.items[0].match.id);}
+if(mode==='populated'){const card=elements.get('prediction-cards').children[0];assert(card.text().includes('Arsenal'));assert(card.text().includes('1,75'));assert.equal(card.href,'/match/'+recorded.page.items[0].match.id);assert.equal(card.target,'_blank');assert.equal(card.rel,'noopener noreferrer');}
 elements.get('analysis-advanced').open=true;sandbox.BetAppUI.navigate('predictions');await settle();const body=elements.get('market-picks');
 if(mode==='race'){elements.get('pred-market').value='cards';await sandbox.BetAppMarket.refresh();releaseFirst();await settle();assert(!body.text().includes('Arsenal'));return;}
 if(mode==='empty'){assert(body.text().includes('nitelikli tahmin yok'));return;}
 if(mode==='failed-board'){assert(body.text().includes('PostgreSQL'));sandbox.BetAppUI.navigate('performance');await settle();assert(elements.get('performance-picks').text().includes('kaydedilmiş tahmin yok'));return;}
-assert(body.children.length===all.length);assert.equal(body.children[0].children.length, 7);body.children[0].onkeydown({key:'Enter',preventDefault(){}});assert.equal(clicked.at(-1),all[0].match.id);
+assert(body.children.length===all.length);assert.equal(body.children[0].children.length, 7);assert.equal(body.children[0].children[0].children.at(-1).href,'/match/'+all[0].match.id);
 elements.get('pred-market').value='corners';await sandbox.BetAppMarket.refresh();assert(body.text().includes('nitelikli tahmin yok'));
 sandbox.BetAppUI.navigate('performance');await settle();assert.equal(elements.get('daily-summary').children.length,9);
 sandbox.BetAppUI.navigate('markets');await settle();assert(elements.get('stats-league-coverage').text().includes('API'));}

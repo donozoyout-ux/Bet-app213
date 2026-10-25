@@ -111,7 +111,7 @@ async def test_revision_poll_f5_keeps_dom_and_never_creates_coupon(api,db,monkey
         try:
             await page.goto('http://test/#predictions')
             await expect(page.locator('[data-analysis-match]')).to_have_count(4)
-            await page.locator('[data-analysis-match]').nth(1).click()
+            await page.locator('[data-analysis-match]').nth(1).evaluate('(e)=>BetAppMatchAnalysis.select(Number(e.dataset.analysisMatch))')
             await expect(page.locator('[data-analysis-block=form]')).to_be_visible()
             await page.locator('[data-analysis-block=form]>summary').click()
             await page.wait_for_load_state('networkidle')
