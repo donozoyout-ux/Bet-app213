@@ -45,10 +45,8 @@
     const left=38,right=width-30,top=18,bottom=height-34;
     const max=Math.max(2,...series.map(d=>d.decided)),step=Math.max(1,Math.ceil(max/4)),ceiling=Math.ceil(max/step)*step;
     const x=i=>left+i*(right-left)/(series.length-1),y=n=>bottom-n*(bottom-top)/ceiling;
-    for(let count=0;count<=ceiling;count+=step){make('path',{d:`M${left} ${y(count)}H${right}`,stroke:'#29415e'});make('text',{x:left-8,y:y(count)+4,'text-anchor':'end',fill:'#b7c7df','font-size':12},String(count));}
-    const interval=Math.ceil((days-1)/(mobile?3:6));
-    series.forEach((d,i)=>{if(i%interval===0 || i===days-1)make('text',{x:x(i),y:height-10,'text-anchor':'middle',fill:'#b7c7df','font-size':12},d.date.slice(5).split('-').reverse().join('.'));});
-    const tooltip=node('p','Bir noktaya dokunun veya Tab ile odaklanıp yön tuşlarını kullanın.','results-tooltip');tooltip.id='home-results-tooltip';tooltip.setAttribute('role','status');
+    for(let count=0;count<=ceiling;count+=step){make('path',{d:`M${left} ${y(count)}H${right}`,stroke:'#29415e'});}
+    const tooltip=node('p','','results-tooltip');tooltip.id='home-results-tooltip';tooltip.setAttribute('role','status');
     const focusPoints=[];
     for(const [key,color,dash] of [['decided','#a5b4fc','6 4'],['won','#22d3ee',''],['lost','#fb7185','2 3']]){
       make('path',{d:series.map((d,i)=>`${i?'L':'M'}${x(i)} ${y(d[key])}`).join(' '),stroke:color,'stroke-width':2.5,'stroke-dasharray':dash,fill:'none','data-series':key});
