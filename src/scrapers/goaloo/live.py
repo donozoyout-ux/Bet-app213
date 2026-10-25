@@ -31,8 +31,8 @@ def parse_scoreboard(payload):
         raise SourceError('Live scoreboard missing')
     page = Page(data['html'])
     # Scope to the primary scoreboard, never event/penalty/other-match scores.
-    half = next((n for n in page.root.walk() if {'half','end'} & set(n.attrs.get('class','').split())), None)
-    scores = [n.text() for n in half.walk() if 'score' in n.attrs.get('class','').split()] if half else []
+    half = next((n for n in page.root.walk() if {'half','end'} & set((n.attrs.get('class') or '').split())), None)
+    scores = [n.text() for n in half.walk() if 'score' in (n.attrs.get('class') or '').split()] if half else []
     if len(scores)!=2 and state in {-1,1,2,3,4,5}:
         raise SourceError('Live scoreboard schema changed')
     score = lambda s: int(s) if re.fullmatch(r'\d{1,2}',s) else None
@@ -40,11 +40,20 @@ def parse_scoreboard(payload):
     if state==0:home=away=None
     if state in {-1,1,2,3,4,5} and (home is None or away is None):
         raise SourceError('Live score missing')
+    ht_home=ht_away=None
+    # Only an explicitly labelled, completed first half inside this scoreboard.
+    # Do not infer HT from the current score, second-half text or other matches.
+    labels=[n.text() for n in half.walk() if (n.attrs.get('title') or '').strip().lower()=='score 1st half'] if half else []
+    if state in {-1,2,3,4,5} and len(labels)==1:
+        pair=re.fullmatch(r'(\d{1,2})\s*[-:]\s*(\d{1,2})',labels[0])
+        if pair and home is not None and away is not None:
+            h,a=map(int,pair.groups())
+            if h<=home and a<=away:ht_home,ht_away=h,a
     clock = page.by_id('matchTime')
     raw_minute = clock.text() if clock else ''
     # Source phase-start times and scheduled kickoff are NOT a reported minute.
     minute = re.fullmatch(r"(\d{1,3}(?:\+\d{1,2})?)\s*['′]?",raw_minute)
-    return dict(status=STATUSES[state],ft_home=home,ft_away=away,
+    return dict(status=STATUSES[state],ft_home=home,ft_away=away,ht_home=ht_home,ht_away=ht_away,
                 live_minute=minute[1] if minute and state>0 else None,
                 raw={'state':state,'score_html':data['html'],'reported_minute':raw_minute})
 

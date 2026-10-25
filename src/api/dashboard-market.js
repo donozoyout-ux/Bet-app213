@@ -122,6 +122,7 @@ card.append(bars,difference);
 }
 function renderTrendChart(data){
 const chart=$('trend-chart');chart.replaceChildren();
+globalThis.BetAppEvidence?.currentDay(chart,data);
 const weekly=data.aggregation==='weekly',series=weekly?data.weekly:data.daily;
 if(!(series||[]).some(d=>d.chart_rate!=null)){
  if(data.truncated)chart.append(node('p','Veri sınırına ulaşıldı; grafik gösterilemiyor. Filtreleri daraltın.','chart-empty'));
@@ -180,7 +181,7 @@ for(const comparison of data.comparisons){
 const daily=$('trend-daily');daily.replaceChildren();for(const d of data.daily){const row=node('tr');for(const v of [d.date,d.total,`${d.won}/${d.decided}`,d.lost,d.distinct_matches,pct(d.success_rate),pct(d.mean_probability),d.brier_score==null?'—':d.brier_score.toFixed(3),`${d.pending} / ${d.awaiting_data} / ${d.disputed} / ${d.void}`])cell(row,String(v));daily.append(row);}
 renderTrendChart(data);
 }
-function refreshTrends(){if(!$('trend-periods'))return;const q=new URLSearchParams();for(const [id,key] of [['performance-from','date_from'],['performance-to','date_to'],['trend-as-of','as_of'],['performance-league','league'],['performance-market','market'],['performance-exact','exact_market'],['performance-confidence','confidence']])if(value(id))q.set(key,value(id));globalThis.BetAppEvidence?.refresh();write('trend-status','Gelişim verisi yükleniyor…');return request('trends','/api/performance-trends?'+q,renderTrends,()=>{latestTrends=null;write('trend-status','Gelişim verisi alınamadı · İyileşme kanıtlanmadı');for(const id of ['trend-periods','trend-chart','trend-daily'])$(id)?.replaceChildren();write('trend-model','');});}
+function refreshTrends(){if(!$('trend-periods'))return;const q=new URLSearchParams();for(const [id,key] of [['performance-from','date_from'],['performance-to','date_to'],['trend-as-of','as_of'],['performance-league','league'],['performance-market','market'],['performance-exact','exact_market'],['performance-confidence','confidence']])if(value(id))q.set(key,value(id));globalThis.BetAppEvidence?.refresh();write('trend-status','Gelişim verisi yükleniyor…');return request('trends','/api/performance-trends?'+q,renderTrends,()=>{latestTrends=null;globalThis.BetAppEvidence?.currentDay($('trend-chart'),null);write('trend-status','Gelişim verisi alınamadı · İyileşme kanıtlanmadı');for(const id of ['trend-periods','trend-chart','trend-daily'])$(id)?.replaceChildren();write('trend-model','');});}
 if($('trend-as-of'))$('trend-as-of').onchange=refreshTrends;
 if($('trend-window'))$('trend-window').onchange=()=>{document.querySelectorAll('.trend-period').forEach(card=>{card.hidden=card.dataset.days!==value('trend-window');});if(latestTrends)renderTrendChart(latestTrends);};
 function renderMarketEvidence(markets){

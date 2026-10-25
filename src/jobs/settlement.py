@@ -26,6 +26,8 @@ async def sweep(db, now=None):
             checkpoint = WorkerCheckpoint(name='settlement', cursor=0, failures=0, attempted_at=now, next_attempt_at=now)
             session.add(checkpoint)
         # A failed batch never advances the durable cursor or partially commits.
+        from src.jobs.halftime_recovery import recover_halftime
+        recovered=await recover_halftime(session,after_match_id=checkpoint.cursor,now=now)
         cursor = await settle_batch(session, after_match_id=checkpoint.cursor, limit=100, only_unsettled=True)
         batch = session.info['settlement_batch']
         checkpoint.cursor = cursor if batch['examined'] == 100 else 0
@@ -35,7 +37,7 @@ async def sweep(db, now=None):
         checkpoint.examined = batch['examined']; checkpoint.written = batch['written']
         checkpoint.failures = 0; checkpoint.error_type = None
         await session.commit()
-        log.info('[SETTLEMENT] sweep_ok examined=%s written=%s', batch['examined'], batch['written'])
+        log.info('[SETTLEMENT] sweep_ok examined=%s written=%s halftime_recovered=%s', batch['examined'], batch['written'],recovered)
         return True
 
 
