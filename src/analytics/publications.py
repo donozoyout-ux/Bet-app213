@@ -227,9 +227,13 @@ async def read_daily(session,now,strategy='balanced'):
     # Archived evidence remains intact, but started matches/expired quotes are
     # never presented as current selectable legs, even during worker outages.
     ids=[i['match']['id'] for i in result.get('items',[])]
-    matches={m.id:m for m in await session.scalars(select(Match).options(defer(Match.raw)).where(Match.id.in_(ids)))} if ids else {}
-    board_expiry=dict((await session.execute(select(PredictionBoard.league_id,PredictionBoard.expires_at)
-        .where(PredictionBoard.league_id.in_({m.league_id for m in matches.values()})))).all()) if matches else {}
+    # Recheck live validity on every read; fetch only the fields needed by this
+    # gate, with the league's board expiry in the same round trip.
+    rows=(await session.execute(select(Match.id,Match.status,Match.kickoff_at,Match.league_id,
+        PredictionBoard.expires_at).outerjoin(PredictionBoard,PredictionBoard.league_id==Match.league_id)
+        .where(Match.id.in_(ids)))).all() if ids else []
+    matches={m.id:m for m in rows}
+    board_expiry={m.league_id:m.expires_at for m in rows if m.expires_at is not None}
     usable=[]
     for item in result.get('items',[]):
         match=matches.get(item['match']['id']);q=item['quote']

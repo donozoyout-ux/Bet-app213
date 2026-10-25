@@ -176,22 +176,26 @@ async def matches(league: str | None = None, season: str | None = None,
             raise HTTPException(400, 'Unknown bookmaker. Use Crown, Bet365 or Sbobet.')
         query = query.where(or_(*[select(model.id).where(model.match_id == Match.id, model.bookmaker_id == book).exists() for model in [Odds1X2, AsianHandicap, AsianTotals]]))
     upcoming_expanded = False
+    total = None
     if view == 'upcoming' and not date:
         window = query.where(Match.kickoff_at <= now + timedelta(days=upcoming_days))
         in_window = await session.scalar(select(func.count()).select_from(window.subquery()))
         if in_window:
             query = window
+            total = in_window
         else:
             nearest = await session.scalar(select(func.min(query.subquery().c.kickoff_at)))
             if nearest:
                 start, end = day_bounds(aware(nearest).astimezone(zone).date(), display_timezone)
                 query = query.where(Match.kickoff_at >= start, Match.kickoff_at < end)
                 upcoming_expanded = True
-    total = await session.scalar(select(func.count()).select_from(query.subquery()))
+    if total is None:
+        total = await session.scalar(select(func.count()).select_from(query.subquery()))
     order = (Match.kickoff_at.asc(), Match.id.asc()) if ascending else (Match.kickoff_at.desc(), Match.id.desc())
     if sort == 'league':order = (League.name.asc(), *order)
     elif sort == 'team':order = (home.name.asc(), *order)
-    rows = (await session.execute(query.order_by(*order).limit(limit).offset(offset))).all()
+    # Source evidence is only exposed by match detail, never by the list.
+    rows = (await session.execute(query.options(defer(Match.raw)).order_by(*order).limit(limit).offset(offset))).all()
     items = [match_response(row) for row in rows]
     if include_odds and items:
         grouped = await odds_data_bulk(session, [item['id'] for item in items])

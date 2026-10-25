@@ -142,7 +142,7 @@
   function refresh() {
     globalThis.BetAppResults?.refresh();
     request('home-coupon-list','/api/coupons/daily?strategy=balanced',renderCoupon);
-    request('home-live-list','/api/matches?view=live&include_odds=true&limit=3',renderLive);
+    request('home-live-list','/api/matches?view=live&limit=3',renderLive);
     request('home-movement-list','/api/matches?view=upcoming&include_odds=true&limit=12',renderMovements);
     const snapshot=globalThis.BetAppMarket?.homeSnapshot?.();if(snapshot)renderModel(snapshot);
   }
