@@ -10,6 +10,7 @@ import pytest
 from playwright.async_api import async_playwright, expect
 
 from tests.test_automatic_telegram import NOW, many_matches
+from tests.ui_palette import assert_monochrome
 
 PAGES = ['home', 'matches', 'coupon', 'predictions', 'markets', 'performance', 'lessons']
 
@@ -85,29 +86,7 @@ async def test_top_navigation_and_motion(api, db, monkeypatch, width, motion):
                     assert await section.evaluate('(el)=>getComputedStyle(el).animationDuration') == ('0s' if motion == 'reduce' else '0.3s')
                     assert await page.locator('body').evaluate('(el)=>getComputedStyle(el).paddingLeft') == '0px'
                     assert await page.locator('body').evaluate('(el)=>getComputedStyle(el).backgroundColor') == 'rgb(255, 255, 255)'
-                    # Scan visible HTML surfaces, including nested rows, for inherited navy.
-                    navy = await section.evaluate('''root => [root,...root.querySelectorAll('*')].filter(el=>{
-                        if(el.namespaceURI!=='http://www.w3.org/1999/xhtml' || !el.getClientRects().length)return false;
-                        const c=getComputedStyle(el).backgroundColor.match(/[\\d.]+/g)?.map(Number);
-                        return c && c.length>=3 && (c.length<4 || c[3]>.3) && c[2]>c[0]+12 && c[0]<65;
-                    }).map(el=>el.outerHTML.slice(0,180))''')
-                    assert not navy, (name, navy)
-                    # Catch the pale legacy captions that become invisible on white.
-                    contrast = await section.evaluate('''root=>{
-                        const rgb=s=>s.match(/[\\d.]+/g)?.map(Number);
-                        const lum=c=>c.slice(0,3).map(v=>v/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4)
-                            .reduce((n,v,i)=>n+v*[.2126,.7152,.0722][i],0);
-                        return [...root.querySelectorAll('*')].filter(el=>{
-                            if(el.namespaceURI!=='http://www.w3.org/1999/xhtml'||!el.getClientRects().length||
-                               ![...el.childNodes].some(n=>n.nodeType===3&&n.textContent.trim())||el.closest(':disabled'))return false;
-                            const style=getComputedStyle(el),fg=rgb(style.color);let bg=[255,255,255];
-                            for(let a=el;a;a=a.parentElement){const c=rgb(getComputedStyle(a).backgroundColor);
-                                if(c && (c.length===3||c[3]>=.95)){bg=c;break;}}
-                            const ratio=(Math.max(lum(fg),lum(bg))+.05)/(Math.min(lum(fg),lum(bg))+.05);
-                            return ratio<4.5 && parseFloat(style.fontSize)<24;
-                        }).map(el=>el.tagName+'.'+el.className+': '+el.textContent.slice(0,60));
-                    }''')
-                    assert not contrast, (name, contrast)
+                    await assert_monochrome(section)
                 if os.getenv('NAV_SCREENSHOT_DIR') and motion == 'reduce':
                     folder = Path(os.environ['NAV_SCREENSHOT_DIR']); folder.mkdir(parents=True, exist_ok=True)
                     await page.screenshot(path=str(folder/f'{"before" if before else "after"}-{name}-{width}.png'))
