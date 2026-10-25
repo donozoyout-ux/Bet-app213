@@ -386,26 +386,28 @@ async def test_worker_keeps_learning_pool_separate_and_cleans_up(monkeypatch):
     from types import SimpleNamespace
     import src.jobs.runner as runner
     import src.jobs.telegram as telegram
+    import src.jobs.settlement as settlement
     import src.analytics.learning as learning
-    seen={};closed=[]
+    seen={};closed=[];stopped=[];pools={}
     async def close_main():closed.append('main')
-    async def close_learning():closed.append('learning')
     main=SimpleNamespace(close=close_main)
-    own=SimpleNamespace(close=close_learning)
-    def create(url):return own
+    def create(url, *, role):
+        async def close():closed.append(role)
+        own=SimpleNamespace(close=close,role=role);pools[role]=own;return own
     async def work():await asyncio.sleep(.01)
-    async def telegram_loop(db):
-        seen['telegram']=db
-        await asyncio.Event().wait()
-    async def learning_loop(db):
-        seen['learning']=db
-        await asyncio.Event().wait()
+    async def wait(name,db):
+        seen[name]=db
+        try:await asyncio.Event().wait()
+        finally:stopped.append(name)
     monkeypatch.setattr(runner,'database',main)
     monkeypatch.setattr(runner,'Database',create)
     monkeypatch.setattr(runner,'work',work)
     monkeypatch.setattr(runner,'os',SimpleNamespace(name='nt'))
-    monkeypatch.setattr(telegram,'loop',telegram_loop)
-    monkeypatch.setattr(learning,'loop',learning_loop)
+    monkeypatch.setattr(telegram,'loop',lambda db:wait('telegram',db))
+    monkeypatch.setattr(learning,'loop',lambda db:wait('learning',db))
+    monkeypatch.setattr(settlement,'loop',lambda db:wait('settlement',db))
     await runner.run()
-    assert seen=={'telegram':main,'learning':own}
-    assert closed==['learning','main']
+    assert seen=={'telegram':main,'learning':pools['learning'],'settlement':pools['settlement']}
+    assert pools['learning'] is not pools['settlement']
+    assert closed==['learning','settlement','main']
+    assert set(stopped)=={'telegram','learning','settlement'}

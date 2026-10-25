@@ -140,6 +140,12 @@ four metadata requests return 200 in under 1.5 seconds. It prints actual before/
 after status arrays and elapsed milliseconds for the CI/PR benchmark. This is
 an isolated concurrency reproduction, not a production load test or egress claim.
 
+The first isolated CI run on `7c54a436` measured 2,005.7 ms with four 503s
+versus 20.8 ms with four 200s, retaining pool size five. Timing varies by runner;
+this supports the controlled connection-capacity fix, not a production latency
+guarantee. The full regression run also identified two outdated runner test
+constructors, which were updated to verify the additional role and cleanup.
+
 The same test blocks five response consumers after response start and verifies
 zero checked-out SQL connections; it also runs five concurrent settlement sweeps
 and verifies one successful checkpoint and one original decision per eligible
@@ -158,3 +164,8 @@ the decisions.
 Local Docker was unavailable; PostgreSQL-specific cases run against CI's isolated
 database. SQLite lifecycle, browser and existing regression checks run locally.
 Actual CI timing evidence and final totals are recorded in the pull request.
+
+Chart comparisons continue to exclude the current Istanbul kickoff day. A
+current-day settlement can appear in the ledger, diagnostics and Lessons before
+entering the next day's completed-day chart. Lifecycle tests align the as-of
+window before comparing chart counts; they do not backdate snapshots or odds.
