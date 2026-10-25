@@ -1,11 +1,15 @@
 """Chromium exercises rendered UI against real FastAPI responses from a test DB."""
 from datetime import timedelta
+import os
+from pathlib import Path
+from tests.ui_palette import assert_monochrome
 import pytest
 from src.models import MatchStatistics
 from tests.test_predictions import seed, NOW
 
 
-async def test_browser_count_markets_coverage_dialog_and_failed_request(api,db,monkeypatch):
+@pytest.mark.parametrize('width', [390,1536])
+async def test_browser_count_markets_coverage_dialog_and_failed_request(api,db,monkeypatch,width):
     from playwright.async_api import async_playwright, expect
     import src.api.routes as routes
     monkeypatch.setattr(routes,'utcnow',lambda:NOW)
@@ -21,7 +25,7 @@ async def test_browser_count_markets_coverage_dialog_and_failed_request(api,db,m
 
     async with async_playwright() as p:
         browser=await p.chromium.launch()
-        page=await browser.new_page(viewport={'width':1280,'height':900})
+        page=await browser.new_page(viewport={'width':width,'height':960})
         errors=[];page.on('pageerror',lambda error:errors.append(str(error)))
         fail=False
         async def forward(route):
@@ -45,6 +49,16 @@ async def test_browser_count_markets_coverage_dialog_and_failed_request(api,db,m
             await expect(page.locator('#market-picks')).to_contain_text('Test team')
         await page.locator('#market-picks tr[data-match-id]').first.click()
         await expect(page.locator('#analysis-dialog')).to_be_visible()
+        dialog=page.locator('#analysis-dialog')
+        for tab in await dialog.locator('[data-analysis-tab]').all():
+            await tab.click()
+            await dialog.evaluate("el=>el.querySelectorAll('details').forEach(d=>d.open=true)")
+            await page.wait_for_load_state('networkidle')
+            await assert_monochrome(dialog)
+        await dialog.locator('[data-analysis-tab=summary]').click()
+        await page.wait_for_load_state('networkidle')
+        if os.getenv('NAV_SCREENSHOT_DIR'):
+            await page.screenshot(path=str(Path(os.environ['NAV_SCREENSHOT_DIR'])/f'after-dialog-{width}.png'))
         await page.keyboard.press('Escape')
         await expect(page.locator('#analysis-dialog')).not_to_be_visible()
         await page.locator('.desktop-nav [data-page-link=markets]').click()

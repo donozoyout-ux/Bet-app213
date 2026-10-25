@@ -42,7 +42,7 @@ def test_stitch_panels_and_safe_empty_states_are_retained():
     for panel in ['Bookmaker Switcher Tabs', 'Asian Handicap', 'Asian Totals']:
         assert panel in comments
     assert {'predictions-section','market-picks','statistics-detail','dashboard-shell','matches-body', 'match-detail', 'bookmaker-tabs', 'league-select', 'season-select', 'round-select', 'collection-progress'} <= parsed.ids
-    assert '<aside class="app-sidebar">' in source and 'id="sidebar-toggle"' in source
+    assert 'id="primary-navigation"' in source and 'app-sidebar' not in source and 'sidebar-toggle' not in source
     assert '--app-bg:#060F25' in Path('src/api/dashboard-market.css').read_text(encoding='utf-8')
     assert 'dashboard-market.css' in source and 'market-performance' in Path('src/api/dashboard-market.js').read_text(encoding='utf-8')
     assert source.index('id="predictions-section"') < source.index('id="history-filters"')

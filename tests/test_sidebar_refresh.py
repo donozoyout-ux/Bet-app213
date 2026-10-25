@@ -60,11 +60,10 @@ async def test_browser_expires_fixture_during_delayed_refresh_and_marks_stale(ap
             await expect(page.locator('#home-prediction-note')).to_contain_text('güncel değil')
             await page.clock.fast_forward(6000)
             await expect(page.locator('#prediction-cards .prediction-card')).to_have_count(0)
-            await page.locator('#sidebar-toggle').click()
-            await expect(page.locator('body')).to_have_class('sidebar-collapsed')
             await expect(page.get_by_role('navigation',name='Ana gezinme',exact=True).get_by_role('link',name='Tahminler',exact=True)).to_be_visible()
             await page.reload()
-            await expect(page.locator('#sidebar-toggle')).to_have_attribute('aria-expanded','false')
+            await expect(page.locator('#primary-navigation')).to_be_visible()
+            await expect(page.locator('.app-sidebar, #sidebar-toggle')).to_have_count(0)
         finally:
             await page.unroute_all(behavior='ignoreErrors')
             await browser.close()

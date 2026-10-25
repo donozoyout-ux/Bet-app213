@@ -110,7 +110,7 @@ def test_dark_market_markup_and_runtime():
     assert '--app-bg:#060F25' in css and 'width:100vw' in css
     for id in ['market-picks','market-category-cards','performance-section','performance-markets','analysis-tab-summary']:
         assert f'id="{id}"' in html
-    assert '<aside class="app-sidebar">' in html and 'Arsenal' not in html
+    assert 'id="primary-navigation"' in html and 'app-sidebar' not in html and 'Arsenal' not in html
     node=shutil.which('node')
     if not node:pytest.skip('Node.js unavailable')
     subprocess.run([node,'tests/market_runtime.cjs'],check=True,capture_output=True,text=True)

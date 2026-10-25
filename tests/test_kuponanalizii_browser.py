@@ -109,7 +109,7 @@ async def test_brand_navigation_coupon_and_accessible_motion(api, db, monkeypatc
             await expect(page.locator('#coupon-mode')).to_contain_text('Manuel')
             await expect(page.locator('#coupon-selected button')).to_have_count(3)
             await expect(page.locator('#coupon-telegram')).to_be_disabled()
-            nav = '.bottom-nav' if width <= 600 else '.desktop-nav'
+            nav='#primary-navigation'
             for section, title in [('matches', 'Canlı Skor'), ('predictions', 'Tahminler'),
                                    ('markets', 'İstatistikler'), ('performance', 'Geçmiş Performans'),
                                    ('coupon', 'Kupon Analizi'), ('home', 'Futbol Analiz Merkezi')]:

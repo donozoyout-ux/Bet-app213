@@ -1,0 +1,44 @@
+[
+  {
+    "page": "home",
+    "width": 390,
+    "motion": "reduce",
+    "overflow": false
+  },
+  {
+    "page": "matches",
+    "width": 390,
+    "motion": "reduce",
+    "overflow": false
+  },
+  {
+    "page": "coupon",
+    "width": 390,
+    "motion": "reduce",
+    "overflow": false
+  },
+  {
+    "page": "predictions",
+    "width": 390,
+    "motion": "reduce",
+    "overflow": false
+  },
+  {
+    "page": "markets",
+    "width": 390,
+    "motion": "reduce",
+    "overflow": false
+  },
+  {
+    "page": "performance",
+    "width": 390,
+    "motion": "reduce",
+    "overflow": false
+  },
+  {
+    "page": "lessons",
+    "width": 390,
+    "motion": "reduce",
+    "overflow": false
+  }
+]

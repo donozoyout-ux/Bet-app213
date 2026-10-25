@@ -65,7 +65,7 @@ async def test_arctic_navigation_filters_analysis_and_responsive_layout(api,db,m
             columns=await page.locator('#prediction-cards').evaluate('(el)=>getComputedStyle(el).gridTemplateColumns.split(" ").length')
             assert columns=={320:1,390:1,768:2,1024:2,1536:3}[width]
             assert await page.locator('.prediction-card').first.evaluate('(el)=>getComputedStyle(el).transitionDuration')=='0s'
-            nav='.bottom-nav' if width<768 else '.desktop-nav'
+            nav='#primary-navigation'
             async def go(name):
                 await page.locator(f'{nav} [data-page-link="{name}"]').click()
                 await expect(page.locator('[data-page]:visible')).to_have_count(1)

@@ -1,14 +1,15 @@
 /* White-first / black-accent theme. Scoped override of the legacy navy design.
    Kept separate for easy rollback and to avoid changing application logic. */
 :root {
-  --app-bg:#f7f8fa; --surface:#ffffff; --surface-raised:#ffffff;
+  --app-bg:#ffffff; --surface:#ffffff; --surface-raised:#fafafa;
   --primary:#111111; --electric:#242424; --text:#171717;
   --muted:#60666e; --border:#d9dce1; --primary-soft:#f1f2f4;
   --success:#137a47; --danger:#b4233a; --warning:#986100;
   --shadow:0 .25rem 1rem #0000000b;
+  font-size:16px;
   color-scheme:light; color:var(--text); background:var(--app-bg);
 }
-html, body {background:#f7f8fa!important;color:#171717;}
+html, body {background:#fff!important;color:#171717;}
 .app-sidebar, .desktop-nav, .terminal-header, .sync-strip {
   background:#fff!important; color:#171717!important; border-color:#e1e3e7!important;
 }
@@ -142,7 +143,7 @@ html, body {background:#f7f8fa!important;color:#171717;}
 :where(.bottom-nav a[aria-current=page],.desktop-nav a[aria-current=page]){
   background:#eceef0!important;color:#111!important;border-color:#171717!important;
 }
-:where(.probability-ring){background:conic-gradient(#161616 var(--fill,0%),#e5e7eb 0)!important;}
+:where(.probability-ring){background:conic-gradient(#161616 calc(var(--probability,0)*1%),#e5e7eb 0)!important;}
 :where(.metric-icon,#sidebar-toggle){
   background:#f0f1f3!important;background-image:none!important;
   border-color:#d6d9df!important;color:#171717!important;
@@ -160,3 +161,132 @@ html, body {background:#f7f8fa!important;color:#171717;}
 :where(.hero-actions .primary-button *, .primary-button *){color:#fff!important;}
 /* A black primary-action treatment is intentional; elsewhere, dark backgrounds
    are removed so inheriting black text cannot become unreadable. */
+
+/* One horizontal navigation at every viewport. The header owns both rows. */
+body {padding:0;}
+.terminal-header {
+  display:block;position:sticky;top:0;z-index:25;min-height:0;
+  padding:0 var(--page-gutter);backdrop-filter:none;
+}
+.header-row {display:flex;align-items:center;justify-content:space-between;gap:1rem;min-height:4.75rem;}
+.terminal-header .brand {position:static;font-size:1.65rem;letter-spacing:-.06rem;flex-shrink:0;}
+.terminal-header .brand-symbol {width:2.5rem;height:2.5rem;}
+.header-tools {margin-left:auto;gap:.65rem;}
+.terminal-header .connection {display:flex;font-size:.75rem;}
+.terminal-header .desktop-nav {
+  position:static;inset:auto;display:flex;flex-direction:row;align-items:center;
+  justify-content:flex-start;gap:.4rem;width:100%;max-width:100%;padding:.45rem .15rem .65rem;
+  border:0;overflow-x:auto;overflow-y:hidden;scroll-padding-inline:.25rem;
+  scrollbar-width:thin;overscroll-behavior-x:contain;
+}
+.terminal-header .desktop-nav a {
+  position:relative;display:flex;flex:0 0 auto;align-items:center;gap:.5rem;min-height:2.75rem;
+  padding:.65rem 1rem;border:1px solid transparent;border-radius:.55rem;
+  font-size:.9rem;font-weight:600;line-height:1.3;box-shadow:none;
+  transition:transform 300ms ease,box-shadow 300ms ease,background-color 300ms ease;
+}
+.terminal-header .desktop-nav a>span:first-child {width:auto;font-size:1.1rem;}
+.terminal-header .desktop-nav a::after {
+  content:"";position:absolute;left:1rem;right:1rem;bottom:.2rem;height:2px;
+  background:currentColor;transform:scaleX(0);transform-origin:left;transition:transform 300ms ease;
+}
+.terminal-header .desktop-nav a[aria-current=page] {
+  background:#171717!important;color:#fff!important;border-color:#171717!important;
+}
+.terminal-header .desktop-nav a[aria-current=page]::after,
+.terminal-header .desktop-nav a:focus-visible::after {transform:scaleX(1);}
+@media(hover:hover) {
+  .terminal-header .desktop-nav a:hover {transform:translateY(-2px);box-shadow:0 4px 10px #00000016;}
+  .terminal-header .desktop-nav a:hover::after {transform:scaleX(1);}
+}
+.sync-strip {padding-inline:var(--page-gutter);}
+html {scroll-padding-top:9rem;}
+#dashboard-shell {width:100%;max-width:none;margin-inline:auto;padding:1.25rem var(--page-gutter) 0;}
+#dashboard-shell>[data-page] {min-width:0;scroll-margin-top:9rem;}
+#dashboard-shell>[data-page]:not([hidden]) {animation:page-arrive 300ms cubic-bezier(.2,.7,.3,1) both;}
+@keyframes page-arrive {from{opacity:0;transform:translateY(-12px);}to{opacity:1;transform:translateY(0);}}
+.home-board {grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) minmax(0,1fr);align-items:stretch;}
+.home-board>* {min-width:0;}
+.home-board .panel-heading h2 {line-height:1.45;}
+.home-model .model-overview {flex-wrap:wrap;justify-content:center;}
+.table-scroll {max-width:100%;overflow-x:auto;overscroll-behavior-x:contain;}
+.data-table {font-size:.875rem;line-height:1.55;}
+.data-table th,.data-table td {padding:.8rem .7rem;border-bottom:1px solid #e5e5e5;}
+.data-table td {overflow-wrap:anywhere;}
+tbody tr {background:#fff!important;color:#171717;}
+tbody tr:nth-child(even) {background:#fafafa!important;}
+tbody tr:hover,tbody tr.selected-match {background:#f0f0f0!important;}
+:where(tbody td,tbody td span,tbody td small,tbody td strong) {color:#333;}
+:where(.summary-card,.daily-coupon-panel,.coupon-draft-panel,.coupon-tools-content,
+ .analysis-shell,.analysis-match-header,.analysis-panel,.analysis-scoreline,
+ .analysis-block,.analysis-blocks,.analysis-block-body,.analysis-selected-heading,
+ .analysis-score,.status-pill,.fixture-meta,.analysis-fact,.data-availability,
+ .bookmaker-tabs,.prediction-board,.prediction-details,.prediction-section) {
+  background:#fff!important;background-image:none!important;color:#171717!important;border-color:#ddd!important;
+}
+:where(.daily-coupon-panel,.coupon-draft-panel,.summary-card,.status-pill) :where(span,strong,small,p,b) {color:#333;}
+dialog {background:#fff;color:#171717;border:1px solid #ddd;}
+#analysis-dialog::backdrop {background:#0008;backdrop-filter:blur(4px);}
+#analysis-dialog .stats-block,#detail-odds {background:#fff;border-color:#ddd;background-image:none;}
+#analysis-dialog .analysis-tabs button {transition:none;}
+#analysis-dialog :where(p,span,small,strong,b,dt,dd,h2,h3,h4,h5,label,summary,th,td,time,li,a) {color:#333!important;}
+#analysis-dialog :where(h2,h3,h4,h5,strong,b) {color:#171717!important;}
+#analysis-dialog button[aria-selected=true] * {color:#fff!important;}
+#detail-home[data-initials]::before,#detail-away[data-initials]::before {background:#f0f0f0;color:#333;border-color:#ddd;}
+.live-dot {background:#333;}
+.odds-badge {background:#f3f3f3;color:#333;border-color:#ddd;}
+.market-tabs {background:#f5f5f5;border-color:#ddd;}
+#dashboard-shell button {background:#fff;color:#171717;border-color:#d5d5d5;background-image:none;}
+#dashboard-shell button:is(:hover,:focus-visible) {background:#f3f3f3;border-color:#888;}
+#dashboard-shell button[aria-pressed=true],#dashboard-shell button[aria-selected=true] {background:#171717!important;color:#fff!important;border-color:#171717!important;}
+#coupon-total,#coupon-daily>p,#coupon-section details,#coupon-selected>div,
+#coupon-history>article,#coupon-section [aria-labelledby=coupon-history-title] {
+  background:#fafafa;color:#333;border-color:#ddd;background-image:none;
+}
+#coupon-section :is(p,summary,label,small,strong,h2,h3) {color:#333;}
+/* Legacy captions used pale blue on navy. Keep all HTML copy readable on white;
+   result labels and symbols still carry their meaning without colour. */
+#dashboard-shell :where(p,span,small,strong,b,dt,dd,h1,h2,h3,h4,label,summary,th,td,time,li,a) {color:#333!important;}
+#dashboard-shell :where(h1,h2,h3,strong,b) {color:#171717!important;}
+#dashboard-shell .primary-button,#dashboard-shell .primary-button *,
+#dashboard-shell button[aria-pressed=true] *,#dashboard-shell button[aria-selected=true] * {color:#fff!important;}
+#dashboard-shell :is(#coupon-automatic,#coupon-save,#learning-refresh) {background:#171717;color:#fff;}
+#dashboard-shell :is(#coupon-automatic,#coupon-save,#learning-refresh):hover {background:#333;}
+.terminal-header .desktop-nav a[aria-current=page]>span {color:#fff;}
+.analysis-block summary::after {color:#333;}
+.data-table :is(th,td) {border-color:#e5e5e5!important;}
+.trend-bar {background:#333;}.trend-bar.previous {background:#888;}
+input,select,textarea {background:#fff!important;color:#171717!important;border-color:#ccc!important;color-scheme:light;}
+.table-scroll:focus-visible,summary:focus-visible,[tabindex="0"]:focus-visible {outline:2px solid #171717;outline-offset:3px;}
+@media(max-width:1199px) {
+  .home-board {grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);grid-template-areas:'coupon live' 'coupon moves' 'model results';}
+}
+@media(max-width:767px) {
+  :root {--page-gutter:.85rem;}
+  .terminal-header {padding:0 .85rem;}
+  .header-row {min-height:4rem;gap:.4rem;position:relative;}
+  .terminal-header .brand {font-size:1.2rem;gap:.3rem;}
+  .terminal-header .brand-symbol {width:1.9rem;height:1.9rem;}
+  .header-tools {gap:.35rem;}
+  .terminal-header .connection {font-size:.65rem;max-width:5.8rem;}
+  .terminal-header .connection span {overflow:hidden;text-overflow:ellipsis;}
+  .terminal-header .desktop-nav {gap:.25rem;}
+  .terminal-header .desktop-nav a {padding:.6rem .8rem;font-size:.85rem;}
+  #dashboard-shell {padding:1rem .85rem 0;}
+  .sync-strip {padding:.5rem .85rem;font-size:.65rem;gap:.5rem;flex-wrap:wrap;}
+  .home-board {display:grid;grid-template-columns:minmax(0,1fr);grid-template-areas:'coupon' 'live' 'model' 'moves' 'results';}
+  .header-row .search-label {display:none;}
+  .header-row .mobile-search {display:block;}
+  .header-row .search-label.search-open {display:block;position:absolute;left:0;right:0;top:100%;z-index:27;background:#fff;padding:.65rem;box-shadow:0 5px 15px #0002;border:1px solid #ddd;border-radius:.5rem;}
+  .header-row .search-label input {width:100%;}
+}
+@media(max-width:359px) {
+  .terminal-header .brand {font-size:1.05rem;}
+  .terminal-header .connection {max-width:3rem;}
+}
+@media(prefers-reduced-motion:reduce) {
+  .terminal-header .desktop-nav a,.terminal-header .desktop-nav a::after {transition:none;}
+  .terminal-header .desktop-nav a:hover {transform:none;}
+  #dashboard-shell>[data-page]:not([hidden]) {animation:none;}
+  .terminal-header .desktop-nav {scroll-behavior:auto;}
+}
