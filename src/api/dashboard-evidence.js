@@ -48,9 +48,7 @@
     const left=34,right=width-25,bottom=height-45;
     make('path',{d:`M${left} 25V${bottom}H${right}`,stroke:'#355275',fill:'none'});
     make('path',{d:`M${left} ${bottom}H${right}`,stroke:'#67d7ec','stroke-width':3,'data-series':'empty-count',fill:'none'});
-    make('text',{x:14,y:bottom+4,fill:'#cbd5e1','font-size':12},'0');
-    series.forEach((d,i)=>{if(i===0||i===series.length-1||i===Math.floor(series.length/2))make('text',{x:left+i*(right-left)/Math.max(1,series.length-1),y:height-15,fill:'#b7c7df','font-size':12,'text-anchor':'middle'},d.date.slice(5).split('-').reverse().join('.'));});
-    make('text',{x:left,y:50,fill:'#b7c7df','font-size':13},'Kayıtlı sonuç zaman çizelgesi');chart.append(svg);
+    chart.append(svg);
   }
   globalThis.BetAppEvidence=Object.freeze({refresh,validateTrends,badge,emptyTimeline});
 })();
