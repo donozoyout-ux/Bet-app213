@@ -39,7 +39,7 @@ async function run(mode) {
   const strip=elements.get('analysis-match-strip'),blocks=elements.get('analysis-blocks');
   if(['empty','unqualified','stale','error'].includes(mode)){assert.equal(strip.children.length,0);assert.equal(elements.get('analysis-selected').hidden,true);return;}
   assert.equal(strip.children.length,mode==='duplicate'?1:8);
-  if(mode==='race'){strip.children[1].onclick();await settle();release();await settle();
+  if(mode==='race'){assert.equal(strip.children[1].href,'/match/2');sandbox.BetAppMatchAnalysis.select(2);await settle();release();await settle();
     assert.equal(strip.children[1].getAttribute('aria-pressed'),'true');assert.equal(strip.children[0].getAttribute('aria-pressed'),'false');}
   if(mode==='stable'){
     const originalCard=strip.children[0],originalBlocks=blocks.children[0];

@@ -38,8 +38,8 @@
     } finally { pending.delete(key); $(key)?.setAttribute('aria-busy','false'); }
   }
   function openMatch(button, match) {
-    button.type='button'; button.setAttribute('aria-label',`${match.home_team} — ${match.away_team}, analizi aç`);
-    button.onclick=()=>globalThis.BetAppDashboard?.selectMatch(match.id);
+    button.href='/match/'+match.id;button.target='_blank';button.rel='noopener noreferrer'; button.setAttribute('aria-label',`${match.home_team} — ${match.away_team}, analizi aç`);
+
   }
   function fresh(observed, expires) {
     const seen=Date.parse(observed), end=Date.parse(expires), now=Date.now();
@@ -68,7 +68,7 @@
     box.replaceChildren();
     for (const item of items) {
       const {match:m,recommendation:r,quote:q}=item;
-      const row=element('button','','coupon-fixture'); openMatch(row,m);
+      const row=element('a','','coupon-fixture'); openMatch(row,m);
       const context=element('span','','fixture-context');
       context.append(element('time',time(m.kickoff_at)),element('small',m.league || 'Lig kaydı'));
       const teams=element('span','','fixture-teams'); teams.append(element('strong',m.home_team),element('span',m.away_team));
@@ -91,7 +91,7 @@
     if (!items.length) { message('home-live-list','Şu anda canlı maç yok. Günün fikstürünü maç merkezinde inceleyebilirsiniz.'); return; }
     box.replaceChildren();
     for (const m of items.slice(0,3)) {
-      const row=element('button','','live-fixture'); openMatch(row,m);
+      const row=element('a','','live-fixture'); openMatch(row,m);
       row.append(element('span',m.live_minute ? `${m.live_minute}′` : 'Canlı','live-minute'));
       const main=element('span','','live-teams');
       main.append(element('span',m.home_team),element('strong',m.ft_home==null || m.ft_away==null?'—':`${m.ft_home} – ${m.ft_away}`),element('span',m.away_team));
@@ -113,7 +113,7 @@
         const opening=market.opening?.[side], current=observedPrice(market,stage,side);
         if (!Number.isFinite(opening) || opening<=1 || current==null || opening===current) continue;
         const label=market.market==='1x2'?'Maç sonucu 1':market.market==='ah'?'Ev sahibi handikap':`${market[stage]?.line ?? '—'} Üst`;
-        const row=element('button','','movement-fixture');openMatch(row,m);
+        const row=element('a','','movement-fixture');openMatch(row,m);
         const info=element('span','','movement-teams');info.append(element('strong',`${m.home_team} — ${m.away_team}`),element('small',`${market.bookmaker} · ${label}`));
         const prices=element('span','','movement-prices');prices.append(element('del',number(opening)),element('strong',number(current)));
         row.append(info,prices,element('span',`${current>opening?'↗':'↘'} %${Math.abs((current/opening-1)*100).toFixed(1)}`,'movement-change'));
@@ -136,7 +136,7 @@
       const line=element('div');line.append(element('dt',label),element('dd',String(recs.filter(v=>v.confidence===key).length)));counts.append(line);
     }
     top.append(ring,counts);box.append(top);
-    const pick=element('button','','model-featured');openMatch(pick,r.match);pick.append(element('strong',`${r.match.home_team} — ${r.match.away_team}`),element('span',r.label));box.append(pick);
+    const pick=element('a','','model-featured');openMatch(pick,r.match);pick.append(element('strong',`${r.match.home_team} — ${r.match.away_team}`),element('span',r.label));box.append(pick);
     box.append(element('p',`Bu görünümde ${recs.length} seçim · ${r.sample_size} maçlık örneklem. Model olasılığı gerçekleşmiş başarı oranı değildir.`,'model-note'));
   }
   function refresh() {

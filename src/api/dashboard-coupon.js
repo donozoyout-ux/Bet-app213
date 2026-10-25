@@ -1,6 +1,8 @@
 /* Verified quotes, in-memory draft, read-only settlement. */
 (() => {
 'use strict';
+const matchLink=(id,text)=>{const a=document.createElement('a');a.href='/match/'+id;a.target='_blank';a.rel='noopener noreferrer';a.textContent=text;return a;};
+
 const $=id=>document.getElementById(id),selected=new Map();let dailyPublication=null;
 const money=n=>n==null?'—':!Number.isFinite(Number(n))?String(n):Number(n).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});
 const date=s=>s?new Date(s).toLocaleString('tr-TR',{timeZone:'Europe/Istanbul'}):'Gözlem zamanı bilinmiyor';
@@ -66,7 +68,7 @@ function draw(){
   const started=m.status!=='scheduled' || Date.parse(m.kickoff_at)<=Date.now(),fresh=q?.eligible && Date.parse(q.expires_at)>Date.now();
   if(!fresh && !started)complete=false;
   if(q?.price>1){total*=q.price;logTotal+=Math.log10(q.price);}else complete=false;
-  const row=node('div','');row.append(node('p',`${date(m.kickoff_at)} · ${m.home_team} — ${m.away_team} · ${r.label}`));
+  const row=node('div','');row.append(matchLink(m.id,`${date(m.kickoff_at)} · ${m.home_team} — ${m.away_team} · ${r.label}`));
   row.append(node('p',`Model: %${(100*r.probability).toFixed(1)} · Güven: ${confidence[r.confidence] || '—'}`));
   row.append(node('p',`${q?.bookmaker || book()} · ${money(q?.price)} · Gözlem: ${date(q?.observed_at)}${started?' · Taslağa alınan maç öncesi fiyat':fresh?' · Güncel gözlem':' · Bayat / doğrulama bekleniyor'}`));
   row.append(node('p',item.statusError?'Sonuç bağlantısı bekleniyor':outcomes[item.status || 'pending']));
@@ -106,7 +108,7 @@ function render(items){
   if(selectable)eligibleCount++;
   row.classList.toggle('coupon-unpriced',!selectable);
   const cb=node('input');cb.type='checkbox';cb.dataset.couponPick=key(item);cb.onchange=()=>add(item,cb.checked);cb.setAttribute('aria-label',`${m.home_team} ${m.away_team} ${r.label} taslağa ekle`);td(row,'').append(cb);
-  td(row,`${m.home_team} — ${m.away_team} · ${date(m.kickoff_at)}`);td(row,r.label);
+  td(row,'').append(matchLink(m.id,`${m.home_team} — ${m.away_team} · ${date(m.kickoff_at)}`));td(row,r.label);
   td(row,`%${(100*r.probability).toFixed(1)}`);td(row,confidence[r.confidence] || '—');
   const prices=td(row,'');const quote=v?.bookmakers?.[book()];
   if(selectable)prices.append(node('strong',`${book()} · ${money(quote.current_odds)} · Güncel`));
@@ -181,7 +183,7 @@ function renderDaily(data){
   const card=node('article'),m=item.match,r=item.recommendation,q=item.quote;
   card.className='daily-selection';
   card.append(node('p',`${date(m.kickoff_at)} · ${m.league || m.league_name || 'Lig bilgisi bekleniyor'}`));
-  card.append(node('h3',`${m.home_team} — ${m.away_team}`));
+  const heading=node('h3');heading.append(matchLink(m.id,`${m.home_team} — ${m.away_team}`));card.append(heading);
   const price=node('div');price.className='daily-selection-price';price.append(node('strong',r.label),node('b',`${money(q.price)} · ${q.bookmaker}`));card.append(price);
   card.append(node('p',`Model olasılığı: %${(100*r.probability).toFixed(1)} · Güven: ${confidence[r.confidence] || '—'} · Güvenilirlik: %${(100*r.reliability).toFixed(1)}`));
   card.append(node('p',`Son fiyat gözlemi: ${date(q.observed_at)}`));
@@ -216,7 +218,7 @@ function renderDaily(data){
    for(const d of policy.decisions || []){const list=byMatch.get(d.match_id) || [];list.push(d);byMatch.set(d.match_id,list);}
    for(const state of diagnostics.matches || []){
     const row=node('article');row.className='daily-decision';
-    row.append(node('strong',`${state.match.home_team} — ${state.match.away_team}`));
+    row.append(matchLink(state.match.id,`${state.match.home_team} — ${state.match.away_team}`));
     if(state.reason!=='eligible')row.append(node('p',labels[state.reason] || state.reason));
     for(const d of byMatch.get(state.match.id) || [])row.append(node('p',`${d.label || d.recommendation_id} · ${names[d.reason] || labels[d.reason] || d.reason}${Number.isFinite(d.marginal_utility)?' · Ek katkı: '+d.marginal_utility.toFixed(3):''}`));
     details.append(row);

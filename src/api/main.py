@@ -100,6 +100,21 @@ async def dashboard():
     return FileResponse(Path(__file__).resolve().with_name('dashboard.html'))
 
 
+@app.get('/match/{match_id}', include_in_schema=False)
+async def match_page(match_id: int):
+    return FileResponse(Path(__file__).resolve().with_name('match.html'))
+
+
+@app.get('/match-page.js', include_in_schema=False)
+async def match_page_script():
+    return FileResponse(Path(__file__).resolve().with_name('match-page.js'), media_type='application/javascript')
+
+
+@app.get('/match-page.css', include_in_schema=False)
+async def match_page_style():
+    return FileResponse(Path(__file__).resolve().with_name('match-page.css'), media_type='text/css')
+
+
 @app.get('/assets/kuponanalizii-logo.png', include_in_schema=False)
 async def brand_logo():
     return FileResponse(Path(__file__).resolve().parent / 'assets' / 'kuponanalizii-logo.png',

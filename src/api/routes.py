@@ -477,6 +477,24 @@ async def match_statistics(match_id: int, session=Depends(session_dependency, sc
         return await read_published_statistics(match_id,session)
 
 
+@router.get('/matches/{match_id}/dossier')
+async def match_dossier(match_id: int, session=Depends(session_dependency, scope='function')):
+    from .match_page import cache, dossier
+    return await cache.get(session.bind, ('dossier', match_id), lambda: dossier(session, match_id))
+
+
+@router.get('/matches/{match_id}/history')
+async def match_history(match_id: int, scope: Literal['home','away','home_venue','away_venue','h2h'] = 'home',
+                        limit: int = Query(10, ge=1, le=20), offset: int = Query(0, ge=0, le=1000),
+                        session=Depends(session_dependency, scope='function')):
+    from .match_page import cache, history
+    async def load():
+        match = await session.get(Match, match_id)
+        if match is None: raise HTTPException(404, 'Maç bulunamadı.')
+        return await history(session, match, scope, limit, offset)
+    return await cache.get(session.bind, ('history',match_id,scope,limit,offset), load)
+
+
 async def read_published_statistics(match_id,session):
     query, _, _ = match_query()
     row = (await session.execute(query.options(defer(Match.raw)).where(Match.id == match_id, League.enabled.is_(True)))).first()

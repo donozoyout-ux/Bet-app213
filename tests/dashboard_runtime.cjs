@@ -50,8 +50,8 @@ async function scenario(mode) {
     assert(calls.includes('/api/scraper/status'));if(mode==='job-priority')assert(elements.get('collection-progress').textContent.includes('English Premier League'));
     if(['multi','detail-race'].includes(mode)) {
       if(mode==='detail-race'){const first=sandbox.BetAppDashboard.selectMatch(recorded.page.items[0].id);await sandbox.BetAppDashboard.selectMatch(recorded.page.items[1].id);pending.forEach(release=>release());await first;assert.equal(elements.get('detail-title').textContent,`${recorded.page.items[1].home_team} vs ${recorded.page.items[1].away_team}`);sandbox.BetAppDashboard.closeDetail();return;}
-      const row=elements.get('matches-body').children[0];row.onclick();await settle();assert.equal(selected.at(-1),recorded.page.items[0].id);assert.equal(elements.get('detail-title').textContent,`${recorded.page.items[0].home_team} vs ${recorded.page.items[0].away_team}`);
-      row.onkeydown({key:'Enter',preventDefault(){}});await settle();assert.equal(selected.at(-1),recorded.page.items[0].id);sandbox.BetAppDashboard.closeDetail();
+      const row=elements.get('matches-body').children[0];assert.equal(row.children[2].children[0].href,'/match/'+recorded.page.items[0].id);assert.equal(row.children[2].children[0].rel,'noopener noreferrer');sandbox.BetAppDashboard.selectMatch(recorded.page.items[0].id);await settle();assert.equal(selected.at(-1),recorded.page.items[0].id);assert.equal(elements.get('detail-title').textContent,`${recorded.page.items[0].home_team} vs ${recorded.page.items[0].away_team}`);
+      sandbox.BetAppDashboard.selectMatch(recorded.page.items[0].id);await settle();assert.equal(selected.at(-1),recorded.page.items[0].id);sandbox.BetAppDashboard.closeDetail();
       const select=elements.get('league-select');
       assert(select.children.some(node=>node.label==='KULÜP LİGLERİ'));
       assert(select.children.some(node=>node.label==='MİLLİ TAKIMLAR'));
@@ -59,7 +59,7 @@ async function scenario(mode) {
       assert(calls.some(path=>path.includes('view=upcoming') && !path.includes('league=')));
       assert.equal(elements.get('matches-body').children.length,recorded.page.items.length);
       const text=elements.get('matches-body').children[0].children.map(td=>td.textContent).join(' ');
-      assert(text.includes(recorded.page.items[0].home_team));
+      assert(row.children[2].children[0].textContent.includes(recorded.page.items[0].home_team));
       const crown=recorded.page.items[0].odds.find(m=>m.bookmaker==='Crown' && m.market==='1x2');
       assert(text.includes(`${crown.opening.home} → ${crown.latest.home}`));
       select.value=String(recorded.national_page.items[0].league_id);await select.onchange();await settle();

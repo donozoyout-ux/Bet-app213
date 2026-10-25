@@ -1,6 +1,8 @@
 /* Existing Stitch shell, backed exclusively by recorded API data. */
 (() => {
   'use strict';
+const matchLink=(id,text)=>{const a=document.createElement('a');a.href='/match/'+id;a.target='_blank';a.rel='noopener noreferrer';a.textContent=text;return a;};
+
   const $ = id => document.getElementById(id);
   const {stage, movement, asianMovement, liveStates, number} = globalThis.BetAppOdds;
   const state = {leagues: [], seasons: [], league: '', season: '', round: '', selected: null, bookmaker: 'Crown', view: 'upcoming', offset: 0, total: 0, job: null, generation: 0, detailGeneration:0, busy: false};
@@ -86,12 +88,12 @@
     row.classList.toggle('bg-surface-container-low/60',state.selected === match.id);
     const live=liveStates.includes(match.status);
     cell(row, `${statuses[match.status] || match.status}${live && match.live_minute ? ' • '+match.live_minute+'′' : ''}${live ? '' : ' • '+date(match.kickoff_at)}`);
-    cell(row,match.league);cell(row,`${match.home_team} / ${match.away_team}`);
+    cell(row,match.league);cell(row,'').append(matchLink(match.id,`${match.home_team} / ${match.away_team}`));
     const ht=match.ht_home == null || match.ht_away == null ? '' : ` • İY: ${score(match.ht_home,match.ht_away)}`;
     cell(row,score(match.ft_home,match.ft_away)+ht);
     ['home','draw','away'].forEach(key => cell(row,movement(match,findMarket(match,'1x2'),key)));
     cell(row,asianMovement(match,findMarket(match,'ah'),['home','line','away']));cell(row,asianMovement(match,findMarket(match,'ou'),['over','line','under']));
-    row.dataset.matchId=String(match.id);row.classList.toggle('is-live',live);row.tabIndex=0;row.setAttribute('aria-label',`${match.home_team} / ${match.away_team}, analizi aç`);row.onclick=()=>selectMatch(match.id);row.onkeydown=event=>{if(['Enter',' '].includes(event.key)){event.preventDefault();selectMatch(match.id);}};return row;
+    row.dataset.matchId=String(match.id);row.classList.toggle('is-live',live);return row;
   }
   function emptyRows(text) {
     const body=$('matches-body');if (!body) return;body.replaceChildren();const row=document.createElement('tr');const td=cell(row,text);td.colSpan=9;body.append(row);
