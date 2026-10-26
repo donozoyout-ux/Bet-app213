@@ -103,6 +103,10 @@ async def test_match_page_chromium(api,db,monkeypatch,width):
             if os.getenv('MATCH_SCREENSHOT_DIR'):
                 folder=Path(os.environ['MATCH_SCREENSHOT_DIR']);folder.mkdir(parents=True,exist_ok=True)
                 await page.screenshot(path=str(folder/f'{key}-{width}.png'),full_page=True)
+        await page.locator('#tab-predictions').click()
+        await expect(page.locator('#panel-predictions')).to_contain_text('Güncel öneriler')
+        await expect(page.locator('#panel-predictions')).to_contain_text('İlk kaydedilen maç öncesi tahminler')
+        await expect(page.locator('#panel-predictions')).to_contain_text('Başlamış veya bitmiş maç')
         await page.locator('#tab-predictions').press('Home')
         await expect(page.locator('#tab-overview')).to_have_text('Genel bakış')
         await expect(page.locator('#tab-overview')).to_be_focused()
