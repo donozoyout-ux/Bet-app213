@@ -179,3 +179,63 @@ async def test_dashboard_match_links_open_independent_tabs(api,db,monkeypatch,wi
             assert page.url==original
             await popup.close()
         await browser.close()
+
+
+async def test_match_dossier_separates_current_board_from_first_saved_picks(api, db, monkeypatch):
+    """An evolving homepage recommendation never overwrites the first archived picks."""
+    from sqlalchemy.orm.attributes import flag_modified
+    from src.models import PredictionBoard
+    import src.api.match_page as dossier
+    monkeypatch.setattr(dossier, 'utcnow', lambda: NOW + timedelta(minutes=1))
+    target, league, _, _, _ = await seed(db)
+    async with db.session() as session:
+        snapshot = await session.get(PredictionSnapshot, target)
+        original = list(snapshot.picks)
+        board = await session.get(PredictionBoard, league)
+        assert board is not None
+        payload = dict(board.payload)
+        items = []
+        inserted = False
+        for item in payload['items']:
+            if item['match']['id'] != target:
+                items.append(item)
+                continue
+            new_pick = {
+                'id': 'over_7_5_corners', 'label': '7.5 Korner Üst',
+                'selection': 'over_7_5', 'market': 'corners',
+                'probability': 0.838845, 'reliability': 0.91,
+                'sample_size': 29, 'confidence': 'medium'
+            }
+            items.append({**item, 'recommendations': [new_pick]})
+            inserted = True
+        assert inserted
+        board.payload = {**payload, 'items': items}
+        flag_modified(board, 'payload')
+        await session.commit()
+
+    result = await api.get(f'/api/matches/{target}/dossier')
+    assert result.status_code == 200, result.text
+    data = result.json()
+    assert data['current_recommendations'][0]['label'] == '7.5 Korner Üst'
+    assert data['current_generated_at'] is not None
+    assert data['current_expires_at'] is not None
+    assert data['predictions']
+    assert [item['pick'] for item in data['predictions']] == original
+    assert data['captured_at'] is not None
+    assert 'ana sayfa' in data['current_note'].lower()
+
+    # Stale publications are not mislabeled as today's current predictions.
+    monkeypatch.setattr(dossier, 'utcnow', lambda: NOW + timedelta(minutes=20))
+    expired = (await api.get(f'/api/matches/{target}/dossier')).json()
+    assert expired['current_recommendations'] == []
+    assert expired['predictions']
+    # Finished fixtures must never acquire a retrospective 'current' pick.
+    async with db.session() as session:
+        match = await session.get(Match, target)
+        match.status = 'finished'
+        match.ft_home = 1
+        match.ft_away = 0
+        await session.commit()
+    finished = (await api.get(f'/api/matches/{target}/dossier')).json()
+    assert finished['current_recommendations'] == []
+    assert [item['pick'] for item in finished['predictions']] == original
