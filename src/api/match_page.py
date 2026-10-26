@@ -75,6 +75,34 @@ def aggregate(items, team):
                 **{k: dict(value=sum(v)/len(v) if v else None, sample=len(v)) for k,v in values.items()})
 
 
+async def current_recommendations(session, match, now):
+    """Read exactly the *published* league board used by the home page.
+
+    Unlike PredictionSnapshot these selections rotate as new observations arrive.
+    Never refresh a model, infer a pick after kickoff or accept an expired board.
+    """
+    if match.status != 'scheduled' or not match.kickoff_at or aware(match.kickoff_at) <= now:
+        return dict(current_recommendations=[], current_generated_at=None, current_expires_at=None,
+                    current_note='Başlamış veya bitmiş maç için güncel öneri yayımlanmaz.')
+    from src.analytics.board_cache import read_board
+    items, _, _ = await read_board(session, str(match.league_id), None, None, now)
+    publication = session.info.get('prediction_snapshot', {})
+    matching = next((item for item in items if item['match']['id'] == match.id), None)
+    latest = (matching or {}).get('recommendations', [])[:2]
+    return dict(
+        current_recommendations=[
+            {key: pick.get(key) for key in ('id', 'label', 'selection', 'market',
+              'probability', 'reliability', 'sample_size', 'confidence')}
+            for pick in latest
+        ],
+        current_generated_at=publication.get('latest_generated_at') if matching else None,
+        current_expires_at=publication.get('expires_at') if matching else None,
+        current_note=('Ana sayfa ile aynı güncel lig yayını. Yalnızca istatistiksel öneriler; '
+                      'doğrulanmış oynanabilir oran anlamına gelmez.') if matching else
+                     'Bu maç için geçerli güncel lig yayını veya nitelikli öneri yok. Eski seçimler değişmez.'
+    )
+
+
 async def dossier(session, match_id):
     from .routes import match_query, match_response, odds_data
     from src.analytics.settlements import decisions
@@ -109,7 +137,8 @@ async def dossier(session, match_id):
         data['source'] = price.source
         data['source_url'] = price.raw.get('source_url') if isinstance(price.raw, dict) else None
         prices.append(data)
-    return jsonable_encoder(dict(match=match_response(row), team_ids=dict(home=match.home_team_id, away=match.away_team_id),
+    live = await current_recommendations(session, match, utcnow())
+    return jsonable_encoder(dict(**live, match=match_response(row), team_ids=dict(home=match.home_team_id, away=match.away_team_id),
         observations=observations(stats), odds=prices, histories=histories, profiles=profiles,
         predictions=predictions, captured_at=snapshot.captured_at if valid else None,
         model_version=snapshot.model_version if valid else None, as_of=utcnow(), cache_seconds=20,
