@@ -243,3 +243,37 @@ async def test_match_dossier_separates_current_board_from_first_saved_picks(api,
     finished = (await api.get(f'/api/matches/{target}/dossier')).json()
     assert finished['current_recommendations'] == []
     assert [item['pick'] for item in finished['predictions']] == original
+
+
+@pytest.mark.parametrize('width', [390, 1536])
+async def test_match_current_board_diff_browser_without_rewriting_archive(api, db, width):
+    from playwright.async_api import async_playwright, expect
+    import json
+    target, _, _, _, _ = await seed(db)
+    async with async_playwright() as p:
+        browser = await p.chromium.launch()
+        context = await browser.new_context(viewport={'width': width, 'height': 850})
+        async def forward(route):
+            path = route.request.url.removeprefix('http://test')
+            response = await api.get(path)
+            if path.endswith('/dossier') and response.status_code == 200:
+                payload = response.json()
+                payload['current_recommendations'] = [
+                    {'id': 'over_7_5_corners', 'label': '7.5 Korner Üst',
+                     'probability': .838845, 'reliability': .911875, 'sample_size': 29}]
+                payload['current_generated_at'] = '2026-10-26T17:10:21Z'
+                payload['current_expires_at'] = '2026-10-26T17:20:21Z'
+                payload['current_note'] = 'Ana sayfa ile aynı güncel lig yayını.'
+                await route.fulfill(status=200, body=json.dumps(payload), content_type='application/json')
+            else:
+                await route.fulfill(status=response.status_code, body=response.content,
+                                    content_type=response.headers.get('content-type', 'application/json'))
+        await context.route('**/*', forward)
+        page = await context.new_page()
+        await page.goto(f'http://test/match/{target}#predictions')
+        await expect(page.locator('#panel-predictions .current-pick h3')).to_have_text('7.5 Korner Üst')
+        await expect(page.locator('#panel-predictions')).to_contain_text('İlk kaydedilen maç öncesi tahminler')
+        await expect(page.locator('#panel-predictions')).to_contain_text('İlk kaydedilmiş tahmin setinde yok')
+        await expect(page.locator('#panel-predictions')).to_contain_text('İlk kayıt:')
+        assert await page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+        await browser.close()
