@@ -36,3 +36,12 @@
 @media(max-width:900px){#panel-teams>.grid{grid-template-columns:1fr}.compare-row{gap:6px;grid-template-columns:minmax(0,1fr) minmax(77px,.9fr) minmax(0,1fr)}}
 @media(max-width:600px){.compare-row{gap:5px}.compare-label,.compare-value strong{font-size:11px}.compare-head{gap:6px}.h2h-stat{padding:10px}.form-result{min-width:34px;min-height:34px}.team-period-control strong{width:100%}}
 @media(prefers-reduced-motion:reduce){.form-result:hover{transform:none;box-shadow:none}}
+
+/* Independent current-board vs immutable first-snapshot presentation. */
+.current-pick{border:1px solid #e7e7e7;background:#fbfbfb;border-radius:12px;padding:14px;margin:14px 0}
+.current-pick h3{margin:0 0 9px;font-size:16px}
+.current-pick .metric{padding:7px 0}
+.current-pick .metric strong{font-variant-numeric:tabular-nums}
+.current-pick .muted{margin:11px 0 0}
+#panel-predictions .history-heading{border-top:1px solid #ddd;padding-top:19px}
+@media(max-width:600px){.current-pick{padding:12px}.current-pick .metric{gap:10px}.current-pick .metric strong{overflow-wrap:anywhere}}

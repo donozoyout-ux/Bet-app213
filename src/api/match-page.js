@@ -148,7 +148,30 @@ function historyCard(parent,scope,title){
  draw();
 }
 function counts(section){const o=data.observations,c=card(section,'Maçın gözlenen değerleri');table(c,['Ölçüm',data.match.home_team,data.match.away_team,'Toplam'],['corners','yellow_cards','red_cards'].map(k=>[metrics[k],number(o['home_'+k]),number(o['away_'+k]),number(o['home_'+k]==null||o['away_'+k]==null?null:o['home_'+k]+o['away_'+k])]));note(c,`Kaynak: ${o.source||'Bilinmiyor'} · ${date(o.observed_at)} · ${o.is_final?'Kesinleşmiş istatistik':'Kesinleşmemiş / eksik istatistik'}`);const grid=node('div','','grid');section.append(grid);for(const side of ['home','away']){profile(grid,side,data.match[side+'_team'],true);const c=card(grid,`${data.match[side+'_team']} · son 10`);chart(c,'Maç başına ortalama',['corners','yellow_cards','red_cards'].map(k=>({label:metrics[k],value:data.profiles[side]['10'][k].value})));}note(section,'Ortalamalar yalnızca kesinleşmiş kaynak istatistiklerinden hesaplanır. Eksik kart veya korner verisi sıfır sayılmaz.');}
-function predictions(section){note(section,data.prediction_note);if(data.captured_at)section.append(node('p',`Kayıt: ${date(data.captured_at)} · Model: ${data.model_version}`,'muted'));const families={result:'1X2',btts:'KG Var / Yok',goals:'Toplam gol',asian_handicap:'Handikap',corners:'Korner',cards:'Kart',yellow_cards:'Sarı kart',red_cards:'Kırmızı kart',first_half_goals:'İlk yarı gol',second_half_goals:'İkinci yarı gol',double_chance:'Çifte şans'};const outcomes={won:'Kazandı · doğrulandı',lost:'Kaybetti · doğrulandı',void:'Geçersiz · doğrulandı',disputed:'Kanıt çelişkisi · doğrulanamadı',awaiting_data:'Doğrulanmış sonuç bekleniyor'};
+function predictions(section){
+ const published=Array.isArray(data.current_recommendations)?data.current_recommendations:[];
+ const saved=Array.isArray(data.predictions)?data.predictions.map(x=>x.pick):[];
+ const savedIds=new Set(saved.map(x=>x.id));
+ const currentIds=new Set(published.map(x=>x.id));
+ const currentCard=card(section,'Güncel öneriler · ana sayfa');
+ note(currentCard,data.current_note||'Güncel lig yayını bulunamadı.');
+ if(data.current_generated_at)currentCard.append(node('p','Güncel lig yayını: '+date(data.current_generated_at)+' · Geçerlilik bitişi: '+date(data.current_expires_at),'muted'));
+ if(!published.length)note(currentCard,'Şu anda gösterilecek geçerli güncel öneri yok.');
+ for(const pick of published){
+   const row=node('div','','current-pick');
+   row.append(node('h3',pick.label||pick.selection||'Seçim adı bilinmiyor'));
+   metric(row,'Model olasılığı',pct(pick.probability));
+   metric(row,'Güvenilirlik',pct(pick.reliability));
+   metric(row,'Örneklem',number(pick.sample_size));
+   row.append(node('p',savedIds.has(pick.id)?'İlk kayıtta da vardı.':'İlk kaydedilmiş tahmin setinde yok; yeni lig yayınında öne çıkmış.','muted'));
+   currentCard.append(row);
+ }
+ const missing=saved.filter(p=>!currentIds.has(p.id));
+ if(published.length&&missing.length)note(currentCard,'İlk kayıtta olup güncel ilk iki öneride bulunmayan seçimler: '+missing.map(p=>p.label||p.selection).join(' · ')+'. İlk kayıt değiştirilmedi.');
+ section.append(node('h2','İlk kaydedilen maç öncesi tahminler','history-heading'));
+ note(section,'Aşağıdaki seçimler ilk kez kaydedildiği tarihte dondurulmuştur. Güncel ana sayfa önerilerinden farklı olabilir; geçmiş tahminler yeniden yazılmaz.');
+ note(section,data.prediction_note);
+ if(data.captured_at)section.append(node('p','İlk kayıt: '+date(data.captured_at)+' · Model: '+data.model_version,'muted'));const families={result:'1X2',btts:'KG Var / Yok',goals:'Toplam gol',asian_handicap:'Handikap',corners:'Korner',cards:'Kart',yellow_cards:'Sarı kart',red_cards:'Kırmızı kart',first_half_goals:'İlk yarı gol',second_half_goals:'İkinci yarı gol',double_chance:'Çifte şans'};const outcomes={won:'Kazandı · doğrulandı',lost:'Kaybetti · doğrulandı',void:'Geçersiz · doğrulandı',disputed:'Kanıt çelişkisi · doğrulanamadı',awaiting_data:'Doğrulanmış sonuç bekleniyor'};
  for(const [market,title] of Object.entries(families)){const c=card(section,title),items=data.predictions.filter(x=>x.pick.market===market);if(!items.length){note(c,'Bu markette kayıtlı maç öncesi seçim yok.');continue;}for(const item of items){const p=item.pick;c.append(node('h3',p.label||p.selection));metric(c,'Model olasılığı',pct(p.probability));metric(c,'Güvenilirlik',pct(p.reliability));metric(c,'Örneklem',number(p.sample_size));metric(c,'Sonuç',outcomes[item.outcome]||'Veri yok');if(item.recorded_at)metric(c,'Sonuç kayıt zamanı',date(item.recorded_at));const e=p.evidence||{};const labels={home_sample:'Ev sahibi örneklemi',away_sample:'Deplasman örneklemi',league_sample:'Lig örneklemi',home_rate:'Ev sahibi oranı',away_rate:'Deplasman oranı',league_rate:'Lig oranı'};let count=0;for(const [k,label] of Object.entries(labels))if(e[k]!=null){metric(c,label,k.endsWith('rate')?pct(e[k]):number(e[k]));count++;}if(!count)note(c,'Ek istatistiksel kanıt alanı kaydedilmemiş.');}}
 }
 const renderers={overview,odds,teams,counts,predictions};

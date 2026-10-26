@@ -103,6 +103,10 @@ async def test_match_page_chromium(api,db,monkeypatch,width):
             if os.getenv('MATCH_SCREENSHOT_DIR'):
                 folder=Path(os.environ['MATCH_SCREENSHOT_DIR']);folder.mkdir(parents=True,exist_ok=True)
                 await page.screenshot(path=str(folder/f'{key}-{width}.png'),full_page=True)
+        await page.locator('#tab-predictions').click()
+        await expect(page.locator('#panel-predictions')).to_contain_text('Güncel öneriler')
+        await expect(page.locator('#panel-predictions')).to_contain_text('İlk kaydedilen maç öncesi tahminler')
+        await expect(page.locator('#panel-predictions')).to_contain_text('Başlamış veya bitmiş maç')
         await page.locator('#tab-predictions').press('Home')
         await expect(page.locator('#tab-overview')).to_have_text('Genel bakış')
         await expect(page.locator('#tab-overview')).to_be_focused()
@@ -178,4 +182,98 @@ async def test_dashboard_match_links_open_independent_tabs(api,db,monkeypatch,wi
             assert await popup.evaluate('window.opener===null')
             assert page.url==original
             await popup.close()
+        await browser.close()
+
+
+async def test_match_dossier_separates_current_board_from_first_saved_picks(api, db, monkeypatch):
+    """An evolving homepage recommendation never overwrites the first archived picks."""
+    from sqlalchemy.orm.attributes import flag_modified
+    from src.models import PredictionBoard
+    import src.api.match_page as dossier
+    monkeypatch.setattr(dossier, 'utcnow', lambda: NOW + timedelta(minutes=1))
+    target, league, _, _, _ = await seed(db)
+    async with db.session() as session:
+        snapshot = await session.get(PredictionSnapshot, target)
+        original = list(snapshot.picks)
+        board = await session.get(PredictionBoard, league)
+        assert board is not None
+        payload = dict(board.payload)
+        items = []
+        inserted = False
+        for item in payload['items']:
+            if item['match']['id'] != target:
+                items.append(item)
+                continue
+            new_pick = {
+                'id': 'over_7_5_corners', 'label': '7.5 Korner Üst',
+                'selection': 'over_7_5', 'market': 'corners',
+                'probability': 0.838845, 'reliability': 0.91,
+                'sample_size': 29, 'confidence': 'medium'
+            }
+            items.append({**item, 'recommendations': [new_pick]})
+            inserted = True
+        assert inserted
+        board.payload = {**payload, 'items': items}
+        flag_modified(board, 'payload')
+        await session.commit()
+
+    result = await api.get(f'/api/matches/{target}/dossier')
+    assert result.status_code == 200, result.text
+    data = result.json()
+    assert data['current_recommendations'][0]['label'] == '7.5 Korner Üst'
+    assert data['current_generated_at'] is not None
+    assert data['current_expires_at'] is not None
+    assert data['predictions']
+    assert [item['pick'] for item in data['predictions']] == original
+    assert data['captured_at'] is not None
+    assert 'ana sayfa' in data['current_note'].lower()
+
+    # Stale publications are not mislabeled as today's current predictions.
+    monkeypatch.setattr(dossier, 'utcnow', lambda: NOW + timedelta(minutes=20))
+    expired = (await api.get(f'/api/matches/{target}/dossier')).json()
+    assert expired['current_recommendations'] == []
+    assert expired['predictions']
+    # Finished fixtures must never acquire a retrospective 'current' pick.
+    async with db.session() as session:
+        match = await session.get(Match, target)
+        match.status = 'finished'
+        match.ft_home = 1
+        match.ft_away = 0
+        await session.commit()
+    finished = (await api.get(f'/api/matches/{target}/dossier')).json()
+    assert finished['current_recommendations'] == []
+    assert [item['pick'] for item in finished['predictions']] == original
+
+
+@pytest.mark.parametrize('width', [390, 1536])
+async def test_match_current_board_diff_browser_without_rewriting_archive(api, db, width):
+    from playwright.async_api import async_playwright, expect
+    import json
+    target, _, _, _, _ = await seed(db)
+    async with async_playwright() as p:
+        browser = await p.chromium.launch()
+        context = await browser.new_context(viewport={'width': width, 'height': 850})
+        async def forward(route):
+            path = route.request.url.removeprefix('http://test')
+            response = await api.get(path)
+            if path.endswith('/dossier') and response.status_code == 200:
+                payload = response.json()
+                payload['current_recommendations'] = [
+                    {'id': 'over_7_5_corners', 'label': '7.5 Korner Üst',
+                     'probability': .838845, 'reliability': .911875, 'sample_size': 29}]
+                payload['current_generated_at'] = '2026-10-26T17:10:21Z'
+                payload['current_expires_at'] = '2026-10-26T17:20:21Z'
+                payload['current_note'] = 'Ana sayfa ile aynı güncel lig yayını.'
+                await route.fulfill(status=200, body=json.dumps(payload), content_type='application/json')
+            else:
+                await route.fulfill(status=response.status_code, body=response.content,
+                                    content_type=response.headers.get('content-type', 'application/json'))
+        await context.route('**/*', forward)
+        page = await context.new_page()
+        await page.goto(f'http://test/match/{target}#predictions')
+        await expect(page.locator('#panel-predictions .current-pick h3')).to_have_text('7.5 Korner Üst')
+        await expect(page.locator('#panel-predictions')).to_contain_text('İlk kaydedilen maç öncesi tahminler')
+        await expect(page.locator('#panel-predictions')).to_contain_text('İlk kaydedilmiş tahmin setinde yok')
+        await expect(page.locator('#panel-predictions')).to_contain_text('İlk kayıt:')
+        assert await page.evaluate('document.documentElement.scrollWidth <= innerWidth')
         await browser.close()
