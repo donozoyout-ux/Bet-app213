@@ -85,7 +85,13 @@ async def current_recommendations(session, match, now):
         return dict(current_recommendations=[], current_generated_at=None, current_expires_at=None,
                     current_note='Başlamış veya bitmiş maç için güncel öneri yayımlanmaz.')
     from src.analytics.board_cache import read_board
-    items, _, _ = await read_board(session, str(match.league_id), None, None, now)
+    try:
+        items, _, _ = await read_board(session, str(match.league_id), None, None, now)
+    except Exception:
+        # The immutable dossier must remain readable when the optional
+        # rotating recommendation board is temporarily unavailable.
+        return dict(current_recommendations=[], current_generated_at=None, current_expires_at=None,
+                    current_note='Güncel öneri yayınına şu anda ulaşılamıyor. İlk kaydedilen tahminler korunuyor.')
     publication = session.info.get('prediction_snapshot', {})
     matching = next((item for item in items if item['match']['id'] == match.id), None)
     latest = (matching or {}).get('recommendations', [])[:2]
