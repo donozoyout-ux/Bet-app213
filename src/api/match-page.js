@@ -95,7 +95,7 @@ function compareCard(parent,title,scopeA,scopeB,n){
   ['Gol yemeden biten','clean'],['Gol atılan maç','scored'],['KG Var','btts'],
   ['Toplam 1.5 üst','over15'],['Toplam 2.5 üst','over25'],['Toplam 3.5 üst','over35'],
   ['İlk yarı 0.5 üst','ht05'],['İlk yarı 1.5 üst','ht15'],
-  ['Korner / maç','corners'],['Sarı kart / maç','yellow_cards']
+  ['Korner / maç','corners'],['Sarı kart / maç','yellow_cards'],['Kırmızı kart / maç','red_cards']
  ])compareRow(c,label,a.metrics[key],b.metrics[key]);
  c.append(node('p',data.match.home_team+': '+a.matches+' kayıt / '+a.decided+' sonuç · '+data.match.away_team+': '+b.matches+' kayıt / '+b.decided+' sonuç. Örneklem sayıları her istatistiğin yanındadır.','comparison-foot'));
 }
