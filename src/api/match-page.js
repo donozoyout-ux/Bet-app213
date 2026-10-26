@@ -153,6 +153,19 @@ function predictions(section){
  const saved=Array.isArray(data.predictions)?data.predictions.map(x=>x.pick):[];
  const savedIds=new Set(saved.map(x=>x.id));
  const currentIds=new Set(published.map(x=>x.id));
+ const keyOf=pick=>[pick.market||'',pick.selection||'',pick.id||''].join('|');
+ const currentKeys=new Set(published.map(keyOf));
+ const savedKeys=new Set(saved.map(keyOf));
+ const differs=published.length&&saved.length&&(
+   published.some(p=>!savedKeys.has(keyOf(p)))||saved.some(p=>!currentKeys.has(keyOf(p))));
+ if(differs){
+   const comparison=card(section,'Tahmin farkı · neden aynı değil?');
+   note(comparison,'GÜNCEL ÖNERİ ile İLK KAYDEDİLEN TAHMİN farklı. Ana sayfa yeni model yayınını gösterir; geçmiş başarı hesabında yalnızca maç öncesi dondurulmuş kayıt kullanılır. Eski kayıt değiştirilmez.');
+   note(comparison,'Ana sayfada şimdi: '+published.map(p=>p.label||p.selection||'Bilinmiyor').join(' · '));
+   note(comparison,'İlk kaydedilen: '+saved.map(p=>p.label||p.selection||'Bilinmiyor').join(' · '));
+   if(data.captured_at)note(comparison,'İlk kayıt zamanı: '+date(data.captured_at));
+   if(data.current_generated_at)note(comparison,'Güncel yayın zamanı: '+date(data.current_generated_at));
+ }
  const currentCard=card(section,'Güncel öneriler · ana sayfa');
  note(currentCard,data.current_note||'Güncel lig yayını bulunamadı.');
  if(data.current_generated_at)currentCard.append(node('p','Güncel lig yayını: '+date(data.current_generated_at)+' · Geçerlilik bitişi: '+date(data.current_expires_at),'muted'));
