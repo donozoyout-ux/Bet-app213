@@ -17,6 +17,8 @@ def test_approved_active_database_and_tls():
     GOOD.replace(EXPECTED_HOST, "dpg-db39f66k1f9s738tgug0-a.frankfurt-postgres.render.com"),
     GOOD.replace("sslmode=require", "sslmode=disable"),
     GOOD.replace("sslmode=require", "sslmode=prefer"),
+    GOOD + "&host=untrusted.example.org",
+    GOOD + "&dbname=other_database",
     GOOD.replace("postgresql://", "https://"),
     GOOD.replace("fake-credential", ""),
     GOOD.replace("kuponanaliziivv7", "postgres"),
