@@ -20,13 +20,16 @@ def check_backup_inputs(database_url: str, passphrase: str) -> None:
         database = unquote(parsed.path.lstrip("/"))
         host, port = parsed.hostname, parsed.port
         user, password = parsed.username, parsed.password
-        ssl = parse_qs(parsed.query).get("sslmode", ["require"])
+        params = parse_qs(parsed.query, keep_blank_values=True)
+        ssl = params.get("sslmode", ["require"])
     except (ValueError, AttributeError) as exc:
         raise ValueError("Invalid database URL") from None
     if (parsed.scheme not in ("postgres", "postgresql")
             or host != EXPECTED_HOST or database != EXPECTED_DATABASE
             or port not in (None, 5432) or not user or not password):
         raise ValueError("Backup source is not the approved active Kuponanaliziivv7 database")
+    if parsed.fragment or set(params) - {"sslmode", "channel_binding"}:
+        raise ValueError("Unsupported PostgreSQL connection parameters")
     if len(ssl) != 1 or ssl[0] not in ALLOWED_SSLMODES:
         raise ValueError("PostgreSQL backup requires TLS sslmode=require or stronger")
 
