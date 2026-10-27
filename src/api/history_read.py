@@ -7,6 +7,7 @@ from contextlib import asynccontextmanager
 import re
 from fastapi import HTTPException
 from src.archive.history_reader import configured_reader, HistoryUnavailable
+from src.archive.history_format import timestamp
 
 READ_PATHS = frozenset(('/api/leagues', '/api/bookmakers', '/api/matches',
     '/api/performance-trends', '/api/market-performance', '/api/history/seasons',
@@ -29,8 +30,8 @@ async def archived_session(request, response):
             coverage = reader.catalog['coverage']
             response.headers['X-History-Source'] = reader.catalog['source_id']
             response.headers['X-History-Generation'] = reader.generation
-            response.headers['X-History-From'] = coverage['from']
-            response.headers['X-History-To'] = coverage['to']
+            response.headers['X-History-From'] = timestamp(coverage['from']).isoformat()
+            response.headers['X-History-To'] = timestamp(coverage['to']).isoformat()
             response.headers['X-History-Leagues'] = ','.join(map(str, coverage['league_ids']))
             response.headers['Cache-Control'] = 'private, no-store'
             yield session

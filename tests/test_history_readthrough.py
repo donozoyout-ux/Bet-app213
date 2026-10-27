@@ -138,7 +138,10 @@ async def test_existing_http_routes_use_same_sql_without_touching_hot_database(d
     from src.api import routes
     import src.api.history_read as service
     records, mid, lid = await fixture_records(db)
-    reader, _, _ = package(records, mid, lid)
+    # Python's ISO parser accepts arbitrary date/time separators. HTTP headers
+    # must normalize them instead of reflecting an archive's raw timestamp.
+    reader, _, _ = package(records, mid, lid,
+        lambda c: c['coverage'].update({'from': '2024-01-01\n00:00:00+00:00'}))
     readers.append(reader)
     monkeypatch.setattr(service, 'configured_reader', lambda: reader)
     monkeypatch.setattr(routes, 'database', db)
@@ -158,6 +161,7 @@ async def test_existing_http_routes_use_same_sql_without_touching_hot_database(d
                     a.pop('checked_at', None); b.pop('checked_at', None)
                 assert a == b, path
             assert cold.headers['x-history-generation'] == GEN
+            assert cold.headers['x-history-from'] == '2024-01-01T00:00:00+00:00'
         for tail in ('dossier', 'history'):
             response = await client.get(f'/api/matches/{mid}/{tail}'+suffix)
             assert response.status_code == 200, response.text
