@@ -20,6 +20,7 @@ from src.archive.github import ReleaseArchive
 from src.archive.source import snapshot
 
 PREFIX = 'board-backup-v1-'
+MAX_ARCHIVE_BYTES = 8 * 1024 * 1024 * 1024
 TABLE_SCHEMA = {'version':'varchar(64) primary key', 'league_id':'integer',
                 'created_at':'timestamp with time zone', 'payload':'json'}
 
@@ -173,10 +174,12 @@ async def export(source, store, key, archive_id, rows_per_chunk=8, max_new_chunk
     else:
         plan = validate_plan(json.loads(unseal(plan_blob,key,archive_id,'plan.enc')), archive_id)
     if plan['source_identity'] != await source.identity(): raise ValueError('Source identity changed')
-    chunks, uploaded = [], 0
+    chunks, uploaded, total_plaintext = [], 0, 0
     for name, keys in groups(plan):
         raw = await source.read(keys)
         records(raw, keys)
+        total_plaintext += len(raw)
+        if total_plaintext > MAX_ARCHIVE_BYTES: raise ValueError('Total plaintext/restore byte limit exceeded')
         existing = await store.get(name)
         if existing is not None:
             if unseal(existing,key,archive_id,name)!=raw: raise ValueError('Source/archived content changed; resume refused')
@@ -218,6 +221,8 @@ async def verify(store, key, archive_id, destination=None):
     if 'manifest.enc' not in store.assets: missing.append('manifest.enc')
     if missing: return dict(status='incomplete', missing=missing, expected_rows=plan['row_count'], restore_verified=False)
     manifest = json.loads(unseal(await store.get('manifest.enc'),key,archive_id,'manifest.enc'))
+    if type(manifest.get('plaintext_bytes')) is not int or not 0 <= manifest['plaintext_bytes'] <= MAX_ARCHIVE_BYTES:
+        raise ValueError('Total plaintext/restore byte limit exceeded')
     with tempfile.TemporaryDirectory(prefix='board-restore-') as temporary:
         target = Path(destination) if destination else Path(temporary)/'boards.sqlite'
         fd = os.open(target, os.O_CREAT|os.O_EXCL|os.O_WRONLY, 0o600)
@@ -225,10 +230,12 @@ async def verify(store, key, archive_id, destination=None):
         connection = sqlite3.connect(target)
         try:
             connection.execute('CREATE TABLE board_editions_archive (version TEXT PRIMARY KEY, row_json BLOB NOT NULL)')
-            chunks = []
+            chunks, total_plaintext = [], 0
             for name, keys in expected:
                 blob = await store.get(name)
                 raw = unseal(blob,key,archive_id,name)
+                total_plaintext += len(raw)
+                if total_plaintext > MAX_ARCHIVE_BYTES: raise ValueError('Total plaintext/restore byte limit exceeded')
                 lines = records(raw,keys)
                 connection.executemany('INSERT INTO board_editions_archive VALUES (?,?)', zip(keys,lines))
                 # Read back from the restored database, not just from memory.

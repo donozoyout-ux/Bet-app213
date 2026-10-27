@@ -88,6 +88,9 @@ It does not recalculate predictions or prices.
   column definitions, chunk size and inventory digest. Default 8 rows/chunk,
   maximum 128; at most 100,000 keys and 16 MiB plaintext per chunk. Oversize rows
   fail closed, never truncate. Use a new ID and smaller chunk size if required.
+  Total plaintext/restore content is capped at 8 GiB; repository asset inventory
+  is capped at 10,000 entries. Limits require code review to raise. Byte totals
+  in the manifest refer to data chunks; the repository budget includes metadata assets too.
 - Dedicated SELECT-only PostgreSQL credential; TLS `verify-full`; read-only
   repeatable-read transaction; no app initialization. Source identity/schema
   changes and missing/changed historical rows abort resume.

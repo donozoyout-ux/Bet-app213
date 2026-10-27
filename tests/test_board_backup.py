@@ -172,6 +172,22 @@ def test_plan_rejects_unmanageable_asset_inventory():
             keys=[f'{i:064x}' for i in range(9999)],rows_per_chunk=1),'test')
 
 
+async def test_total_restore_size_is_bounded_before_creating_file(tmp_path,monkeypatch):
+    import src.archive.board_backup as module
+    fake=GitHub();client=store(fake)
+    try:
+        await client.open('test',create=True)
+        await export(Source(),client,KEY,'test')
+        monkeypatch.setattr(module,'MAX_ARCHIVE_BYTES',1)
+        target=tmp_path/'too-large.sqlite'
+        with pytest.raises(ValueError,match='Total plaintext'):
+            await verify(client,KEY,'test',target)
+        assert not target.exists()
+        with pytest.raises(ValueError,match='Total plaintext'):
+            await export(Source(),client,KEY,'test')
+    finally:await client.close()
+
+
 async def test_postgres_source_readonly_lossless():
     if not os.getenv('TEST_POSTGRES_URL'):pytest.skip('TEST_POSTGRES_URL not configured')
     from sqlalchemy.ext.asyncio import create_async_engine
