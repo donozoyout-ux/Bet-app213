@@ -526,11 +526,11 @@ async def discover(job_id, client):
 
 async def run_job(job_id):
     log.info('[WORKER] job started id=%s', job_id)
+    from .storage_admission import enabled as hot_tier, collector_gate
+    await collector_gate(database)
     async with database.session() as session:
         job = await session.get(ScraperJob, job_id)
-        from .storage_admission import enabled as hot_tier, collector_gate
         if hot_tier() and job.kind in ('backfill','domestic_history'):return
-        await collector_gate(database)
         if not await league_enabled(session, job):
             return
         if job.kind != 'update' and session.bind.dialect.name == 'postgresql':

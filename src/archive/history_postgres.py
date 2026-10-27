@@ -36,6 +36,7 @@ async def verify_postgres(url, catalog, chunks):
         async with engine.connect() as conn:
             transaction=await conn.begin()
             try:
+                await conn.execute(text("SET LOCAL timezone='UTC'"))
                 await conn.execute(text(f'CREATE SCHEMA "{schema}"'))
                 scoped=await conn.execution_options(schema_translate_map={None:schema})
                 await scoped.run_sync(Base.metadata.create_all)

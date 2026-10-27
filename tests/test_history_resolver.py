@@ -128,3 +128,58 @@ async def test_real_postgres_capacity_guard_rejects_without_deletion(monkeypatch
         monkeypatch.setenv('HISTORY_HOT_TIER','false')
         async with engine.begin() as conn:await conn.execute(text(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))
         await engine.dispose()
+
+
+async def test_worker_capacity_gate_does_not_require_a_third_connection(monkeypatch):
+    from contextlib import asynccontextmanager
+    from types import SimpleNamespace
+    import src.jobs.worker as worker
+    import src.jobs.storage_admission as admission
+    active=0;checked=[]
+    class Session:
+        async def get(self,*args):return SimpleNamespace(kind='backfill')
+    class DB:
+        @asynccontextmanager
+        async def session(self):
+            nonlocal active
+            active+=1
+            try:yield Session()
+            finally:active-=1
+    db=DB()
+    async def gate(database):
+        assert database is db and active==0
+        checked.append(True)
+    monkeypatch.setattr(worker,'database',db)
+    monkeypatch.setattr(admission,'collector_gate',gate)
+    monkeypatch.setenv('HISTORY_HOT_TIER','true')
+    await worker.run_job(123)
+    assert checked==[True] and active==0
+
+
+async def test_real_postgres_board_cooldown_preserves_first_edition(monkeypatch):
+    url=os.getenv('TEST_POSTGRES_URL')
+    if not url:pytest.skip('TEST_POSTGRES_URL not configured')
+    from sqlalchemy.ext.asyncio import create_async_engine
+    from src.models import Base
+    from src.jobs.storage_admission import install
+    import uuid
+    engine=create_async_engine(url);install(engine.sync_engine)
+    schema='board_guard_'+uuid.uuid4().hex
+    try:
+        async with engine.begin() as conn:
+            await conn.execute(text(f'CREATE SCHEMA "{schema}"'))
+            scoped=await conn.execution_options(schema_translate_map={None:schema})
+            await scoped.run_sync(Base.metadata.create_all)
+            await scoped.execute(insert(League).values(id=1,external_id=99999,name='fixture',country='fixture'))
+        monkeypatch.setenv('HISTORY_HOT_TIER','true')
+        async with engine.begin() as conn:
+            await conn.execute(text(f'SET LOCAL search_path="{schema}",pg_catalog'))
+            scoped=await conn.execution_options(schema_translate_map={None:schema})
+            await scoped.execute(insert(BoardEdition).values(version='a'*64,league_id=1,created_at=datetime.now(timezone.utc),payload={'fixture':True}))
+            with pytest.raises(StorageAdmissionError,match='cooldown'):
+                await scoped.execute(insert(BoardEdition).values(version='b'*64,league_id=1,created_at=datetime.now(timezone.utc),payload={'fixture':2}))
+            assert list(await scoped.scalars(select(BoardEdition.version)))==['a'*64]
+    finally:
+        monkeypatch.setenv('HISTORY_HOT_TIER','false')
+        async with engine.begin() as conn:await conn.execute(text(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))
+        await engine.dispose()
