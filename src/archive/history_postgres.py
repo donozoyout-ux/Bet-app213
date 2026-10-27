@@ -60,6 +60,10 @@ async def verify_postgres(url, catalog, chunks):
                     if await scoped.scalar(select(func.count()).select_from(Base.metadata.tables[name])) != count:
                         raise ValueError('PostgreSQL count mismatch')
                 async with async_sessionmaker(bind=scoped,expire_on_commit=False)() as session:
+                    # Verification must stay inside this restored scope even if
+                    # the invoking host has the live combined resolver enabled.
+                    session.info['history_archive']=dict(generation=catalog['generation'],
+                        source_id=catalog['source_id'],coverage=catalog['coverage'])
                     from src.api.match_page import dossier
                     from src.analytics.prediction_audit import audit
                     from src.api.routes import odds_data

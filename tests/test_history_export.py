@@ -127,9 +127,10 @@ def test_restore_rejects_production_host():
         with pytest.raises(ValueError):verification_engine(url)
 
 
-async def test_real_postgres_export_restore_and_read_through(db):
+async def test_real_postgres_export_restore_and_read_through(db,monkeypatch):
     url=os.getenv('TEST_POSTGRES_URL')
     if not url:pytest.skip('TEST_POSTGRES_URL not configured')
+    monkeypatch.setenv('HISTORY_RESOLVER_ENABLED','true')
     from src.archive.history_format import timestamp
     rows,mid,lid=await records(db)
     engine=create_async_engine(url)
