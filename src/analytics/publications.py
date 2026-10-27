@@ -109,6 +109,9 @@ async def publish_board(session,board,now,candidate_payload=None,model_version=N
     data=board.payload if candidate_payload is None else candidate_payload
     model=model_version or board.model_version
     version=digest([board.league_id,model,stable(data)])
+    from src.analytics.prediction_audit import record_publication
+    with session.no_autoflush:
+        await record_publication(session,board,version,model,data,now)
     with session.no_autoflush:
         head=await session.get(BoardHead,board.league_id)
     if head:head.checked_at=now

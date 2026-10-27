@@ -47,6 +47,7 @@ jobs:
       - run: python -m pytest -q -rP
       - name: Dashboard JavaScript syntax and degraded-state execution
         run: |
+          node --check src/api/dashboard-audit.js
           node --check src/api/match-page.js
           node --check src/api/dashboard-revision.js
           node --check src/api/dashboard-analysis.js

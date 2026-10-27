@@ -483,6 +483,16 @@ async def match_dossier(match_id: int, session=Depends(session_dependency, scope
     return await cache.get(session.bind, ('dossier', match_id), lambda: dossier(session, match_id))
 
 
+@router.get('/matches/{match_id}/prediction-audit')
+async def prediction_audit(match_id: int, limit: int = Query(25, ge=1, le=100),
+                           before: int | None = Query(None, ge=1),
+                           session=Depends(session_dependency, scope='function')):
+    from src.analytics.prediction_audit import audit
+    match = await session.get(Match, match_id)
+    if match is None: raise HTTPException(404, 'Maç bulunamadı.')
+    return await audit(session, match, utcnow(), limit, before)
+
+
 @router.get('/matches/{match_id}/history')
 async def match_history(match_id: int, scope: Literal['home','away','home_venue','away_venue','h2h'] = 'home',
                         limit: int = Query(10, ge=1, le=20), offset: int = Query(0, ge=0, le=1000),

@@ -98,11 +98,13 @@ async def current_recommendations(session, match, now):
     return dict(
         current_recommendations=[
             {key: pick.get(key) for key in ('id', 'label', 'selection', 'market',
-              'probability', 'reliability', 'sample_size', 'confidence')}
+              'probability', 'reliability', 'sample_size', 'confidence', 'line', 'period', 'engine_version') if key in pick}
             for pick in latest
         ],
         current_generated_at=publication.get('latest_generated_at') if matching else None,
         current_expires_at=publication.get('expires_at') if matching else None,
+        current_model_version=publication.get('model_version') if matching else None,
+        current_board_version=publication.get('publication_versions', {}).get(str(match.league_id)) if matching else None,
         current_note=('Ana sayfa ile aynı güncel lig yayını. Yalnızca istatistiksel öneriler; '
                       'doğrulanmış oynanabilir oran anlamına gelmez.') if matching else
                      'Bu maç için geçerli güncel lig yayını veya nitelikli öneri yok. Eski seçimler değişmez.'

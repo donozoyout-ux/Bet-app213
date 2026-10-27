@@ -442,6 +442,20 @@ class BoardEdition(Base):
     payload: Mapped[dict] = mapped_column(JSON, deferred=True)
 
 
+class PredictionPublication(Base):
+    """Append-only match selections at each changed league publication."""
+    __tablename__ = 'prediction_publications'
+    __table_args__ = (Index('ix_prediction_publications_match_id_id', 'match_id', 'id'),)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    match_id: Mapped[int] = mapped_column(ForeignKey('matches.id'))
+    league_id: Mapped[int] = mapped_column(ForeignKey('leagues.id'), index=True)
+    board_version: Mapped[str] = mapped_column(String(64))
+    model_version: Mapped[str] = mapped_column(String(100))
+    published_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    kickoff_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    picks: Mapped[list] = mapped_column(JSON)
+
+
 class BoardHead(Base):
     __tablename__ = 'board_heads'
     league_id: Mapped[int] = mapped_column(ForeignKey('leagues.id'), primary_key=True)
