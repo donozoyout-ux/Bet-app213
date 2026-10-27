@@ -44,10 +44,17 @@ jobs:
           tests/test_market_terminal.py::test_postgres_scope_migration_and_concurrent_immutable_capture
           tests/test_statistics_pipeline.py::test_rollout_does_not_mistake_odds_jobs_for_stats_and_retries_failed_only
           tests/test_statistics_pipeline.py::test_worker_uses_rollout_order_and_does_not_auto_run_disabled_jobs
+      - name: Verify real PostgreSQL history restore and capacity admission
+        run: >-
+          python -m pytest -q
+          tests/test_history_export.py::test_real_postgres_export_restore_and_read_through
+          tests/test_history_resolver.py::test_real_postgres_capacity_guard_rejects_without_deletion
+          tests/test_history_resolver.py::test_real_postgres_board_cooldown_preserves_first_edition
       - run: python -m pytest -q -rP
       - name: Dashboard JavaScript syntax and degraded-state execution
         run: |
           node --check src/api/dashboard-audit.js
+          node --check src/api/dashboard-history.js
           node --check src/api/match-page.js
           node --check src/api/dashboard-revision.js
           node --check src/api/dashboard-analysis.js

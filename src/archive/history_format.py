@@ -97,6 +97,38 @@ def parse(raw):
         parse_constant=lambda _: (_ for _ in ()).throw(ValueError('Nonfinite JSON')))
 
 
+def raw_records(raw):
+    """Yield table and original row JSON slices without float reserialization."""
+    text=raw.decode('utf-8');decoder=json.JSONDecoder();pos=0
+    def whitespace(index):
+        while index<len(text) and text[index].isspace():index+=1
+        return index
+    pos=whitespace(pos)
+    if text[pos]!='[':raise ValueError('Row array required')
+    pos+=1
+    while True:
+        pos=whitespace(pos)
+        if text[pos]==']':break
+        if text[pos]!='{':raise ValueError('Row envelope required')
+        pos+=1;fields={};slices={}
+        while True:
+            pos=whitespace(pos);key,end=decoder.raw_decode(text,pos);pos=whitespace(end)
+            if text[pos]!=':':raise ValueError('Row separator')
+            start=whitespace(pos+1);value,end=decoder.raw_decode(text,start)
+            if key in fields:raise ValueError('Duplicate row field')
+            fields[key]=value;slices[key]=text[start:end];pos=whitespace(end)
+            if text[pos]=='}':pos+=1;break
+            if text[pos]!=',':raise ValueError('Row field separator')
+            pos+=1
+        if set(fields)!={'table','row'}:raise ValueError('Row envelope fields')
+        yield fields['table'],slices['row']
+        pos=whitespace(pos)
+        if text[pos]==']':break
+        if text[pos]!=',':raise ValueError('Record separator')
+        pos+=1
+    if whitespace(pos+1)!=len(text):raise ValueError('Trailing record bytes')
+
+
 def validate_catalog(data, generation):
     if set(data) != {'schema', 'schema_digest', 'generation', 'source_id', 'created_at',
                      'coverage', 'chunks', 'counts', 'eligibility'}:

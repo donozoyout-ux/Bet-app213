@@ -13,6 +13,9 @@ cache = ReadCache(ttl=20, limit=128)
 async def history(session, match, scope, limit, offset=0):
     from .routes import match_query, match_response
     cutoff = min(aware(match.kickoff_at), utcnow()) if match.kickoff_at else utcnow()
+    from src.archive.history_resolver import enabled, site_history
+    if enabled() and not session.info.get('history_archive'):
+        return await site_history(session,match,scope,limit,offset,cutoff)
     home, away = match.home_team_id, match.away_team_id
     conditions = {
         'home': or_(Match.home_team_id == home, Match.away_team_id == home),
