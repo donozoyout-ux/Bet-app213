@@ -35,6 +35,8 @@ def validate_plan(plan, archive_id):
         raise ValueError('Invalid board key')
     if type(plan.get('rows_per_chunk')) is not int or not 1 <= plan['rows_per_chunk'] <= 128:
         raise ValueError('Invalid chunk size')
+    if (len(keys)+plan['rows_per_chunk']-1)//plan['rows_per_chunk'] > 9998:
+        raise ValueError('Planned asset inventory exceeds limit')
     if plan.get('row_count') != len(keys) or plan.get('keys_sha256') != sha(canonical(keys)):
         raise ValueError('Invalid key inventory digest')
     return plan
@@ -103,9 +105,11 @@ class BoardStore(ReleaseArchive):
         if create and meta.get('permissions',{}).get('push') is not True:
             raise ValueError('Destination write permission required')
         releases, _ = await self.inventory()
-        total = 0
+        total, asset_count = 0, 0
         for release in releases:
             release['assets'] = await self.asset_list(int(release['id']))
+            asset_count += len(release['assets'])
+            if asset_count > 10000: raise ValueError('Repository asset inventory limit exceeded')
             total += sum(int(a['size']) for a in release['assets'])
         self.total = total
         self.release = next((r for r in releases if r['tag_name']==PREFIX+archive_id), None)

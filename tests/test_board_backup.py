@@ -165,6 +165,13 @@ def test_lossless_multiline_json_and_frame_boundaries():
         with pytest.raises(ValueError):records(broken,['0'*64])
 
 
+def test_plan_rejects_unmanageable_asset_inventory():
+    from src.archive.board_backup import validate_plan,TABLE_SCHEMA,SCHEMA
+    with pytest.raises(ValueError,match='asset inventory'):
+        validate_plan(dict(schema=SCHEMA,archive_id='test',table='board_editions',columns=TABLE_SCHEMA,
+            keys=[f'{i:064x}' for i in range(9999)],rows_per_chunk=1),'test')
+
+
 async def test_postgres_source_readonly_lossless():
     if not os.getenv('TEST_POSTGRES_URL'):pytest.skip('TEST_POSTGRES_URL not configured')
     from sqlalchemy.ext.asyncio import create_async_engine
