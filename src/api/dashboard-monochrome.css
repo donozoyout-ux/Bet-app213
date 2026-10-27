@@ -309,3 +309,31 @@ td a[href^="/match/"]:hover { text-decoration: underline; text-underline-offset:
 #audit-result .audit-picks{min-width:0;padding:1rem;border:1px solid #dedfe3;border-radius:.7rem}
 #audit-result .audit-picks p{margin-top:.5rem}
 @media(max-width:640px){#audit-result .audit-columns{grid-template-columns:minmax(0,1fr)}}
+/* Compact home-only desktop rhythm: retain current layout, palette and mobile sizing. */
+@media (min-width: 768px) {
+  #dashboard-shell > [data-page="home"] .platform-intro {
+    min-height: 16.5rem;
+    padding-block: .6rem;
+    padding-inline: 2.5rem;
+  }
+  #dashboard-shell > [data-page="home"] .platform-intro h1 {
+    font-size: clamp(2.4rem, 3vw, 3rem);
+    margin: .45rem 0 .5rem;
+  }
+  #dashboard-shell > [data-page="home"] .hero-features { gap: .7rem; }
+  #dashboard-shell > [data-page="home"] .hero-features .metric-icon {
+    width: 2.5rem; height: 2.5rem;
+  }
+  #dashboard-shell > [data-page="home"] .hero-actions { margin-top: .7rem; gap: .6rem; }
+  #dashboard-shell > [data-page="home"] .home-summary { gap: .55rem; margin-bottom: .65rem; }
+  #dashboard-shell > [data-page="home"] .home-summary article {
+    min-height: 4.1rem; padding: .6rem .75rem; gap: .6rem;
+  }
+  #dashboard-shell > [data-page="home"] .home-summary strong { font-size: 1.45rem; }
+  #dashboard-shell > [data-page="home"] .home-summary .metric-icon {
+    width: 2.45rem; height: 2.45rem; font-size: 1.2rem;
+  }
+  #dashboard-shell > [data-page="home"] .home-board { gap: .6rem; }
+  #dashboard-shell > [data-page="home"] .dashboard-panel { padding: .65rem; }
+  #dashboard-shell > [data-page="home"] .panel-heading { margin-bottom: .35rem; }
+}
