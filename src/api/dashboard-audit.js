@@ -12,12 +12,15 @@
     return node;
   };
   const name = p => p.label || p.selection || p.id || 'Seçim adı bilinmiyor';
-  const time = v => v ? new Date(v).toLocaleString('tr-TR') : 'Kayıt bulunamadı';
+  const time = v => v ? new Date(v).toLocaleString('tr-TR', {timeZone:'Europe/Istanbul'}) + ' (İstanbul)' : 'Kayıt bulunamadı';
   const picks = (title, items, timestamp, model) => {
     const box = el('section', null, 'audit-picks');
     box.append(el('h3', title), el('p', 'Zaman: ' + time(timestamp)), el('p', 'Model sürümü: ' + (model || 'Kayıt bulunamadı')));
     if (!items.length) box.append(el('p', 'Bu bölümde doğrulanabilir seçim yok.'));
-    items.forEach(p => box.append(el('p', name(p) + (p.probability == null ? '' : ' · Model: %' + (Number(p.probability) * 100).toFixed(1)))));
+    items.forEach(p => {
+      if (!p || typeof p !== 'object') { box.append(el('p', 'Hatalı seçim kaydı')); return; }
+      box.append(el('p', name(p) + (p.probability == null ? '' : ' · Model: %' + (Number(p.probability) * 100).toFixed(1))));
+    });
     return box;
   };
   let seq = 0;
@@ -42,6 +45,8 @@
       columns.append(picks('Güncel ana sayfa yayını', current, data.current_generated_at, data.current_model_version));
       columns.append(picks('İlk kaydedilen maç öncesi tahminler', saved, data.original?.published_at, data.original?.model_version));
       block.append(columns);
+      if (data.current_board_version) block.append(el('p', 'Güncel yayın sürümü: ' + data.current_board_version));
+      if (data.current_expires_at) block.append(el('p', 'Güncel yayın geçerlilik sonu: ' + time(data.current_expires_at)));
       block.append(el('p', data.current_note || 'Güncel yayın notu bulunamadı.'));
       const labels = {missing_snapshot:'İlk tahmin kaydı yok', empty_snapshot:'İlk kayıt boş',
         invalid_picks:'Seçim listesi hatalı', invalid_selection:'Seçim kimliği eksik veya hatalı',
@@ -66,6 +71,7 @@
         for (const row of rows || []) {
           const entry = picks('Yayın #' + row.id, row.picks || [], row.published_at, row.model_version);
           entry.append(el('p', 'Yayın sürümü: ' + row.board_version), showChanges(row.changes));
+          for (const issue of row.issues || []) entry.append(el('p', 'Kayıt uyarısı: ' + (labels[issue] || issue)));
           if (!row.picks?.length) entry.append(el('p', 'Seçimler yayından kaldırıldı.'));
           history.append(entry);
         }

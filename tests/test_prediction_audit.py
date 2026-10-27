@@ -31,6 +31,22 @@ async def test_journal_renewal_change_return_removal_and_snapshot_unchanged(db):
         assert (await s.get(PredictionSnapshot, mid)).picks == original
 
 
+async def test_model_change_and_transaction_rollback(db):
+    mid, league, *_ = await seed(db)
+    async with db.session() as s:
+        board = await s.get(PredictionBoard, league)
+        await publish_board(s, board, NOW+timedelta(seconds=1), model_version='test-model-revision')
+        await s.commit()
+        rows = list(await s.scalars(select(Publication).order_by(Publication.id)))
+        assert len(rows) == 2 and rows[0].picks == rows[1].picks
+        assert rows[-1].model_version == 'test-model-revision'
+        await publish_board(s, board, NOW+timedelta(seconds=2), model_version='rolled-back-test-revision')
+        await s.rollback()
+    async with db.session() as s:
+        assert await s.scalar(select(func.count()).select_from(Publication)) == 2
+        assert (await s.get(PredictionBoard, league)).model_version == 'test-model-revision'
+
+
 @pytest.mark.parametrize('model', [PredictionSnapshot, Publication])
 @pytest.mark.parametrize('operation', [update, delete])
 async def test_history_database_rejects_update_and_delete(db, model, operation):
