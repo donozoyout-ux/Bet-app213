@@ -5,7 +5,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 import hmac
 import asyncio
 import logging
-from fastapi import APIRouter, Depends, Header, HTTPException, Query
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, Response
 from sqlalchemy import select, func, or_, text
 from sqlalchemy.orm import aliased, defer
 from src.config import settings
@@ -46,7 +46,17 @@ async def diagnostics():
     return result
 
 
-async def session_dependency():
+async def session_dependency(request: Request, response: Response):
+    # Explicit namespace selection prevents old/new database integer-ID collisions.
+    # Only read-only history handlers may consume this isolated SQL read model.
+    source = request.query_params.get('history_source', 'hot')
+    if source not in {'hot', 'archive'}:
+        raise HTTPException(400, 'Unknown history source')
+    if source == 'archive':
+        from .history_read import archived_session
+        async with archived_session(request, response) as session:
+            yield session
+        return
     if not database.configured or not database.ready:
         raise HTTPException(503, 'Database not ready. Configure DATABASE_URL and initialize PostgreSQL.')
     async with database.session() as session:
