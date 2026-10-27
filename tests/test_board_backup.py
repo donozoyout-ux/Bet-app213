@@ -176,7 +176,8 @@ async def test_postgres_source_readonly_lossless():
         async with engine.begin() as c:
             await c.execute(text(f'CREATE SCHEMA "{schema}"'))
             await c.execute(text(f'CREATE TABLE "{schema}".board_editions (version varchar(64) PRIMARY KEY,league_id integer,created_at timestamptz,payload json)'))
-            await c.execute(text(f'INSERT INTO "{schema}".board_editions VALUES (:version,1,CURRENT_TIMESTAMP,\'{{"decimal":0.1234567890123456789012345,"empty":null}}\')'),{'version':'a'*64})
+            await c.execute(text(f'INSERT INTO "{schema}".board_editions VALUES (:version,1,CURRENT_TIMESTAMP,CAST(:payload AS json))'),
+                {'version':'a'*64,'payload':'{"decimal":0.1234567890123456789012345,"empty":null}'})
         await client.open('pg',create=True)
         async with engine.connect() as c:
             async with c.begin():
