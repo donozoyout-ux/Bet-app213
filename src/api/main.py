@@ -91,6 +91,8 @@ async def lifespan(app: FastAPI):
         except asyncio.CancelledError:
             pass
     await database.close()
+    from src.archive.history_reader import close_reader
+    await close_reader()
 
 app = FastAPI(title='Kuponanalizii', version='2.0.0', lifespan=lifespan)
 from src.api.capacity import DatabaseCapacityMiddleware
