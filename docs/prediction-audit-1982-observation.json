@@ -1,0 +1,45 @@
+{
+  "match": {
+    "id": 1982,
+    "external_match_id": 2993843,
+    "league_id": 3,
+    "round": 9,
+    "round_label": "League • Round 9",
+    "stage_key": "sub_2948/R_9",
+    "status": "scheduled",
+    "ht_home": null,
+    "ht_away": null,
+    "ft_home": null,
+    "ft_away": null,
+    "odds_complete": false,
+    "live_minute": null,
+    "status_observed_at": null,
+    "kickoff_at": "2026-10-27T22:45:00+03:00",
+    "updated_at": "2026-10-27T18:21:30.914747+03:00",
+    "external_league_id": 34,
+    "league": "Italy Serie A",
+    "competition_type": "club",
+    "season": "2026-2027",
+    "home_team": "Torino",
+    "away_team": "Como"
+  },
+  "current_recommendations": [],
+  "current_generated_at": null,
+  "current_expires_at": null,
+  "current_note": "Bu maç için geçerli güncel lig yayını veya nitelikli öneri yok. Eski seçimler değişmez.",
+  "captured_at": "2026-10-24T23:39:56.370446+03:00",
+  "model_version": "quality-poisson-v3-specialist-adapters-v1",
+  "as_of": "2026-10-27T18:23:33.174048+03:00",
+  "saved_selections": [
+    {
+      "id": "under_2_5_second_half_goals",
+      "label": "2.5 2. Yarı Gol Alt",
+      "probability": 0.8434601241040899
+    },
+    {
+      "id": "over_1_5_goals",
+      "label": "1.5 Gol Üst",
+      "probability": 0.8192463873530565
+    }
+  ]
+}
