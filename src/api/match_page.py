@@ -37,8 +37,9 @@ async def history(session, match, scope, limit, offset=0):
             away_team_id=m.away_team_id, statistics=observations(s)))
     archive = session.info.get('history_archive')
     return dict(items=items, has_more=len(rows) > limit, offset=offset, limit=limit,
-                cutoff=cutoff, coverage=(archive if archive else
-                    'Yalnızca aktif veritabanındaki kayıtlar; sezon arşivi taranmaz.'))
+                cutoff=cutoff, coverage=(f"Doğrulanmış arşiv: {archive['source_id']} / {archive['generation']}; yalnızca belirtilen tarih ve lig kapsamı."
+                    if archive else 'Yalnızca aktif veritabanındaki kayıtlar; sezon arşivi taranmaz.'),
+                **({'archive_coverage': archive} if archive else {}))
 
 
 def observations(stats):

@@ -161,7 +161,9 @@ async def test_existing_http_routes_use_same_sql_without_touching_hot_database(d
         for tail in ('dossier', 'history'):
             response = await client.get(f'/api/matches/{mid}/{tail}'+suffix)
             assert response.status_code == 200, response.text
-            if tail == 'history': assert response.json()['coverage']['generation'] == GEN
+            if tail == 'history':
+                assert isinstance(response.json()['coverage'], str)
+                assert response.json()['archive_coverage']['generation'] == GEN
         # An overlapping new DB integer ID must NEVER override this source.
         async with db.session() as session:
             match = await session.get(Match, mid)
