@@ -298,3 +298,32 @@ td a[href^="/match/"]:hover { text-decoration: underline; text-underline-offset:
 .current-day-evidence h3{margin:0 0 10px;color:#111}
 .current-day-evidence svg,.bounded-count-timeline{display:block;width:100%;height:auto}
 .current-day-summary{font-size:13px;line-height:1.6;color:#333}
+
+/* Compact home-only desktop rhythm: retain current layout, palette and mobile sizing. */
+@media (min-width: 768px) {
+  #dashboard-shell > [data-page="home"] .platform-intro {
+    min-height: 16.5rem;
+    padding-block: .6rem;
+    padding-inline: 2.5rem;
+  }
+  #dashboard-shell > [data-page="home"] .platform-intro h1 {
+    font-size: clamp(2.4rem, 3vw, 3rem);
+    margin: .45rem 0 .5rem;
+  }
+  #dashboard-shell > [data-page="home"] .hero-features { gap: .7rem; }
+  #dashboard-shell > [data-page="home"] .hero-features .metric-icon {
+    width: 2.5rem; height: 2.5rem;
+  }
+  #dashboard-shell > [data-page="home"] .hero-actions { margin-top: .7rem; gap: .6rem; }
+  #dashboard-shell > [data-page="home"] .home-summary { gap: .55rem; margin-bottom: .65rem; }
+  #dashboard-shell > [data-page="home"] .home-summary article {
+    min-height: 4.1rem; padding: .6rem .75rem; gap: .6rem;
+  }
+  #dashboard-shell > [data-page="home"] .home-summary strong { font-size: 1.45rem; }
+  #dashboard-shell > [data-page="home"] .home-summary .metric-icon {
+    width: 2.45rem; height: 2.45rem; font-size: 1.2rem;
+  }
+  #dashboard-shell > [data-page="home"] .home-board { gap: .6rem; }
+  #dashboard-shell > [data-page="home"] .dashboard-panel { padding: .65rem; }
+  #dashboard-shell > [data-page="home"] .panel-heading { margin-bottom: .35rem; }
+}
