@@ -93,12 +93,34 @@ async def lifespan(app: FastAPI):
     await database.close()
     from src.archive.history_reader import close_reader
     await close_reader()
+    from src.archive.history_index import close_index
+    await close_index()
 
 app = FastAPI(title='Kuponanalizii', version='2.0.0', lifespan=lifespan)
 from src.api.capacity import DatabaseCapacityMiddleware
 app.add_middleware(DatabaseCapacityMiddleware)
 # Gunicorn's module-only target resolves `application`; Uvicorn continues using :app.
 application = app
+
+from src.jobs.storage_admission import StorageAdmissionError
+
+@app.exception_handler(StorageAdmissionError)
+async def storage_admission_error(request, exc):
+    return JSONResponse(status_code=503,content={'code':'storage_admission_paused',
+        'detail':'Collection/publication paused; existing records are preserved.'})
+
+from src.archive.history_reader import HistoryUnavailable
+
+@app.exception_handler(HistoryUnavailable)
+async def history_unavailable(request,exc):
+    return JSONResponse(status_code=503,content={'code':'history_unavailable','detail':'Verified history is unavailable or exceeds query scope; no partial history returned.'})
+
+from src.api.history_catalog import router as history_catalog_router
+app.include_router(history_catalog_router,prefix='/api')
+
+@app.get('/dashboard-history.js',include_in_schema=False)
+async def history_script():
+    return FileResponse(Path(__file__).resolve().with_name('dashboard-history.js'),media_type='application/javascript')
 
 
 @app.exception_handler(TimeoutError)

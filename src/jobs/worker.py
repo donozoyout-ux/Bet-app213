@@ -56,11 +56,13 @@ async def reconcile_owned_queue(session):
 
 
 def next_job_query():
+    from .storage_admission import enabled as hot_tier
+    kinds=tuple(k for k in DURABLE_KINDS if not hot_tier() or k not in ('backfill','domestic_history'))
     # Daily updates retain priority. History rotates after each bounded slice,
     # instead of preferring a running job forever. Never select manual imports.
     return select(ScraperJob.id).join(League).where(
         League.enabled.is_(True), ScraperJob.status.in_(['queued','running']),
-        ScraperJob.kind.in_(DURABLE_KINDS)
+        ScraperJob.kind.in_(kinds)
     ).order_by(case((ScraperJob.kind == 'update', 0), else_=1),
         ScraperJob.checkpoint_at.asc().nulls_first(), ScraperJob.priority, ScraperJob.id).limit(1)
 
@@ -153,6 +155,9 @@ def is_final(match):
 
 
 async def enqueue(kind, league_external_id=36, start_year=2024, match_id=None, resume_id=None):
+    from .storage_admission import enabled as hot_tier, StorageAdmissionError
+    if hot_tier() and kind in ('backfill','domestic_history'):
+        raise StorageAdmissionError('historical_import_disabled')
     async with database.session() as session:
         if session.bind.dialect.name == 'postgresql':
             await session.execute(text('SELECT pg_advisory_xact_lock(213003)'))
@@ -198,6 +203,8 @@ async def enqueue(kind, league_external_id=36, start_year=2024, match_id=None, r
 async def enqueue_initial_backfill(db=None, enabled=None):
     """Enqueue once on empty PostgreSQL, atomically under the enqueue lock."""
     db = db or database
+    from .storage_admission import enabled as hot_tier
+    if hot_tier():return None
     enabled = settings.auto_backfill_on_empty if enabled is None else enabled
     if not enabled or not db.ready or db.engine.dialect.name != 'postgresql':
         return None
@@ -228,6 +235,8 @@ async def initial_backfill_job(session):
 async def enqueue_catalog_backfills(db=None, enabled=None):
     """One durable historical job per verified, enabled competition; execution is serial."""
     db = db or database
+    from .storage_admission import enabled as hot_tier
+    if hot_tier():return []
     enabled = settings.auto_backfill_on_empty if enabled is None else enabled
     if not enabled or not db.ready or db.engine.dialect.name != 'postgresql':
         return []
@@ -464,6 +473,11 @@ async def discover(job_id, client):
                 counts = dict(discovered=0, added=0, updated=0, unchanged=0, errors=0)
                 seen = set()
                 for data in parse_matches(payload, round_number, errors):
+                    from .storage_admission import enabled as hot_tier
+                    if hot_tier() and (data['kickoff_at'] is None or aware(data['kickoff_at'])<utcnow()-timedelta(hours=24)):
+                        if not await session.scalar(select(Match.id).where(Match.external_match_id==data['external_match_id'])):
+                            counts['not_imported_historical']=counts.get('not_imported_historical',0)+1
+                            continue
                     if data['external_league_id'] != external_id:
                         errors.append(dict(external_match_id=str(data['external_match_id']),
                                            error='League ID does not match request', raw=data['raw']))
@@ -514,6 +528,9 @@ async def run_job(job_id):
     log.info('[WORKER] job started id=%s', job_id)
     async with database.session() as session:
         job = await session.get(ScraperJob, job_id)
+        from .storage_admission import enabled as hot_tier, collector_gate
+        if hot_tier() and job.kind in ('backfill','domestic_history'):return
+        await collector_gate(database)
         if not await league_enabled(session, job):
             return
         if job.kind != 'update' and session.bind.dialect.name == 'postgresql':
@@ -819,11 +836,14 @@ async def work(once=False):
             await wait_for_capacity()
             if not database.ready:
                 await database.initialize()
+            from .storage_admission import collector_gate
+            await collector_gate(database)
             if not initialization_checked:
                 # Validate the three European cup schedules against the source before
                 # they are enabled or any historical backfill is queued.
                 try:
-                    if not settings.auto_backfill_on_empty:
+                    from .storage_admission import enabled as hot_tier
+                    if not settings.auto_backfill_on_empty or hot_tier():
                         raise ValueError('UEFA onboarding is disabled with automatic backfill')
                     from src.scrapers.goaloo.competitions import verify_uefa_competitions, upsert_competitions
                     async with GoalooClient() as uefa_client:

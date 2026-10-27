@@ -8,13 +8,15 @@ const pct=v=>v==null?'Veri yok':number(v*100)+'%';
 const date=v=>v?new Date(v).toLocaleString('tr-TR',{timeZone:'Europe/Istanbul'}):'Zaman bilinmiyor';
 const score=(a,b)=>a==null||b==null?'—':`${a} : ${b}`;
 const status={scheduled:'Başlamadı',live:'Canlı',finished:'Tamamlandı',postponed:'Ertelendi',cancelled:'İptal',abandoned:'Yarıda kaldı'};
+const archiveQuery=new URLSearchParams(location.search);
+const archiveSuffix=archiveQuery.get('history_source')==='archive'?'?history_source=archive&history_generation='+encodeURIComponent(archiveQuery.get('history_generation')||''):'';
 let data,active='overview',generation=0;
 const tabs=[['overview','Genel bakış'],['odds','Oranlar'],['teams','Takımlar & H2H'],['counts','Korner & kart'],['predictions','Kayıtlı tahminler']];
 function card(parent,title){const c=node('article','','card');c.append(node('h2',title));parent.append(c);return c;}
 function note(parent,text){parent.append(node('p',text,'notice'));}
 function metric(parent,label,value){const e=node('div','','metric');e.append(node('span',label),node('strong',value));parent.append(e);}
 function table(parent,head,rows){const wrap=node('div','','table-scroll');wrap.tabIndex=0;wrap.setAttribute('role','region');wrap.setAttribute('aria-label',head.join(', '));const t=node('table'),h=node('tr');head.forEach(x=>h.append(node('th',x)));const thead=node('thead');thead.append(h);t.append(thead);const body=node('tbody');rows.forEach(row=>{const tr=node('tr');row.forEach(value=>{const td=node('td');td.append(value instanceof Node?value:document.createTextNode(String(value)));tr.append(td);});body.append(tr);});t.append(body);wrap.append(t);parent.append(wrap);}
-function link(m){const a=node('a',`${m.home_team} — ${m.away_team}`);a.href=`/match/${m.id}`;a.target='_blank';a.rel='noopener noreferrer';return a;}
+function link(m){const a=node('a',`${m.home_team} — ${m.away_team}`);a.href=`/match/${m.id}`+(m.archive_generation?'?history_source=archive&history_generation='+encodeURIComponent(m.archive_generation):archiveSuffix);a.target='_blank';a.rel='noopener noreferrer';return a;}
 function svgEl(tag,attrs){const e=document.createElementNS('http://www.w3.org/2000/svg',tag);Object.entries(attrs).forEach(([k,v])=>e.setAttribute(k,v));return e;}
 function chart(parent,title,points){
  const valid=points.filter(p=>Number.isFinite(p.value));parent.append(node('h3',title));
@@ -142,7 +144,7 @@ function historyCard(parent,scope,title){
  else table(content,['Tarih','Maç','Skor','İlk yarı','Korner','Sarı kart','Kırmızı kart'],page.items.map(m=>[
  date(m.kickoff_at),link(m),score(m.ft_home,m.ft_away),score(m.ht_home,m.ht_away),stat(m,'corners'),stat(m,'yellow_cards'),stat(m,'red_cards')]));
  const nav=node('div','','pagination');for(const [label,delta,disabled] of [['Önceki',-10,page.offset===0],['Sonraki',10,!page.has_more||page.offset>=1000]]){
- const b=node('button',label);b.disabled=disabled||busy;b.onclick=async()=>{busy=true;draw();try{const response=await fetch('/api/matches/'+id+'/history?scope='+scope+'&offset='+(page.offset+delta),{signal:AbortSignal.timeout(15000)});
+ const b=node('button',label);b.disabled=disabled||busy;b.onclick=async()=>{busy=true;draw();try{const response=await fetch('/api/matches/'+id+'/history?scope='+scope+'&offset='+(page.offset+delta),{signal:AbortSignal.timeout(archiveSuffix?90000:15000)});
  if(!response.ok)throw Error();page=await response.json();}catch(_){note(c,'Geçmiş alınamadı. Yeniden deneyin.');}finally{busy=false;draw();}};nav.append(b);}
  nav.append(node('small','Sayfa '+(page.offset/10+1)+' · '+page.items.length+' kayıt'));content.append(nav);}
  draw();
@@ -190,6 +192,6 @@ function predictions(section){
 const renderers={overview,odds,teams,counts,predictions};
 function show(key){active=key;for(const b of $('tabs').children){const selected=b.dataset.key===key;b.setAttribute('aria-selected',String(selected));b.tabIndex=selected?0:-1;}const section=node('section');section.id='panel-'+key;section.setAttribute('role','tabpanel');section.setAttribute('aria-labelledby','tab-'+key);renderers[key](section);$('analysis').replaceChildren(section);history.replaceState(null,'','#'+key);}
 function render(){const m=data.match;document.title=`${m.home_team} — ${m.away_team} · Kuponanalizii`;$('hero').replaceChildren();$('hero').append(node('p',`${m.league} · ${m.season} · ${m.round_label||m.round+'. hafta'}`,'eyebrow'));const line=node('div','','scoreline');line.append(node('h1',m.home_team),node('strong',score(m.ft_home,m.ft_away),'score'),node('h2',m.away_team));$('hero').append(line,node('p',`${status[m.status]||m.status}${m.live_minute?' · '+m.live_minute+'′':''} · ${date(m.kickoff_at)}`),node('p',`İlk yarı ${score(m.ht_home,m.ht_away)}`,'muted'));$('tabs').replaceChildren();for(const [key,label] of tabs){const b=node('button',label);b.id='tab-'+key;b.dataset.key=key;b.setAttribute('role','tab');b.setAttribute('aria-controls','panel-'+key);b.onclick=()=>show(key);b.onkeydown=e=>{const keys=tabs.map(t=>t[0]),i=keys.indexOf(key),n=e.key==='ArrowRight'?(i+1)%keys.length:e.key==='ArrowLeft'?(i+keys.length-1)%keys.length:e.key==='Home'?0:e.key==='End'?keys.length-1:null;if(n!=null){e.preventDefault();show(keys[n]);$('tab-'+keys[n]).focus();}};$('tabs').append(b);}show(tabs.some(t=>t[0]===location.hash.slice(1))?location.hash.slice(1):active);}
-async function load(){const run=++generation;$('feedback').textContent='Maç kayıtları yükleniyor…';$('retry').hidden=true;try{const r=await fetch(`/api/matches/${id}/dossier`,{signal:AbortSignal.timeout(15000)});if(!r.ok)throw Error(r.status===404?'Maç bulunamadı.':'Veri bağlantısı kurulamadı.');const result=await r.json();if(run!==generation)return;data=result;render();$('feedback').textContent='Kayıtlar yüklendi · '+date(data.as_of);}catch(e){$('feedback').textContent=e.name==='TimeoutError'?'Bağlantı zaman aşımına uğradı.':e.message;$('retry').hidden=false;}}
+async function load(){const run=++generation;$('feedback').textContent='Maç kayıtları yükleniyor…';$('retry').hidden=true;try{const r=await fetch(`/api/matches/${id}/dossier${archiveSuffix}`,{signal:AbortSignal.timeout(archiveSuffix?90000:15000)});if(!r.ok)throw Error(r.status===404?'Maç bulunamadı.':'Veri bağlantısı kurulamadı.');const result=await r.json();if(run!==generation)return;data=result;render();$('feedback').textContent='Kayıtlar yüklendi · '+date(data.as_of);}catch(e){$('feedback').textContent=e.name==='TimeoutError'?'Bağlantı zaman aşımına uğradı.':e.message;$('retry').hidden=false;}}
 $('retry').onclick=load;load();
 })();
