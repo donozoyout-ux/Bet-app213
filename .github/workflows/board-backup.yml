@@ -1,0 +1,47 @@
+name: Lossless encrypted board archive (manual)
+on:
+  workflow_dispatch:
+    inputs:
+      backup_id:
+        description: Stable unique backup ID; reuse exactly to resume
+        required: true
+        type: string
+      command:
+        description: Export or verify/report without source access
+        required: true
+        default: report
+        type: choice
+        options: [report, export, verify]
+permissions:
+  contents: read
+concurrency:
+  group: board-backup-private-repository
+  cancel-in-progress: false
+jobs:
+  archive:
+    if: vars.BOARD_BACKUP_ENABLED == 'true'
+    environment: board-backup
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+      - name: Bounded read-only export or authenticated isolated restore check
+        env:
+          BOARD_BACKUP_ENABLED: 'true'
+          BOARD_BACKUP_DATABASE_URL: ${{ secrets.BOARD_BACKUP_DATABASE_URL }}
+          BOARD_BACKUP_ENCRYPTION_KEY: ${{ secrets.BOARD_BACKUP_ENCRYPTION_KEY }}
+          BOARD_BACKUP_TOKEN: ${{ secrets.BOARD_BACKUP_TOKEN }}
+          BOARD_BACKUP_REPOSITORY: donozoyout-ux/kuponanalizii-data-archive
+          BOARD_BACKUP_BUDGET_BYTES: ${{ vars.BOARD_BACKUP_BUDGET_BYTES }}
+          BACKUP_ID: ${{ inputs.backup_id }}
+          BACKUP_COMMAND: ${{ inputs.command }}
+          DATABASE_URL: ''
+          NVIDIA_API_KEY: ''
+          NVIDIA_AI_ENABLED: 'false'
+          TELEGRAM_BOT_TOKEN: ''
+          TELEGRAM_CHAT_ID: ''
+        run: python -m src.archive.board_backup "$BACKUP_COMMAND" --id "$BACKUP_ID"

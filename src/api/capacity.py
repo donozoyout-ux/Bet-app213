@@ -13,6 +13,9 @@ class DatabaseCapacityMiddleware:
         if scope['type'] != 'http' or not scope['path'].startswith('/api/'):
             return await self.app(scope, receive, send)
         from src.api.routes import database
+        if scope['method'] not in {'GET', 'HEAD', 'OPTIONS'} and getattr(database, 'storage_blocked', False):
+            response = JSONResponse(status_code=503, content={'code':'database_storage_full', 'detail':'Database writes paused pending storage recovery.'})
+            return await response(scope, receive, send)
         if not hasattr(database, 'request_slot'):
             return await self.app(scope, receive, send)
         lane = 'metadata' if scope['method'] == 'GET' and scope['path'] in FAST_READS else 'general'
