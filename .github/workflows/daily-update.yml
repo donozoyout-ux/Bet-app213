@@ -10,6 +10,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   enqueue:
+    if: vars.GOALOO_DAILY_UPDATE_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 3
     env:
