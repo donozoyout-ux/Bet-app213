@@ -53,8 +53,13 @@ ARCHIVE_DATABASE_URL, ARCHIVE_ENCRYPTION_KEY, ARCHIVE_GITHUB_TOKEN.
 No repository Actions variables were present. Secrets do not automatically cross
 repositories: this runner uses MAIN repository secrets only.
 
-- ARCHIVE_ENCRYPTION_KEY: existing URL-safe/base64 32-byte AES key. The runner
-  validates format, never prints it. Do not rotate away a key needed for old data.
+- RECOVERY_ENCRYPTION_KEY (preferred for full recovery only): an independently generated
+  cryptographically random 32-byte AES key encoded in Base64, kept separately by
+  the owner. The full-recovery workflow uses it when present, without replacing
+  any earlier archive keys. If absent, it falls back to ARCHIVE_ENCRYPTION_KEY.
+- ARCHIVE_ENCRYPTION_KEY: existing legacy archive key. Never rotate or overwrite
+  this value merely to fix recovery key format; older archives may depend on it.
+  The runner checks key format without printing the actual key.
 - ARCHIVE_GITHUB_TOKEN: existing token restricted to private archive repo,
   Contents read/write. No admin/delete/Render permission is needed. Runner checks
   private repo identity and API rights at use; metadata presence is not validation.
