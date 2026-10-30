@@ -108,7 +108,17 @@ async def publish_board_read_model(session,board,version,data):
 async def publish_board(session,board,now,candidate_payload=None,model_version=None):
     data=board.payload if candidate_payload is None else candidate_payload
     model=model_version or board.model_version
-    version=digest([board.league_id,model,stable(data)])
+    evidence=analysis_evidence(stable(data))
+    version=digest([board.league_id,model,evidence])
+    # Legacy heads keep their original ID/bytes when only the evaluation clock
+    # moved. Never migrate or rewrite an existing immutable edition.
+    with session.no_autoflush:
+        current_head=await session.get(BoardHead,board.league_id)
+    if current_head and current_head.version!=version and board.model_version==model:
+        with session.no_autoflush:
+            frozen=await session.scalar(select(BoardEdition.payload).where(BoardEdition.version==current_head.version))
+        if frozen is not None and analysis_evidence(stable(frozen))==evidence:
+            version=current_head.version
     from src.analytics.prediction_audit import record_publication
     with session.no_autoflush:
         await record_publication(session,board,version,model,data,now)

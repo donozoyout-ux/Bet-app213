@@ -11,6 +11,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   wake:
+    if: vars.TELEGRAM_COUPON_WAKE_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:

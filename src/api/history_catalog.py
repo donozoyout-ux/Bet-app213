@@ -1,13 +1,17 @@
 """Public coverage and identity resolver; secrets and asset IDs remain server-side."""
 from collections import Counter
 import os
+import asyncio
 from fastapi import APIRouter, HTTPException, Query
 from sqlalchemy import select
 from src.models import Match, League
 from src.db import database
 from src.archive.history_index import configured_index
 from src.archive.history_reader import HistoryUnavailable
-from src.jobs.storage_admission import status
+from src.jobs.storage_admission import status, collector_gate, StorageAdmissionError
+from src.api.read_cache import ReadCache
+
+capacity_cache=ReadCache(ttl=30,limit=1)
 
 router=APIRouter(prefix='/history')
 
@@ -15,6 +19,15 @@ router=APIRouter(prefix='/history')
 @router.get('/coverage')
 async def coverage():
     capacity=status(database.engine)
+    if capacity['enabled'] and database.ready and database.engine.dialect.name=='postgresql':
+        async def observe():
+            try:
+                async with asyncio.timeout(3):await collector_gate(database)
+            except StorageAdmissionError:pass  # Expected blocked state is the report.
+            except Exception:
+                return dict(status(database.engine),observation_unavailable=True)
+            return dict(status(database.engine),observation_unavailable=False)
+        capacity=await capacity_cache.get(database.engine,'capacity',observe)
     if os.getenv('HISTORY_INDEX_ENABLED')!='true':
         return dict(status='disabled',verified_production_archive=False,capacity=capacity,partitions=[])
     try:

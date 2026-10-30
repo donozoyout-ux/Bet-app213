@@ -173,7 +173,22 @@ async def export(source,store,run_id,now,verify):
         source_space_reclaimed=0,eviction_authorized=False,full_database_backup=False)
 
 
+async def preflight(source, now):
+    """Read-only planning: no archive token, release, upload or restore required."""
+    partitions=0
+    async for item in plan(source,now):
+        if item.get('report'):
+            return dict(status='planned_not_archived', partitions=partitions,
+                        coverage=item, restore_verified=False, source_space_reclaimed=0,
+                        eviction_authorized=False)
+        partitions+=1
+    raise ValueError('Incomplete inventory')
+
+
 async def run(args):
+    if getattr(args,'plan_only',False):
+        async with snapshot(os.environ['HISTORY_SOURCE_DATABASE_URL']) as conn:
+            return await preflight(HistorySource(conn,os.environ['HISTORY_SOURCE_NAMESPACE']),datetime.now(timezone.utc))
     if os.getenv('HISTORY_EXPORT_ENABLED')!='true': raise ValueError('Export disabled')
     # No application DATABASE_URL, migrations, worker or provider calls.
     store=HistoryStore(REPOSITORY,os.environ['HISTORY_EXPORT_TOKEN'],os.environ['HISTORY_ARCHIVE_KEY'],
@@ -189,11 +204,13 @@ async def run(args):
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--run-id',required=True)
+    parser.add_argument('--run-id')
+    parser.add_argument('--plan-only',action='store_true',help='Read-only eligibility report; never upload or claim a verified archive')
     args=parser.parse_args()
+    if not args.plan_only and not args.run_id:parser.error('--run-id required for export')
     try:
         report=asyncio.run(run(args));print(canonical(report).decode())
-        if report['status']!='verified':parser.exit(2,'No eligible verified production archive published.\n')
+        if not args.plan_only and report['status']!='verified':parser.exit(2,'No eligible verified production archive published.\n')
     except Exception: parser.exit(1,'History export incomplete; no verified production coverage claimed. Resume unchanged data with the same run ID.\n')
 
 

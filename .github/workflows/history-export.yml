@@ -4,6 +4,10 @@ on:
     - cron: '15 3 * * *'
   workflow_dispatch:
     inputs:
+      plan_only:
+        description: 'Read-only eligibility report; no Release upload'
+        type: boolean
+        default: true
       run_id:
         description: 'Immutable run ID; reuse to resume unchanged source data'
         required: false
@@ -14,7 +18,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   export:
-    if: vars.HISTORY_EXPORT_ENABLED == 'true'
+    if: vars.HISTORY_EXPORT_ENABLED == 'true' || (github.event_name == 'workflow_dispatch' && inputs.plan_only)
     environment: history-archive
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -42,6 +46,7 @@ jobs:
       NVIDIA_AI_ENABLED: 'false'
       TELEGRAM_BOT_TOKEN: ''
       TELEGRAM_CHAT_ID: ''
+      PLAN_ONLY: ${{ github.event_name == 'workflow_dispatch' && inputs.plan_only }}
       REQUESTED_RUN_ID: ${{ inputs.run_id }}
     steps:
       - uses: actions/checkout@v4
@@ -53,6 +58,10 @@ jobs:
       - name: Export, restore and publish verified index
         shell: bash
         run: |
+          if [ "$PLAN_ONLY" = "true" ]; then
+            python -m src.archive.history_export --plan-only
+            exit 0
+          fi
           run_id="${REQUESTED_RUN_ID:-daily-$(date -u +%F)}"
           python -m src.archive.history_export --run-id "$run_id"
       # No plaintext artifact upload, production restore or eviction step.
