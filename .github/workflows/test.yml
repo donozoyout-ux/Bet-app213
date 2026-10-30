@@ -50,6 +50,7 @@ jobs:
           tests/test_history_export.py::test_real_postgres_export_restore_and_read_through
           tests/test_history_resolver.py::test_real_postgres_capacity_guard_rejects_without_deletion
           tests/test_history_resolver.py::test_real_postgres_board_cooldown_preserves_first_edition
+          tests/test_storage_containment.py
       - run: python -m pytest -q -rP
       - name: Dashboard JavaScript syntax and degraded-state execution
         run: |

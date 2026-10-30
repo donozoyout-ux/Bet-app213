@@ -38,6 +38,8 @@ async def refresh_one(db, now=None, force_league=None):
     from src.api.routes import uncached_predictions
     from src.analytics.service import revision
     now=now or utcnow()
+    from src.jobs.storage_admission import collector_gate
+    await collector_gate(db)  # Also protects explicit refresh callers before model work.
     async with asyncio.timeout(90):
         async with db.session() as session:
             if session.bind.dialect.name=='postgresql':
