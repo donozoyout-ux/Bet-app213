@@ -175,11 +175,19 @@ async def backup(source_params,restore_params,store,backup_id,directory):
 
 async def main():
     source=connection_parameters(os.getenv('ARCHIVE_DATABASE_URL') or os.getenv('RENDER_DATABASE_URL',''),source=True)
+    print('RECOVERY_PREFLIGHT: source_identity_accepted',flush=True)
     restore=connection_parameters(os.environ['RECOVERY_VERIFY_URL'],source=False)
-    key=os.environ['ARCHIVE_ENCRYPTION_KEY'];key_bytes(key)
+    print('RECOVERY_PREFLIGHT: isolated_restore_target_accepted',flush=True)
+    key=os.environ['ARCHIVE_ENCRYPTION_KEY']
+    try:
+        key_bytes(key)
+    except ValueError:
+        raise ValueError('archive_encryption_key_invalid') from None
+    print('RECOVERY_PREFLIGHT: encryption_key_format_accepted',flush=True)
     if not re.fullmatch('[a-z0-9][a-z0-9-]{0,63}',os.getenv('RECOVERY_BACKUP_ID','')):raise ValueError('invalid_backup_id')
     if os.getenv('RECOVERY_AUTHORIZED')!='true':raise ValueError('manual_authorization_required')
     store=RecoveryStore(REPO,os.environ['ARCHIVE_GITHUB_TOKEN'],key,budget_bytes=2*MAX_DUMP,keep_days=3650)
+    print('RECOVERY_PREFLIGHT: required_archive_settings_present',flush=True)
     try:
         with tempfile.TemporaryDirectory(prefix='kupon-recovery-') as directory:
             report=await backup(source,restore,store,os.environ['RECOVERY_BACKUP_ID'],directory)
