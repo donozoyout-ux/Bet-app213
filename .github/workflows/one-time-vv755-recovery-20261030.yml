@@ -8,10 +8,10 @@ permissions:
   contents: read
 jobs:
   verify-production-recovery:
-    if: ${{ github.ref == 'refs/heads/codex/full-recovery-backup' && github.event.head_commit.message == 'RUN_ONCE_VV755_RECOVERY_20261030_B7' }}
+    if: ${{ github.ref == 'refs/heads/codex/full-recovery-backup' && github.event.head_commit.message == 'RUN_ONCE_VV755_RECOVERY_20261030_B8' }}
     uses: ./.github/workflows/full-recovery.yml
     with:
-      backup_id: vv755-recovery-20261030-assistant-1
+      backup_id: vv755-recovery-20261030-assistant-2
     secrets:
       ARCHIVE_DATABASE_URL: ${{ secrets.ARCHIVE_DATABASE_URL || secrets.RENDER_DATABASE_URL }}
       ARCHIVE_ENCRYPTION_KEY: ${{ secrets.ARCHIVE_ENCRYPTION_KEY }}
