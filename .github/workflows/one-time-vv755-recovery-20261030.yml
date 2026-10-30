@@ -14,5 +14,5 @@ jobs:
       backup_id: vv755-recovery-20261030-assistant-2
     secrets:
       ARCHIVE_DATABASE_URL: ${{ secrets.ARCHIVE_DATABASE_URL || secrets.RENDER_DATABASE_URL }}
-      ARCHIVE_ENCRYPTION_KEY: ${{ secrets.ARCHIVE_ENCRYPTION_KEY }}
+      ARCHIVE_ENCRYPTION_KEY: ${{ secrets.RECOVERY_ENCRYPTION_KEY || secrets.ARCHIVE_ENCRYPTION_KEY }}
       ARCHIVE_GITHUB_TOKEN: ${{ secrets.ARCHIVE_GITHUB_TOKEN }}
