@@ -178,10 +178,18 @@ async def main():
     print('RECOVERY_PREFLIGHT: source_identity_accepted',flush=True)
     restore=connection_parameters(os.environ['RECOVERY_VERIFY_URL'],source=False)
     print('RECOVERY_PREFLIGHT: isolated_restore_target_accepted',flush=True)
-    key=os.environ['ARCHIVE_ENCRYPTION_KEY']
+    # Trailing paste whitespace is harmless; never print the key or a fingerprint.
+    key=os.environ['ARCHIVE_ENCRYPTION_KEY'].strip()
     try:
         key_bytes(key)
     except ValueError:
+        import base64
+        try:
+            decoded=base64.b64decode(key,altchars=b'-_',validate=True)
+        except Exception:
+            raise ValueError('archive_encryption_key_not_base64') from None
+        if len(decoded)!=32:
+            raise ValueError('archive_encryption_key_not_32_bytes') from None
         raise ValueError('archive_encryption_key_invalid') from None
     print('RECOVERY_PREFLIGHT: encryption_key_format_accepted',flush=True)
     if not re.fullmatch('[a-z0-9][a-z0-9-]{0,63}',os.getenv('RECOVERY_BACKUP_ID','')):raise ValueError('invalid_backup_id')
