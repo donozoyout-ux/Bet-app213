@@ -1,6 +1,15 @@
 name: Daily encrypted owned audit
 on:
   workflow_dispatch:
+    inputs:
+      full_recovery:
+        description: 'Explicitly run complete active-DB recovery backup instead of filtered daily audit'
+        type: boolean
+        default: false
+      backup_id:
+        description: 'Unique lowercase recovery ID; required for full_recovery'
+        type: string
+        required: false
   schedule:
     - cron: '35 3 * * *'
 permissions:
@@ -10,7 +19,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   daily:
-    if: vars.OWNED_AUDIT_ENABLED == 'true'
+    if: vars.OWNED_AUDIT_ENABLED == 'true' && inputs.full_recovery != true
     environment: owned-audit
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -52,3 +61,13 @@ jobs:
       - name: Remove local report
         if: always()
         run: rm -f -- "$RUNNER_TEMP/coverage.json"
+
+  full-recovery:
+    if: github.event_name == 'workflow_dispatch' && inputs.full_recovery == true
+    uses: ./.github/workflows/full-recovery.yml
+    with:
+      backup_id: ${{ inputs.backup_id }}
+    secrets:
+      ARCHIVE_DATABASE_URL: ${{ secrets.ARCHIVE_DATABASE_URL || secrets.RENDER_DATABASE_URL }}
+      ARCHIVE_ENCRYPTION_KEY: ${{ secrets.ARCHIVE_ENCRYPTION_KEY }}
+      ARCHIVE_GITHUB_TOKEN: ${{ secrets.ARCHIVE_GITHUB_TOKEN }}

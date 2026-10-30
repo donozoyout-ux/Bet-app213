@@ -16,7 +16,16 @@ jobs:
         options: >-
           --health-cmd "pg_isready -U betapp -d betapp_test"
           --health-interval 10s --health-timeout 5s --health-retries 5
+      recovery_verify:
+        image: postgres:18
+        env:
+          POSTGRES_PASSWORD: isolated-recovery-only
+        ports: ['5433:5432']
+        options: >-
+          --health-cmd 'pg_isready -U postgres' --health-interval 10s
+          --health-timeout 5s --health-retries 10
     env:
+      TEST_RECOVERY_VERIFY_URL: postgresql://postgres:isolated-recovery-only@127.0.0.1:5433/postgres
       TEST_POSTGRES_URL: postgresql+asyncpg://betapp:test-only@localhost:5432/betapp_test
     steps:
       - uses: actions/checkout@v4
@@ -51,6 +60,7 @@ jobs:
           tests/test_history_resolver.py::test_real_postgres_capacity_guard_rejects_without_deletion
           tests/test_history_resolver.py::test_real_postgres_board_cooldown_preserves_first_edition
           tests/test_storage_containment.py
+          tests/test_full_recovery.py
       - run: python -m pytest -q -rP
       - name: Dashboard JavaScript syntax and degraded-state execution
         run: |
