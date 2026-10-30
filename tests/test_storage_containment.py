@@ -78,7 +78,7 @@ async def test_real_postgres_storage_budgets_and_competing_writer(monkeypatch):
             await c.execute(text(f'SET LOCAL search_path="{schema}",pg_catalog'))
             scoped=await c.execution_options(schema_translate_map={None:schema})
             with pytest.raises(StorageAdmissionError,match='document_budget'):
-                await scoped.execute(insert(BoardEdition).values(version='b'*64,league_id=2,created_at=datetime.now(timezone.utc),payload={'large':'x'*131073}))
+                await scoped.execute(insert(BoardEdition).values(version='b'*64,league_id=2,created_at=datetime.now(timezone.utc),payload={'large':'\u0131'*25000}))
             monkeypatch.setenv('HISTORY_BOARD_DAILY_COUNT','1')
             with pytest.raises(StorageAdmissionError,match='daily_budget'):
                 await scoped.execute(insert(BoardEdition).values(version='c'*64,league_id=3,created_at=datetime.now(timezone.utc),payload={}))

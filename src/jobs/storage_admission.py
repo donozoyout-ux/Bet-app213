@@ -85,7 +85,7 @@ def install(engine):
                 if not isinstance(created,datetime) or abs((datetime.now(timezone.utc)-created.replace(tzinfo=created.tzinfo or timezone.utc)).total_seconds())>60:
                     reason='board_publication_time_invalid'
                 for key,payload in row.items():
-                    if (key=='payload' or key.startswith('payload_m')) and len(json.dumps(payload,ensure_ascii=False).encode())>board_limits()['document_bytes']:
+                    if (key=='payload' or key.startswith('payload_m')) and len(json.dumps(payload).encode())>board_limits()['document_bytes']:
                         reason='board_document_budget'
                 leagues=[v for k,v in row.items() if k=='league_id' or k.startswith('league_id_m')]
                 if len(leagues)!=1:reason='board_bulk_publication_disabled'
@@ -97,7 +97,7 @@ def install(engine):
             # Rolling budget includes all leagues and remains effective after restart.
             count=conn.exec_driver_sql(
                 "SELECT count(*) FROM board_editions WHERE created_at >= now()-interval '24 hours'").scalar_one()
-            incoming=sum(len(json.dumps(r.get('payload',{}),ensure_ascii=False).encode()) for r in context.compiled_parameters)
+            incoming=sum(len(json.dumps(r.get('payload',{})).encode()) for r in context.compiled_parameters)
             if count>=board_limits()['daily_count'] or count*131072+incoming>board_limits()['daily_bytes']:
                 reason='board_daily_budget'
         state.update(blocked=reason is not None,reason=reason)
