@@ -22,7 +22,7 @@ jobs:
           POSTGRES_PASSWORD: isolated-recovery-only
         ports: ['5433:5432']
         options: >-
-          --health-cmd 'pg_isready -U postgres' --health-interval 10s
+          --health-cmd "pg_isready -U postgres" --health-interval 10s
           --health-timeout 5s --health-retries 10
     env:
       TEST_RECOVERY_VERIFY_URL: postgresql://postgres:isolated-recovery-only@127.0.0.1:5433/postgres
