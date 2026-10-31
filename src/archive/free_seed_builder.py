@@ -327,7 +327,9 @@ def main():
             print('HOT_SEED_STAGE: original_encrypted_rescue_verified',flush=True)
             stage='isolated_pg18_source_restore_and_compaction'
             with ephemeral_pg18(5433,args.backup_id) as (container,source):
+                stage='isolated_pg18_original_pg_restore'
                 _restore(container,full)
+                stage='isolated_pg18_original_inventory'
                 with psycopg.connect(**source) as conn:
                     original=inventory(conn)
                 if len(original['tables'])!=MIN_EXPECTED_TABLES:
@@ -340,12 +342,14 @@ def main():
                     os.environ.update(RECOVERY_VERIFY_CONTAINER=container,
                                       RECOVERY_BACKUP_ID=args.backup_id,
                                       OWNER_FULL_RESCUE_VERIFIED='true')
+                    stage='isolated_pg18_board_compaction'
                     compact=apply_only_to_owned_local_verifier(source)
                 finally:
                     for name,value in previous.items():
                         if value is None:os.environ.pop(name,None)
                         else:os.environ[name]=value
                 print('HOT_SEED_STAGE: isolated_board_compaction_verified',flush=True)
+                stage='isolated_pg18_compacted_inventory'
                 with psycopg.connect(**source) as conn:
                     hot=inventory(conn)
                 before={ (t['schema'],t['table']):t for t in original['tables']}
@@ -354,6 +358,7 @@ def main():
                         raise CutoverBlocked('other_table_content_changed')
                 if hot['sequences']!=original['sequences'] or hot['large_objects']!=original['large_objects']:
                     raise CutoverBlocked('other_source_metadata_changed')
+                stage='isolated_pg18_hot_pg_dump'
                 hotdump=path/'hot.dump'
                 _pg_dump(container,hotdump)
             destination=root/'encrypted-assets'
@@ -377,8 +382,13 @@ def main():
               '; old source and original ZIP unchanged',flush=True)
         raise SystemExit(1) from None
     except Exception as exc:
+        # Report only structured SQLSTATE, never SQL text, parameters or credentials.
+        # The exception class alone cannot identify the failing local step.
+        state=getattr(exc,'sqlstate',None)
+        sqlstate=(' sqlstate='+state if isinstance(state,str) and
+                  re.fullmatch(r'[0-9A-Z]{5}',state) else '')
         print('HOT_SEED_INCOMPLETE stage='+stage+' type='+type(exc).__name__+
-              '; old source and original ZIP unchanged',flush=True)
+              sqlstate+'; old source and original ZIP unchanged',flush=True)
         raise SystemExit(1) from None
 
 
