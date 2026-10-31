@@ -1,5 +1,6 @@
 """Manual, complete logical recovery backup; no source writes or retention deletion."""
 import asyncio
+from contextlib import closing
 import hashlib
 import json
 import os
@@ -43,21 +44,62 @@ def connection_parameters(url,*,source):
     except Exception:raise ValueError('approved_source_required' if source else 'isolated_restore_target_required') from None
 
 
-def inventory(conn):
+def row_fingerprint(conn, query):
+    """Hash every row, preserving duplicates; sorting occurs locally, not on source.
+
+    Only 32-byte row hashes enter the temporary SQLite sorter. Server-side cursor
+    batches bound application memory even for large JSON tables. PostgreSQL's
+    row_to_json textual form preserves exact numeric values and original IDs.
+    """
+    import sqlite3
+    with tempfile.TemporaryDirectory(prefix='recovery-hashes-') as folder:
+        with closing(sqlite3.connect(str(Path(folder)/'hashes.sqlite'))) as spool:
+            spool.execute('CREATE TABLE hashes (value BLOB NOT NULL)')
+            count = 0
+            with conn.cursor(name='recovery_rows') as cursor:
+                cursor.itersize = 256
+                cursor.execute(query)
+                while rows := cursor.fetchmany(256):
+                    spool.executemany('INSERT INTO hashes VALUES (?)',
+                        [(hashlib.sha256(row[0].encode('utf-8')).digest(),) for row in rows])
+                    count += len(rows)
+            checksum = hashlib.sha256()
+            for (value,) in spool.execute('SELECT value FROM hashes ORDER BY value'):
+                checksum.update(value)
+    return count, checksum.hexdigest()
+
+
+def inventory(conn, *, fingerprints=True):
     # No table-name allowlist: unknown future application tables are included.
     relations=conn.execute("SELECT n.nspname,c.relname,c.relkind FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname !~ '^pg_' AND n.nspname<>'information_schema' AND c.relkind IN ('r','p','m','f') ORDER BY 1,2").fetchall()
     if any(kind=='f' for _,_,kind in relations):raise ValueError('foreign_tables_require_separate_backup')
     if len(relations)>1000:raise ValueError('table_inventory_budget')
     tables=[]
+    # Stable textual representation across source/verifier settings.
+    conn.execute("SET LOCAL TimeZone='UTC'")
+    conn.execute("SET LOCAL DateStyle='ISO, YMD'")
+    conn.execute("SET LOCAL IntervalStyle='postgres'")
+    conn.execute("SET LOCAL extra_float_digits=3")
+    conn.execute("SET LOCAL bytea_output='hex'")
     for namespace,name,kind in relations:
-        count=conn.execute(sql.SQL('SELECT count(*) FROM {}.{}').format(sql.Identifier(namespace),sql.Identifier(name))).fetchone()[0]
-        tables.append(dict(schema=namespace,table=name,kind=kind,rows=count))
+        table = dict(schema=namespace,table=name,kind=kind)
+        if fingerprints:
+            count, checksum = row_fingerprint(conn, sql.SQL('SELECT row_to_json(t)::text FROM {}.{} t').format(sql.Identifier(namespace),sql.Identifier(name)))
+            table['row_multiset_sha256'] = checksum
+        else:
+            count=conn.execute(sql.SQL('SELECT count(*) FROM {}.{}').format(sql.Identifier(namespace),sql.Identifier(name))).fetchone()[0]
+        table['rows'] = count
+        tables.append(table)
     sequences=[]
     for namespace,name in conn.execute("SELECT schemaname,sequencename FROM pg_sequences WHERE schemaname !~ '^pg_' ORDER BY 1,2"):
         value,called=conn.execute(sql.SQL('SELECT last_value,is_called FROM {}.{}').format(sql.Identifier(namespace),sql.Identifier(name))).fetchone()
         sequences.append(dict(schema=namespace,name=name,value=value,called=called))
     large_objects=conn.execute('SELECT count(*) FROM pg_largeobject_metadata').fetchone()[0]
-    return dict(tables=tables,sequences=sequences,large_objects=large_objects)
+    result = dict(tables=tables,sequences=sequences,large_objects=large_objects)
+    if fingerprints:
+        _, result['large_object_pages_sha256'] = row_fingerprint(conn,
+            sql.SQL('SELECT row_to_json(t)::text FROM (SELECT loid,pageno,data FROM pg_largeobject) t'))
+    return result
 
 
 def client(tool,params,directory,*args,readonly=False):
@@ -69,7 +111,24 @@ def client(tool,params,directory,*args,readonly=False):
         if key in params:env[name]=str(params[key]);passed+=['--env',name]
     env['PGOPTIONS']='-c default_transaction_read_only=on -c statement_timeout=600000 -c lock_timeout=2000' if readonly else '-c statement_timeout=600000 -c lock_timeout=5000'
     passed+=['--env','PGOPTIONS']
-    command=['docker','run','--rm','--network','host',*passed,'-v',str(Path(directory).resolve())+':/backup','postgres:18',tool,*args]
+    owned = os.getenv('RECOVERY_VERIFY_CONTAINER', '')
+    if tool == 'pg_restore' and owned:
+        if not re.fullmatch(r'[0-9a-f]{64}', owned):raise ValueError('isolated_container_required')
+        try:
+            checked = subprocess.run(['docker','inspect','--format',
+                '{{.Config.Image}} {{index .Config.Labels "kupon.recovery.owner-run"}}', owned],
+                capture_output=True, check=True, text=True, timeout=15).stdout.strip()
+            if checked != 'postgres:18 '+os.environ['RECOVERY_BACKUP_ID']:
+                raise ValueError('isolated_container_required')
+            subprocess.run(['docker','cp',str(Path(directory)/'recovered.dump'),owned+':/tmp/recovered.dump'],
+                capture_output=True,check=True,timeout=120)
+        except Exception:raise ValueError('isolated_container_required') from None
+        env.update(PGHOST='127.0.0.1',PGPORT='5432')
+        command=['docker','exec',*passed,owned,tool,
+            *[arg.replace('/backup/recovered.dump','/tmp/recovered.dump') for arg in args]]
+    else:
+        network=[] if os.name=='nt' else ['--network','host']
+        command=['docker','run','--rm',*network,*passed,'-v',str(Path(directory).resolve())+':/backup','postgres:18',tool,*args]
     try:
         subprocess.run(command,env=env,capture_output=True,check=True,timeout=1200)
     except Exception:raise ValueError(tool+'_failed') from None
@@ -86,8 +145,9 @@ def dump_snapshot(params,directory):
         snapshot=conn.execute('SELECT pg_export_snapshot()').fetchone()[0]
         before=inventory(conn)
         client('pg_dump',params,directory,'--format=custom','--compress=0','--no-owner','--no-acl','--snapshot='+snapshot,'--file=/backup/full.dump',readonly=True)
-        after=inventory(conn)
-        if before!=after:raise ValueError('source_sequences_changed_retry_with_writers_paused')
+        after=inventory(conn, fingerprints=False)
+        comparable = dict(tables=[{k:v for k,v in t.items() if k != 'row_multiset_sha256'} for t in before['tables']], sequences=before['sequences'], large_objects=before['large_objects'])
+        if comparable!=after:raise ValueError('source_sequences_changed_retry_with_writers_paused')
         stamp=conn.execute('SELECT transaction_timestamp()::text').fetchone()[0]
         conn.execute('ROLLBACK')
     path=Path(directory)/'full.dump'
@@ -97,6 +157,8 @@ def dump_snapshot(params,directory):
 
 def restore_verify(params,directory,expected):
     with psycopg.connect(**params) as conn:
+        if not 180000 <= int(conn.execute('SHOW server_version_num').fetchone()[0]) < 190000:
+            raise ValueError('postgres18_restore_target_required')
         existing=inventory(conn)
         if existing['tables'] or existing['sequences'] or existing['large_objects']:raise ValueError('restore_target_not_empty')
     client('pg_restore',params,directory,'--exit-on-error','--single-transaction','--no-owner','--no-acl','--dbname=postgres','/backup/recovered.dump')
@@ -111,7 +173,7 @@ def restore_verify(params,directory,expected):
                 row=conn.execute(sql.SQL('SELECT row_to_json(t)::text FROM {} t LIMIT 1').format(sql.Identifier('public',name))).fetchone()
                 if row:json.loads(row[0])
                 checks[name]='readable' if row else 'empty_verified'
-    return dict(inventory=actual,read_through=checks)
+    return dict(inventory=actual,sql_smoke=checks,application_read_through_verified=False)
 
 
 class RecoveryStore(ReleaseArchive):
@@ -168,7 +230,7 @@ async def backup(source_params,restore_params,store,backup_id,directory):
     restored=await asyncio.to_thread(restore_verify,restore_params,directory,remote['inventory'])
     receipt=dict(schema=SCHEMA,backup_id=backup_id,restore_verified=True,manifest=pin,**restored,source_deleted_rows=0,eviction_authorized=False)
     receipt_pin=await store.put('receipt.enc',canonical(receipt))
-    summary=dict(schema=SCHEMA,backup_id=backup_id,restore_verified=True,manifest=pin,receipt=receipt_pin,tables=len(evidence['inventory']['tables']),rows=sum(t['rows'] for t in evidence['inventory']['tables']),chunks=len(chunks),source_deleted_rows=0)
+    summary=dict(schema=SCHEMA,backup_id=backup_id,restore_verified=True,manifest=pin,receipt=receipt_pin,tables=len(evidence['inventory']['tables']),rows=sum(t['rows'] for t in evidence['inventory']['tables']),chunks=len(chunks),source_deleted_rows=0,dump_sha256=remote['dump_sha256'],row_content_verified=True,application_read_through_verified=False)
     await store.request('PATCH',f'/repos/{store.repo}/releases/{store.release["id"]}',json={'draft':False,'body':canonical(summary).decode()})
     return dict(summary,release_id=store.release['id'],release_url=store.release.get('html_url'))
 

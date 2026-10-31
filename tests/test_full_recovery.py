@@ -80,6 +80,12 @@ async def test_real_postgres_full_snapshot_remote_restore_counts(tmp_path):
         with psycopg.connect(**target) as conn:
             after=inventory(conn);restored_schemas={r['schema'] for r in after['tables']}
             assert before==after
+            assert all('row_multiset_sha256' in table for table in after['tables'])
+            conn.execute(sql.SQL("UPDATE {}.unknown_future_table SET payload = '{{\"synthetic\":false}}'").format(sql.Identifier(fixture)))
+            altered=inventory(conn)
+            assert [t['rows'] for t in altered['tables']]==[t['rows'] for t in before['tables']]
+            assert altered!=before  # Counts alone would miss this corruption.
+            conn.rollback()
             assert str(conn.execute(sql.SQL('SELECT exact FROM {}.unknown_future_table').format(sql.Identifier(fixture))).fetchone()[0])=='0.12345678901234567890123456789'
     finally:
         # Only fixture namespace on source; destination is the explicit disposable
