@@ -112,7 +112,7 @@ def inspect_rescue_metadata(zip_path,key):
         expected={'manifest.enc','receipt.enc','summary.json'}
         if len(set(names))!=len(names) or not expected<=set(names):
             raise CutoverBlocked('archive_duplicate_or_missing_files')
-        if any(n not in expected and not re.fullmatch(r'chunk-[0-9]{6}\\.enc',n) for n in names):
+        if any(n not in expected and not re.fullmatch(r'chunk-[0-9]{6}\.enc',n) for n in names):
             raise CutoverBlocked('archive_unexpected_member')
         if archive.getinfo('manifest.enc').file_size>128*1024 or archive.getinfo('receipt.enc').file_size>128*1024:
             raise CutoverBlocked('archive_metadata_budget')
@@ -280,14 +280,17 @@ def main():
     p=argparse.ArgumentParser(description='Offline owner hot seed: not a production importer')
     p.add_argument('--zip',required=True)
     p.add_argument('--key-file',required=True)
-    p.add_argument('--backup-id',required=True)
-    p.add_argument('--output-root',required=True)
+    p.add_argument('--backup-id')
+    p.add_argument('--output-root')
     p.add_argument('--inspect-only',action='store_true',help='Validate original encrypted rescue, never create a database or output directory')
     args=p.parse_args()
-    if not re.fullmatch('[a-z0-9][a-z0-9-]{0,63}',args.backup_id):
-        p.error('Invalid unique local owner run ID')
-    if args.backup_id==ORIGINAL_ID:
-        p.error('Hot seed ID must differ from original rescue')
+    if not args.inspect_only:
+        if not args.backup_id or not re.fullmatch('[a-z0-9][a-z0-9-]{0,63}',args.backup_id):
+            p.error('Invalid unique local owner run ID')
+        if args.backup_id==ORIGINAL_ID:
+            p.error('Hot seed ID must differ from original rescue')
+        if not args.output_root:
+            p.error('A new output directory is required for seed generation')
     stage='key_file_validation'
     try:
         key=Path(args.key_file).read_text(encoding='utf-8-sig').strip()
