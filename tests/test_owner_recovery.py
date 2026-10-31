@@ -73,6 +73,19 @@ def test_readonly_source_probe_checks_tls_auth_and_never_writes(monkeypatch):
     assert calls == ["SELECT current_database(), current_setting('transaction_read_only')"]
 
 
+def test_windows_launcher_prepares_pg18_and_never_prunes_existing_containers():
+    launcher = Path('scripts/owner-full-recovery.ps1').read_text(encoding='utf-8-sig')
+    assert "$stage = 'isolated_postgres_image'" in launcher
+    assert "'pull','postgres:18'" in launcher
+    assert "$stage = 'isolated_postgres_port'" in launcher
+    assert "Get-NetTCPConnection -LocalPort 5433 -State Listen" in launcher
+    assert "$stage = 'isolated_postgres_container_start'" in launcher
+    assert "Invoke-QuietNative docker @('run','-d','--rm'" in launcher
+    assert "'--env','POSTGRES_PASSWORD','postgres:18'" in launcher
+    assert 'docker system prune' not in launcher
+    assert 'docker rm -f -v $ownedContainer' in launcher
+
+
 def test_windows_launcher_reports_fixed_stage_not_exception_or_url():
     launcher = Path('scripts/owner-full-recovery.ps1').read_text(encoding='utf-8-sig')
     assert "$stage = 'source_identity_validation'" in launcher
