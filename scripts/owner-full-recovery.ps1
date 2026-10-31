@@ -155,14 +155,68 @@ try {
     $rng = [Security.Cryptography.RandomNumberGenerator]::Create()
     try { $rng.GetBytes($passwordBytes) } finally { $rng.Dispose() }
     $verifyPassword = [Convert]::ToBase64String($passwordBytes).Replace('+','-').Replace('/','_')
+    # On Windows PowerShell 5.1 native stderr can become terminating
+    # ErrorRecords even when redirected. Use the existing safe native helper.
+    # Pull PG18 explicitly first, before attempting an isolated verifier.
+    $stage = 'isolated_postgres_image'
+    $imageCheck = Invoke-QuietNative docker @('image','inspect','postgres:18','--format','{{.Id}}')
+    if ($imageCheck.Code -ne 0) {
+        $pull = Invoke-QuietNative docker @('pull','postgres:18')
+        if ($pull.Code -ne 0) { throw 'Cannot fetch postgres:18 image. No containers were removed.' }
+    }
+    # Avoid a known port conflict rather than deleting or stopping other containers.
+    $stage = 'isolated_postgres_port'
+    $listening = @(Get-NetTCPConnection -LocalPort 5433 -State Listen -ErrorAction SilentlyContinue)
+    if ($listening.Count -gt 0) { throw 'Local verifier port 5433 is occupied. No existing process was changed.' }
     $previousPassword = $env:POSTGRES_PASSWORD
     $env:POSTGRES_PASSWORD = $verifyPassword
     try {
         $stage = 'isolated_postgres_container_start'
-        $containerOutput = & docker run -d --rm --label "kupon.recovery.owner-run=$BackupId" `
-            -p '127.0.0.1:5433:5432' --env POSTGRES_PASSWORD postgres:18 2>$null
-        if ($LASTEXITCODE -ne 0 -or $containerOutput -notmatch '^[0-9a-f]{64}$') { throw 'Cannot create isolated verifier. No existing container will be removed.' }
-        $ownedContainer = $containerOutput.Trim()
+        $started = Invoke-QuietNative docker @('run','-d','--rm',
+            '--label',"kupon.recovery.owner-run=$BackupId",
+            '-p','127.0.0.1:5433:5432','--env','POSTGRES_PASSWORD','postgres:18')
+        $containerOutput = @($started.Output | Where-Object { $_ -match '^[0-9a-f]{64}
+    $stage = 'isolated_postgres_container_ready'
+    $ready = $false
+    for ($attempt=0; $attempt -lt 30; $attempt++) {
+        $null = & docker exec $ownedContainer pg_isready -U postgres 2>$null
+        if ($LASTEXITCODE -eq 0) { $ready=$true; break }
+        Start-Sleep -Seconds 2
+    }
+    if (-not $ready) { throw 'Isolated verifier did not become ready.' }
+    $env:RECOVERY_VERIFY_CONTAINER = $ownedContainer
+    $env:RECOVERY_VERIFY_URL = 'postgresql://postgres:' + $verifyPassword + '@127.0.0.1:5433/postgres'
+    $stage = 'readonly_export_local_restore'
+    Push-Location $repoRoot
+    try {
+        & python -m src.archive.full_recovery | Tee-Object -FilePath (Join-Path $runRoot 'verification.log')
+        if ($LASTEXITCODE -ne 0) { throw 'Recovery incomplete. Keep any draft archive; do not clean the source.' }
+    } finally { Pop-Location }
+} catch {
+    # Never print arbitrary native exception text, which may contain credentials.
+    # $stage is selected exclusively from constant strings above. Never echo exception
+    # text: PowerShell native command errors can contain tokens, DSNs, and paths.
+    Write-Output ('OWNER_RECOVERY_INCOMPLETE stage={0}; source unchanged; no cleanup authorized.' -f $stage)
+    exit 1
+} finally {
+    if ($ownedContainer -and $ownedContainer -match '^[0-9a-f]{64}$') {
+        $labelJson = & docker inspect --format '{{json .Config.Labels}}' $ownedContainer 2>$null
+        $inspected = $LASTEXITCODE -eq 0
+        $labels = if ($inspected) { $labelJson | ConvertFrom-Json } else { $null }
+        if ($inspected -and $labels.'kupon.recovery.owner-run' -eq $BackupId) {
+            $null = & docker rm -f -v $ownedContainer 2>$null
+        }
+    }
+    foreach ($entry in $savedEnvironment.GetEnumerator()) { [Environment]::SetEnvironmentVariable($entry.Key, $entry.Value, 'Process') }
+    $token=$null; $key=$null; $verifyPassword=$null; $secureSource=$null; $result=$null
+    Set-Location $originalLocation
+}
+ }) |
+            Select-Object -Last 1
+        if ($started.Code -ne 0 -or -not $containerOutput) {
+            throw 'Cannot create isolated verifier. No existing container will be removed.'
+        }
+        $ownedContainer = [string]$containerOutput
     } finally { $env:POSTGRES_PASSWORD = $previousPassword }
     $stage = 'isolated_postgres_container_ready'
     $ready = $false
