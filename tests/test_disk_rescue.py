@@ -101,8 +101,6 @@ async def test_real_pg_dump_first_rescue_restores_disposable_pg18(tmp_path, monk
         summary=await disk_rescue.rescue(source,target,store,"real-pg-ci-fixture",tmp_path)
         package=store.package()
         assert summary["restore_verified"] and not summary["row_content_verified"]
-        assert schema in [t[0] for t in json.loads(
-            (tmp_path/"encrypted"/"summary.json").read_text())["manifest"].get("empty_catalog",[])] if False else True
         assert Path(package["path"]).is_file()
         with psycopg.connect(**target) as conn:
             row=conn.execute(sql.SQL("SELECT id,payload FROM {}.data").format(sql.Identifier(schema))).fetchone()
