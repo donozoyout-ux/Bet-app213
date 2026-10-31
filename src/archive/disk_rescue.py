@@ -34,7 +34,7 @@ def dump_without_source_data_scan(source, directory):
             raise ValueError('unsupported_postgres_version')
         snapshot = conn.execute('SELECT pg_export_snapshot()').fetchone()[0]
         print('RESCUE_STAGE: pg_dump_readonly_started', flush=True)
-        client('pg_dump', source, directory, '--format=custom', '--compress=0',
+        client('pg_dump', source, directory, '--format=custom', '--compress=6',
                '--no-owner', '--no-acl', '--snapshot='+snapshot,
                '--file=/backup/full.dump', readonly=True)
         print('RESCUE_STAGE: pg_dump_readonly_complete', flush=True)
