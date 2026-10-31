@@ -15,6 +15,19 @@ log = logging.getLogger(__name__)
 BACKGROUND_RETRY_SECONDS = 10
 
 
+def storage_exhausted(error):
+    """SQLSTATE survives both asyncpg and psycopg/SQLAlchemy wrapping."""
+    pending, seen = [error], set()
+    while pending:
+        value = pending.pop()
+        if value is None or id(value) in seen: continue
+        seen.add(id(value))
+        if getattr(value, 'sqlstate', None) == '53100' or getattr(value, 'pgcode', None) == '53100':
+            return True
+        pending.extend(getattr(value, key, None) for key in ('orig', '__cause__', '__context__'))
+    return False
+
+
 async def supervise_database():
     """Recover background failures without tying HTTP availability to PostgreSQL."""
     from src.jobs.worker import work, enqueue_initial_backfill
@@ -35,8 +48,14 @@ async def supervise_database():
                     await conn.execute(text('SELECT 1'))
         except asyncio.CancelledError:
             raise
-        except Exception:
+        except Exception as exc:
             database.ready = False
+            if storage_exhausted(exc):
+                database.storage_blocked = True
+                log.error('[BACKGROUND] database storage exhausted (53100); automatic initialization and workers paused until reviewed recovery/restart')
+                # A retry cannot create disk space. Stay cancellable, with no SQL,
+                # migrations, enqueue, provider calls, or rapid restart loop.
+                await asyncio.Event().wait()
             log.exception('[BACKGROUND] task failed; retrying while HTTP remains available')
         await asyncio.sleep(BACKGROUND_RETRY_SECONDS)
 
@@ -72,12 +91,36 @@ async def lifespan(app: FastAPI):
         except asyncio.CancelledError:
             pass
     await database.close()
+    from src.archive.history_reader import close_reader
+    await close_reader()
+    from src.archive.history_index import close_index
+    await close_index()
 
 app = FastAPI(title='Kuponanalizii', version='2.0.0', lifespan=lifespan)
 from src.api.capacity import DatabaseCapacityMiddleware
 app.add_middleware(DatabaseCapacityMiddleware)
 # Gunicorn's module-only target resolves `application`; Uvicorn continues using :app.
 application = app
+
+from src.jobs.storage_admission import StorageAdmissionError
+
+@app.exception_handler(StorageAdmissionError)
+async def storage_admission_error(request, exc):
+    return JSONResponse(status_code=503,content={'code':'storage_admission_paused',
+        'detail':'Collection/publication paused; existing records are preserved.'})
+
+from src.archive.history_reader import HistoryUnavailable
+
+@app.exception_handler(HistoryUnavailable)
+async def history_unavailable(request,exc):
+    return JSONResponse(status_code=503,content={'code':'history_unavailable','detail':'Verified history is unavailable or exceeds query scope; no partial history returned.'})
+
+from src.api.history_catalog import router as history_catalog_router
+app.include_router(history_catalog_router,prefix='/api')
+
+@app.get('/dashboard-history.js',include_in_schema=False)
+async def history_script():
+    return FileResponse(Path(__file__).resolve().with_name('dashboard-history.js'),media_type='application/javascript')
 
 
 @app.exception_handler(TimeoutError)
@@ -94,6 +137,28 @@ async def database_error(request, exc):
 @app.get('/health')
 async def health():
     return {'status': 'ok', 'service': 'BetApp213'}
+
+
+@app.get('/ready')
+async def readiness():
+    """Explicit DB/schema readiness; /health remains process liveness."""
+    if getattr(database, 'storage_blocked', False):
+        return JSONResponse(status_code=503, content={'status':'not_ready', 'reason':'database_storage_full'})
+    if not database.ready:
+        return JSONResponse(status_code=503, content={'status':'not_ready', 'reason':'database_not_initialized'})
+    try:
+        from sqlalchemy import text
+        async with asyncio.timeout(2):
+            async with database.engine.connect() as conn:
+                if conn.dialect.name == 'postgresql':
+                    present = await conn.scalar(text("SELECT to_regclass('public.prediction_publications') IS NOT NULL"))
+                else:
+                    present = await conn.scalar(text("SELECT count(*) FROM sqlite_master WHERE type='table' AND name='prediction_publications'"))
+        if not present:
+            return JSONResponse(status_code=503, content={'status':'not_ready', 'reason':'publication_schema_missing'})
+    except Exception:
+        return JSONResponse(status_code=503, content={'status':'not_ready', 'reason':'database_unavailable'})
+    return {'status':'ready', 'publication_schema_verified':True}
 
 @app.get('/', include_in_schema=False)
 async def dashboard():

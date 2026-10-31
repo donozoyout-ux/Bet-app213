@@ -62,6 +62,9 @@ async def historical_rows(session, league_id, cutoff, exclude_id):
     buffer at EVERY read. Time advancing across the buffer needs no DB transfer.
     Truncated envelopes fall back rather than silently dropping eligible rows.
     """
+    from src.archive.history_resolver import enabled as archive_enabled, engine_rows
+    if archive_enabled() and not session.info.get('history_archive'):
+        return await engine_rows(session,league_id,cutoff,exclude_id)
     if not enabled() or cutoff < HISTORY_START:
         return None
     if session.new or session.dirty or session.deleted or session.info.get('model_changed'):

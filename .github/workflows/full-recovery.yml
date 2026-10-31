@@ -1,0 +1,56 @@
+name: Full PostgreSQL recovery verification
+on:
+  workflow_call:
+    inputs:
+      backup_id:
+        type: string
+        required: true
+    secrets:
+      ARCHIVE_DATABASE_URL:
+        required: true
+      ARCHIVE_ENCRYPTION_KEY:
+        required: true
+      ARCHIVE_GITHUB_TOKEN:
+        required: true
+permissions:
+  contents: read
+concurrency:
+  group: board-backup-private-repository
+  cancel-in-progress: false
+jobs:
+  recovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    services:
+      verify:
+        image: postgres:18
+        env:
+          POSTGRES_PASSWORD: isolated-recovery-only
+        ports: ['5433:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 10s
+          --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+      - name: Full snapshot, encrypted private upload, remote download and isolated restore
+        env:
+          ARCHIVE_DATABASE_URL: ${{ secrets.ARCHIVE_DATABASE_URL }}
+          ARCHIVE_ENCRYPTION_KEY: ${{ secrets.ARCHIVE_ENCRYPTION_KEY }}
+          ARCHIVE_GITHUB_TOKEN: ${{ secrets.ARCHIVE_GITHUB_TOKEN }}
+          RECOVERY_VERIFY_URL: postgresql://postgres:isolated-recovery-only@127.0.0.1:5433/postgres
+          RECOVERY_AUTHORIZED: 'true'
+          RECOVERY_BACKUP_ID: ${{ inputs.backup_id }}
+          SCRAPER_WORKER_ENABLED: 'false'
+          AUTO_BACKFILL_ON_EMPTY: 'false'
+          DATABASE_URL: ''
+          TELEGRAM_BOT_TOKEN: ''
+          TELEGRAM_CHAT_ID: ''
+          NVIDIA_API_KEY: ''
+          NVIDIA_AI_ENABLED: 'false'
+        run: python -m src.archive.full_recovery
+      # No plaintext artifacts; TemporaryDirectory removes our transient files.
+      # No production restore, delete, cleanup SQL, deployment or service creation.

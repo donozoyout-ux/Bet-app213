@@ -16,7 +16,16 @@ jobs:
         options: >-
           --health-cmd "pg_isready -U betapp -d betapp_test"
           --health-interval 10s --health-timeout 5s --health-retries 5
+      recovery_verify:
+        image: postgres:18
+        env:
+          POSTGRES_PASSWORD: isolated-recovery-only
+        ports: ['5433:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 10s
+          --health-timeout 5s --health-retries 10
     env:
+      TEST_RECOVERY_VERIFY_URL: postgresql://postgres:isolated-recovery-only@127.0.0.1:5433/postgres
       TEST_POSTGRES_URL: postgresql+asyncpg://betapp:test-only@localhost:5432/betapp_test
     steps:
       - uses: actions/checkout@v4
@@ -29,6 +38,20 @@ jobs:
           node-version: "22"
       - run: pip install -r requirements-dev.txt
       - run: python -m playwright install --with-deps chromium
+      - name: Parse owner recovery PowerShell script (cross-platform)
+        shell: pwsh
+        run: |
+          $tokens = $null
+          $errors = $null
+          [void][System.Management.Automation.Language.Parser]::ParseFile(
+            (Join-Path $PWD 'scripts/owner-full-recovery.ps1'),
+            [ref]$tokens, [ref]$errors)
+          if ($errors.Count -gt 0) {
+            foreach ($parseError in $errors) {
+              Write-Error ("PowerShell parse issue at line {0}: {1}" -f $parseError.Extent.StartLineNumber, $parseError.Message)
+            }
+            exit 1
+          }
       - run: python -m compileall src legacy
       - run: python -c "import pathlib; paths=list(pathlib.Path('.').rglob('*.py')); assert not [str(p) for p in paths if b'\x00' in p.read_bytes()]"
       - name: Verify reviewed rollout and PostgreSQL admission first
@@ -44,10 +67,23 @@ jobs:
           tests/test_market_terminal.py::test_postgres_scope_migration_and_concurrent_immutable_capture
           tests/test_statistics_pipeline.py::test_rollout_does_not_mistake_odds_jobs_for_stats_and_retries_failed_only
           tests/test_statistics_pipeline.py::test_worker_uses_rollout_order_and_does_not_auto_run_disabled_jobs
+      - name: Verify real PostgreSQL history restore and capacity admission
+        run: >-
+          python -m pytest -q
+          tests/test_history_export.py::test_real_postgres_export_restore_and_read_through
+          tests/test_history_resolver.py::test_real_postgres_capacity_guard_rejects_without_deletion
+          tests/test_history_resolver.py::test_real_postgres_board_cooldown_preserves_first_edition
+          tests/test_storage_containment.py
+          tests/test_full_recovery.py
+          tests/test_owner_recovery.py
+          tests/test_disk_rescue.py
+          tests/test_free_hot_cutover.py
+          tests/test_free_seed_builder.py
       - run: python -m pytest -q -rP
       - name: Dashboard JavaScript syntax and degraded-state execution
         run: |
           node --check src/api/dashboard-audit.js
+          node --check src/api/dashboard-history.js
           node --check src/api/match-page.js
           node --check src/api/dashboard-revision.js
           node --check src/api/dashboard-analysis.js
@@ -66,3 +102,22 @@ jobs:
           node --check src/api/dashboard-results.js
           node --check src/api/dashboard-fixtures.js
           node tests/home_runtime.cjs
+
+  owner-windows-powershell-parser:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require Windows PowerShell 5.1 parser acceptance
+        shell: powershell
+        run: |
+          $errors = $null
+          $tokens = $null
+          [void][System.Management.Automation.Language.Parser]::ParseFile(
+            (Join-Path $PWD 'scripts/owner-full-recovery.ps1'),
+            [ref]$tokens, [ref]$errors)
+          if ($errors.Count -gt 0) {
+            $errors | ForEach-Object {
+              Write-Host ("Parse error at line {0}: {1}" -f $_.Extent.StartLineNumber, $_.Message)
+            }
+            throw 'Windows PowerShell 5.1 owner launcher syntax invalid'
+          }

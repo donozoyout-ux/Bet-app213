@@ -105,6 +105,9 @@ class Database:
                     # Never log SQL parameter values or connection credentials.
                     log.warning('[DB] slow query operation=%s duration_ms=%.1f', statement.split()[0], elapsed * 1000)
         self.sessions = async_sessionmaker(self.engine, expire_on_commit=False) if self.engine else None
+        if self.engine:
+            from src.jobs.storage_admission import install
+            install(self.engine.sync_engine)
         self.ready = False
 
     @property
