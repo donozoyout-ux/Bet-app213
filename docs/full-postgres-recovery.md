@@ -53,13 +53,15 @@ ARCHIVE_DATABASE_URL, ARCHIVE_ENCRYPTION_KEY, ARCHIVE_GITHUB_TOKEN.
 No repository Actions variables were present. Secrets do not automatically cross
 repositories: this runner uses MAIN repository secrets only.
 
-- RECOVERY_ENCRYPTION_KEY (preferred for full recovery only): an independently generated
-  cryptographically random 32-byte AES key encoded in Base64, kept separately by
-  the owner. The full-recovery workflow uses it when present, without replacing
-  any earlier archive keys. If absent, it falls back to ARCHIVE_ENCRYPTION_KEY.
-- ARCHIVE_ENCRYPTION_KEY: existing legacy archive key. Never rotate or overwrite
-  this value merely to fix recovery key format; older archives may depend on it.
-  The runner checks key format without printing the actual key.
+- RECOVERY_ENCRYPTION_KEY (REQUIRED for full recovery): a dedicated
+  cryptographically random 32-byte AES key encoded in Base64, kept separately
+  by the owner. A correct Base64 value typically occupies 44 characters.
+  Decode and confirm **exactly 32 bytes locally** before saving as a MAIN
+  Bet-app213 Actions repository secret. The full-recovery job refuses missing
+  or invalid values instead of silently falling back to legacy keys.
+- ARCHIVE_ENCRYPTION_KEY: existing legacy archive key for the older daily audit.
+  Never rotate or overwrite this value to fix full recovery; older archives may
+  depend on it. Neither key value is printed by the runner.
 - ARCHIVE_GITHUB_TOKEN: existing token restricted to private archive repo,
   Contents read/write. No admin/delete/Render permission is needed. Runner checks
   private repo identity and API rights at use; metadata presence is not validation.
