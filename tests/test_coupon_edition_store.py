@@ -171,12 +171,15 @@ async def test_postgres_two_transactions_cas_race_one_revision(store, monkeypatc
     expected = None if initial else first.as_dict()['content_digest']
     original_read = store._read
     arrived = 0
+    synchronized_tasks = set()
     barrier = asyncio.Event()
     candidate_ids = {x.as_dict()['edition_id'] for x in (left, right)}
     async def simultaneous_read(conn, edition_id):
         nonlocal arrived
         result = await original_read(conn, edition_id)
-        if edition_id in candidate_ids and result is None:
+        task = asyncio.current_task()
+        if edition_id in candidate_ids and result is None and task not in synchronized_tasks:
+            synchronized_tasks.add(task)
             arrived += 1
             if arrived == 2:
                 barrier.set()

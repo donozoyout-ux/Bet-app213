@@ -115,6 +115,14 @@ budgets; 2x is not a measured upper bound. Actual physical measurements from
 representative workload. Index EXPLAIN disables seqscan only to prove access-path
 availability; it is not a production latency benchmark.
 
+Initial isolated PostgreSQL 16 measurement (four first editions, four heads):
+ledger total relation size including indexes/TOAST **81,920 B (80 KiB)**;
+head total **32,768 B (32 KiB)**. Reported row sizes were banko 1,110 B,
+balanced 1,048 B, combined_6_7 957 B and combined_8_10 954 B; PostgreSQL
+compression explains why some exceed/undershoot canonical text sizes. These
+small-table page allocations and compression ratios must not be extrapolated
+as a guaranteed per-row production cost. The head plan used coupon_head_pkey.
+
 Eight/day is a sensitivity scenario matching 3-hour checks, **not a policy cap**.
 Arbitrary explicit revisions mean unbounded lifetime growth. Any production
 review must approve a rate budget, head retention, disk high-water stop, per-period
