@@ -179,18 +179,29 @@ async def main():
     restore=connection_parameters(os.environ['RECOVERY_VERIFY_URL'],source=False)
     print('RECOVERY_PREFLIGHT: isolated_restore_target_accepted',flush=True)
     # Trailing paste whitespace is harmless; never print the key or a fingerprint.
-    key=os.environ['ARCHIVE_ENCRYPTION_KEY'].strip()
+    # Do not log the key, its length, hash or representation. Report only which
+    # non-secret preflight gate failed, including unusual parsing failures.
+    print('RECOVERY_PREFLIGHT: encryption_key_check_started',flush=True)
     try:
-        key_bytes(key)
-    except ValueError:
-        import base64
+        key=os.environ['ARCHIVE_ENCRYPTION_KEY'].strip()
+        if not key:raise ValueError('archive_encryption_key_missing')
         try:
-            decoded=base64.b64decode(key,altchars=b'-_',validate=True)
-        except Exception:
-            raise ValueError('archive_encryption_key_not_base64') from None
-        if len(decoded)!=32:
-            raise ValueError('archive_encryption_key_not_32_bytes') from None
-        raise ValueError('archive_encryption_key_invalid') from None
+            key_bytes(key)
+        except ValueError:
+            import base64
+            try:
+                decoded=base64.b64decode(key,altchars=b'-_',validate=True)
+            except Exception:
+                raise ValueError('archive_encryption_key_not_base64') from None
+            if len(decoded)!=32:
+                raise ValueError('archive_encryption_key_not_32_bytes') from None
+            raise ValueError('archive_encryption_key_invalid') from None
+    except KeyError:
+        raise ValueError('archive_encryption_key_missing') from None
+    except ValueError:
+        raise
+    except Exception:
+        raise ValueError('archive_encryption_key_check_failed') from None
     print('RECOVERY_PREFLIGHT: encryption_key_format_accepted',flush=True)
     if not re.fullmatch('[a-z0-9][a-z0-9-]{0,63}',os.getenv('RECOVERY_BACKUP_ID','')):raise ValueError('invalid_backup_id')
     if os.getenv('RECOVERY_AUTHORIZED')!='true':raise ValueError('manual_authorization_required')
