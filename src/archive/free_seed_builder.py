@@ -100,6 +100,56 @@ def load_offline_rescue(zip_path, key, output_path):
     return manifest
 
 
+def inspect_rescue_metadata(zip_path,key):
+    """No writes, no Docker, no plaintext dump; validates fixed ZIP envelope."""
+    path=Path(zip_path)
+    if not path.is_file() or not 0<path.stat().st_size<MAX_PACKAGE_BYTES:
+        raise CutoverBlocked('offline_rescue_missing_or_size')
+    if sha_file(path)!=ORIGINAL_ZIP_SHA256:
+        raise CutoverBlocked('offline_rescue_sha256_mismatch')
+    with ZipFile(path) as archive:
+        names=archive.namelist()
+        expected={'manifest.enc','receipt.enc','summary.json'}
+        if len(set(names))!=len(names) or not expected<=set(names):
+            raise CutoverBlocked('archive_duplicate_or_missing_files')
+        if any(n not in expected and not re.fullmatch(r'chunk-[0-9]{6}\\.enc',n) for n in names):
+            raise CutoverBlocked('archive_unexpected_member')
+        if archive.getinfo('manifest.enc').file_size>128*1024 or archive.getinfo('receipt.enc').file_size>128*1024:
+            raise CutoverBlocked('archive_metadata_budget')
+        manifest=json.loads(unseal(archive.read('manifest.enc'),key,ORIGINAL_ID,'manifest.enc'))
+        receipt=json.loads(unseal(archive.read('receipt.enc'),key,ORIGINAL_ID,'receipt.enc'))
+        summary=json.loads(archive.read('summary.json'))
+        if (manifest.get('schema')!=SCHEMA or manifest.get('backup_id')!=ORIGINAL_ID
+                or manifest.get('dump_sha256')!=ORIGINAL_DUMP_SHA256
+                or manifest.get('format')!='pg_dump_custom'
+                or manifest.get('rescue_only') is not True
+                or manifest.get('source_row_content_verified') is not False):
+            raise CutoverBlocked('rescue_manifest_validation')
+        for proof in (receipt,summary):
+            if (proof.get('backup_id')!=ORIGINAL_ID or proof.get('restore_verified') is not True
+                    or proof.get('row_content_verified') is not False
+                    or proof.get('source_row_content_verified') is not False
+                    or proof.get('eviction_authorized') is not False
+                    or proof.get('source_deleted_rows')!=0):
+                raise CutoverBlocked('rescue_receipt_validation')
+        chunks=manifest.get('chunks')
+        if (not isinstance(chunks,list) or not 0<len(chunks)<=MAX_DUMP//CHUNK+1
+                or len(names)!=len(chunks)+3):
+            raise CutoverBlocked('rescue_chunk_count')
+        if [c.get('name') for c in chunks]!=[f'chunk-{i:06d}.enc' for i in range(len(chunks))]:
+            raise CutoverBlocked('rescue_chunk_order')
+        for part in chunks:
+            if archive.getinfo(part['name']).file_size!=part['bytes']:
+                raise CutoverBlocked('rescue_chunk_size')
+        return {'encrypted_zip_sha256_verified':True,
+                'manifest_and_receipt_authenticated':True,
+                'original_restore_verified':True,
+                'full_source_row_parity_verified':False,
+                'chunk_count':len(chunks),
+                'output_directory_created':False,
+                'database_contacted':False}
+
+
 def _docker(args, *, env=None, timeout=180):
     try:
         return subprocess.run(['docker',*args],env=env,check=True,capture_output=True,
@@ -232,14 +282,22 @@ def main():
     p.add_argument('--key-file',required=True)
     p.add_argument('--backup-id',required=True)
     p.add_argument('--output-root',required=True)
+    p.add_argument('--inspect-only',action='store_true',help='Validate original encrypted rescue, never create a database or output directory')
     args=p.parse_args()
     if not re.fullmatch('[a-z0-9][a-z0-9-]{0,63}',args.backup_id):
         p.error('Invalid unique local owner run ID')
     if args.backup_id==ORIGINAL_ID:
         p.error('Hot seed ID must differ from original rescue')
+    stage='key_file_validation'
     try:
-        key=Path(args.key_file).read_text().strip()
+        key=Path(args.key_file).read_text(encoding='utf-8-sig').strip()
         key_bytes(key)
+        if args.inspect_only:
+            stage='readonly_original_zip_metadata'
+            info=inspect_rescue_metadata(args.zip,key)
+            print('HOT_SEED_PREFLIGHT_OK '+json.dumps(info,sort_keys=True),flush=True)
+            return
+        stage='new_output_directory'
         root=Path(args.output_root).resolve()
         if root.exists() or not root.parent.is_dir():
             raise CutoverBlocked('private_new_output_root_required')
@@ -249,8 +307,10 @@ def main():
         with tempfile.TemporaryDirectory(prefix='private-dump-',dir=root) as private:
             path=Path(private)
             full=path/'original.dump'
+            stage='original_rescue_zip_decryption'
             manifest=load_offline_rescue(args.zip,key,full)
             print('HOT_SEED_STAGE: original_encrypted_rescue_verified',flush=True)
+            stage='isolated_pg18_source_restore_and_compaction'
             with ephemeral_pg18(5433,args.backup_id) as (container,source):
                 _restore(container,full)
                 with psycopg.connect(**source) as conn:
@@ -282,6 +342,7 @@ def main():
                 hotdump=path/'hot.dump'
                 _pg_dump(container,hotdump)
             destination=root/'encrypted-assets'
+            stage='encrypted_hot_seed_and_second_pg18_restore'
             result=asyncio.run(_encrypted_seed_and_verify(hotdump,destination,key,
                                   args.backup_id,manifest,hot))
             print('HOT_SEED_OFFLINE_RESTORED_NO_PRODUCTION_IMPORT',flush=True)
@@ -292,8 +353,17 @@ def main():
                  historical_read_through_verified=False,
                  source_row_content_verified=False,
                  eviction_authorized=False),sort_keys=True),flush=True)
-    except Exception:
-        print('HOT_SEED_INCOMPLETE: do not create new database or clean old source',flush=True)
+    except CutoverBlocked as exc:
+        # Only error codes manufactured in this module may be shown; never
+        # propagate connection strings, encryption material or provider data.
+        code=str(exc)
+        safe=code if re.fullmatch('[a-z][a-z0-9_]{1,90}',code) else 'local_guard_blocked'
+        print('HOT_SEED_INCOMPLETE stage='+stage+' reason='+safe+
+              '; old source and original ZIP unchanged',flush=True)
+        raise SystemExit(1) from None
+    except Exception as exc:
+        print('HOT_SEED_INCOMPLETE stage='+stage+' type='+type(exc).__name__+
+              '; old source and original ZIP unchanged',flush=True)
         raise SystemExit(1) from None
 
 
