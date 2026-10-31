@@ -37,7 +37,15 @@ def connection_parameters(url,*,source):
             if p.hostname not in {'localhost','127.0.0.1','::1'} or database!='postgres' or p.port!=5433 or q:raise ValueError()
             ssl=['disable']
         result=dict(host=p.hostname,port=p.port or 5432,dbname=database,user=unquote(p.username),password=unquote(p.password),sslmode=ssl[0],connect_timeout=10)
-        if source:result.update(sslmode='verify-full',sslrootcert='system')
+        if source:
+            # Render's external PostgreSQL documentation explicitly requires
+            # sslmode=require for encrypted TCP connections. Do not silently
+            # upgrade the owner's documented URL setting to verify-full:
+            # the system CA trust store is not guaranteed to include Render's
+            # managed chain on every Windows/libpq installation.
+            # Strict verify-full remains available only if explicitly selected.
+            if ssl[0] == 'verify-full':
+                result['sslrootcert'] = 'system'
         if 'channel_binding' in q:
             if len(q['channel_binding'])!=1 or q['channel_binding'][0] not in {'require','prefer','disable'}:raise ValueError()
             result['channel_binding']=q['channel_binding'][0]
