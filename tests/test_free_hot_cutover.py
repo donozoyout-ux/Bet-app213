@@ -78,28 +78,34 @@ def test_pg18_fixture_retains_current_heads_with_full_row_fingerprint(monkeypatc
         conn.execute('CREATE TABLE public.board_editions(version text PRIMARY KEY,league_id integer,created_at timestamptz,payload json)')
         conn.execute('CREATE TABLE public.board_heads(version text REFERENCES public.board_editions(version))')
         conn.execute('CREATE TABLE public.board_read_publications(version text REFERENCES public.board_editions(version))')
+        conn.execute('CREATE TABLE public.prediction_publications(board_version text)')
+        conn.execute('CREATE TABLE public.published_match_analyses(board_version text)')
         conn.execute("""INSERT INTO public.board_editions(version,league_id,created_at,payload)
                         VALUES ('current',1,now(),'{"real":true}'::json),
                                ('history',1,now()-interval '3 days','{"real":false}'::json),
                                ('other',1,now()-interval '5 days','{"text":"Türkçe"}'::json)""")
         conn.execute("INSERT INTO public.board_heads(version) VALUES ('current')")
         conn.execute("INSERT INTO public.board_read_publications(version) VALUES ('current')")
+        conn.execute("INSERT INTO public.prediction_publications(board_version) VALUES ('history')")
+        conn.execute("INSERT INTO public.published_match_analyses(board_version) VALUES ('history')")
     try:
         with psycopg.connect(**params) as conn:
             plan=module.plan_local_hot_seed(conn)
-        assert plan['restored_versions']==3 and plan['active_versions']==1
-        assert plan['archived_only_versions']==2
+        assert plan['restored_versions']==3 and plan['active_versions']==2
+        assert plan['archived_only_versions']==1
         assert not plan['source_database_modified'] and not plan['eviction_authorized']
         result=module.apply_only_to_owned_local_verifier(params)
-        assert result['local_removed_versions']==2
+        assert result['local_removed_versions']==1
         assert not result['archive_read_through_verified']
         with psycopg.connect(**params) as conn:
-            assert conn.execute("SELECT version FROM public.board_editions").fetchall()==[('current',)]
+            assert {r[0] for r in conn.execute("SELECT version FROM public.board_editions")}=={'current','history'}
             assert conn.execute("SELECT count(*) FROM public.board_heads").fetchone()[0]==1
             assert conn.execute("SELECT count(*) FROM public.board_read_publications").fetchone()[0]==1
             assert conn.execute("SELECT payload::text FROM public.board_editions").fetchone()[0]=='{"real":true}'
     finally:
         with psycopg.connect(**params) as conn:
             conn.execute('DROP TABLE IF EXISTS public.board_read_publications')
+            conn.execute('DROP TABLE IF EXISTS public.prediction_publications')
+            conn.execute('DROP TABLE IF EXISTS public.published_match_analyses')
             conn.execute('DROP TABLE IF EXISTS public.board_heads')
             conn.execute('DROP TABLE IF EXISTS public.board_editions')
