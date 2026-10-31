@@ -66,7 +66,7 @@ jobs:
     if: github.event_name == 'workflow_dispatch' && inputs.full_recovery == true
     uses: ./.github/workflows/full-recovery.yml
     with:
-      backup_id: ${{ inputs.backup_id }}
+      backup_id: ${{ inputs.backup_id || format('vv755-recovery-{0}-{1}', github.run_id, github.run_attempt) }}
     secrets:
       ARCHIVE_DATABASE_URL: ${{ secrets.ARCHIVE_DATABASE_URL || secrets.RENDER_DATABASE_URL }}
       ARCHIVE_ENCRYPTION_KEY: ${{ secrets.RECOVERY_ENCRYPTION_KEY || secrets.ARCHIVE_ENCRYPTION_KEY }}
