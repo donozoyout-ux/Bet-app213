@@ -337,3 +337,44 @@ td a[href^="/match/"]:hover { text-decoration: underline; text-underline-offset:
   #dashboard-shell > [data-page="home"] .dashboard-panel { padding: .65rem; }
   #dashboard-shell > [data-page="home"] .panel-heading { margin-bottom: .35rem; }
 }
+
+/* 2026-10-30: reduce oversized home typography while giving content breathing room. */
+@media (min-width:768px) {
+  #dashboard-shell > [data-page="home"] .platform-intro {
+    min-height:15.25rem;
+    padding:1rem 2.5rem;
+  }
+  #dashboard-shell > [data-page="home"] .platform-intro h1 {
+    font-size:clamp(2rem,2.55vw,2.55rem);
+    line-height:1.15;
+  }
+  #dashboard-shell > [data-page="home"] .hero-features {gap:.85rem;}
+  #dashboard-shell > [data-page="home"] .hero-features h2 {font-size:.9rem;line-height:1.35;}
+  #dashboard-shell > [data-page="home"] .hero-features p {font-size:.77rem;line-height:1.5;}
+  #dashboard-shell > [data-page="home"] .home-summary article {
+    padding:.75rem .9rem;
+    min-height:4.1rem;
+  }
+  #dashboard-shell > [data-page="home"] .home-summary strong {font-size:1.3rem;line-height:1.2;}
+  #dashboard-shell > [data-page="home"] .home-board {gap:.85rem;}
+  #dashboard-shell > [data-page="home"] .dashboard-panel {padding:.85rem;}
+}
+#dashboard-shell > [data-page="home"] .panel-heading h2 {
+  font-size:clamp(.98rem,1.15vw,1.15rem);
+  line-height:1.35;
+}
+#dashboard-shell > [data-page="home"] .home-summary p {
+  font-size:.77rem;
+  line-height:1.4;
+}
+#dashboard-shell > [data-page="home"] .dashboard-panel :where(p,small,li) {
+  line-height:1.5;
+}
+@media (max-width:767px) {
+  #dashboard-shell > [data-page="home"] .platform-intro h1 {
+    font-size:clamp(1.65rem,6.5vw,2.15rem);
+    line-height:1.15;
+  }
+  #dashboard-shell > [data-page="home"] .home-summary strong {font-size:1.25rem;}
+  #dashboard-shell > [data-page="home"] .dashboard-panel {padding:.85rem;}
+}
