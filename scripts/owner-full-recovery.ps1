@@ -107,9 +107,9 @@ try {
     # Existing credentials are entered only at the local terminal, never in chat, arguments or files.
     $secureSource = Read-Host 'Active Render external PostgreSQL URL (hidden; not saved)' -AsSecureString
     $env:ARCHIVE_DATABASE_URL = [Net.NetworkCredential]::new('', $secureSource).Password
-    $null = & python -c 'import os; from src.archive.full_recovery import connection_parameters; connection_parameters(os.environ["ARCHIVE_DATABASE_URL"],source=True)' 2>$null
+    $null = & python -m src.archive.owner_recovery check-source 2>$null
     if ($LASTEXITCODE -ne 0) { throw 'Active source identity check failed before any connection.' }
-    $null = & python -c 'import asyncio,os; from src.archive.full_recovery import RecoveryStore,REPO,MAX_DUMP; s=RecoveryStore(REPO,os.environ["ARCHIVE_GITHUB_TOKEN"],os.environ["ARCHIVE_ENCRYPTION_KEY"],budget_bytes=2*MAX_DUMP,keep_days=3650); asyncio.run(s.inventory())' 2>$null
+    $null = & python -m src.archive.owner_recovery check-archive 2>$null
     if ($LASTEXITCODE -ne 0) { throw 'Private archive repository access check failed before source export.' }
     $runRoot = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) ('KuponRecovery\run-' + $BackupId)
     if (Test-Path -LiteralPath $runRoot) { throw 'Run directory exists. Use a new BackupId; do not overwrite earlier evidence.' }
@@ -157,8 +157,10 @@ try {
     exit 1
 } finally {
     if ($ownedContainer -and $ownedContainer -match '^[0-9a-f]{64}$') {
-        $label = & docker inspect --format '{{index .Config.Labels "kupon.recovery.owner-run"}}' $ownedContainer 2>$null
-        if ($LASTEXITCODE -eq 0 -and $label -eq $BackupId) {
+        $labelJson = & docker inspect --format '{{json .Config.Labels}}' $ownedContainer 2>$null
+        $inspected = $LASTEXITCODE -eq 0
+        $labels = if ($inspected) { $labelJson | ConvertFrom-Json } else { $null }
+        if ($inspected -and $labels.'kupon.recovery.owner-run' -eq $BackupId) {
             $null = & docker rm -f -v $ownedContainer 2>$null
         }
     }

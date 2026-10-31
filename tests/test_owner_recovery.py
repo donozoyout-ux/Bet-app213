@@ -87,3 +87,26 @@ def test_full_recovery_sql_smoke_is_not_site_readthrough_claim():
     assert 'Read-Host' in launcher and '-AsSecureString' in launcher
     assert 'ARCHIVE_ENCRYPTION_KEY' in launcher
     assert 'Set-Secret' not in launcher and 'gh secret set' not in launcher
+
+
+def test_owner_source_preflight_never_echoes_bad_credentials(monkeypatch, capsys):
+    import sys
+    from src.archive import owner_recovery
+    monkeypatch.setenv('ARCHIVE_DATABASE_URL', 'postgresql://user:PRIVATE_VALUE@invalid.example/db')
+    monkeypatch.setattr(sys, 'argv', ['owner_recovery', 'check-source'])
+    assert owner_recovery.main() == 1
+    assert capsys.readouterr().out == 'OWNER_PREFLIGHT_FAILED: check-source\n'
+
+
+async def test_owner_archive_preflight_closes_without_mutation(monkeypatch):
+    from src.archive import owner_recovery
+    monkeypatch.setenv('ARCHIVE_ENCRYPTION_KEY', base64.b64encode(b'x'*32).decode())
+    monkeypatch.setenv('ARCHIVE_GITHUB_TOKEN', 'synthetic-token')
+    calls=[]
+    class Store:
+        def __init__(self, *args, **kwargs): pass
+        async def inventory(self): calls.append('read-private-inventory')
+        async def close(self): calls.append('close')
+    monkeypatch.setattr(owner_recovery, 'RecoveryStore', Store)
+    await owner_recovery.check_archive()
+    assert calls == ['read-private-inventory', 'close']
