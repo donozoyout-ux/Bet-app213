@@ -15,6 +15,7 @@ from .crypto import key_bytes
 from .github import ReleaseArchive
 from .board_backup import BoardStore
 from .recovery_format import SCHEMA,CHUNK,MAX_DUMP,canonical,sha,seal,unseal
+from .local_recovery_store import LocalRecoveryStore
 
 REPO='donozoyout-ux/kuponanalizii-data-archive'
 HOST='dpg-dbgdegou01pc738m3mmg-a.frankfurt-postgres.render.com'
@@ -184,6 +185,7 @@ def restore_verify(params,directory,expected):
 
 
 class RecoveryStore(ReleaseArchive):
+    is_offsite = True
     asset_list=BoardStore.asset_list
     async def open(self,backup_id):
         if not re.fullmatch('[a-z0-9][a-z0-9-]{0,63}',backup_id):raise ValueError('invalid_backup_id')
@@ -233,11 +235,11 @@ async def backup(source_params,restore_params,store,backup_id,directory):
             if sha(raw)!=item['plaintext_sha256'] or len(raw)!=item['plaintext_bytes']:raise ValueError('plaintext_checksum')
             out.write(raw);restored_hash.update(raw)
     if restored_hash.hexdigest()!=remote['dump_sha256']:raise ValueError('dump_checksum')
-    print('RECOVERY_STAGE: remote_bytes_verified_restore_started',flush=True)
+    print('RECOVERY_STAGE: '+('remote' if getattr(store, 'is_offsite', True) else 'local')+'_bytes_verified_restore_started',flush=True)
     restored=await asyncio.to_thread(restore_verify,restore_params,directory,remote['inventory'])
-    receipt=dict(schema=SCHEMA,backup_id=backup_id,restore_verified=True,manifest=pin,**restored,source_deleted_rows=0,eviction_authorized=False)
+    receipt=dict(schema=SCHEMA,backup_id=backup_id,restore_verified=True,manifest=pin,**restored,source_deleted_rows=0,eviction_authorized=False,offsite_verified=bool(getattr(store,'is_offsite',True)))
     receipt_pin=await store.put('receipt.enc',canonical(receipt))
-    summary=dict(schema=SCHEMA,backup_id=backup_id,restore_verified=True,manifest=pin,receipt=receipt_pin,tables=len(evidence['inventory']['tables']),rows=sum(t['rows'] for t in evidence['inventory']['tables']),chunks=len(chunks),source_deleted_rows=0,dump_sha256=remote['dump_sha256'],row_content_verified=True,application_read_through_verified=False)
+    summary=dict(schema=SCHEMA,backup_id=backup_id,restore_verified=True,manifest=pin,receipt=receipt_pin,tables=len(evidence['inventory']['tables']),rows=sum(t['rows'] for t in evidence['inventory']['tables']),chunks=len(chunks),source_deleted_rows=0,dump_sha256=remote['dump_sha256'],row_content_verified=True,application_read_through_verified=False,offsite_verified=bool(getattr(store,'is_offsite',True)))
     await store.request('PATCH',f'/repos/{store.repo}/releases/{store.release["id"]}',json={'draft':False,'body':canonical(summary).decode()})
     return dict(summary,release_id=store.release['id'],release_url=store.release.get('html_url'))
 
@@ -274,11 +276,19 @@ async def main():
     print('RECOVERY_PREFLIGHT: encryption_key_format_accepted',flush=True)
     if not re.fullmatch('[a-z0-9][a-z0-9-]{0,63}',os.getenv('RECOVERY_BACKUP_ID','')):raise ValueError('invalid_backup_id')
     if os.getenv('RECOVERY_AUTHORIZED')!='true':raise ValueError('manual_authorization_required')
-    store=RecoveryStore(REPO,os.environ['ARCHIVE_GITHUB_TOKEN'],key,budget_bytes=2*MAX_DUMP,keep_days=3650)
+    offline_directory=os.environ.get('RECOVERY_OFFLINE_DIR')
+    if offline_directory:
+        store=LocalRecoveryStore(offline_directory,key,budget_bytes=2*MAX_DUMP)
+    else:
+        store=RecoveryStore(REPO,os.environ['ARCHIVE_GITHUB_TOKEN'],key,budget_bytes=2*MAX_DUMP,keep_days=3650)
     print('RECOVERY_PREFLIGHT: required_archive_settings_present',flush=True)
     try:
         with tempfile.TemporaryDirectory(prefix='kupon-recovery-') as directory:
             report=await backup(source,restore,store,os.environ['RECOVERY_BACKUP_ID'],directory)
+            if offline_directory:
+                package=store.package()
+                print('RECOVERY_LOCAL_RESTORE_VERIFIED_OFFSITE_UPLOAD_REQUIRED',flush=True)
+                report=dict(report,local_encrypted_package=package,offsite_verified=False)
             print(canonical(report).decode())
     finally:await store.close()
 
