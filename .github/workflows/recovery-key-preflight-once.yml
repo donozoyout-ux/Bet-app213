@@ -1,0 +1,34 @@
+name: Recovery key presence and format check
+on:
+  push:
+    branches: [codex/full-recovery-backup]
+permissions:
+  contents: read
+jobs:
+  validate-key-only:
+    if: ${{ github.ref == 'refs/heads/codex/full-recovery-backup' && github.event.head_commit.message == 'DIAGNOSE_RECOVERY_KEY_20261031_D1' }}
+    runs-on: ubuntu-latest
+    env:
+      RECOVERY_ENCRYPTION_KEY: ${{ secrets.RECOVERY_ENCRYPTION_KEY }}
+    steps:
+      - name: Validate only key format, never display key
+        shell: bash
+        run: |
+          python - <<'PY'
+          import os
+          import base64
+          import binascii
+          key = os.environ.get('RECOVERY_ENCRYPTION_KEY', '').strip()
+          if not key:
+              print('RECOVERY_KEY_CHECK: missing_in_main_repo')
+              raise SystemExit(1)
+          try:
+              raw = base64.b64decode(key, altchars=b'-_', validate=True)
+          except (binascii.Error, ValueError):
+              print('RECOVERY_KEY_CHECK: not_valid_base64')
+              raise SystemExit(1)
+          if len(raw) != 32:
+              print('RECOVERY_KEY_CHECK: not_32_bytes')
+              raise SystemExit(1)
+          print('RECOVERY_KEY_CHECK: valid_32_byte_base64')
+          PY
