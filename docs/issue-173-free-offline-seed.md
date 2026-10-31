@@ -12,8 +12,9 @@ CI yeşili tek başına gerçek kullanıcı yedeğinin restore edildiğini kanı
 - Anahtar: kullanıcıda, asla GitHub'a veya sohbete gönderilmez.
 - Old source: `Kuponanaliziivv755` (~766 MB; salt okunur araştırma yapılmıştır).
 - Sadece 15 mevcut yayın sürümü `board_heads` / `board_read_publications`
-  FK'si ile tutuluyor; 4.586 adet diğer değişmez yayın sürümü yeni hot seed'de
-  **yer almayacak**, ama tam orijinal ZIP'te kalacaktır.
+  FK'si ile tutuluyor, ama tahmin yayınları ve maç analizleri 1.491 eski sürüme
+  daha referans veriyor: yeni hot seed bu toplam **1.491** sürümü (~167 MB)
+  koruyacak; diğer **3.110** sürüm yeni hot seed'de **yer almayacak**, ama tam orijinal ZIP'te kalacaktır.
 - 37 tablo ve 324783 original restored satır yalnızca eski ZIP'in yerel
   restore kanıtıdır. Yeni seed için ayrı gerçek rapor gerekir.
 
@@ -25,7 +26,7 @@ CI yeşili tek başına gerçek kullanıcı yedeğinin restore edildiğini kanı
 2. Kaynak tam `pg_dump` sadece yereldeki geçici özel dizine açılır.
 3. `postgres:18` local loopback `127.0.0.1:5433` ayrı etiketli konteyner
    açılır; tam dump geri yüklenir, bütün tabloların satır hash'leri hesaplanır.
-4. Yalnız bu **kopyada** aktif FK bağlı `board_editions` sürümleri korunarak
+4. Yalnız bu **kopyada** aktif FK'ler ve kayıtlı tahmin/analiz `board_version` referansları korunarak
    diğer eski editions kaldırılır, korunan sürümlerin birebir hash'i kontrol
    edilir, yerel `VACUUM FULL` uygulanır. Başka tabloların hash'i değişemez.
 5. Küçük `pg_dump -Fc -Z6` oluşturulur; AES-256-GCM ile yeni yerel ZIP içine
