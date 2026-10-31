@@ -27,6 +27,25 @@ class Connection:
 
 
 
+
+def test_render_external_source_honors_require_tls_without_unrequested_ca():
+    from src.archive.full_recovery import HOST, DB, connection_parameters
+    source = f"postgresql://reader:private@{HOST}/{DB}?sslmode=require"
+    params = connection_parameters(source, source=True)
+    assert params['sslmode'] == 'require'
+    assert 'sslrootcert' not in params
+    assert params['host'] == HOST and params['dbname'] == DB
+    assert connection_parameters(source.split('?')[0], source=True)['sslmode'] == 'require'
+    strict = connection_parameters(source.replace('sslmode=require', 'sslmode=verify-full'), source=True)
+    assert strict['sslmode'] == 'verify-full' and strict['sslrootcert'] == 'system'
+    for mode in ('disable', 'prefer', 'allow'):
+        with pytest.raises(ValueError, match='approved_source_required'):
+            connection_parameters(source.replace('sslmode=require', 'sslmode='+mode), source=True)
+    with pytest.raises(ValueError, match='approved_source_required'):
+        connection_parameters(source.replace(HOST, 'evil.invalid'), source=True)
+
+
+
 def test_readonly_source_probe_checks_tls_auth_and_never_writes(monkeypatch):
     from src.archive import owner_recovery
     import psycopg
