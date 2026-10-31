@@ -78,6 +78,7 @@ jobs:
           tests/test_owner_recovery.py
           tests/test_disk_rescue.py
           tests/test_free_hot_cutover.py
+          tests/test_free_seed_builder.py
       - run: python -m pytest -q -rP
       - name: Dashboard JavaScript syntax and degraded-state execution
         run: |
