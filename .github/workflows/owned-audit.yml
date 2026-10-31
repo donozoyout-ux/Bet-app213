@@ -33,7 +33,7 @@ jobs:
         env:
           ARCHIVE_ACTIVATED: 'true'
           ARCHIVE_DATABASE_URL: ${{ secrets.ARCHIVE_DATABASE_URL }}
-          ARCHIVE_ENCRYPTION_KEY: ${{ secrets.RECOVERY_ENCRYPTION_KEY || secrets.ARCHIVE_ENCRYPTION_KEY }}
+          ARCHIVE_ENCRYPTION_KEY: ${{ secrets.ARCHIVE_ENCRYPTION_KEY }}
           ARCHIVE_GITHUB_TOKEN: ${{ secrets.ARCHIVE_GITHUB_TOKEN }}
           ARCHIVE_REPOSITORY: ${{ vars.ARCHIVE_REPOSITORY }}
           ARCHIVE_RIGHTS_REFERENCE: ${{ vars.ARCHIVE_RIGHTS_REFERENCE }}
@@ -69,5 +69,5 @@ jobs:
       backup_id: ${{ inputs.backup_id }}
     secrets:
       ARCHIVE_DATABASE_URL: ${{ secrets.ARCHIVE_DATABASE_URL || secrets.RENDER_DATABASE_URL }}
-      ARCHIVE_ENCRYPTION_KEY: ${{ secrets.ARCHIVE_ENCRYPTION_KEY }}
+      ARCHIVE_ENCRYPTION_KEY: ${{ secrets.RECOVERY_ENCRYPTION_KEY || secrets.ARCHIVE_ENCRYPTION_KEY }}
       ARCHIVE_GITHUB_TOKEN: ${{ secrets.ARCHIVE_GITHUB_TOKEN }}
