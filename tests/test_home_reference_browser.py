@@ -71,6 +71,22 @@ async def test_reference_home_layout_and_real_interactions(api, db, monkeypatch,
                 await expect(page.locator('#home-live-list')).to_contain_text('2 – 1')
                 await expect(page.locator('#home-movement-list')).to_contain_text('1,80')
                 await expect(page.locator('#home-movement-list')).to_contain_text('1,90')
+            # Home-only typography must stay compact without shrinking body zoom.
+            # These computed sizes also catch selector breakage at mobile widths.
+            type_sizes=await page.evaluate('''() => {
+                const root=document.querySelector('#dashboard-shell > [data-page="home"]');
+                const px=selector=>{
+                    const el=root?.querySelector(selector);
+                    return el?parseFloat(getComputedStyle(el).fontSize):null;
+                };
+                return {hero:px('.platform-intro h1'),
+                        summary:px('.home-summary strong'),
+                        heading:px('.panel-heading h2')};
+            }''')
+            assert all(isinstance(value,(int,float)) and value>0 for value in type_sizes.values())
+            assert type_sizes['hero']<=43 if width>=768 else type_sizes['hero']<=35
+            assert type_sizes['summary']<=24
+            assert type_sizes['heading']<=21
             assert await page.evaluate('document.documentElement.scrollWidth<=innerWidth')
             assert await page.evaluate('visualViewport.scale')==1
             assert await page.locator('body').evaluate('(el)=>getComputedStyle(el).zoom')=='1'
