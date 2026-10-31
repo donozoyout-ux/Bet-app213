@@ -138,10 +138,22 @@ def inspect_rescue_metadata(zip_path,key):
             raise CutoverBlocked('rescue_chunk_count')
         if [c.get('name') for c in chunks]!=[f'chunk-{i:06d}.enc' for i in range(len(chunks))]:
             raise CutoverBlocked('rescue_chunk_order')
+        reconstructed=hashlib.sha256()
         for part in chunks:
             if archive.getinfo(part['name']).file_size!=part['bytes']:
                 raise CutoverBlocked('rescue_chunk_size')
+            blob=archive.read(part['name'])
+            if sha(blob)!=part['sha256']:
+                raise CutoverBlocked('rescue_ciphertext_sha256_mismatch')
+            raw=unseal(blob,key,ORIGINAL_ID,part['name'])
+            if len(raw)!=part['plaintext_bytes'] or sha(raw)!=part['plaintext_sha256']:
+                raise CutoverBlocked('rescue_plaintext_sha256_mismatch')
+            reconstructed.update(raw)
+        if reconstructed.hexdigest()!=ORIGINAL_DUMP_SHA256:
+            raise CutoverBlocked('rescue_dump_sha256_mismatch')
         return {'encrypted_zip_sha256_verified':True,
+                'all_17_or_more_chunks_authenticated':True,
+                'dump_sha256_verified_without_writing':True,
                 'manifest_and_receipt_authenticated':True,
                 'original_restore_verified':True,
                 'full_source_row_parity_verified':False,
