@@ -1,0 +1,555 @@
+{
+  "observed_on": "2026-10-31",
+  "database_bytes": 802936511,
+  "consistent_snapshot": false,
+  "notes": "Separate read-only queries; live writers may advance counts. No backup or archive parity verified.",
+  "sizes": [
+    {
+      "estimated_rows": 4498,
+      "heap_bytes": 729088,
+      "index_bytes": 671744,
+      "name": "board_editions",
+      "schema": "public",
+      "toast_bytes": 541966336,
+      "total_bytes": 543367168
+    },
+    {
+      "estimated_rows": 157558,
+      "heap_bytes": 57286656,
+      "index_bytes": 34308096,
+      "name": "match_events",
+      "schema": "public",
+      "toast_bytes": 8192,
+      "total_bytes": 91602944
+    },
+    {
+      "estimated_rows": 39633,
+      "heap_bytes": 34709504,
+      "index_bytes": 7839744,
+      "name": "market_odds",
+      "schema": "public",
+      "toast_bytes": 8192,
+      "total_bytes": 42557440
+    },
+    {
+      "estimated_rows": 24793,
+      "heap_bytes": 21086208,
+      "index_bytes": 2252800,
+      "name": "odds_1x2",
+      "schema": "public",
+      "toast_bytes": 8192,
+      "total_bytes": 23347200
+    },
+    {
+      "estimated_rows": 24799,
+      "heap_bytes": 20660224,
+      "index_bytes": 2260992,
+      "name": "asian_totals",
+      "schema": "public",
+      "toast_bytes": 8192,
+      "total_bytes": 22929408
+    },
+    {
+      "estimated_rows": 24799,
+      "heap_bytes": 20455424,
+      "index_bytes": 2285568,
+      "name": "asian_handicap",
+      "schema": "public",
+      "toast_bytes": 8192,
+      "total_bytes": 22749184
+    },
+    {
+      "estimated_rows": 9766,
+      "heap_bytes": 19939328,
+      "index_bytes": 344064,
+      "name": "match_statistics",
+      "schema": "public",
+      "toast_bytes": 8192,
+      "total_bytes": 20291584
+    },
+    {
+      "estimated_rows": 12390,
+      "heap_bytes": 4997120,
+      "index_bytes": 2375680,
+      "name": "matches",
+      "schema": "public",
+      "toast_bytes": 8192,
+      "total_bytes": 7380992
+    },
+    {
+      "estimated_rows": 160,
+      "heap_bytes": 98304,
+      "index_bytes": 16384,
+      "name": "published_match_analyses",
+      "schema": "public",
+      "toast_bytes": 4866048,
+      "total_bytes": 4980736
+    },
+    {
+      "estimated_rows": 15,
+      "heap_bytes": 229376,
+      "index_bytes": 16384,
+      "name": "prediction_boards",
+      "schema": "public",
+      "toast_bytes": 2949120,
+      "total_bytes": 3194880
+    },
+    {
+      "estimated_rows": 15,
+      "heap_bytes": 49152,
+      "index_bytes": 16384,
+      "name": "board_read_publications",
+      "schema": "public",
+      "toast_bytes": 2744320,
+      "total_bytes": 2809856
+    },
+    {
+      "estimated_rows": 21152,
+      "heap_bytes": 1392640,
+      "index_bytes": 1392640,
+      "name": "scraper_job_items",
+      "schema": "public",
+      "toast_bytes": 8192,
+      "total_bytes": 2793472
+    },
+    {
+      "estimated_rows": 2796,
+      "heap_bytes": 1966080,
+      "index_bytes": 253952,
+      "name": "prediction_publications",
+      "schema": "public",
+      "toast_bytes": 8192,
+      "total_bytes": 2228224
+    },
+    {
+      "estimated_rows": 355,
+      "heap_bytes": 532480,
+      "index_bytes": 73728,
+      "name": "learning_slices",
+      "schema": "public",
+      "toast_bytes": 8192,
+      "total_bytes": 614400
+    },
+    {
+      "estimated_rows": 344,
+      "heap_bytes": 409600,
+      "index_bytes": 73728,
+      "name": "learning_lessons",
+      "schema": "public",
+      "toast_bytes": 8192,
+      "total_bytes": 491520
+    },
+    {
+      "estimated_rows": 4,
+      "heap_bytes": 122880,
+      "index_bytes": 16384,
+      "name": "daily_coupon_publications",
+      "schema": "public",
+      "toast_bytes": 229376,
+      "total_bytes": 368640
+    },
+    {
+      "estimated_rows": 51,
+      "heap_bytes": 147456,
+      "index_bytes": 81920,
+      "name": "saved_coupons",
+      "schema": "public",
+      "toast_bytes": 81920,
+      "total_bytes": 311296
+    },
+    {
+      "estimated_rows": 88,
+      "heap_bytes": 221184,
+      "index_bytes": 32768,
+      "name": "scraper_jobs",
+      "schema": "public",
+      "toast_bytes": 8192,
+      "total_bytes": 262144
+    },
+    {
+      "estimated_rows": 111,
+      "heap_bytes": 163840,
+      "index_bytes": 49152,
+      "name": "prediction_snapshots",
+      "schema": "public",
+      "toast_bytes": 8192,
+      "total_bytes": 221184
+    },
+    {
+      "estimated_rows": -1,
+      "heap_bytes": 81920,
+      "index_bytes": 49152,
+      "name": "learning_reports",
+      "schema": "public",
+      "toast_bytes": 90112,
+      "total_bytes": 221184
+    },
+    {
+      "estimated_rows": 467,
+      "heap_bytes": 57344,
+      "index_bytes": 73728,
+      "name": "teams",
+      "schema": "public",
+      "toast_bytes": 0,
+      "total_bytes": 131072
+    },
+    {
+      "estimated_rows": 407,
+      "heap_bytes": 65536,
+      "index_bytes": 40960,
+      "name": "collector_retries",
+      "schema": "public",
+      "toast_bytes": 0,
+      "total_bytes": 106496
+    },
+    {
+      "estimated_rows": -1,
+      "heap_bytes": 49152,
+      "index_bytes": 49152,
+      "name": "prediction_settlements",
+      "schema": "public",
+      "toast_bytes": 8192,
+      "total_bytes": 106496
+    },
+    {
+      "estimated_rows": 25,
+      "heap_bytes": 49152,
+      "index_bytes": 32768,
+      "name": "leagues",
+      "schema": "public",
+      "toast_bytes": 0,
+      "total_bytes": 81920
+    },
+    {
+      "estimated_rows": -1,
+      "heap_bytes": 8192,
+      "index_bytes": 65536,
+      "name": "telegram_deliveries",
+      "schema": "public",
+      "toast_bytes": 0,
+      "total_bytes": 73728
+    },
+    {
+      "estimated_rows": -1,
+      "heap_bytes": 8192,
+      "index_bytes": 49152,
+      "name": "bookmakers",
+      "schema": "public",
+      "toast_bytes": 0,
+      "total_bytes": 57344
+    },
+    {
+      "estimated_rows": 1,
+      "heap_bytes": 40960,
+      "index_bytes": 16384,
+      "name": "worker_checkpoints",
+      "schema": "public",
+      "toast_bytes": 0,
+      "total_bytes": 57344
+    },
+    {
+      "estimated_rows": 1,
+      "heap_bytes": 40960,
+      "index_bytes": 16384,
+      "name": "learning_heads",
+      "schema": "public",
+      "toast_bytes": 0,
+      "total_bytes": 57344
+    },
+    {
+      "estimated_rows": -1,
+      "heap_bytes": 0,
+      "index_bytes": 49152,
+      "name": "learning_ai_tasks",
+      "schema": "public",
+      "toast_bytes": 0,
+      "total_bytes": 49152
+    },
+    {
+      "estimated_rows": -1,
+      "heap_bytes": 8192,
+      "index_bytes": 32768,
+      "name": "seasons",
+      "schema": "public",
+      "toast_bytes": 0,
+      "total_bytes": 40960
+    },
+    {
+      "estimated_rows": -1,
+      "heap_bytes": 0,
+      "index_bytes": 32768,
+      "name": "learning_ai_explanations",
+      "schema": "public",
+      "toast_bytes": 8192,
+      "total_bytes": 40960
+    },
+    {
+      "estimated_rows": -1,
+      "heap_bytes": 0,
+      "index_bytes": 16384,
+      "name": "odds_snapshots",
+      "schema": "public",
+      "toast_bytes": 8192,
+      "total_bytes": 24576
+    },
+    {
+      "estimated_rows": -1,
+      "heap_bytes": 0,
+      "index_bytes": 16384,
+      "name": "scraper_issues",
+      "schema": "public",
+      "toast_bytes": 8192,
+      "total_bytes": 24576
+    },
+    {
+      "estimated_rows": 15,
+      "heap_bytes": 8192,
+      "index_bytes": 16384,
+      "name": "board_heads",
+      "schema": "public",
+      "toast_bytes": 0,
+      "total_bytes": 24576
+    },
+    {
+      "estimated_rows": -1,
+      "heap_bytes": 0,
+      "index_bytes": 16384,
+      "name": "referees",
+      "schema": "public",
+      "toast_bytes": 0,
+      "total_bytes": 16384
+    },
+    {
+      "estimated_rows": -1,
+      "heap_bytes": 0,
+      "index_bytes": 8192,
+      "name": "learning_ai_gates",
+      "schema": "public",
+      "toast_bytes": 0,
+      "total_bytes": 8192
+    },
+    {
+      "estimated_rows": -1,
+      "heap_bytes": 0,
+      "index_bytes": 8192,
+      "name": "learning_ai_quotas",
+      "schema": "public",
+      "toast_bytes": 0,
+      "total_bytes": 8192
+    }
+  ],
+  "matches": [
+    {
+      "active_four_days": 0,
+      "past": 1,
+      "rows": 1,
+      "status": "abandoned",
+      "unknown_date": 0
+    },
+    {
+      "active_four_days": 1,
+      "past": 0,
+      "rows": 1,
+      "status": "postponed",
+      "unknown_date": 0
+    },
+    {
+      "active_four_days": 0,
+      "past": 9766,
+      "rows": 9766,
+      "status": "finished",
+      "unknown_date": 0
+    },
+    {
+      "active_four_days": 88,
+      "past": 8,
+      "rows": 2622,
+      "status": "scheduled",
+      "unknown_date": 0
+    }
+  ],
+  "boards": [
+    {
+      "editions": 4601,
+      "referenced": 1491,
+      "unreferenced": 3110,
+      "unreferenced_payload_bytes": 345043022
+    }
+  ],
+  "indexes": [
+    {
+      "bytes": 25739264,
+      "idx_scan": 0,
+      "index_name": "match_events_match_id_source_key_key",
+      "table_name": "match_events"
+    },
+    {
+      "bytes": 6201344,
+      "idx_scan": 288202,
+      "index_name": "match_events_pkey",
+      "table_name": "match_events"
+    },
+    {
+      "bytes": 4325376,
+      "idx_scan": 63174,
+      "index_name": "market_odds_match_id_bookmaker_id_market_period_key",
+      "table_name": "market_odds"
+    },
+    {
+      "bytes": 2367488,
+      "idx_scan": 69624,
+      "index_name": "ix_match_events_match_id",
+      "table_name": "match_events"
+    },
+    {
+      "bytes": 1630208,
+      "idx_scan": 2457,
+      "index_name": "ix_market_odds_match_market",
+      "table_name": "market_odds"
+    },
+    {
+      "bytes": 1089536,
+      "idx_scan": 63216,
+      "index_name": "market_odds_pkey",
+      "table_name": "market_odds"
+    },
+    {
+      "bytes": 950272,
+      "idx_scan": 52247,
+      "index_name": "asian_handicap_match_id_bookmaker_id_key",
+      "table_name": "asian_handicap"
+    },
+    {
+      "bytes": 942080,
+      "idx_scan": 52265,
+      "index_name": "asian_totals_match_id_bookmaker_id_key",
+      "table_name": "asian_totals"
+    },
+    {
+      "bytes": 925696,
+      "idx_scan": 52229,
+      "index_name": "odds_1x2_match_id_bookmaker_id_key",
+      "table_name": "odds_1x2"
+    },
+    {
+      "bytes": 892928,
+      "idx_scan": 1472862,
+      "index_name": "ix_matches_league_status_kickoff",
+      "table_name": "matches"
+    },
+    {
+      "bytes": 794624,
+      "idx_scan": 190042,
+      "index_name": "ix_market_odds_match_id",
+      "table_name": "market_odds"
+    },
+    {
+      "bytes": 671744,
+      "idx_scan": 52194,
+      "index_name": "asian_handicap_pkey",
+      "table_name": "asian_handicap"
+    },
+    {
+      "bytes": 671744,
+      "idx_scan": 20659,
+      "index_name": "scraper_job_items_job_id_match_id_key",
+      "table_name": "scraper_job_items"
+    },
+    {
+      "bytes": 671744,
+      "idx_scan": 52177,
+      "index_name": "odds_1x2_pkey",
+      "table_name": "odds_1x2"
+    },
+    {
+      "bytes": 663552,
+      "idx_scan": 187403,
+      "index_name": "ix_asian_handicap_match_id",
+      "table_name": "asian_handicap"
+    }
+  ],
+  "constraints": [
+    {
+      "child": "asian_handicap",
+      "definition": "FOREIGN KEY (match_id) REFERENCES matches(id)",
+      "parent": "matches"
+    },
+    {
+      "child": "asian_totals",
+      "definition": "FOREIGN KEY (match_id) REFERENCES matches(id)",
+      "parent": "matches"
+    },
+    {
+      "child": "board_heads",
+      "definition": "FOREIGN KEY (version) REFERENCES board_editions(version)",
+      "parent": "board_editions"
+    },
+    {
+      "child": "board_read_publications",
+      "definition": "FOREIGN KEY (version) REFERENCES board_editions(version)",
+      "parent": "board_editions"
+    },
+    {
+      "child": "market_odds",
+      "definition": "FOREIGN KEY (match_id) REFERENCES matches(id)",
+      "parent": "matches"
+    },
+    {
+      "child": "match_events",
+      "definition": "FOREIGN KEY (match_id) REFERENCES matches(id)",
+      "parent": "matches"
+    },
+    {
+      "child": "match_statistics",
+      "definition": "FOREIGN KEY (match_id) REFERENCES matches(id)",
+      "parent": "matches"
+    },
+    {
+      "child": "odds_1x2",
+      "definition": "FOREIGN KEY (match_id) REFERENCES matches(id)",
+      "parent": "matches"
+    },
+    {
+      "child": "odds_snapshots",
+      "definition": "FOREIGN KEY (match_id) REFERENCES matches(id)",
+      "parent": "matches"
+    },
+    {
+      "child": "prediction_publications",
+      "definition": "FOREIGN KEY (match_id) REFERENCES matches(id)",
+      "parent": "matches"
+    },
+    {
+      "child": "prediction_snapshots",
+      "definition": "FOREIGN KEY (match_id) REFERENCES matches(id)",
+      "parent": "matches"
+    },
+    {
+      "child": "published_match_analyses",
+      "definition": "FOREIGN KEY (match_id) REFERENCES matches(id)",
+      "parent": "matches"
+    },
+    {
+      "child": "scraper_job_items",
+      "definition": "FOREIGN KEY (match_id) REFERENCES matches(id)",
+      "parent": "matches"
+    },
+    {
+      "child": "scraper_jobs",
+      "definition": "FOREIGN KEY (match_id) REFERENCES matches(id)",
+      "parent": "matches"
+    }
+  ],
+  "triggers": [
+    {
+      "event_manipulation": "DELETE",
+      "event_object_table": "board_editions",
+      "trigger_name": "immutable_history"
+    },
+    {
+      "event_manipulation": "UPDATE",
+      "event_object_table": "board_editions",
+      "trigger_name": "immutable_history"
+    }
+  ]
+}
