@@ -50,14 +50,16 @@ def test_render_non_superuser_zero_large_objects_does_not_read_restricted_pg_lar
     class RowResult:
         def __init__(self, value): self.value = value
         def fetchone(self): return (self.value,)
+        def fetchall(self): return self.value if isinstance(self.value, list) else []
+        def __iter__(self): return iter(self.fetchall())
 
     class RestrictedSource:
         def __init__(self, count): self.count = count; self.sql = []
         def execute(self, statement):
             statement = str(statement)
             self.sql.append(statement)
-            if 'FROM pg_class c' in statement: return []
-            if 'FROM pg_sequences' in statement: return []
+            if 'FROM pg_class c' in statement: return RowResult([])
+            if 'FROM pg_sequences' in statement: return RowResult([])
             if 'FROM pg_largeobject_metadata' in statement: return RowResult(self.count)
             if 'pg_largeobject' in statement: raise PermissionError('permission denied for table pg_largeobject')
             if statement.startswith('SET LOCAL '): return None
