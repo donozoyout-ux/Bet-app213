@@ -1,0 +1,23 @@
+name: Offline recovery PG18
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  synthetic-recovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      DATABASE_URL: 'sqlite+aiosqlite:///:memory:'
+      NVIDIA_API_KEY: ''
+      NVIDIA_AI_ENABLED: 'false'
+      TELEGRAM_BOT_TOKEN: ''
+      TELEGRAM_CHAT_ID: ''
+      RUN_OFFLINE_RECOVERY_DOCKER: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements-dev.txt
+      - run: docker pull postgres:18
+      - run: python -m pytest -q tests/test_offline_recovery.py tests/test_offline_recovery_docker.py
