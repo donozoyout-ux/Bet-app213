@@ -46,6 +46,8 @@ def test_readonly_zip_preflight_without_creating_any_output(tmp_path, monkeypatc
     files_before={p.name for p in tmp_path.iterdir()}
     result=inspect_rescue_metadata(archive,KEY)
     assert result['manifest_and_receipt_authenticated'] is True
+    assert result['dump_sha256_verified_without_writing'] is True
+    assert result['all_17_or_more_chunks_authenticated'] is True
     assert result['chunk_count']==1
     assert result['database_contacted'] is False
     assert result['output_directory_created'] is False
