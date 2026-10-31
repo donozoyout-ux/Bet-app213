@@ -1,6 +1,6 @@
 ﻿[CmdletBinding()]
 param(
-    [ValidateSet('Preflight','InitKey','Backup')][string]$Mode = 'Preflight',
+    [ValidateSet('Preflight','PreflightLocal','InitKey','Backup','LocalBackup')][string]$Mode = 'Preflight',
     [string]$KeyFile,
     [ValidatePattern('^[a-z0-9][a-z0-9-]{0,63}$')][string]$BackupId,
     [switch]$KeyRetainedOffline
@@ -14,7 +14,7 @@ $savedEnvironment = @{}
 $environmentNames = @('ARCHIVE_DATABASE_URL','ARCHIVE_ENCRYPTION_KEY','ARCHIVE_GITHUB_TOKEN',
     'RECOVERY_VERIFY_URL','RECOVERY_VERIFY_CONTAINER','RECOVERY_BACKUP_ID','RECOVERY_AUTHORIZED',
     'DATABASE_URL','TELEGRAM_BOT_TOKEN','TELEGRAM_CHAT_ID','NVIDIA_API_KEY','NVIDIA_AI_ENABLED',
-    'SCRAPER_WORKER_ENABLED','AUTO_BACKFILL_ON_EMPTY','TMP','TEMP')
+    'SCRAPER_WORKER_ENABLED','AUTO_BACKFILL_ON_EMPTY','RECOVERY_OFFLINE_DIR','TMP','TEMP')
 
 function Protect-OwnerDirectory([string]$Path) {
     $resolved = [IO.Path]::GetFullPath($Path)
@@ -95,25 +95,39 @@ try {
     $checks.localWorkspaceSpace = ($localDrive.AvailableFreeSpace -ge 8GB)
     if ($KeyFile) { $null = Read-Key $KeyFile; $checks.keyFileValid = $true }
     foreach ($check in $checks.GetEnumerator()) { Write-Output ('PREFLIGHT {0}: {1}' -f $check.Key, $check.Value) }
-    if ($Mode -eq 'Preflight') { exit $(if ($checks.Values -contains $false) { 1 } else { 0 }) }
-    if ($checks.Values -contains $false) { throw 'Preflight failed. Start Docker Desktop and authenticate the existing GitHub CLI account locally; rerun Preflight.' }
+    # Local browser-upload path does not use GitHub CLI at all.
+    $required = @('python','docker','dockerLinuxReady','pythonLibraries','localWorkspaceSpace')
+    if ($Mode -eq 'Preflight' -or $Mode -eq 'Backup') {
+        $required += @('gh','githubAuthenticated')
+    }
+    $missing = @($required | Where-Object { -not $checks.Contains($_) -or -not $checks[$_] })
+    if ($Mode -eq 'Preflight' -or $Mode -eq 'PreflightLocal') {
+        Write-Output ('PREFLIGHT requiredReady: {0}' -f ($missing.Count -eq 0))
+        exit $(if ($missing.Count -ne 0) { 1 } else { 0 })
+    }
+    if ($missing.Count -gt 0) {
+        throw 'Required tools not ready. Run -Mode PreflightLocal for browser-upload recovery.'
+    }
     if (-not $KeyFile -or -not $BackupId -or -not $KeyRetainedOffline) {
         throw 'Backup needs KeyFile, a unique BackupId, and owner confirmation KeyRetainedOffline.'
     }
     $key = Read-Key $KeyFile
     foreach ($name in $environmentNames) { $savedEnvironment[$name] = [Environment]::GetEnvironmentVariable($name, 'Process') }
     $env:ARCHIVE_ENCRYPTION_KEY = $key
-    $env:ARCHIVE_GITHUB_TOKEN = $token
+    $env:ARCHIVE_GITHUB_TOKEN = if ($Mode -eq 'Backup') { $token } else { '' }
     # Existing credentials are entered only at the local terminal, never in chat, arguments or files.
     $secureSource = Read-Host 'Active Render external PostgreSQL URL (hidden; not saved)' -AsSecureString
     $env:ARCHIVE_DATABASE_URL = [Net.NetworkCredential]::new('', $secureSource).Password
     $null = & python -m src.archive.owner_recovery check-source 2>$null
     if ($LASTEXITCODE -ne 0) { throw 'Active source identity check failed before any connection.' }
-    $null = & python -m src.archive.owner_recovery check-archive 2>$null
-    if ($LASTEXITCODE -ne 0) { throw 'Private archive repository access check failed before source export.' }
+    if ($Mode -eq 'Backup') {
+        $null = & python -m src.archive.owner_recovery check-archive 2>$null
+        if ($LASTEXITCODE -ne 0) { throw 'Private archive repository access check failed before source export.' }
+    }
     $runRoot = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) ('KuponRecovery\run-' + $BackupId)
     if (Test-Path -LiteralPath $runRoot) { throw 'Run directory exists. Use a new BackupId; do not overwrite earlier evidence.' }
     $runRoot = Protect-OwnerDirectory $runRoot
+    $env:RECOVERY_OFFLINE_DIR = if ($Mode -eq 'LocalBackup') { Join-Path $runRoot 'encrypted-assets' } else { '' }
     $env:TMP = $runRoot
     $env:TEMP = $runRoot
     $env:DATABASE_URL = ''
