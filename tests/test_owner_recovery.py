@@ -83,7 +83,8 @@ def test_windows_launcher_prepares_pg18_and_never_prunes_existing_containers():
     assert "Invoke-QuietNative docker @('run','-d','--rm'" in launcher
     assert "'--env','POSTGRES_PASSWORD','postgres:18'" in launcher
     assert 'docker system prune' not in launcher
-    assert 'docker rm -f -v $ownedContainer' in launcher
+    assert "'rm','-f','-v',$ownedContainer" in launcher
+    assert "if ($labels.'kupon.recovery.owner-run' -eq $BackupId)" in launcher
 
 
 def test_windows_launcher_reports_fixed_stage_not_exception_or_url():
