@@ -97,8 +97,15 @@ def inventory(conn, *, fingerprints=True):
     large_objects=conn.execute('SELECT count(*) FROM pg_largeobject_metadata').fetchone()[0]
     result = dict(tables=tables,sequences=sequences,large_objects=large_objects)
     if fingerprints:
-        _, result['large_object_pages_sha256'] = row_fingerprint(conn,
-            sql.SQL('SELECT row_to_json(t)::text FROM (SELECT loid,pageno,data FROM pg_largeobject) t'))
+        # Managed PostgreSQL non-superusers may lack SELECT on pg_largeobject
+        # even when there are zero large objects. pg_largeobject_metadata is
+        # readable and proves the zero-object case without privileged access.
+        # Never skip page hashing for a nonzero count: fail closed if unreadable.
+        if large_objects == 0:
+            result['large_object_pages_sha256'] = hashlib.sha256(b'').hexdigest()
+        else:
+            _, result['large_object_pages_sha256'] = row_fingerprint(conn,
+                sql.SQL('SELECT row_to_json(t)::text FROM (SELECT loid,pageno,data FROM pg_largeobject) t'))
     return result
 
 
