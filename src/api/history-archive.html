@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Maç geçmişi</title><style>
+body{font:16px system-ui;max-width:1000px;margin:40px auto;padding:0 20px;background:#111827;color:#f3f4f6}
+input,button{font:inherit;padding:8px;margin:5px}article{padding:18px;border:1px solid #475569;margin:16px 0;border-radius:8px}
+label{display:inline-block}pre{white-space:pre-wrap;overflow-wrap:anywhere}a{color:#93c5fd}
+</style></head><body><a href="/">Ana sayfa</a><h1>Maç geçmişi</h1>
+<p>Kaydedilmiş maçlar, oranlar ve sonuç kanıtları. Tarihler İstanbul saatine göredir.</p>
+<form id="filters"><label>Tarih <input name="day" type="date"></label>
+<label>Maç numarası <input name="match_id" type="number" min="1"></label>
+<label>Yayın sürümü <input name="board_version" pattern="[a-f0-9]{64}"></label><button>Göster</button></form>
+<p id="status" role="status"></p><section id="items"></section>
+<button id="previous" disabled>Önceki</button><button id="next" disabled>Sonraki</button>
+<script>
+'use strict';
+let offset=0,snapshot=null,total=0;const size=10;
+const form=document.getElementById('filters'),status=document.getElementById('status'),items=document.getElementById('items');
+const previous=document.getElementById('previous'),next=document.getElementById('next');
+async function load(){
+ previous.disabled=true;next.disabled=true;status.textContent='Geçmiş yükleniyor…';items.replaceChildren();
+ const query=new URLSearchParams();for(const [key,value] of new FormData(form))if(value)query.set(key,value);
+ query.set('offset',offset);query.set('limit',size);if(snapshot)query.set('snapshot',snapshot);
+ try{
+  const response=await fetch('/api/history/archive?'+query);if(!response.ok)throw new Error('unavailable');
+  const data=await response.json();snapshot=data.snapshot;total=data.total;
+  status.textContent=total ? `${total} kayıt; ${offset+1}–${Math.min(offset+size,total)}`:'Bu filtrelerde kayıt yok.';
+  for(const record of data.items){
+   const article=document.createElement('article'),title=document.createElement('h2'),score=document.createElement('p');
+   title.textContent=record.match.home_team+' – '+record.match.away_team;
+   score.textContent=`${record.day} · ${record.match.ft_home ?? '–'} : ${record.match.ft_away ?? '–'} · Revizyon ${record.revision}`;
+   article.append(title,score);
+   const details=document.createElement('details'),summary=document.createElement('summary'),content=document.createElement('pre');
+   summary.textContent='Oranlar ve sonuç kanıtları';content.textContent=JSON.stringify({odds:record.match.odds,evidence:record.evidence},null,2);
+   details.append(summary,content);article.append(details);items.append(article);
+  }
+  previous.disabled=offset===0;next.disabled=offset+size>=total;
+ }catch{status.textContent='Geçmiş arşivi şu anda doğrulanamıyor. Lütfen tekrar deneyin.';}
+}
+form.addEventListener('submit',event=>{event.preventDefault();offset=0;snapshot=null;load();});
+previous.addEventListener('click',()=>{offset=Math.max(0,offset-size);load();});
+next.addEventListener('click',()=>{offset+=size;load();});
+load();
+</script></body></html>
