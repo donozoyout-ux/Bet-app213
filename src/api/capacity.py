@@ -12,6 +12,9 @@ class DatabaseCapacityMiddleware:
     async def __call__(self, scope, receive, send):
         if scope['type'] != 'http' or not scope['path'].startswith('/api/'):
             return await self.app(scope, receive, send)
+        # Archive-only reader never acquires a PostgreSQL connection.
+        if scope['method'] == 'GET' and scope['path'] == '/api/history/archive':
+            return await self.app(scope, receive, send)
         from src.api.routes import database
         if not hasattr(database, 'request_slot'):
             return await self.app(scope, receive, send)
