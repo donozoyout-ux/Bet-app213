@@ -15,10 +15,11 @@ class LocalRecoveryStore:
     repo = "offline-owner"
     is_offsite = False
 
-    def __init__(self, destination, key, budget_bytes):
+    def __init__(self, destination, key, budget_bytes, *, allow_rescue_restore=False):
         self.destination = Path(destination).resolve()
         self.key = key
         self.budget = budget_bytes
+        self.allow_rescue_restore = allow_rescue_restore
         self.total = 0
         self.assets = {}
         self.release = None
@@ -69,7 +70,15 @@ class LocalRecoveryStore:
         if json is None or json.get("draft") is not False:
             raise ValueError("offline_receipt_incomplete")
         body = __import__("json").loads(json["body"])
-        if not body.get("restore_verified") or not body.get("row_content_verified"):
+        full = body.get("row_content_verified") is True
+        rescue = (self.allow_rescue_restore
+                  and body.get("rescue_only") is True
+                  and body.get("source_row_content_verified") is False
+                  and body.get("row_content_verified") is False
+                  and body.get("eviction_authorized") is False
+                  and body.get("source_deleted_rows") == 0
+                  and body.get("application_read_through_verified") is False)
+        if body.get("restore_verified") is not True or not (full or rescue):
             raise ValueError("offline_restore_not_verified")
         body["offsite_verified"] = False
         body["manual_browser_upload_required"] = True

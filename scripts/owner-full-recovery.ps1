@@ -1,6 +1,6 @@
 ﻿[CmdletBinding()]
 param(
-    [ValidateSet('Preflight','PreflightLocal','InitKey','Backup','LocalBackup')][string]$Mode = 'Preflight',
+    [ValidateSet('Preflight','PreflightLocal','InitKey','Backup','LocalBackup','LocalRescue')][string]$Mode = 'Preflight',
     [string]$KeyFile,
     [ValidatePattern('^[a-z0-9][a-z0-9-]{0,63}$')][string]$BackupId,
     [switch]$KeyRetainedOffline
@@ -139,7 +139,7 @@ try {
     $runRoot = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) ('KuponRecovery\run-' + $BackupId)
     if (Test-Path -LiteralPath $runRoot) { throw 'Run directory exists. Use a new BackupId; do not overwrite earlier evidence.' }
     $runRoot = Protect-OwnerDirectory $runRoot
-    $env:RECOVERY_OFFLINE_DIR = if ($Mode -eq 'LocalBackup') { Join-Path $runRoot 'encrypted-assets' } else { '' }
+    $env:RECOVERY_OFFLINE_DIR = if ($Mode -in @('LocalBackup','LocalRescue')) { Join-Path $runRoot 'encrypted-assets' } else { '' }
     $env:TMP = $runRoot
     $env:TEMP = $runRoot
     $env:DATABASE_URL = ''
@@ -194,7 +194,11 @@ try {
     $stage = 'readonly_export_local_restore'
     Push-Location $repoRoot
     try {
-        & python -m src.archive.full_recovery | Tee-Object -FilePath (Join-Path $runRoot 'verification.log')
+        if ($Mode -eq 'LocalRescue') {
+            & python -m src.archive.disk_rescue | Tee-Object -FilePath (Join-Path $runRoot 'verification.log')
+        } else {
+            & python -m src.archive.full_recovery | Tee-Object -FilePath (Join-Path $runRoot 'verification.log')
+        }
         if ($LASTEXITCODE -ne 0) { throw 'Recovery incomplete. Keep any draft archive; do not clean the source.' }
     } finally { Pop-Location }
 } catch {
