@@ -40,6 +40,32 @@ def synthetic_rescue_zip(tmp_path, monkeypatch, *, corrupt=False):
     return zpath
 
 
+def test_readonly_zip_preflight_without_creating_any_output(tmp_path, monkeypatch):
+    from src.archive.free_seed_builder import inspect_rescue_metadata
+    archive=synthetic_rescue_zip(tmp_path,monkeypatch)
+    files_before={p.name for p in tmp_path.iterdir()}
+    result=inspect_rescue_metadata(archive,KEY)
+    assert result['manifest_and_receipt_authenticated'] is True
+    assert result['chunk_count']==1
+    assert result['database_contacted'] is False
+    assert result['output_directory_created'] is False
+    assert {p.name for p in tmp_path.iterdir()}==files_before
+
+
+def test_readonly_preflight_never_starts_docker(tmp_path,monkeypatch):
+    from src.archive.free_seed_builder import main
+    import sys
+    archive=synthetic_rescue_zip(tmp_path,monkeypatch)
+    keyfile=tmp_path/'recovery.key'
+    keyfile.write_text(KEY,encoding='utf-8')
+    monkeypatch.setattr(seed,'_docker',lambda *a,**kw: (_ for _ in ()).throw(
+        AssertionError('preflight_must_not_start_docker')))
+    monkeypatch.setattr(sys,'argv',['free_seed_builder','--zip',str(archive),
+                                    '--key-file',str(keyfile),'--inspect-only'])
+    main()
+    assert not list(tmp_path.glob('private-dump-*'))
+
+
 def test_immutable_encrypted_rescue_reconstructs_locally(tmp_path, monkeypatch):
     archive=synthetic_rescue_zip(tmp_path,monkeypatch)
     out=tmp_path/'private.dump'
