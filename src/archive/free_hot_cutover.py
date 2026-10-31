@@ -19,7 +19,9 @@ class CutoverBlocked(RuntimeError):
 
 
 ALLOWED_REFERENCERS = frozenset({'public.board_heads', 'public.board_read_publications'})
-MUST_HAVE_TABLES = frozenset({'public.board_editions', 'public.board_heads', 'public.board_read_publications'})
+MUST_HAVE_TABLES = frozenset({'public.board_editions', 'public.board_heads',
+                               'public.board_read_publications', 'public.prediction_publications',
+                               'public.published_match_analyses'})
 MAX_ORIGINAL_BOARD_VERSIONS = 100_000
 
 
@@ -71,16 +73,26 @@ def board_references(conn):
         "WHERE contype='f' AND confrelid='public.board_editions'::regclass")}
     if not referencers <= ALLOWED_REFERENCERS or not referencers:
         raise CutoverBlocked('unknown_board_foreign_key')
+    # Saved prediction and match-analysis evidence uses plain-text board_version,
+    # not PostgreSQL FKs; dropping those editions breaks immutable history.
     versions = {r[0] for r in conn.execute(
         "SELECT version FROM public.board_heads "
-        "UNION SELECT version FROM public.board_read_publications")}
+        "UNION SELECT version FROM public.board_read_publications "
+        "UNION SELECT board_version FROM public.prediction_publications "
+        "WHERE board_version IS NOT NULL "
+        "UNION SELECT board_version FROM public.published_match_analyses "
+        "WHERE board_version IS NOT NULL")}
     if not versions or len(versions)>MAX_ORIGINAL_BOARD_VERSIONS:
         raise CutoverBlocked('no_active_board_references_or_budget')
     missing=conn.execute(
         "SELECT count(*) FROM ("
         "SELECT version FROM public.board_heads "
-        "UNION SELECT version FROM public.board_read_publications"
-        ") required LEFT JOIN public.board_editions b USING(version) "
+        "UNION SELECT version FROM public.board_read_publications "
+        "UNION SELECT board_version FROM public.prediction_publications "
+        "WHERE board_version IS NOT NULL "
+        "UNION SELECT board_version FROM public.published_match_analyses "
+        "WHERE board_version IS NOT NULL"
+        ") required LEFT JOIN public.board_editions b ON b.version=required.version "
         "WHERE b.version IS NULL").fetchone()[0]
     if missing: raise CutoverBlocked('dangling_board_versions')
     return versions
@@ -93,7 +105,9 @@ def plan_local_hot_seed(conn):
     kept=conn.execute(
         'SELECT count(*) FROM public.board_editions b '
         'WHERE EXISTS(SELECT 1 FROM public.board_heads h WHERE h.version=b.version) '
-        'OR EXISTS(SELECT 1 FROM public.board_read_publications p WHERE p.version=b.version)'
+        'OR EXISTS(SELECT 1 FROM public.board_read_publications p WHERE p.version=b.version) '
+        'OR EXISTS(SELECT 1 FROM public.prediction_publications x WHERE x.board_version=b.version) '
+        'OR EXISTS(SELECT 1 FROM public.published_match_analyses a WHERE a.board_version=b.version)'
     ).fetchone()[0]
     if kept != len(versions) or total < kept:
         raise CutoverBlocked('board_reference_count_mismatch')
@@ -101,12 +115,14 @@ def plan_local_hot_seed(conn):
     payload_bytes=conn.execute(
         'SELECT coalesce(sum(pg_column_size(b.payload)),0) FROM public.board_editions b '
         'WHERE EXISTS(SELECT 1 FROM public.board_heads h WHERE h.version=b.version) '
-        'OR EXISTS(SELECT 1 FROM public.board_read_publications p WHERE p.version=b.version)'
+        'OR EXISTS(SELECT 1 FROM public.board_read_publications p WHERE p.version=b.version) '
+        'OR EXISTS(SELECT 1 FROM public.prediction_publications x WHERE x.board_version=b.version) '
+        'OR EXISTS(SELECT 1 FROM public.published_match_analyses a WHERE a.board_version=b.version)'
     ).fetchone()[0]
     before_size=conn.execute(
         "SELECT pg_total_relation_size('public.board_editions')").fetchone()[0]
     return dict(stage='local_plan_only',restored_versions=total,
-                active_versions=kept,archived_only_versions=total-kept,
+                active_versions=kept,referenced_versions=kept,archived_only_versions=total-kept,
                 active_payload_bytes=payload_bytes,original_board_relation_bytes=before_size,
                 source_database_modified=False,remote_database_modified=False,
                 archive_read_through_verified=False,source_row_content_verified=False,
@@ -120,7 +136,9 @@ def _board_digest(conn, *, retained_only):
     if retained_only:
         query += sql.SQL(
             ' WHERE EXISTS(SELECT 1 FROM public.board_heads h WHERE h.version=b.version) '
-            'OR EXISTS(SELECT 1 FROM public.board_read_publications p WHERE p.version=b.version)')
+            'OR EXISTS(SELECT 1 FROM public.board_read_publications p WHERE p.version=b.version) '
+        'OR EXISTS(SELECT 1 FROM public.prediction_publications x WHERE x.board_version=b.version) '
+        'OR EXISTS(SELECT 1 FROM public.published_match_analyses a WHERE a.board_version=b.version)')
     return row_fingerprint(conn,query)
 
 
@@ -145,7 +163,9 @@ def apply_only_to_owned_local_verifier(params):
         removed=conn.execute(
             "DELETE FROM public.board_editions b "
             "WHERE NOT EXISTS (SELECT 1 FROM public.board_heads h WHERE h.version=b.version) "
-            "AND NOT EXISTS (SELECT 1 FROM public.board_read_publications p WHERE p.version=b.version)"
+            "AND NOT EXISTS (SELECT 1 FROM public.board_read_publications p WHERE p.version=b.version) "
+            "AND NOT EXISTS (SELECT 1 FROM public.prediction_publications x WHERE x.board_version=b.version) "
+            "AND NOT EXISTS (SELECT 1 FROM public.published_match_analyses a WHERE a.board_version=b.version)"
         ).rowcount
         if removed != plan['archived_only_versions']:
             raise CutoverBlocked('prune_count_mismatch')
