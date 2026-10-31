@@ -41,6 +41,42 @@ def test_full_row_hash_includes_duplicates_exact_numbers_ids_and_json(tmp_path, 
     assert not list(tmp_path.iterdir())  # Temporary sorter closes even on Windows.
 
 
+
+def test_render_non_superuser_zero_large_objects_does_not_read_restricted_pg_largeobject():
+    """Actual Render source rejects SELECT pg_largeobject; zero objects need no scan."""
+    from hashlib import sha256
+    from src.archive.full_recovery import inventory
+
+    class RowResult:
+        def __init__(self, value): self.value = value
+        def fetchone(self): return (self.value,)
+
+    class RestrictedSource:
+        def __init__(self, count): self.count = count; self.sql = []
+        def execute(self, statement):
+            statement = str(statement)
+            self.sql.append(statement)
+            if 'FROM pg_class c' in statement: return []
+            if 'FROM pg_sequences' in statement: return []
+            if 'FROM pg_largeobject_metadata' in statement: return RowResult(self.count)
+            if 'pg_largeobject' in statement: raise PermissionError('permission denied for table pg_largeobject')
+            if statement.startswith('SET LOCAL '): return None
+            raise AssertionError('Unexpected SQL: ' + statement)
+        def cursor(self, **kwargs):
+            raise PermissionError('permission denied for table pg_largeobject')
+
+    empty = RestrictedSource(0)
+    result = inventory(empty)
+    assert result == dict(tables=[], sequences=[], large_objects=0,
+                          large_object_pages_sha256=sha256(b'').hexdigest())
+    assert not any('FROM pg_largeobject)' in sql or 'FROM pg_largeobject ' in sql
+                   for sql in empty.sql)
+
+    nonempty = RestrictedSource(1)
+    with pytest.raises(PermissionError, match='permission denied'):
+        inventory(nonempty)  # Must not silently skip actual large-object contents.
+
+
 def test_windows_restore_exec_targets_only_owned_pg18_container(tmp_path, monkeypatch):
     from src.archive import full_recovery as module
     owned='a'*64
