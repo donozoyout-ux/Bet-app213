@@ -1,0 +1,56 @@
+{
+  "captured_as_of": "2026-10-08T12:00:00+00:00",
+  "combined_odds": "1.85",
+  "content_digest": "154280808c3925b13ea48e1221746c5d496f2d13e86d58cde53c90e85e38bb63",
+  "day": "2026-10-08",
+  "diff": {},
+  "edition_id": "ce1:154280808c3925b13ea48e1221746c5d496f2d13e86d58cde53c90e85e38bb63",
+  "first_edition_id": null,
+  "items": [
+    {
+      "match": {
+        "away_team": "Away 1",
+        "away_team_id": 3,
+        "home_team": "Home 1",
+        "home_team_id": 2,
+        "id": 1,
+        "kickoff_at": "2026-10-08T14:00:00+00:00",
+        "league_id": 1
+      },
+      "quote": {
+        "bookmaker": "Bet365",
+        "eligible": true,
+        "expires_at": "2026-10-08T12:15:00+00:00",
+        "line": null,
+        "observed_at": "2026-10-08T12:00:00+00:00",
+        "period": "full_time",
+        "price": 1.85
+      },
+      "recommendation": {
+        "confidence": "high",
+        "id": "home_result",
+        "label": "Home",
+        "line": null,
+        "market": "result",
+        "period": "full_time",
+        "probability": 0.95,
+        "qualifies": true,
+        "reliability": 0.98,
+        "score": 0.98,
+        "selection": "home"
+      }
+    }
+  ],
+  "kind": "banko",
+  "model_version": "synthetic-v1",
+  "previous_id": null,
+  "reason": null,
+  "revision": 1,
+  "schema": "coupon-edition-v1",
+  "state": "published",
+  "status": "published",
+  "published": true,
+  "checked_at": "2026-10-08T12:00:00+00:00",
+  "evidence_status": "frozen",
+  "first_record": true
+}
