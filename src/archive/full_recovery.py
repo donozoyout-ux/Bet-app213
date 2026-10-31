@@ -218,7 +218,15 @@ if __name__=='__main__':
     os.umask(0o077)
     try:asyncio.run(main())
     except Exception as error:
-        # Never echo DB URLs, provider payloads, libpq errors or secret values.
-        safe=str(error) if isinstance(error,ValueError) and re.fullmatch('[a-z_]+',str(error)) else 'recovery_failed'
+        # Explicit non-secret error codes only. Never echo DB URLs, credentials,
+        # provider payloads, hashes, HTTP responses or arbitrary exception text.
+        public_codes={
+            'approved_source_required','isolated_restore_target_required',
+            'archive_encryption_key_missing','archive_encryption_key_not_base64',
+            'archive_encryption_key_not_32_bytes','archive_encryption_key_invalid',
+            'archive_encryption_key_check_failed','invalid_backup_id',
+            'manual_authorization_required'
+        }
+        safe=str(error) if isinstance(error,ValueError) and str(error) in public_codes else 'recovery_failed'
         print('RECOVERY_INCOMPLETE: '+safe,flush=True)
         raise SystemExit(1) from None
