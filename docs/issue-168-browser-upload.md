@@ -50,3 +50,15 @@ powershell.exe -NoProfile -File .\scripts\owner-full-recovery.ps1 -Mode LocalBac
 - ZIP yalnız şifreli `*.enc` dosyaları ve teknik `summary.json` içerir; plaintext dump/key/token eklenmez. Gerçek DB bağlantısı/TLS ve kaynak izinleri ayrıca yerel Backup esnasında doğrulanır.
 - Bozuk ZIP, kayıp anahtar, hatalı kaynak kimliği, non-empty verifier ve parity hatası fail-closed.
 - GitHub'da yayınlanmış Release + aynı hash ve gerçek site archive-backed read-through olmadan PostgreSQL sıfırlanmaz. Render Free veritabanı süre bitimi temizleme ile uzamaz.
+
+## Hata kodları: yalnız sabit aşama adı, gizli bilgi gösterilmez
+
+Windows çalıştırıcısı herhangi bir arıza durumunda yalnızca `OWNER_RECOVERY_INCOMPLETE stage=<sabit_kod>` döndürür. Bağlantı URL'sini, şifreyi, token veya istisna içeriğini hiçbir yere yazdırmaz. Kaynakta değişiklik yapmaz. Eski ID ile klasör oluşmuşsa aynı ID'yi tekrar kullanmak yerine benzersiz yeni bir BackupId seçin.
+
+- `source_identity_validation`: Girilen URL'nin **aktif** `Kuponanaliziivv755` PostgreSQL veritabanının Render **External Database URL** alanından olduğunu kontrol edin. Suspended eski DB, dahili URL veya Neon URL kabul edilmez. Bağlantıyı mesaja yapıştırmayın.
+- `source_readonly_tls_connectivity`: URL'nin biçimi doğru ama TLS/şifre/ağ bağlantısı kurulamadı; aktif DB'nin erişimini Render Dashboard ve yerel ağdan kontrol edin. Sadece `SELECT` denemesi, DDL/DML yok.
+- `local_private_workspace`: Gerekli klasör zaten varsa yeni BackupId seçin veya yerel izinleri inceleyin; mevcut klasörü silmeyin.
+- `isolated_postgres_container_start` / `isolated_postgres_container_ready`: Docker ve localhost 5433, başka mevcut container/volume silmeden incelenmeli.
+- `readonly_export_local_restore`: Gerçek `pg_dump` / şifreli ZIP / bağımsız PG18 restore sırasında işlem durdu; yalnız gizli bilgi içermeyen `RECOVERY_INCOMPLETE: <kod>` aşamalarını paylaşın. Kaynaktan veri silmeyin.
+
+Aşama kodları doğrudan kullanıcının girdiği metinden türetilmez; sabit, önceden tanımlanmış dizelerdir. 
