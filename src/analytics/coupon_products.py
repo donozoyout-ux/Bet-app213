@@ -42,8 +42,14 @@ def _available(kind, items, now):
     odds = Decimal(1)
     for item in items:
         odds *= _price(item)
+    try:
+        combined = float(odds)
+    except (ValueError, OverflowError):
+        return _unavailable(kind, "combined_odds_out_of_range", now)
+    if not math.isfinite(combined):
+        return _unavailable(kind, "combined_odds_out_of_range", now)
     return dict(kind=kind, status="candidate_only", reason=None,
-                items=items, combined_odds=float(odds),
+                items=items, combined_odds=combined,
                 checked_at=now.isoformat(), policy_version=POLICY_VERSION,
                 published=False)
 
