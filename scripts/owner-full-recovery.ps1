@@ -11,6 +11,7 @@ $repoRoot = Split-Path $PSScriptRoot -Parent
 $originalLocation = Get-Location
 $ownedContainer = $null
 $savedEnvironment = @{}
+$stage = 'startup'
 $environmentNames = @('ARCHIVE_DATABASE_URL','ARCHIVE_ENCRYPTION_KEY','ARCHIVE_GITHUB_TOKEN',
     'RECOVERY_VERIFY_URL','RECOVERY_VERIFY_CONTAINER','RECOVERY_BACKUP_ID','RECOVERY_AUTHORIZED',
     'DATABASE_URL','TELEGRAM_BOT_TOKEN','TELEGRAM_CHAT_ID','NVIDIA_API_KEY','NVIDIA_AI_ENABLED',
@@ -76,6 +77,7 @@ try {
         exit 0
     }
 
+    $stage = 'tools_preflight'
     $checks = [ordered]@{}
     foreach ($tool in @('python','docker','gh')) { $checks[$tool] = [bool](Get-Command $tool -ErrorAction SilentlyContinue) }
     if ($checks.docker) {
@@ -113,19 +115,24 @@ try {
     if (-not $KeyFile -or -not $BackupId -or -not $KeyRetainedOffline) {
         throw 'Backup needs KeyFile, a unique BackupId, and owner confirmation KeyRetainedOffline.'
     }
+    $stage = 'encryption_key_validation'
     $key = Read-Key $KeyFile
     foreach ($name in $environmentNames) { $savedEnvironment[$name] = [Environment]::GetEnvironmentVariable($name, 'Process') }
     $env:ARCHIVE_ENCRYPTION_KEY = $key
     $env:ARCHIVE_GITHUB_TOKEN = if ($Mode -eq 'Backup') { $token } else { '' }
     # Existing credentials are entered only at the local terminal, never in chat, arguments or files.
+    $stage = 'source_url_entry'
     $secureSource = Read-Host 'Active Render external PostgreSQL URL (hidden; not saved)' -AsSecureString
     $env:ARCHIVE_DATABASE_URL = [Net.NetworkCredential]::new('', $secureSource).Password
+    $stage = 'source_identity_validation'
     $null = & python -m src.archive.owner_recovery check-source 2>$null
     if ($LASTEXITCODE -ne 0) { throw 'Active source identity check failed before any connection.' }
     if ($Mode -eq 'Backup') {
+        $stage = 'github_archive_permission_check'
         $null = & python -m src.archive.owner_recovery check-archive 2>$null
         if ($LASTEXITCODE -ne 0) { throw 'Private archive repository access check failed before source export.' }
     }
+    $stage = 'local_private_workspace'
     $runRoot = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) ('KuponRecovery\run-' + $BackupId)
     if (Test-Path -LiteralPath $runRoot) { throw 'Run directory exists. Use a new BackupId; do not overwrite earlier evidence.' }
     $runRoot = Protect-OwnerDirectory $runRoot
@@ -148,11 +155,13 @@ try {
     $previousPassword = $env:POSTGRES_PASSWORD
     $env:POSTGRES_PASSWORD = $verifyPassword
     try {
+        $stage = 'isolated_postgres_container_start'
         $containerOutput = & docker run -d --rm --label "kupon.recovery.owner-run=$BackupId" `
             -p '127.0.0.1:5433:5432' --env POSTGRES_PASSWORD postgres:18 2>$null
         if ($LASTEXITCODE -ne 0 -or $containerOutput -notmatch '^[0-9a-f]{64}$') { throw 'Cannot create isolated verifier. No existing container will be removed.' }
         $ownedContainer = $containerOutput.Trim()
     } finally { $env:POSTGRES_PASSWORD = $previousPassword }
+    $stage = 'isolated_postgres_container_ready'
     $ready = $false
     for ($attempt=0; $attempt -lt 30; $attempt++) {
         $null = & docker exec $ownedContainer pg_isready -U postgres 2>$null
@@ -162,6 +171,7 @@ try {
     if (-not $ready) { throw 'Isolated verifier did not become ready.' }
     $env:RECOVERY_VERIFY_CONTAINER = $ownedContainer
     $env:RECOVERY_VERIFY_URL = 'postgresql://postgres:' + $verifyPassword + '@127.0.0.1:5433/postgres'
+    $stage = 'readonly_export_local_restore'
     Push-Location $repoRoot
     try {
         & python -m src.archive.full_recovery | Tee-Object -FilePath (Join-Path $runRoot 'verification.log')
@@ -169,7 +179,9 @@ try {
     } finally { Pop-Location }
 } catch {
     # Never print arbitrary native exception text, which may contain credentials.
-    Write-Output 'OWNER_RECOVERY_INCOMPLETE: review preflight and the local runbook; no cleanup is authorized.'
+    # $stage is selected exclusively from constant strings above. Never echo exception
+    # text: PowerShell native command errors can contain tokens, DSNs, and paths.
+    Write-Output ('OWNER_RECOVERY_INCOMPLETE stage={0}; source unchanged; no cleanup authorized.' -f $stage)
     exit 1
 } finally {
     if ($ownedContainer -and $ownedContainer -match '^[0-9a-f]{64}$') {
