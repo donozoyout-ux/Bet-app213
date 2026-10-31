@@ -1,0 +1,12 @@
+-- Catalog/aggregate inspection only. Run with psql -X -v ON_ERROR_STOP=1 -f this_file.
+BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY;
+SET LOCAL statement_timeout = '30s';
+SET LOCAL lock_timeout = '2s';
+SELECT now() AS measured_at, pg_database_size(current_database()) AS database_bytes;
+SELECT n.nspname AS schema,c.relname AS name,pg_total_relation_size(c.oid) AS total_bytes,pg_table_size(c.oid)-CASE WHEN c.reltoastrelid=0 THEN 0 ELSE pg_total_relation_size(c.reltoastrelid) END AS heap_bytes,pg_indexes_size(c.oid) AS index_bytes,CASE WHEN c.reltoastrelid=0 THEN 0 ELSE pg_total_relation_size(c.reltoastrelid) END AS toast_bytes,c.reltuples::bigint AS estimated_rows FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relkind IN ('r','m') ORDER BY total_bytes DESC;
+SELECT status,count(*) AS rows,count(*) FILTER(WHERE kickoff_at < (date_trunc('day',now() AT TIME ZONE 'Europe/Istanbul') AT TIME ZONE 'Europe/Istanbul')) AS past,count(*) FILTER(WHERE kickoff_at >= (date_trunc('day',now() AT TIME ZONE 'Europe/Istanbul') AT TIME ZONE 'Europe/Istanbul') AND kickoff_at < ((date_trunc('day',now() AT TIME ZONE 'Europe/Istanbul')+interval '4 days') AT TIME ZONE 'Europe/Istanbul')) AS active_four_days,count(*) FILTER(WHERE kickoff_at IS NULL) AS unknown_date FROM public.matches GROUP BY status;
+WITH refs AS (SELECT version FROM public.board_heads UNION SELECT version FROM public.board_read_publications UNION SELECT board_version FROM public.prediction_publications UNION SELECT board_version FROM public.published_match_analyses) SELECT count(*) AS editions,count(*) FILTER(WHERE r.version IS NOT NULL) AS referenced,count(*) FILTER(WHERE r.version IS NULL) AS unreferenced,coalesce(sum(pg_column_size(b.payload)) FILTER(WHERE r.version IS NULL),0) AS unreferenced_payload_bytes FROM public.board_editions b LEFT JOIN refs r ON r.version=b.version;
+SELECT relname AS table_name,indexrelname AS index_name,pg_relation_size(indexrelid) AS bytes,idx_scan FROM pg_stat_user_indexes ORDER BY bytes DESC LIMIT 15;
+SELECT conrelid::regclass::text AS child,confrelid::regclass::text AS parent,pg_get_constraintdef(oid) AS definition FROM pg_constraint WHERE contype='f' AND confrelid IN ('public.matches'::regclass,'public.board_editions'::regclass) ORDER BY 1;
+SELECT event_object_table,trigger_name,event_manipulation FROM information_schema.triggers WHERE trigger_schema='public' AND event_object_table='board_editions';
+ROLLBACK;
