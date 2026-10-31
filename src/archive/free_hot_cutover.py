@@ -9,7 +9,6 @@ import os
 import re
 import subprocess
 from dataclasses import dataclass
-from datetime import datetime, timezone
 
 import psycopg
 from psycopg import sql
@@ -48,6 +47,10 @@ def assert_local_owned_verifier(params, *, docker_run=subprocess.run, environ=No
         result=docker_run(command,capture_output=True,text=True,check=True,timeout=15)
         if result.stdout.strip() != 'postgres:18 ' + backup_id:
             raise CutoverBlocked('owned_container_label_mismatch')
+        bound=docker_run(['docker','port',owned,'5432/tcp'],capture_output=True,
+                         text=True,check=True,timeout=15)
+        if not any(line.strip()=='127.0.0.1:5433' for line in bound.stdout.splitlines()):
+            raise CutoverBlocked('local_verifier_port_binding_mismatch')
     except CutoverBlocked:
         raise
     except Exception:
@@ -151,6 +154,7 @@ def apply_only_to_owned_local_verifier(params):
         if (after_kept_count,after_kept_hash)!=(original_kept_count,original_kept_hash):
             raise CutoverBlocked('local_retained_board_digest_mismatch')
         # Only VACUUM the isolated owned verifier after logical validation.
+        conn.commit()
         conn.autocommit=True
         conn.execute('VACUUM (FULL, ANALYZE) public.board_editions')
         compact=conn.execute(
