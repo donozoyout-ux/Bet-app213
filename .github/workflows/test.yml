@@ -38,6 +38,20 @@ jobs:
           node-version: "22"
       - run: pip install -r requirements-dev.txt
       - run: python -m playwright install --with-deps chromium
+      - name: Parse owner recovery PowerShell script (cross-platform)
+        shell: pwsh
+        run: |
+          $tokens = $null
+          $errors = $null
+          [void][System.Management.Automation.Language.Parser]::ParseFile(
+            (Join-Path $PWD 'scripts/owner-full-recovery.ps1'),
+            [ref]$tokens, [ref]$errors)
+          if ($errors.Count -gt 0) {
+            foreach ($parseError in $errors) {
+              Write-Error ("PowerShell parse issue at line {0}: {1}" -f $parseError.Extent.StartLineNumber, $parseError.Message)
+            }
+            exit 1
+          }
       - run: python -m compileall src legacy
       - run: python -c "import pathlib; paths=list(pathlib.Path('.').rglob('*.py')); assert not [str(p) for p in paths if b'\x00' in p.read_bytes()]"
       - name: Verify reviewed rollout and PostgreSQL admission first
@@ -85,3 +99,22 @@ jobs:
           node --check src/api/dashboard-results.js
           node --check src/api/dashboard-fixtures.js
           node tests/home_runtime.cjs
+
+  owner-windows-powershell-parser:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require Windows PowerShell 5.1 parser acceptance
+        shell: powershell
+        run: |
+          $errors = $null
+          $tokens = $null
+          [void][System.Management.Automation.Language.Parser]::ParseFile(
+            (Join-Path $PWD 'scripts/owner-full-recovery.ps1'),
+            [ref]$tokens, [ref]$errors)
+          if ($errors.Count -gt 0) {
+            $errors | ForEach-Object {
+              Write-Host ("Parse error at line {0}: {1}" -f $_.Extent.StartLineNumber, $_.Message)
+            }
+            throw 'Windows PowerShell 5.1 owner launcher syntax invalid'
+          }
