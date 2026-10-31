@@ -4,6 +4,7 @@ No network access occurs here. This is not proof of a GitHub-hosted copy.
 The full recovery pipeline still restores from authenticated bytes locally.
 """
 import json
+import hashlib
 from pathlib import Path
 import re
 from zipfile import ZipFile, ZIP_STORED
@@ -35,7 +36,7 @@ class LocalRecoveryStore:
         self.release = dict(id="local-"+backup_id, html_url=None)
 
     async def put(self, name, raw):
-        if name not in {"manifest.enc", "receipt.enc"} and not re.fullmatch(r"chunk-[0-9]{6}\\.enc", name):
+        if name not in {"manifest.enc", "receipt.enc"} and not re.fullmatch(r"chunk-[0-9]{6}[.]enc", name):
             raise ValueError("invalid_asset_name")
         blob = seal(raw, self.key, self.backup_id, name)
         if self.total + len(blob) > self.budget:
@@ -86,13 +87,18 @@ class LocalRecoveryStore:
             from zipfile import ZipFile
             with ZipFile(target, mode="w", compression=ZIP_STORED, allowZip64=True) as packed:
                 for path in sorted(self.destination.iterdir()):
-                    if not path.is_file() or path.name not in ("summary.json", "manifest.enc", "receipt.enc") and not re.fullmatch(r"chunk-[0-9]{6}\\.enc", path.name):
+                    if not path.is_file() or path.name not in ("summary.json", "manifest.enc", "receipt.enc") and not re.fullmatch(r"chunk-[0-9]{6}[.]enc", path.name):
                         raise ValueError("offline_unexpected_asset")
                     packed.write(path, arcname=path.name)
         if archive.stat().st_size >= 2_000_000_000:
             raise ValueError("github_release_single_asset_limit")
         archive.chmod(0o600)
-        return dict(path=str(archive), size=archive.stat().st_size, sha256=sha(archive.read_bytes()))
+        checksum = hashlib.sha256()
+        with archive.open("rb") as reader:
+            while block := reader.read(1024 * 1024):
+                checksum.update(block)
+        return dict(path=str(archive), size=archive.stat().st_size,
+                    sha256=checksum.hexdigest())
 
     async def close(self):
         return None
