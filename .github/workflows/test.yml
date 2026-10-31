@@ -76,6 +76,7 @@ jobs:
           tests/test_storage_containment.py
           tests/test_full_recovery.py
           tests/test_owner_recovery.py
+          tests/test_disk_rescue.py
       - run: python -m pytest -q -rP
       - name: Dashboard JavaScript syntax and degraded-state execution
         run: |
