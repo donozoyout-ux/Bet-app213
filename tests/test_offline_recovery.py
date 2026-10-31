@@ -63,3 +63,36 @@ def test_inventory_order_and_duplicates():
     a = row_fingerprint(Conn(['a', 'b', 'a']), '')
     assert a == row_fingerprint(Conn(['b', 'a', 'a']), '')
     assert a != row_fingerprint(Conn(['b', 'a']), '')
+
+
+@pytest.mark.parametrize('fail_at,expected_stage', [('restore','first_pg18_restore'),('inventory','first_inventory'),('parity','full_content_parity')])
+def test_pipeline_failure_never_writes_success(tmp_path, monkeypatch, capsys, fail_at, expected_stage):
+    from contextlib import contextmanager
+    keyfile=tmp_path/'key'
+    keyfile.write_text(base64.b64encode(bytes(32)).decode())
+    root=tmp_path/'result'
+    if recovery.os.name == 'nt': root.mkdir()
+    monkeypatch.setattr('sys.argv',['offline','--zip','unused','--key-file',str(keyfile),'--output-root',str(root)])
+    def decrypt(archive,key,output):
+        output.write_bytes(b'synthetic')
+        return {}
+    @contextmanager
+    def container(*args): yield 'owned',{}
+    def restore(*args):
+        if fail_at == 'restore': raise psycopg.errors.RaiseException('private SQL')
+    count=0
+    def inventory(*args):
+        nonlocal count
+        count+=1
+        if fail_at == 'inventory': raise psycopg.errors.RaiseException('private row')
+        return {'rows':count}
+    monkeypatch.setattr(recovery,'load_offline_rescue',decrypt)
+    monkeypatch.setattr(recovery,'ephemeral_pg18',container)
+    monkeypatch.setattr(recovery,'_restore',restore)
+    monkeypatch.setattr(recovery,'local_inventory',inventory)
+    with pytest.raises(SystemExit): recovery.main()
+    assert not (root/'verification.json').exists()
+    output=capsys.readouterr().out
+    assert 'stage='+expected_stage in output
+    assert 'private' not in output
+    assert 'LOCAL_RESTORE_VERIFIED' not in output
