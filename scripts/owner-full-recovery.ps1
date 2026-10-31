@@ -127,6 +127,9 @@ try {
     $stage = 'source_identity_validation'
     $null = & python -m src.archive.owner_recovery check-source 2>$null
     if ($LASTEXITCODE -ne 0) { throw 'Active source identity check failed before any connection.' }
+    $stage = 'source_readonly_tls_connectivity'
+    $null = & python -m src.archive.owner_recovery probe-source-readonly 2>$null
+    if ($LASTEXITCODE -ne 0) { throw 'Read-only source connection probe failed. Do not start backup.' }
     if ($Mode -eq 'Backup') {
         $stage = 'github_archive_permission_check'
         $null = & python -m src.archive.owner_recovery check-archive 2>$null
