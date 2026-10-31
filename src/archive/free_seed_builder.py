@@ -190,7 +190,7 @@ async def _encrypted_seed_and_verify(raw_dump, destination, key, backup_id,
                   chunks=chunks,dump_sha256=digest.hexdigest())
     await store.put('manifest.enc',canonical(manifest))
     # Restore ONLY authenticated bytes freshly read from disk, not original pg_dump.
-    with tempfile.TemporaryDirectory(prefix='hot-verify-') as directory:
+    with tempfile.TemporaryDirectory(prefix='hot-verify-',dir=destination.parent) as directory:
         replay=Path(directory)/'reconstructed.dump'
         recomputed=hashlib.sha256()
         with replay.open('xb') as out:
