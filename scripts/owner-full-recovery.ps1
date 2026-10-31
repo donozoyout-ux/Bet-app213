@@ -86,10 +86,12 @@ try {
         $result = Invoke-QuietNative python @('-c','import psycopg, cryptography, httpx; assert psycopg.pq.version() >= 170000')
         $checks.pythonLibraries = ($result.Code -eq 0)
     }
-    if ($checks.gh) {
+    if ($checks.gh -and ($Mode -eq 'Preflight' -or $Mode -eq 'Backup')) {
         $result = Invoke-QuietNative gh @('auth','token')
         $token = $result.Output
         $checks.githubAuthenticated = ($result.Code -eq 0 -and -not [string]::IsNullOrWhiteSpace($token))
+    } else {
+        $checks.githubAuthenticated = $false  # Not needed for the local browser-upload path.
     }
     $localDrive = [IO.DriveInfo]::new([IO.Path]::GetPathRoot([Environment]::GetFolderPath('LocalApplicationData')))
     $checks.localWorkspaceSpace = ($localDrive.AvailableFreeSpace -ge 8GB)
