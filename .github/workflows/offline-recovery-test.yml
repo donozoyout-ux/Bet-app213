@@ -37,4 +37,5 @@ jobs:
           if ($LASTEXITCODE -ne 1 -or $result -notcontains 'BLOCKED source_configuration' -or $result -notcontains 'PASS upload_disabled') { exit 1 }
           $result
           exit 0
-      - run: python -m pytest -q tests/test_source_preflight.py
+      # This standalone setup suite needs no application/ASGI conftest imports.
+      - run: python -m pytest --noconftest -q tests/test_source_preflight.py
