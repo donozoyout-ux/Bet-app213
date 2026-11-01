@@ -161,6 +161,13 @@ async def dashboard_predictions_script():
 
 from src.api.routes import router
 app.include_router(router, prefix='/api')
+from src.api.archive_history import router as archive_history_router
+app.include_router(archive_history_router, prefix='/api')
+
+
+@app.get('/history-archive', include_in_schema=False)
+async def history_archive_page():
+    return FileResponse(Path(__file__).with_name('history-archive.html'))
 
 
 @app.get('/dashboard-market.js',include_in_schema=False)

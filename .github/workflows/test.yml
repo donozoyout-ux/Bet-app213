@@ -44,6 +44,8 @@ jobs:
           tests/test_market_terminal.py::test_postgres_scope_migration_and_concurrent_immutable_capture
           tests/test_statistics_pipeline.py::test_rollout_does_not_mistake_odds_jobs_for_stats_and_retries_failed_only
           tests/test_statistics_pipeline.py::test_worker_uses_rollout_order_and_does_not_auto_run_disabled_jobs
+      - name: Encrypted cold history through existing application routes and browser
+        run: python -m pytest -q tests/test_cold_history.py tests/test_cold_history_ui.py tests/test_cold_matches.py tests/test_retention_plan.py
       - run: python -m pytest -q -rP
       - name: Dashboard JavaScript syntax and degraded-state execution
         run: |

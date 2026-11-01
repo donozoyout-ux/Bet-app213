@@ -7,7 +7,7 @@ const matchLink=(id,text)=>{const a=document.createElement('a');a.href='/match/'
   const {stage, movement, asianMovement, liveStates, number} = globalThis.BetAppOdds;
   const state = {leagues: [], seasons: [], league: '', season: '', round: '', selected: null, bookmaker: 'Crown', view: 'upcoming', offset: 0, total: 0, job: null, generation: 0, detailGeneration:0, busy: false};
   const empty = 'Henüz veri yok';
-  const requestError=e=>e?.name==='TimeoutError' || e?.status===504?'API isteği zaman aşımına uğradı. Yeniden deneyin.':e?.status===503?'PostgreSQL kullanılamıyor. Bağlantı bekleniyor.':'API kullanılamıyor. Bağlantı bekleniyor.';
+  const requestError=e=>e?.code==='history_archive_unavailable' || e?.code==='history_archive_disabled'?'Geçmiş arşivi doğrulanamıyor. Lütfen tekrar deneyin.':e?.name==='TimeoutError' || e?.status===504?'API isteği zaman aşımına uğradı. Yeniden deneyin.':e?.status===503?'PostgreSQL kullanılamıyor. Bağlantı bekleniyor.':'API kullanılamıyor. Bağlantı bekleniyor.';
   const displayTimezone = 'Europe/Istanbul';
   const date = value => value ? new Date(value).toLocaleString('tr-TR', {timeZone: displayTimezone}) : empty;
   const score = (home, away) => home == null || away == null ? '—' : `${home} - ${away}`;
@@ -17,8 +17,10 @@ const matchLink=(id,text)=>{const a=document.createElement('a');a.href='/match/'
   function refreshPredictions(force=false){if(globalThis.BetAppUI)return;const dateFilter=$('date-select')?.value || '';const key=state.league+'|'+dateFilter;if(force || key!==predictionFilter || Date.now()-predictionRefreshAt>=600000){predictionRefreshAt=Date.now();predictionFilter=key;globalThis.BetAppPredictions?.refresh(state.league,dateFilter);}}
   async function api(path, signal) {
     const response = await fetch(path, {signal: signal ? AbortSignal.any([signal,AbortSignal.timeout(15000)]) : AbortSignal.timeout(15000)});
-    if (!response.ok) {const e=new Error(`HTTP ${response.status}`);e.status=response.status;throw e;}
-    return response.json();
+    if (!response.ok) {const e=new Error(`HTTP ${response.status}`);e.status=response.status;try{e.code=(await response.json())?.detail?.code;}catch{}throw e;}
+    const data=await response.json();
+    if(data && !Array.isArray(data) && response.headers?.get?.('X-History-Source')==='github_archive')data.archiveRevision=response.headers.get('X-History-Revision');
+    return data;
   }
   function option(select, value, text) {
     const node = document.createElement('option'); node.value = value; node.textContent = text; select?.append(node);
@@ -137,13 +139,14 @@ const matchLink=(id,text)=>{const a=document.createElement('a');a.href='/match/'
     document.querySelectorAll('[data-match-id]').forEach(row=>{const active=row.dataset.matchId===String(id);row.classList.toggle('selected-match',active);row.setAttribute('aria-selected',String(active));});
     try {
       const [matchResult,oddsResult]=await Promise.allSettled([api(`/api/matches/${id}`,detailController?.signal),api(`/api/matches/${id}/odds`,detailController?.signal)]);if(state.selected !== id || generation!==state.detailGeneration)return;
-      if(matchResult.status!=='fulfilled'){write('detail-status','Bağlantı bekleniyor');return;}
+      if(matchResult.status!=='fulfilled'){write('detail-status',requestError(matchResult.reason));return;}
       const match=matchResult.value,allOdds=oddsResult.status==='fulfilled'?oddsResult.value:(match.odds || []);
       write('detail-title',`${match.home_team} vs ${match.away_team}`);write('detail-home',match.home_team);write('detail-away',match.away_team);
       for(const [id,name] of [['detail-home',match.home_team],['detail-away',match.away_team]]){
         const target=$(id);if(target?.dataset)target.dataset.initials=String(name||'?').trim().split(/\s+/).slice(0,2).map(word=>word[0]).join('').toLocaleUpperCase('tr-TR');
       }
       write('detail-league',`${match.league} • ${match.season} • ${match.round_label || `${match.round}. Hafta`}`);write('detail-time',date(match.kickoff_at)+' • Europe/Istanbul');write('detail-status',(statuses[match.status] || match.status)+(liveStates.includes(match.status) && match.live_minute ? ' • '+match.live_minute+'′' : ''));
+      if(match.archiveRevision)write('detail-status',`Arşiv · Revizyon ${match.archiveRevision} · Canlı kaynak eşitliği doğrulanmadı`);
       write('detail-home-score',number(match.ft_home));write('detail-away-score',number(match.ft_away));write('detail-ht',`İY: ${score(match.ht_home,match.ht_away)}`);
       const markets=allOdds.filter(odds=>odds.bookmaker === state.bookmaker);
       write('odds-stage-label',match.status === 'finished' || markets.some(m=>stage(match,m) === 'closing') ? 'Kapanış' : 'Güncel');
