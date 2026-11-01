@@ -56,7 +56,8 @@ async def test_broken_archive_returns_explicit_503(api, archive, kwargs):
 
 
 async def test_hot_record_wins_without_archive_request(api, db, archive):
-    match_id = await seed(db)
+    await seed(db)
+    match_id = 7  # Same identity also exists in the encrypted fixture.
     _, requests = archive(outage=True)
     for path in (f'/api/matches/{match_id}', f'/api/matches/{match_id}/odds'):
         response = await api.get(path)
