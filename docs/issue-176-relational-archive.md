@@ -17,6 +17,10 @@ The source database cap is 8 GiB; relation cap is 1,000; inventory streams and l
 
 ## Owner-run procedure
 
+First complete [the Render reader preparation and preflight](issue-176-render-reader.md).
+The preflight never calls the archive executor below. Its success is only a
+metadata/connection readiness result, never source parity or upload approval.
+
 1. On the machine with protected source access, inspect the existing PR #177 `verification.json` locally. Print only its status flags; do not send the ZIP, encryption key, database URL, GitHub token, or full report. For example:
 
    ```powershell

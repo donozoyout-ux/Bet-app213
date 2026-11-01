@@ -1,9 +1,12 @@
 """Disposable PostgreSQL 18 only; no production URL or GitHub credential is read."""
 import os
+from pathlib import Path
+import subprocess
 import psycopg
 import pytest
 from src.archive.offline_recovery import ephemeral_pg18,_restore,local_inventory
 from src.archive.relational_source import capture_source
+from src.archive.source_preflight import metadata_checks
 
 pytestmark=pytest.mark.skipif(os.getenv('RUN_OFFLINE_RECOVERY_DOCKER')!='1',reason='explicit isolated Docker PostgreSQL 18 test')
 
@@ -43,3 +46,45 @@ def test_same_snapshot_readonly_capture_restores_every_relation(tmp_path):
             restored=local_inventory(params2)
         assert restored==result['source_inventory']
         assert restored['tables']
+
+
+def test_owner_setup_sql_and_reader_privilege_gates():
+    # Executes the actual psql setup artifact only in a disposable PG18 fixture.
+    with ephemeral_pg18(5433, 'reader-setup-fixture') as (container, params):
+        with psycopg.connect(**params, autocommit=True) as admin:
+            admin.execute('CREATE DATABASE reader_fixture')
+        source = {**params, 'dbname': 'reader_fixture'}
+        with psycopg.connect(**source, autocommit=True) as admin:
+            admin.execute('CREATE TABLE history(id serial PRIMARY KEY, payload jsonb)')
+        script = (Path(__file__).resolve().parents[1] /
+                  'scripts/sql/kupon-archive-reader.sql').read_text()
+        script = '\n'.join(line for line in script.splitlines()
+                           if not line.startswith('\\password'))
+        result = subprocess.run(['docker', 'exec', '-i', container, 'psql', '-X',
+                                 '-U', 'postgres', '-d', 'reader_fixture'],
+                                input=script.encode(), capture_output=True, timeout=30)
+        assert result.returncode == 0
+        with psycopg.connect(**source, autocommit=True) as admin:
+            admin.execute("ALTER ROLE kupon_archive_reader PASSWORD 'fixture-only'")
+        reader = {**source, 'user': 'kupon_archive_reader', 'password': 'fixture-only'}
+        with psycopg.connect(**reader) as conn:
+            conn.execute('BEGIN READ ONLY')
+            checks = metadata_checks(conn)
+            # Disposable fixtures intentionally use loopback without TLS.
+            assert not checks.pop('tls_active')
+            assert all(checks.values()), checks
+            assert conn.execute("SELECT has_sequence_privilege(current_user,'history_id_seq','USAGE,UPDATE')").fetchone()[0] is False
+            conn.rollback()
+        # A missing SELECT blocks; granting USAGE would allow nextval and must fail.
+        with psycopg.connect(**source, autocommit=True) as admin:
+            admin.execute('REVOKE SELECT ON history_id_seq FROM kupon_archive_reader')
+        with psycopg.connect(**reader) as conn:
+            conn.execute('BEGIN READ ONLY')
+            assert not metadata_checks(conn)['sequence_select']
+            conn.rollback()
+        with psycopg.connect(**source, autocommit=True) as admin:
+            admin.execute('GRANT USAGE ON history_id_seq TO kupon_archive_reader')
+        with psycopg.connect(**reader) as conn:
+            conn.execute('BEGIN READ ONLY')
+            with pytest.raises(ValueError, match='SELECT-only'):
+                metadata_checks(conn)
