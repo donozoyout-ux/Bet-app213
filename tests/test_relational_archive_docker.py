@@ -86,5 +86,27 @@ def test_owner_setup_sql_and_reader_privilege_gates():
             admin.execute('GRANT USAGE ON history_id_seq TO kupon_archive_reader')
         with psycopg.connect(**reader) as conn:
             conn.execute('BEGIN READ ONLY')
-            with pytest.raises(ValueError, match='SELECT-only'):
-                metadata_checks(conn)
+            assert not metadata_checks(conn)['select_only_role']
+
+
+def test_optional_reader_creation_is_idempotent(monkeypatch):
+    from src.archive import source_preflight as p
+    from sqlalchemy.engine import make_url
+    with ephemeral_pg18(5433, 'reader-bootstrap-fixture') as (container, params):
+        with psycopg.connect(**params, autocommit=True) as admin:
+            admin.execute('CREATE DATABASE bootstrap_fixture')
+        source = {**params, 'dbname': 'bootstrap_fixture'}
+        with psycopg.connect(**source, autocommit=True) as admin:
+            admin.execute('CREATE TABLE history(id serial PRIMARY KEY)')
+        # Only this disposable fixture bypasses TLS URL validation. The public
+        # entry point always requires verify-full and an existing CA file.
+        owner = make_url('postgresql://postgres@127.0.0.1:5433/bootstrap_fixture?sslmode=disable').set(password=params['password'])
+        reader = owner.set(username='kupon_archive_reader', password='fixture-only')
+        monkeypatch.setattr(p, 'source_url', make_url)
+        assert p.prepare_reader(owner.render_as_string(hide_password=False), reader.render_as_string(hide_password=False)) == 'reader_created'
+        assert p.prepare_reader(owner.render_as_string(hide_password=False), reader.render_as_string(hide_password=False)) == 'reader_existing_unchanged'
+        with psycopg.connect(**{**source, 'user': 'kupon_archive_reader', 'password': 'fixture-only'}) as conn:
+            conn.execute('BEGIN READ ONLY')
+            checks = metadata_checks(conn)
+            checks.pop('tls_active')
+            assert all(checks.values()), checks

@@ -21,3 +21,20 @@ jobs:
       - run: pip install -r requirements-dev.txt
       - run: docker pull postgres:18
       - run: python -m pytest -q tests/test_offline_recovery.py tests/test_offline_recovery_docker.py tests/test_relational_archive.py tests/test_relational_archive_docker.py tests/test_source_preflight.py
+  windows-setup:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install pytest -r scripts/archive-setup-requirements.txt
+      - name: Bootstrap using Windows PowerShell 5.1 (missing secrets must block)
+        shell: powershell
+        run: |
+          $result = & powershell.exe -NoProfile -NonInteractive -File scripts/test-relational-source.ps1 -LocalOnly -InstallDependencies
+          if ($LASTEXITCODE -ne 1 -or $result -notcontains 'BLOCKED source_configuration' -or $result -notcontains 'PASS upload_disabled') { exit 1 }
+          $result
+          exit 0
+      - run: python -m pytest -q tests/test_source_preflight.py
