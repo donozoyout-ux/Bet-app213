@@ -2,13 +2,13 @@
 import os
 import psycopg
 import pytest
-from src.archive.offline_recovery import ephemeral_pg18,_restore,local_inventory,CutoverBlocked
+from src.archive.offline_recovery import ephemeral_pg18,_restore,local_inventory
 from src.archive.relational_source import capture_source
 
 pytestmark=pytest.mark.skipif(os.getenv('RUN_OFFLINE_RECOVERY_DOCKER')!='1',reason='explicit isolated Docker PostgreSQL 18 test')
 
 
-def test_same_snapshot_readonly_capture_restores_every_relation(tmp_path,monkeypatch):
+def test_same_snapshot_readonly_capture_restores_every_relation(tmp_path):
     owner='relational-source-fixture'
     with ephemeral_pg18(5433,owner) as (container,params):
         with psycopg.connect(**params,autocommit=True) as admin:
@@ -34,33 +34,12 @@ def test_same_snapshot_readonly_capture_restores_every_relation(tmp_path,monkeyp
             admin.commit()
         url='postgresql://archive_reader:fixture-password@127.0.0.1:5433/archive_source?sslmode=disable'
         dump=tmp_path/'same-snapshot.dump'
-        import src.archive.relational_source as source
-        original_run=source.subprocess.run;failure=[]
-        def checked_run(*args,**kwargs):
-            kwargs.pop('capture_output',None)
-            kwargs['stdout']=__import__('subprocess').PIPE
-            kwargs['stderr']=__import__('subprocess').PIPE
-            try:return original_run(*args,**kwargs)
-            except __import__('subprocess').CalledProcessError as exc:
-                failure.append((exc.returncode,exc.stderr.decode(errors='replace')))
-                raise
-            except Exception as exc:
-                failure.append((type(exc).__name__,str(exc)))
-                raise
-        monkeypatch.setattr(source.subprocess,'run',checked_run)
-        try:result=capture_source(url,dump,allow_local_test_source=True,timeout=180)
-        except ValueError:
-            if failure:raise AssertionError(failure[-1])
-            raise
+        result=capture_source(url,dump,allow_local_test_source=True,timeout=180)
         assert result['dump_bytes']>0 and result['source_relation_count']>=3
         assert result['source_inventory']['foreign_key_count']>=1
         assert result['source_inventory']['schema_objects']['json_columns']['objects']>=2
-        try:
-            with ephemeral_pg18(5434,owner) as (container2,params2):
-                _restore(container2,dump)
-                restored=local_inventory(params2)
-        except CutoverBlocked:
-            if failure:raise AssertionError(failure[-1])
-            raise
+        with ephemeral_pg18(5434,owner) as (container2,params2):
+            _restore(container2,dump)
+            restored=local_inventory(params2)
         assert restored==result['source_inventory']
         assert restored['tables']

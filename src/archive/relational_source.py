@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 from sqlalchemy.engine import make_url
 import subprocess
+import sys
 import threading
 import time
 import psycopg
@@ -73,12 +74,13 @@ def capture_source(url, dump_path, *, pg_dump='docker:postgres:18', timeout=MAX_
         conn.execute("SET LOCAL search_path=public,pg_catalog")
         timer=threading.Timer(timeout,conn.cancel);timer.daemon=True;timer.start()
         try:
-            return _capture_transaction(conn,url,parsed,destination,pg_dump,timeout,started)
+            return _capture_transaction(conn,url,parsed,destination,pg_dump,timeout,started,
+                                        allow_local_test_source=allow_local_test_source)
         finally:
             timer.cancel()
 
 
-def _capture_transaction(conn,url,parsed,destination,pg_dump,timeout,started):
+def _capture_transaction(conn,url,parsed,destination,pg_dump,timeout,started,*,allow_local_test_source=False):
     _reader_role(conn)
     size=conn.execute('SELECT pg_database_size(current_database())').fetchone()[0]
     if not 0<size<=MAX_SOURCE_BYTES:raise ValueError('Source database byte budget exceeded')
@@ -96,7 +98,9 @@ def _capture_transaction(conn,url,parsed,destination,pg_dump,timeout,started):
     if pg_dump.startswith('docker:'):
         image=pg_dump.split(':',1)[1]
         if image!='postgres:18':raise ValueError('Only the pinned local postgres:18 image is supported')
-        if parsed.host in {'localhost','127.0.0.1','::1'}:
+        local_host=parsed.host in {'localhost','127.0.0.1','::1'}
+        linux_local_test=allow_local_test_source and local_host and sys.platform.startswith('linux')
+        if local_host and not linux_local_test:
             parsed=parsed.set(host='host.docker.internal')
         cert_args=[]
         for option,variable in (('sslrootcert','PGSSLROOTCERT'),('sslcert','PGSSLCERT'),('sslkey','PGSSLKEY')):
@@ -111,7 +115,8 @@ def _capture_transaction(conn,url,parsed,destination,pg_dump,timeout,started):
         env.update(PGDATABASE=parsed.database,PGHOST=parsed.host,PGPORT=str(parsed.port or 5432),
                    PGUSER=parsed.username or '',PGPASSWORD=parsed.password or '',
                    PGSSLMODE=parsed.query.get('sslmode','verify-full'))
-        command=['docker','run','--rm','--pull=never','--add-host=host.docker.internal:host-gateway',
+        network_args=['--network','host'] if linux_local_test else ['--add-host=host.docker.internal:host-gateway']
+        command=['docker','run','--rm','--pull=never',*network_args,
                  *cert_args,
                  *sum((['--env',key] for key in ('PGDATABASE','PGHOST','PGPORT','PGUSER','PGPASSWORD','PGSSLMODE','PGOPTIONS')),[]),
                  *sum((['--env',key] for key in ('PGSSLROOTCERT','PGSSLCERT','PGSSLKEY') if key in env),[]),
