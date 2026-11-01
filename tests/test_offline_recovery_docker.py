@@ -50,6 +50,7 @@ def test_two_lossless_restores_with_immutable_trigger(tmp_path, monkeypatch, cap
     monkeypatch.setattr(r,'ORIGINAL_ZIP_SHA256',r.sha_file(archive))
     monkeypatch.setattr(r,'ORIGINAL_DUMP_SHA256',sha(payload))
     output=tmp_path/'result'
+    if os.name=='nt':output.mkdir()
     monkeypatch.setattr('sys.argv',['offline','--zip',str(archive),'--key-file',str(keyfile),'--output-root',str(output)])
     r.main()
     report=json.loads((output/'verification.json').read_text())
