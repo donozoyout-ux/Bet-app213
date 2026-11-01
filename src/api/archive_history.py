@@ -24,6 +24,7 @@ def history_reader():
 @router.get('/history/archive')
 async def archive_history(day: date | None = None, match_id: int | None = Query(None, gt=0),
                           board_version: str | None = Query(None, pattern='^[a-f0-9]{64}$'),
+                          revision: int | None = Query(None, ge=1),
                           limit: int = Query(25, ge=1, le=50), offset: int = Query(0, ge=0, le=50000),
                           snapshot: str | None = Query(None, pattern='^[a-f0-9]{64}$'),
                           reader=Depends(history_reader)):
@@ -31,7 +32,7 @@ async def archive_history(day: date | None = None, match_id: int | None = Query(
         async with asyncio.timeout(30):
             async with _read_slots:
                 return await reader.page(day=day.isoformat() if day else None, match_id=match_id,
-                                         board_version=board_version, limit=limit, offset=offset, snapshot=snapshot)
+                                         board_version=board_version, revision=revision, limit=limit, offset=offset, snapshot=snapshot)
     except (HistoryUnavailable, TimeoutError):
         raise HTTPException(503, detail={'code':'history_archive_unavailable',
                             'message':'Geçmiş arşivi doğrulanamıyor. Lütfen daha sonra tekrar deneyin.'}) from None

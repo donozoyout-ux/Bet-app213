@@ -10,7 +10,7 @@ from src.api.archive_history import history_reader
 from src.api.main import app
 
 
-def fixture_reader(*, broken=False, duplicate=False, outage=False, redirect=False):
+def fixture_reader(*, broken=False, duplicate=False, outage=False, redirect=False, mutate=None):
     key=bytes(32); blobs={}; entries=[]; requests=[]
     def encrypt(data, identity):
         nonce=os.urandom(12)
@@ -27,9 +27,10 @@ def fixture_reader(*, broken=False, duplicate=False, outage=False, redirect=Fals
                     evidence=[dict(revision=revision,market='1x2',selection='home',probability=0.6,
                                    outcome='won',recorded_at='2026-10-30T01:00:00Z',source='final_statistics',
                                    home_score=1,away_score=0)])
-        blob=encrypt(record,f'{SCHEMA}:7:'+ 'a'*64+f':{revision}')
+        if mutate: mutate(record)
+        blob=encrypt(record,f'{SCHEMA}:7:'+ record['board_version']+f':{revision}')
         blobs[revision+10]=blob
-        entries.append(dict(match_id=7,board_version='a'*64,revision=revision,day='2026-10-30',
+        entries.append(dict(match_id=7,board_version=record['board_version'],revision=revision,day=record['day'],
                             asset=revision+10,sha256=hashlib.sha256(blob).hexdigest()))
     if duplicate: entries.append(entries[0])
     manifest=dict(schema=SCHEMA,timezone='Europe/Istanbul',entries=entries)

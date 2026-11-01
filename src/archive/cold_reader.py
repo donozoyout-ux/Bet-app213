@@ -85,7 +85,7 @@ class ColdReader:
             raise HistoryUnavailable('history_integrity')
         return bytes(blob)
 
-    async def page(self, *, day=None, match_id=None, board_version=None, limit=25, offset=0, snapshot=None):
+    async def page(self, *, day=None, match_id=None, board_version=None, revision=None, limit=25, offset=0, snapshot=None):
         try:
             if not 1 <= limit <= 50 or not 0 <= offset <= 50000:
                 raise HistoryUnavailable('history_query')
@@ -114,8 +114,11 @@ class ColdReader:
                     identities.add(identity)
                 selected = [e for e in entries if (day is None or e['day'] == day)
                             and (match_id is None or e['match_id'] == match_id)
-                            and (board_version is None or e['board_version'] == board_version)]
+                            and (board_version is None or e['board_version'] == board_version)
+                            and (revision is None or e['revision'] == revision)]
                 selected.sort(key=lambda e: (e['day'], e['match_id'], e['board_version'], e['revision']), reverse=True)
+                if match_id is not None:
+                    selected.sort(key=lambda e: (e['board_version'], e['revision']), reverse=True)
                 items = []
                 page_bytes = 0
                 for entry in selected[offset:offset+limit]:
@@ -141,6 +144,7 @@ class ColdReader:
                     items.append(dict(match=match, day=entry['day'], match_id=entry['match_id'],
                                       board_version=entry['board_version'], revision=entry['revision'], evidence=evidence))
                 return dict(items=items,total=len(selected),limit=limit,offset=offset,
+                            board_versions=len({e['board_version'] for e in selected}),
                             snapshot=self.digest,source='github_archive',cleanup_authorized=False)
         except HistoryUnavailable:
             raise
