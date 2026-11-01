@@ -479,8 +479,26 @@ async def match_statistics(match_id: int, session=Depends(session_dependency, sc
 
 
 @router.get('/matches/{match_id}/dossier')
-async def match_dossier(match_id: int, session=Depends(session_dependency, scope='function')):
+async def match_dossier(match_id: int, response: Response,
+                        board_version: str | None = Query(None, pattern='^[a-f0-9]{64}$'),
+                        revision: int | None = Query(None, ge=1),
+                        snapshot: str | None = Query(None, pattern='^[a-f0-9]{64}$'),
+                        factory=Depends(cold_match_factory),
+                        session=Depends(session_dependency, scope='function')):
     from .match_page import cache, dossier
+    if (board_version is not None or revision is not None or snapshot is not None
+            or await session.scalar(select(Match.id).where(Match.id == match_id)) is None):
+        from .match_page import cold_dossier
+        from .cold_matches import read_cold_record
+        record, page = await read_cold_record(match_id, factory, board_version=board_version,
+                                              revision=revision, snapshot=snapshot)
+        response.headers['X-History-Source'] = 'github_archive'
+        response.headers['X-History-Snapshot'] = page['snapshot']
+        response.headers['X-History-Board-Version'] = record['board_version']
+        response.headers['X-History-Revision'] = str(record['revision'])
+        response.headers['X-History-Source-Parity'] = 'unverified'
+        response.headers['X-History-Cleanup-Authorized'] = 'false'
+        return cold_dossier(record, page)
     return await cache.get(session.bind, ('dossier', match_id), lambda: dossier(session, match_id))
 
 

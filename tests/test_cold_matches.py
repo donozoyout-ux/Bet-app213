@@ -137,3 +137,67 @@ async def test_latest_revision_is_not_chosen_by_corrected_kickoff_date(api, arch
     response = await api.get('/api/matches/7')
     assert response.status_code == 200
     assert response.headers['x-history-revision'] == '2'
+
+
+async def test_standalone_match_dossier_uses_archived_identity_and_evidence(api, archive):
+    reader, _ = archive()
+    response = await api.get('/api/matches/7/dossier')
+    assert response.status_code == 200, response.text
+    data = response.json()
+    assert data['archive_only'] is True
+    assert data['match']['id'] == 7
+    assert data['archive'] == {
+        'snapshot': reader.digest, 'board_version': 'a' * 64, 'revision': 2,
+        'source_parity': 'unverified', 'cleanup_authorized': False,
+    }
+    assert data['evidence'][0]['revision'] == 2
+    assert data['odds'][0]['closing']['home'] == 1.8
+    assert 'server-token' not in response.text
+    assert 'must not reach browser' not in response.text
+
+
+async def test_standalone_match_dossier_honors_explicit_revision(api, archive):
+    reader, _ = archive()
+    response = await api.get('/api/matches/7/dossier', params={
+        'board_version': 'a' * 64, 'revision': 1, 'snapshot': reader.digest,
+    })
+    assert response.status_code == 200, response.text
+    assert response.headers['x-history-revision'] == '1'
+    assert response.json()['evidence'][0]['revision'] == 1
+
+
+async def test_standalone_match_dossier_shows_archive_limitations_in_chromium(api, archive):
+    from pathlib import Path
+    from playwright.async_api import async_playwright, expect
+    archive()
+    async with async_playwright() as p:
+        browser = await p.chromium.launch()
+        page = await browser.new_page()
+        async def route(request):
+            from urllib.parse import urlsplit
+            url = urlsplit(request.request.url)
+            if url.hostname != 'app.test':
+                return await request.fulfill(status=404, body='')
+            if url.path == '/api/matches/7/dossier':
+                result = await api.get(url.path + ('?' + url.query if url.query else ''))
+                return await request.fulfill(status=result.status_code, headers=dict(result.headers), body=result.content)
+            if url.path == '/match-page.js':
+                return await request.fulfill(body=Path('src/api/match-page.js').read_text(encoding='utf-8'),
+                                             content_type='application/javascript')
+            if url.path == '/match-page.css':
+                return await request.fulfill(body=Path('src/api/match-page.css').read_text(encoding='utf-8'),
+                                             content_type='text/css')
+            if url.path == '/match/7':
+                result = await api.get(url.path)
+                return await request.fulfill(status=result.status_code, headers=dict(result.headers), body=result.content)
+            await request.fulfill(status=404, body='')
+        await page.route('**/*', route)
+        await page.goto('http://app.test/match/7?board_version=' + 'a' * 64 + '&revision=1#predictions')
+        await expect(page.locator('#hero h1')).to_have_text('Home')
+        await expect(page.locator('#feedback')).to_contain_text('Kayıtlar yüklendi')
+        await expect(page.locator('#panel-predictions')).to_contain_text('Arşivlenmiş sonuç kanıtları')
+        await expect(page.locator('#panel-predictions')).to_contain_text('Dondurulmuş ilk tahmin yayını')
+        await expect(page.locator('#panel-predictions')).to_contain_text('1x2')
+        await expect(page.locator('#panel-predictions tbody tr')).to_contain_text('1')
+        assert await page.locator('#panel-predictions img').count() == 0
+        await browser.close()

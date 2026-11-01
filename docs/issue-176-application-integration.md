@@ -1,25 +1,30 @@
-# Issue 176: application integration, first narrow draft
+# Issue 176: application integration, second narrow draft
 
-Based on clean `origin/master` (`c6f79860`), after reviewing #175 and #178.
-Includes the two reader commits from #178; does not merge #174 or rewrite history.
-This is the first application integration slice permitted by the latest issue
-comment, **not completion of either full application coverage or live-source parity**.
+Based on PR #179 head (`8a4f3f6`), which itself is based on clean `master`
+(`c6f79860`) and includes the two reader commits from #178. Does not merge #174
+or rewrite history. This is the second narrow application integration slice,
+**not completion of full application coverage or live-source parity**.
 
 ## Connected surfaces
 
-| Surface | This draft | Remaining |
-|---|---|---|
-| Existing dashboard match detail | Cold fallback on `/api/matches/{id}`; score, identity and recorded odds; archive revision and unverified-source notice | List discovery/paging across hot+cold; full `/match/{id}` dossier |
-| Existing dashboard odds | Cold fallback on `/api/matches/{id}/odds` | Full relational odds export and original provider payload preservation in private backup |
-| Separate `/history-archive` view from #178 | Encrypted records, date/match/board/revision filters, pinned paging, explicit outage | Real private release evidence |
-| Tahminler | Not connected | Immutable board/publication/analysis records and revision-aware merge |
-| Kuponum | Not connected | Owner isolation, immutable legs, board/settlement JSON closure |
-| Performans | Not connected | Verified settlement history and aggregate identity deduplication |
-| İstatistikler | Not connected | Published pre-match analysis; never regenerate historical predictions |
-| Dersler | Not connected | Learning report/lesson/slice dependencies and immutable evidence |
+| Surface | PR #179 | This draft | Still unconnected |
+|---|---|---|---|
+| Existing dashboard match detail | Cold fallback on `/api/matches/{id}`; score, identity and recorded odds; archive revision and unverified-source notice | — | Combined hot+cold list discovery and paging |
+| Standalone `/match/{id}` dossier | Hot records only | Cold archive identity, odds and result-evidence panel; explicit revision selector and visible missing-data limits | Full linked match statistics, first publication and team-history dependencies |
+| Existing dashboard odds | Cold fallback on `/api/matches/{id}/odds` | — | Full relational odds export and original provider payload preservation in private backup |
+| Separate `/history-archive` view from #178 | Encrypted records, date/match/board/revision filters, pinned paging, explicit outage | — | Real private release evidence |
+| Tahminler | Not connected | Cold dossier says the frozen publication is absent; it displays only archived result evidence | Immutable board/publication/analysis records and revision-aware merge |
+| Kuponum | Not connected | — | Owner isolation, immutable legs, board/settlement JSON closure |
+| Performans | Not connected | — | Verified settlement history and aggregate identity deduplication |
+| İstatistikler | Not connected | — | Published pre-match analysis; never regenerate historical predictions |
+| Dersler | Not connected | — | Learning report/lesson/slice dependencies and immutable evidence |
 
 The current dashboard panel is distinct from the standalone `/match/{id}` dossier.
-Do not describe the full match screen or any unconnected surface as complete.
+This draft's cold dossier remains an explicit partial projection. The archive
+schema in #179 contains only match, odds and result-evidence data; it has no
+immutable prediction publication, coupon, performance input, analysis publication,
+lesson or relationship closure. Those screens must not infer, recalculate or
+synthesize missing historical records and are not represented as integrated here.
 
 ## Read contract and safety
 
@@ -123,13 +128,37 @@ GitHub archive reads and live-source parity remain **unverified**.
    source/GitHub/cleanup flags before citing it as local-restore evidence.
 2. Review this draft and the remaining coverage checklist. Do not enable in
    production as a replacement for existing history storage.
-3. Next narrow draft: typed immutable publication/analysis and dossier projection,
-   full relational exporter/index with FK/JSON closure, plus existing Predictions
-   and Statistics API integration. Then owner-scoped coupons, performance and
-   learning surfaces with deterministic hot/cold paging and identity deduplication.
+3. Next narrow drafts require an expanded, typed encrypted record and full
+   relational exporter/index with FK/JSON closure. Then integrate Predictions
+   and Statistics from immutable publications; follow with owner-scoped coupons,
+   performance and learning surfaces using deterministic hot/cold paging and
+   identity deduplication. Do not expose these screens as empty successful reads.
 4. Implement and separately review the bounded source comparison above. Obtain
    same-snapshot source/export evidence and a real private-GitHub independent
    download/restore. Keep issue #176 open and cleanup authorization false.
+
+### Local #177 receipt summary (PowerShell 5.1)
+
+After the owner has the sanitized `verification.json`, run the following command
+with its local path. It prints only fixed boolean checks; it does not print the
+JSON, inventory, ZIP contents, key or private payload. It intentionally confirms
+that live-source parity, GitHub read-through and cleanup authorization are false.
+
+```powershell
+$p = Get-Content -LiteralPath 'C:\Recovery\verify-176-new\verification.json' -Raw | ConvertFrom-Json
+$checks = [ordered]@{
+  pinned_zip = $p.zip_sha256 -eq '566e475ab72d3b4a6b05b88bbca9811c72f43d6bf7fea62927dff5d4fe626ae4'
+  independent_local_restore = $p.independent_local_restore_verified -eq $true
+  live_source_parity_unverified = $p.live_source_parity_verified -eq $false
+  github_readthrough_unverified = $p.github_readthrough_verified -eq $false
+  cleanup_not_authorized = $p.cleanup_authorized -eq $false
+}
+$checks.GetEnumerator() | ForEach-Object { '{0}={1}' -f $_.Key, $_.Value }
+if (@($checks.Values | Where-Object { $_ -ne $true }).Count -gt 0) { exit 1 }
+```
+
+This checks the receipt's stated local-only scope, not that the file came from a
+genuine owner run. Do not ask for or upload the ZIP, key or raw inventory.
 
 Local tests use only synthetic encrypted records via `httpx.MockTransport`, empty
 SQLite fixtures and the real ASGI app. Chromium runs the existing dashboard and

@@ -10,6 +10,25 @@ from .read_cache import ReadCache
 cache = ReadCache(ttl=20, limit=128)
 
 
+def cold_dossier(record, page):
+    """Render only material actually present in the verified archive projection."""
+    return jsonable_encoder(dict(
+        archive_only=True,
+        match=record['match'],
+        odds=record['match']['odds'],
+        evidence=record['evidence'],
+        archive=dict(snapshot=page['snapshot'], board_version=record['board_version'],
+                     revision=record['revision'], source_parity='unverified',
+                     cleanup_authorized=False),
+        limitations=[
+            'İlk dondurulmuş tahmin yayını bu arşiv projeksiyonunda bulunmuyor.',
+            'İlişkili maç istatistikleri ve takım geçmişi arşivlenmiş değil.',
+            'Kupon, performans ve ders ilişkileri arşivlenmiş değil.',
+        ],
+        as_of=utcnow(),
+    ))
+
+
 async def history(session, match, scope, limit, offset=0):
     from .routes import match_query, match_response
     cutoff = min(aware(match.kickoff_at), utcnow()) if match.kickoff_at else utcnow()
