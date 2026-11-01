@@ -188,8 +188,28 @@ function predictions(section){
  for(const [market,title] of Object.entries(families)){const c=card(section,title),items=data.predictions.filter(x=>x.pick.market===market);if(!items.length){note(c,'Bu markette kayıtlı maç öncesi seçim yok.');continue;}for(const item of items){const p=item.pick;c.append(node('h3',p.label||p.selection));metric(c,'Model olasılığı',pct(p.probability));metric(c,'Güvenilirlik',pct(p.reliability));metric(c,'Örneklem',number(p.sample_size));metric(c,'Sonuç',outcomes[item.outcome]||'Veri yok');if(item.recorded_at)metric(c,'Sonuç kayıt zamanı',date(item.recorded_at));const e=p.evidence||{};const labels={home_sample:'Ev sahibi örneklemi',away_sample:'Deplasman örneklemi',league_sample:'Lig örneklemi',home_rate:'Ev sahibi oranı',away_rate:'Deplasman oranı',league_rate:'Lig oranı'};let count=0;for(const [k,label] of Object.entries(labels))if(e[k]!=null){metric(c,label,k.endsWith('rate')?pct(e[k]):number(e[k]));count++;}if(!count)note(c,'Ek istatistiksel kanıt alanı kaydedilmemiş.');}}
 }
 const renderers={overview,odds,teams,counts,predictions};
-function show(key){active=key;for(const b of $('tabs').children){const selected=b.dataset.key===key;b.setAttribute('aria-selected',String(selected));b.tabIndex=selected?0:-1;}const section=node('section');section.id='panel-'+key;section.setAttribute('role','tabpanel');section.setAttribute('aria-labelledby','tab-'+key);renderers[key](section);$('analysis').replaceChildren(section);history.replaceState(null,'','#'+key);}
+function archivePanel(section,key){
+ const a=data.archive,m=data.match;
+ if(key==='overview'){
+  note(section,`Şifreli geçmiş arşivi · revizyon ${a.revision} · tahta ${a.board_version.slice(0,12)}…`);
+  note(section,'Kaynakla tam parite doğrulanmadı. Bu okuma hiçbir temizleme izni vermez.');
+  note(section,'Bu görünüm yalnızca arşivde bulunan maç ve oran projeksiyonunu gösterir.');
+ }else if(key==='odds'){
+  odds(section);
+ }else if(key==='predictions'){
+  note(section,'Dondurulmuş ilk tahmin yayını arşiv kaydında bulunmuyor; bu nedenle geriye dönük tahmin gösterilmez.');
+  const c=card(section,'Arşivlenmiş sonuç kanıtları');
+  if(!data.evidence.length)note(c,'Sonuç kanıtı yok.');
+  else table(c,['Revizyon','Piyasa','Seçim','Olasılık','Sonuç','Kaynak','Kaydedildi'],data.evidence.map(e=>[
+   String(e.revision),e.market,e.selection,pct(e.probability),e.outcome,e.source,date(e.recorded_at)]));
+ }else{
+  note(section,'Bu bölüm için gerekli ilişkisel kayıtlar arşiv projeksiyonunda bulunmuyor.');
+ }
+ const missing=card(section,'Bu arşiv görünümünde bulunmayan veriler');
+ for(const item of data.limitations)missing.append(node('p',item,'notice'));
+}
+function show(key){active=key;for(const b of $('tabs').children){const selected=b.dataset.key===key;b.setAttribute('aria-selected',String(selected));b.tabIndex=selected?0:-1;}const section=node('section');section.id='panel-'+key;section.setAttribute('role','tabpanel');section.setAttribute('aria-labelledby','tab-'+key);if(data.archive_only)archivePanel(section,key);else renderers[key](section);$('analysis').replaceChildren(section);history.replaceState(null,'','#'+key);}
 function render(){const m=data.match;document.title=`${m.home_team} — ${m.away_team} · Kuponanalizii`;$('hero').replaceChildren();$('hero').append(node('p',`${m.league} · ${m.season} · ${m.round_label||m.round+'. hafta'}`,'eyebrow'));const line=node('div','','scoreline');line.append(node('h1',m.home_team),node('strong',score(m.ft_home,m.ft_away),'score'),node('h2',m.away_team));$('hero').append(line,node('p',`${status[m.status]||m.status}${m.live_minute?' · '+m.live_minute+'′':''} · ${date(m.kickoff_at)}`),node('p',`İlk yarı ${score(m.ht_home,m.ht_away)}`,'muted'));$('tabs').replaceChildren();for(const [key,label] of tabs){const b=node('button',label);b.id='tab-'+key;b.dataset.key=key;b.setAttribute('role','tab');b.setAttribute('aria-controls','panel-'+key);b.onclick=()=>show(key);b.onkeydown=e=>{const keys=tabs.map(t=>t[0]),i=keys.indexOf(key),n=e.key==='ArrowRight'?(i+1)%keys.length:e.key==='ArrowLeft'?(i+keys.length-1)%keys.length:e.key==='Home'?0:e.key==='End'?keys.length-1:null;if(n!=null){e.preventDefault();show(keys[n]);$('tab-'+keys[n]).focus();}};$('tabs').append(b);}show(tabs.some(t=>t[0]===location.hash.slice(1))?location.hash.slice(1):active);}
-async function load(){const run=++generation;$('feedback').textContent='Maç kayıtları yükleniyor…';$('retry').hidden=true;try{const r=await fetch(`/api/matches/${id}/dossier`,{signal:AbortSignal.timeout(15000)});if(!r.ok)throw Error(r.status===404?'Maç bulunamadı.':'Veri bağlantısı kurulamadı.');const result=await r.json();if(run!==generation)return;data=result;render();$('feedback').textContent='Kayıtlar yüklendi · '+date(data.as_of);}catch(e){$('feedback').textContent=e.name==='TimeoutError'?'Bağlantı zaman aşımına uğradı.':e.message;$('retry').hidden=false;}}
+async function load(){const run=++generation;$('feedback').textContent='Maç kayıtları yükleniyor…';$('retry').hidden=true;try{const params=new URLSearchParams(location.search),query=new URLSearchParams();for(const key of ['board_version','revision','snapshot'])if(params.has(key))query.set(key,params.get(key));const suffix=query.size?'?'+query.toString():'';const r=await fetch(`/api/matches/${id}/dossier${suffix}`,{signal:AbortSignal.timeout(15000)});if(!r.ok){let message=r.status===404?'Maç bulunamadı.':'Veri bağlantısı kurulamadı.';if(r.status===503){try{const error=await r.json();if(error.detail?.code==='history_archive_unavailable'||error.detail?.code==='history_archive_disabled')message='Geçmiş arşivi doğrulanamıyor.';}catch(_){}}throw Error(message);}const result=await r.json();if(run!==generation)return;data=result;render();$('feedback').textContent='Kayıtlar yüklendi · '+date(data.as_of);}catch(e){$('feedback').textContent=e.name==='TimeoutError'?'Bağlantı zaman aşımına uğradı.':e.message;$('retry').hidden=false;}}
 $('retry').onclick=load;load();
 })();

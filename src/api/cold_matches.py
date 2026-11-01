@@ -15,6 +15,20 @@ def cold_match_factory():
 
 async def read_cold_match(match_id, response, factory, *, board_version=None,
                           revision=None, snapshot=None):
+    record, page = await read_cold_record(match_id, factory, board_version=board_version,
+                                          revision=revision, snapshot=snapshot)
+    match = record['match']
+    response.headers['X-History-Source'] = 'github_archive'
+    response.headers['X-History-Snapshot'] = page['snapshot']
+    response.headers['X-History-Board-Version'] = record['board_version']
+    response.headers['X-History-Revision'] = str(record['revision'])
+    response.headers['X-History-Source-Parity'] = 'unverified'
+    response.headers['X-History-Cleanup-Authorized'] = 'false'
+    return {**match, 'raw': {}, 'odds': [{**odd, 'raw': {}} for odd in match['odds']]}
+
+
+async def read_cold_record(match_id, factory, *, board_version=None,
+                           revision=None, snapshot=None):
     explicit = any(value is not None for value in (board_version, revision, snapshot))
     if os.getenv('HISTORY_ARCHIVE_ENABLED') != 'true' and not explicit:
         raise HTTPException(404, 'Match not found')
@@ -40,14 +54,7 @@ async def read_cold_match(match_id, response, factory, *, board_version=None,
                        or e['home_score'] != match['ft_home'] or e['away_score'] != match['ft_away']
                        for e in record['evidence'])):
             raise HistoryUnavailable('history_hot_record_required')
-        response.headers['X-History-Source'] = 'github_archive'
-        response.headers['X-History-Snapshot'] = page['snapshot']
-        response.headers['X-History-Board-Version'] = record['board_version']
-        response.headers['X-History-Revision'] = str(record['revision'])
-        response.headers['X-History-Source-Parity'] = 'unverified'
-        response.headers['X-History-Cleanup-Authorized'] = 'false'
-        # Raw provider payloads are deliberately excluded from the public projection.
-        return {**match, 'raw': {}, 'odds': [{**odd, 'raw': {}} for odd in match['odds']]}
+        return record, page
     except (HistoryUnavailable, TimeoutError):
         raise HTTPException(503, detail={'code': 'history_archive_unavailable',
                             'message': 'Geçmiş arşivi doğrulanamıyor; yayın sürümü veya kaynak kanıtı eksik olabilir.'}) from None
