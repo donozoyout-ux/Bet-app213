@@ -1,0 +1,252 @@
+[
+  {
+    "finished_matches": 246,
+    "league": "Albania Kategoria e Pare",
+    "source_id_matches": 246,
+    "source_league_matches": 246,
+    "source_teams_match": 246,
+    "stored_schedule": 246,
+    "stored_schedule_ft_matches": 246,
+    "stored_schedule_ht_matches": 246
+  },
+  {
+    "finished_matches": 226,
+    "league": "Albania Super league",
+    "source_id_matches": 226,
+    "source_league_matches": 226,
+    "source_teams_match": 226,
+    "stored_schedule": 226,
+    "stored_schedule_ft_matches": 224,
+    "stored_schedule_ht_matches": 224
+  },
+  {
+    "finished_matches": 463,
+    "league": "Austrian Bundesliga",
+    "source_id_matches": 463,
+    "source_league_matches": 463,
+    "source_teams_match": 463,
+    "stored_schedule": 463,
+    "stored_schedule_ft_matches": 463,
+    "stored_schedule_ht_matches": 463
+  },
+  {
+    "finished_matches": 725,
+    "league": "Belgian Pro League",
+    "source_id_matches": 725,
+    "source_league_matches": 725,
+    "source_teams_match": 725,
+    "stored_schedule": 725,
+    "stored_schedule_ft_matches": 725,
+    "stored_schedule_ht_matches": 725
+  },
+  {
+    "finished_matches": 25,
+    "league": "Croatia 1.Division",
+    "source_id_matches": 25,
+    "source_league_matches": 25,
+    "source_teams_match": 25,
+    "stored_schedule": 25,
+    "stored_schedule_ft_matches": 25,
+    "stored_schedule_ht_matches": 25
+  },
+  {
+    "finished_matches": 25,
+    "league": "Czech Republic Gambrinus Liga",
+    "source_id_matches": 25,
+    "source_league_matches": 25,
+    "source_teams_match": 25,
+    "stored_schedule": 25,
+    "stored_schedule_ft_matches": 25,
+    "stored_schedule_ht_matches": 25
+  },
+  {
+    "finished_matches": 283,
+    "league": "Denmark Superliga",
+    "source_id_matches": 283,
+    "source_league_matches": 283,
+    "source_teams_match": 283,
+    "stored_schedule": 283,
+    "stored_schedule_ft_matches": 279,
+    "stored_schedule_ht_matches": 279
+  },
+  {
+    "finished_matches": 25,
+    "league": "England Championship",
+    "source_id_matches": 25,
+    "source_league_matches": 25,
+    "source_teams_match": 25,
+    "stored_schedule": 25,
+    "stored_schedule_ft_matches": 25,
+    "stored_schedule_ht_matches": 25
+  },
+  {
+    "finished_matches": 829,
+    "league": "English Premier League",
+    "source_id_matches": 829,
+    "source_league_matches": 829,
+    "source_teams_match": 829,
+    "stored_schedule": 829,
+    "stored_schedule_ft_matches": 825,
+    "stored_schedule_ht_matches": 825
+  },
+  {
+    "finished_matches": 674,
+    "league": "France Ligue 1",
+    "source_id_matches": 674,
+    "source_league_matches": 674,
+    "source_teams_match": 674,
+    "stored_schedule": 674,
+    "stored_schedule_ft_matches": 670,
+    "stored_schedule_ht_matches": 670
+  },
+  {
+    "finished_matches": 666,
+    "league": "German Bundesliga",
+    "source_id_matches": 666,
+    "source_league_matches": 666,
+    "source_teams_match": 666,
+    "stored_schedule": 666,
+    "stored_schedule_ft_matches": 664,
+    "stored_schedule_ht_matches": 664
+  },
+  {
+    "finished_matches": 35,
+    "league": "Greece Super League A",
+    "source_id_matches": 35,
+    "source_league_matches": 35,
+    "source_teams_match": 35,
+    "stored_schedule": 35,
+    "stored_schedule_ft_matches": 35,
+    "stored_schedule_ht_matches": 35
+  },
+  {
+    "finished_matches": 698,
+    "league": "Holland Eredivisie",
+    "source_id_matches": 698,
+    "source_league_matches": 698,
+    "source_teams_match": 698,
+    "stored_schedule": 698,
+    "stored_schedule_ft_matches": 694,
+    "stored_schedule_ht_matches": 694
+  },
+  {
+    "finished_matches": 827,
+    "league": "Italy Serie A",
+    "source_id_matches": 827,
+    "source_league_matches": 827,
+    "source_teams_match": 827,
+    "stored_schedule": 827,
+    "stored_schedule_ft_matches": 821,
+    "stored_schedule_ht_matches": 821
+  },
+  {
+    "finished_matches": 683,
+    "league": "Liga Portugal 1",
+    "source_id_matches": 683,
+    "source_league_matches": 683,
+    "source_teams_match": 683,
+    "stored_schedule": 683,
+    "stored_schedule_ft_matches": 683,
+    "stored_schedule_ht_matches": 683
+  },
+  {
+    "finished_matches": 25,
+    "league": "Norway Eliteserien",
+    "source_id_matches": 25,
+    "source_league_matches": 25,
+    "source_teams_match": 25,
+    "stored_schedule": 25,
+    "stored_schedule_ft_matches": 25,
+    "stored_schedule_ht_matches": 25
+  },
+  {
+    "finished_matches": 427,
+    "league": "Poland Ekstraklasa",
+    "source_id_matches": 427,
+    "source_league_matches": 427,
+    "source_teams_match": 427,
+    "stored_schedule": 427,
+    "stored_schedule_ft_matches": 425,
+    "stored_schedule_ht_matches": 425
+  },
+  {
+    "finished_matches": 541,
+    "league": "Scottish Premiership",
+    "source_id_matches": 541,
+    "source_league_matches": 541,
+    "source_teams_match": 541,
+    "stored_schedule": 541,
+    "stored_schedule_ft_matches": 540,
+    "stored_schedule_ht_matches": 540
+  },
+  {
+    "finished_matches": 846,
+    "league": "Spanish La Liga",
+    "source_id_matches": 846,
+    "source_league_matches": 846,
+    "source_teams_match": 846,
+    "stored_schedule": 846,
+    "stored_schedule_ft_matches": 845,
+    "stored_schedule_ht_matches": 845
+  },
+  {
+    "finished_matches": 25,
+    "league": "Swedish Allsvenskan",
+    "source_id_matches": 25,
+    "source_league_matches": 25,
+    "source_teams_match": 25,
+    "stored_schedule": 25,
+    "stored_schedule_ft_matches": 25,
+    "stored_schedule_ht_matches": 25
+  },
+  {
+    "finished_matches": 35,
+    "league": "Switzerland Super League",
+    "source_id_matches": 35,
+    "source_league_matches": 35,
+    "source_teams_match": 35,
+    "stored_schedule": 35,
+    "stored_schedule_ft_matches": 35,
+    "stored_schedule_ht_matches": 35
+  },
+  {
+    "finished_matches": 719,
+    "league": "Turkey Super Lig",
+    "source_id_matches": 719,
+    "source_league_matches": 719,
+    "source_teams_match": 719,
+    "stored_schedule": 719,
+    "stored_schedule_ft_matches": 716,
+    "stored_schedule_ht_matches": 716
+  },
+  {
+    "finished_matches": 686,
+    "league": "UEFA Champions League",
+    "source_id_matches": 686,
+    "source_league_matches": 686,
+    "source_teams_match": 686,
+    "stored_schedule": 686,
+    "stored_schedule_ft_matches": 686,
+    "stored_schedule_ht_matches": 686
+  },
+  {
+    "finished_matches": 1094,
+    "league": "UEFA Conference League",
+    "source_id_matches": 1094,
+    "source_league_matches": 1094,
+    "source_teams_match": 1094,
+    "stored_schedule": 1094,
+    "stored_schedule_ft_matches": 1094,
+    "stored_schedule_ht_matches": 1094
+  },
+  {
+    "finished_matches": 656,
+    "league": "UEFA Europa League",
+    "source_id_matches": 656,
+    "source_league_matches": 656,
+    "source_teams_match": 656,
+    "stored_schedule": 656,
+    "stored_schedule_ft_matches": 656,
+    "stored_schedule_ht_matches": 656
+  }
+]
