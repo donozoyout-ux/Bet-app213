@@ -4,6 +4,7 @@ import logging
 import time
 import httpx
 from src.config import settings
+from src.storage import storage
 
 log = logging.getLogger('goaloo')
 
@@ -51,15 +52,20 @@ class GoalooClient:
                 try:
                     response = await self.client.get(url, params=params)
                     response.raise_for_status()
+                    captured = response.text.lstrip('\ufeff')
                     if not as_json:
                         self.failed_until.pop(key, None)
-                        return response.text.lstrip('\ufeff')
+                        if settings.r2_raw_capture_enabled:
+                            await storage.put_goaloo_response(endpoint=str(response.url), payload=captured.encode('utf-8'), content_type=response.headers.get('content-type', 'text/plain').split(';', 1)[0])
+                        return captured
                     payload = json.loads(response.text.lstrip('\ufeff'))
                     if not isinstance(payload, dict):
                         raise SourceError('Goaloo returned a non-object response')
                     if payload.get('ErrCode', 0) != 0 or 'code' in payload:
                         raise SourceError('Goaloo rejected request or returned an application error')
                     self.failed_until.pop(key, None)
+                    if settings.r2_raw_capture_enabled:
+                        await storage.put_goaloo_response(endpoint=str(response.url), payload=captured.encode('utf-8'), content_type='application/json')
                     return payload
                 except (httpx.HTTPError, ValueError) as exc:
                     log.warning('[SOURCE] request failed url=%s attempt=%s error=%s', url, attempt + 1, type(exc).__name__)
