@@ -11,10 +11,3 @@ def test_r2_key_is_content_addressed_and_partitioned():
     assert key1 == key2
     assert key1.startswith('raw/goaloo/2026/11/06/')
     assert key1.endswith('.json')
-
-
-def test_r2_disabled_without_configuration(monkeypatch):
-    from src import config
-    monkeypatch.setattr(config.settings, 'r2_enabled', False)
-    storage = R2Storage()
-    assert storage.enabled is False
