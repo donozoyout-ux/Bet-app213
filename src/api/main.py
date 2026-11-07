@@ -8,8 +8,13 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.responses import FileResponse, JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
+from fastapi import HTTPException, Header
+from pydantic import BaseModel, Field
+from sqlalchemy import select
 from src.config import settings
 from src.db import database
+from src.models import BoardEdition
+from src.archive.r2 import archive_rows, health as r2_health
 
 log = logging.getLogger(__name__)
 BACKGROUND_RETRY_SECONDS = 10
@@ -94,6 +99,33 @@ async def database_error(request, exc):
 @app.get('/health')
 async def health():
     return {'status': 'ok', 'service': 'BetApp213'}
+
+
+class BoardEditionArchiveRequest(BaseModel):
+    limit: int = Field(ge=1, le=10)
+
+
+@app.get('/api/storage/health')
+async def storage_health():
+    return await r2_health()
+
+
+@app.post('/api/admin/storage/board-editions/archive')
+async def archive_board_editions(body: BoardEditionArchiveRequest, authorization: str | None = Header(default=None)):
+    import hmac
+    if not settings.scraper_token:
+        raise HTTPException(503, 'Storage administration is not configured.')
+    if not authorization or not hmac.compare_digest(authorization, f'Bearer {settings.scraper_token}'):
+        raise HTTPException(401, 'A valid Bearer token is required.')
+    if not database.configured or not database.ready:
+        raise HTTPException(503, 'PostgreSQL is not ready.')
+    async with database.session() as session:
+        rows = (await session.execute(select(BoardEdition.version, BoardEdition.league_id,
+            BoardEdition.created_at, BoardEdition.payload).order_by(BoardEdition.version).limit(body.limit))).all()
+    if not settings.r2_enabled:
+        raise HTTPException(503, 'R2 archival is disabled.')
+    results = await archive_rows(rows)
+    return {'requested_limit': body.limit, 'read': len(rows), 'results': results}
 
 @app.get('/', include_in_schema=False)
 async def dashboard():
