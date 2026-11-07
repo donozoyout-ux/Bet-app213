@@ -11,6 +11,12 @@ class Settings:
     app_env: str = os.getenv('APP_ENV', 'development')
     log_level: str = os.getenv('LOG_LEVEL', 'INFO')
     scraper_token: str = os.getenv('SCRAPER_API_TOKEN', '')
+    r2_enabled: bool = os.getenv('R2_ENABLED', 'false').lower() == 'true'
+    r2_required: bool = os.getenv('R2_REQUIRED', 'false').lower() == 'true'
+    r2_bucket: str = os.getenv('R2_BUCKET', '')
+    r2_endpoint: str = os.getenv('R2_ENDPOINT', '')
+    r2_access_key_id: str = os.getenv('R2_ACCESS_KEY_ID', '')
+    r2_secret_access_key: str = os.getenv('R2_SECRET_ACCESS_KEY', '')
     worker_enabled: bool = os.getenv('SCRAPER_WORKER_ENABLED', 'true').lower() == 'true'
     auto_backfill_on_empty: bool = os.getenv('AUTO_BACKFILL_ON_EMPTY', 'true').lower() == 'true'
     request_interval: float = max(0.2, float(os.getenv('GOALOO_REQUEST_INTERVAL', '1')))
