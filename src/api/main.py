@@ -111,6 +111,8 @@ async def dashboard_predictions_script():
 
 from src.api.routes import router
 app.include_router(router, prefix='/api')
+from src.api.storage_admin import router as storage_admin_router
+app.include_router(storage_admin_router, prefix='/api')
 
 
 @app.get('/dashboard-market.js',include_in_schema=False)
