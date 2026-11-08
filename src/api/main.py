@@ -14,7 +14,7 @@ from sqlalchemy import select
 from src.config import settings
 from src.db import database
 from src.models import BoardEdition
-from src.archive.r2 import archive_rows, health as r2_health
+from src.archive.r2 import archive_rows, canonical_json, health as r2_health, sha256
 
 log = logging.getLogger(__name__)
 BACKGROUND_RETRY_SECONDS = 10
@@ -117,15 +117,67 @@ async def archive_board_editions(body: BoardEditionArchiveRequest, authorization
         raise HTTPException(503, 'Storage administration is not configured.')
     if not authorization or not hmac.compare_digest(authorization, f'Bearer {settings.scraper_token}'):
         raise HTTPException(401, 'A valid Bearer token is required.')
+    if not settings.r2_enabled:
+        raise HTTPException(503, 'R2 archival is disabled.')
+    health_result = await r2_health()
+    if not health_result.get('accessible'):
+        raise HTTPException(503, {'detail': 'R2 is not accessible; archival was not started.',
+            'error_class': health_result.get('error_class'), 'error_code': health_result.get('error_code'),
+            'error_message_sanitized': health_result.get('error_message_sanitized')})
     if not database.configured or not database.ready:
         raise HTTPException(503, 'PostgreSQL is not ready.')
     async with database.session() as session:
         rows = (await session.execute(select(BoardEdition.version, BoardEdition.league_id,
             BoardEdition.created_at, BoardEdition.payload).order_by(BoardEdition.version).limit(body.limit))).all()
-    if not settings.r2_enabled:
-        raise HTTPException(503, 'R2 archival is disabled.')
     results = await archive_rows(rows)
-    return {'requested_limit': body.limit, 'read': len(rows), 'results': results}
+
+    # Verify the source rows still exist with the same identity and payload after R2 work.
+    source_verified = True
+    source_error_class = None
+    if rows:
+        try:
+            versions = [row[0] for row in rows]
+            async with database.session() as session:
+                current_rows = (await session.execute(select(BoardEdition.version, BoardEdition.league_id,
+                    BoardEdition.created_at, BoardEdition.payload).where(BoardEdition.version.in_(versions)))).all()
+            current_by_version = {row[0]: row for row in current_rows}
+            for source in rows:
+                current = current_by_version.get(source[0])
+                if (current is None or current[1] != source[1] or current[2] != source[2]
+                        or sha256(canonical_json(current[3])) != sha256(canonical_json(source[3]))):
+                    source_verified = False
+                    break
+        except Exception as exc:
+            source_verified = False
+            source_error_class = type(exc).__name__
+
+    result_by_version = {result['version']: result for result in results}
+    for row in rows:
+        result = result_by_version.get(row[0])
+        if result is not None:
+            result['postgres_source_preserved'] = source_verified
+    statuses = [result.get('status') for result in results]
+    return {
+        'requested_limit': body.limit,
+        'records_selected': len(rows),
+        'records_processed': len(results),
+        'records_not_processed': max(0, len(rows) - len(results)),
+        'records_archived': statuses.count('ARCHIVED'),
+        'already_archived': statuses.count('ALREADY_ARCHIVED'),
+        'hash_conflicts': statuses.count('HASH_CONFLICT'),
+        'upload_failures': statuses.count('UPLOAD_FAILURE'),
+        'readback_pass': sum(result.get('read_back_verified') is True for result in results),
+        'readback_fail': sum(result.get('read_back_verified') is False for result in results),
+        'manifest_pass': sum(result.get('manifest_read_back_verified') is True for result in results),
+        'manifest_fail': sum(result.get('manifest_read_back_verified') is False for result in results),
+        'postgres_source_preserved': source_verified,
+        'source_verification_error_class': source_error_class,
+        'postgres_writes': 0,
+        'postgres_deletes': 0,
+        'r2_objects_created': sum(result.get('object_created') is True for result in results),
+        'stopped_on_failure': bool(results and statuses[-1] not in {'ARCHIVED', 'ALREADY_ARCHIVED'}),
+        'results': results,
+    }
 
 @app.get('/', include_in_schema=False)
 async def dashboard():

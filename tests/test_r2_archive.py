@@ -60,8 +60,9 @@ def test_upload_readback_and_manifest(fake_r2):
     result = r2.archive_one_sync(sample_row())
     assert result['status'] == 'ARCHIVED'
     assert result['read_back_verified'] is True
-    assert result['postgres_payload_unchanged'] is True
-    stored = fake_r2.objects[('unit-test-bucket', result['object_key'])]
+    assert result['manifest_read_back_verified'] is True
+    assert result['compressed_size'] == len(stored := fake_r2.objects[('unit-test-bucket', result['object_key'])])
+    assert result['uncompressed_size'] == len(r2.canonical_json(sample_row()[3]))
     assert r2.decompress(stored) == r2.canonical_json(sample_row()[3])
     manifest = json.loads(fake_r2.objects[('unit-test-bucket', result['manifest_key'])])
     assert manifest['sha256'] == r2.sha256(r2.canonical_json(sample_row()[3]))
@@ -113,7 +114,7 @@ def test_archive_endpoint_accepts_limit_bounds(monkeypatch, fake_r2, limit):
     response = client.post('/api/admin/storage/board-editions/archive', json={'limit': limit},
                            headers={'Authorization': 'Bearer admin-test-token'})
     assert response.status_code == 200
-    assert response.json()['read'] == 0
+    assert response.json()['records_selected'] == 0
 
 
 @pytest.mark.parametrize('payload,expected', [({}, 422), ({'limit': 0}, 422), ({'limit': 11}, 422)])
@@ -149,7 +150,34 @@ def test_archive_query_is_read_only(monkeypatch, fake_r2):
     response = TestClient(main.app).post('/api/admin/storage/board-editions/archive', json={'limit': 1},
         headers={'Authorization': 'Bearer admin-test-token'})
     assert response.status_code == 200
-    assert response.json()['results'][0]['postgres_payload_unchanged'] is True
+    assert response.json()['postgres_source_preserved'] is True
+    assert response.json()['results'][0]['postgres_source_preserved'] is True
+    assert response.json()['postgres_writes'] == 0
+    assert response.json()['postgres_deletes'] == 0
+
+
+@pytest.mark.asyncio
+async def test_archive_batch_stops_at_first_hash_conflict(fake_r2):
+    first = sample_row({'other': 'value'})
+    second = ('ver-b2c3', 36, first[2], {'should_not': 'be processed'})
+    first_key = ('unit-test-bucket', f'board-editions/v1/{first[0]}.json.zst')
+    fake_r2.objects[first_key] = r2.compress(r2.canonical_json({'already': 'different'}))
+    results = await r2.archive_rows([first, second])
+    assert len(results) == 1
+    assert results[0]['status'] == 'HASH_CONFLICT'
+    assert ('unit-test-bucket', f'board-editions/v1/{second[0]}.json.zst') not in fake_r2.objects
+
+
+def test_manifest_readback_conflict_is_not_overwritten(fake_r2):
+    result = r2.archive_one_sync(sample_row())
+    manifest_key = ('unit-test-bucket', result['manifest_key'])
+    original = fake_r2.objects[manifest_key]
+    manifest = json.loads(original)
+    manifest['sha256'] = '0' * 64
+    fake_r2.objects[manifest_key] = r2.canonical_json(manifest)
+    second = r2.archive_one_sync(sample_row())
+    assert second['status'] == 'HASH_CONFLICT'
+    assert fake_r2.objects[manifest_key] != original
 
 
 def test_endpoint_format_rejects_bucket_or_path():
