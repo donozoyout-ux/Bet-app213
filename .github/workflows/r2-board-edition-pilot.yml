@@ -56,15 +56,17 @@ jobs:
               print(f'Pilot trigger did not complete ({type(exc).__name__}).', file=sys.stderr)
               raise SystemExit(1)
 
-          keys = ('records_selected', 'records_archived', 'readback_pass', 'readback_fail',
+          keys = ('records_selected', 'records_processed', 'records_archived', 'already_archived',
+                  'hash_conflicts', 'upload_failures', 'readback_pass', 'readback_fail',
                   'manifest_pass', 'manifest_fail', 'postgres_source_preserved',
                   'postgres_writes', 'postgres_deletes', 'r2_objects_created', 'stopped_on_failure')
           summary = {key: report.get(key) for key in keys}
           print(json.dumps(summary, sort_keys=True))
 
           results = report.get('results', [])
-          passed = (report.get('records_selected') == 10
+          passed = (report.get('records_selected') == 10 and report.get('records_processed') == 10
               and report.get('records_archived', 0) + report.get('already_archived', 0) == 10
+              and report.get('hash_conflicts') == 0 and report.get('upload_failures') == 0
               and report.get('readback_pass') == 10 and report.get('readback_fail') == 0
               and report.get('manifest_pass') == 10 and report.get('manifest_fail') == 0
               and report.get('postgres_source_preserved') is True
