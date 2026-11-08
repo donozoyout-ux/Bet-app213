@@ -89,7 +89,7 @@ def test_health_endpoint_reports_configuration_without_secrets(monkeypatch, fake
     body = response.json()
     assert body == {'enabled': True, 'bucket_configured': True, 'endpoint_configured': True,
                     'credentials_configured': True, 'endpoint_format_valid': True,
-                    'accessible': True}
+                    'endpoint_format_issue': None, 'accessible': True}
     assert 'test-secret' not in response.text
 
 
@@ -158,6 +158,8 @@ def test_endpoint_format_rejects_bucket_or_path():
     assert r2.endpoint_format_valid(base + '/')
     assert not r2.endpoint_format_valid(base + '/unit-test-bucket')
     assert not r2.endpoint_format_valid('http://' + ('a' * 32) + '.r2.cloudflarestorage.com')
+    assert r2.endpoint_format_issue(base + '\n') == 'control_whitespace'
+    assert r2.endpoint_format_issue(' ' + base) == 'control_whitespace'
 
 
 def test_health_exposes_sanitized_client_error_without_secrets(monkeypatch, fake_r2):

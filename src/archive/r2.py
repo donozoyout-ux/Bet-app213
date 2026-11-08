@@ -45,14 +45,36 @@ def r2_client():
 
 def endpoint_format_valid(endpoint: str) -> bool:
     """Accept only the account-level HTTPS endpoint, without a bucket/path."""
+    return endpoint_format_issue(endpoint) is None
+
+
+def endpoint_format_issue(endpoint: str) -> str | None:
+    """Return a value-free diagnostic for malformed endpoint configuration."""
+    if not endpoint:
+        return 'missing'
+    # urllib.parse strips some leading C0 whitespace; botocore rejects tabs/CR/LF.
+    if endpoint != endpoint.strip() or any(char in endpoint for char in '\t\r\n'):
+        return 'control_whitespace'
     try:
         parsed = urlsplit(endpoint)
-        return (parsed.scheme == 'https'
-            and bool(re.fullmatch(r'[a-f0-9]{32}\.r2\.cloudflarestorage\.com', parsed.hostname or '', re.I))
-            and parsed.path in ('', '/') and not parsed.query and not parsed.fragment
-            and parsed.port in (None, 443))
+        if parsed.scheme != 'https':
+            return 'https_required'
+        if not re.fullmatch(r'[a-f0-9]{32}\.r2\.cloudflarestorage\.com', parsed.hostname or '', re.I):
+            return 'cloudflare_account_host_required'
+        if parsed.username is not None or parsed.password is not None:
+            return 'userinfo_not_allowed'
+        if parsed.path not in ('', '/') or parsed.query or parsed.fragment:
+            return 'bucket_path_query_or_fragment_not_allowed'
+        if parsed.port not in (None, 443):
+            return 'unsupported_port'
+        expected_netloc = parsed.hostname
+        if parsed.port == 443:
+            expected_netloc += ':443'
+        if parsed.netloc.lower() != expected_netloc.lower():
+            return 'invalid_authority'
+        return None
     except ValueError:
-        return False
+        return 'invalid_url'
 
 
 def _sanitized_error(exc: Exception) -> dict:
@@ -80,12 +102,13 @@ def health_sync():
     bucket_configured = bool(settings.r2_bucket)
     endpoint_configured = bool(settings.r2_endpoint)
     credentials_configured = bool(settings.r2_access_key_id and settings.r2_secret_access_key)
-    format_valid = endpoint_format_valid(settings.r2_endpoint)
+    format_issue = endpoint_format_issue(settings.r2_endpoint)
+    format_valid = format_issue is None
     accessible = False
     error = None
     if enabled and bucket_configured and endpoint_configured and credentials_configured:
         if not format_valid:
-            exc = ValueError('R2_ENDPOINT must be the HTTPS account endpoint without a bucket name or path.')
+            exc = ValueError(f'R2_ENDPOINT invalid format: {format_issue}.')
             error = _sanitized_error(exc)
         else:
             try:
@@ -98,7 +121,8 @@ def health_sync():
                 error['error_class'], error['error_code'], error['error_message_sanitized'])
     return {'enabled': enabled, 'bucket_configured': bucket_configured,
         'endpoint_configured': endpoint_configured, 'credentials_configured': credentials_configured,
-        'endpoint_format_valid': format_valid, 'accessible': accessible, **(error or {})}
+        'endpoint_format_valid': format_valid, 'endpoint_format_issue': format_issue,
+        'accessible': accessible, **(error or {})}
 
 
 async def health():
