@@ -15,6 +15,7 @@ from src.config import settings
 from src.db import database
 from src.models import BoardEdition
 from src.archive.r2 import archive_rows, canonical_json, health as r2_health, sha256
+from src.archive.github_oidc import allowed_pilot_claims, verify_github_actions_token
 
 log = logging.getLogger(__name__)
 BACKGROUND_RETRY_SECONDS = 10
@@ -117,6 +118,10 @@ async def archive_board_editions(body: BoardEditionArchiveRequest, authorization
         raise HTTPException(503, 'Storage administration is not configured.')
     if not authorization or not hmac.compare_digest(authorization, f'Bearer {settings.scraper_token}'):
         raise HTTPException(401, 'A valid Bearer token is required.')
+    return await _run_board_edition_archive(body)
+
+
+async def _run_board_edition_archive(body: BoardEditionArchiveRequest):
     if not settings.r2_enabled:
         raise HTTPException(503, 'R2 archival is disabled.')
     health_result = await r2_health()
@@ -178,6 +183,24 @@ async def archive_board_editions(body: BoardEditionArchiveRequest, authorization
         'stopped_on_failure': bool(results and statuses[-1] not in {'ARCHIVED', 'ALREADY_ARCHIVED'}),
         'results': results,
     }
+
+
+@app.post('/api/admin/storage/board-editions/archive-pilot')
+async def trigger_board_edition_archive_pilot(authorization: str | None = Header(default=None)):
+    """Run exactly the first ten only from the pinned, manually dispatched GH workflow."""
+    if not authorization or not authorization.startswith('Bearer '):
+        raise HTTPException(401, 'A GitHub Actions OIDC Bearer token is required.')
+    token = authorization[7:]
+    try:
+        claims = await asyncio.to_thread(verify_github_actions_token, token)
+    except Exception as exc:
+        # Do not log or reflect the bearer token or raw JWT exception.
+        log.warning('[R2_PILOT] OIDC verification rejected error_class=%s', type(exc).__name__)
+        raise HTTPException(401, 'GitHub Actions OIDC token could not be verified.') from None
+    if not allowed_pilot_claims(claims):
+        raise HTTPException(403, 'OIDC identity is not authorized for the R2 pilot.')
+    # The request body cannot increase the pilot size: the cap is fixed in code.
+    return await _run_board_edition_archive(BoardEditionArchiveRequest(limit=10))
 
 @app.get('/', include_in_schema=False)
 async def dashboard():

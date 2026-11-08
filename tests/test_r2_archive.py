@@ -7,6 +7,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from src.archive import r2
+from src.archive.github_oidc import REPOSITORY, REF, SUBJECT, WORKFLOW, allowed_pilot_claims
 from src.api import main
 
 
@@ -178,6 +179,73 @@ def test_manifest_readback_conflict_is_not_overwritten(fake_r2):
     second = r2.archive_one_sync(sample_row())
     assert second['status'] == 'HASH_CONFLICT'
     assert fake_r2.objects[manifest_key] != original
+
+
+def test_github_oidc_pilot_claims_are_pinned_to_manual_master_workflow():
+    claims = {'repository': REPOSITORY, 'ref': REF, 'workflow_ref': WORKFLOW,
+        'event_name': 'workflow_dispatch', 'sub': SUBJECT}
+    assert allowed_pilot_claims(claims)
+    for key, bad_value in [('repository', 'attacker/fork'), ('ref', 'refs/heads/feature'),
+                           ('workflow_ref', 'attacker workflow'), ('event_name', 'push'),
+                           ('sub', 'wrong-subject')]:
+        assert not allowed_pilot_claims({**claims, key: bad_value})
+
+
+def test_oidc_pilot_trigger_is_hard_capped_at_ten_and_read_only(monkeypatch, fake_r2):
+    rows = [(f'ver-{index:02}', 36, sample_row()[2], {'ordinal': index}) for index in range(10)]
+
+    class Result:
+        def all(self): return rows
+    class Session:
+        async def __aenter__(self): return self
+        async def __aexit__(self, *args): return False
+        async def execute(self, statement):
+            sql = str(statement).lower()
+            assert statement.is_select
+            assert 'delete' not in sql and 'update' not in sql
+            if statement._limit_clause is not None:
+                assert statement._limit_clause.value == 10
+                assert 'order by board_editions.version' in sql
+            return Result()
+    class DB:
+        configured = ready = True
+        def session(self): return Session()
+
+    claims = {'repository': REPOSITORY, 'ref': REF, 'workflow_ref': WORKFLOW,
+        'event_name': 'workflow_dispatch', 'sub': SUBJECT}
+    monkeypatch.setattr(main, 'database', DB())
+    monkeypatch.setattr(main, 'verify_github_actions_token', lambda token: claims)
+    response = TestClient(main.app).post('/api/admin/storage/board-editions/archive-pilot',
+        json={'limit': 999}, headers={'Authorization': 'Bearer dummy-oidc-token'})
+    assert response.status_code == 200
+    body = response.json()
+    assert body['records_selected'] == 10
+    assert body['records_archived'] == 10
+    assert body['readback_pass'] == 10
+    assert body['manifest_pass'] == 10
+    assert body['postgres_source_preserved'] is True
+    assert body['postgres_writes'] == body['postgres_deletes'] == 0
+    assert body['r2_objects_created'] == 10
+    assert len(body['results']) == 10
+
+
+def test_oidc_pilot_trigger_rejects_missing_or_untrusted_identity_before_database(monkeypatch, fake_r2):
+    class DB:
+        configured = ready = True
+        def session(self): raise AssertionError('Database must not be accessed before OIDC authorization.')
+
+    monkeypatch.setattr(main, 'database', DB())
+    client = TestClient(main.app)
+    missing = client.post('/api/admin/storage/board-editions/archive-pilot')
+    assert missing.status_code == 401
+
+    claims = {'repository': 'attacker/fork', 'ref': REF, 'workflow_ref': WORKFLOW,
+        'event_name': 'workflow_dispatch', 'sub': SUBJECT}
+    monkeypatch.setattr(main, 'verify_github_actions_token', lambda token: claims)
+    rejected = client.post('/api/admin/storage/board-editions/archive-pilot',
+        headers={'Authorization': 'Bearer dummy-oidc-token'})
+    assert rejected.status_code == 403
+    assert 'dummy-oidc-token' not in rejected.text
 
 
 def test_endpoint_format_rejects_bucket_or_path():

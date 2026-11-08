@@ -1,0 +1,88 @@
+name: R2 board edition ten-row pilot
+
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: r2-board-edition-ten-row-pilot
+  cancel-in-progress: false
+
+jobs:
+  pilot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Trigger fixed ten-row pilot and verify the report
+        env:
+          PILOT_URL: https://bet-app213.onrender.com/api/admin/storage/board-editions/archive-pilot
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import os
+          import sys
+          from urllib.error import HTTPError, URLError
+          from urllib.parse import urlencode
+          from urllib.request import Request, urlopen
+
+          audience = 'betapp-r2-board-edition-pilot'
+          id_url = os.environ['ACTIONS_ID_TOKEN_REQUEST_URL']
+          id_url += ('&' if '?' in id_url else '?') + urlencode({'audience': audience})
+          id_request = Request(id_url, headers={
+              'Authorization': 'Bearer ' + os.environ['ACTIONS_ID_TOKEN_REQUEST_TOKEN']})
+          try:
+              with urlopen(id_request, timeout=15) as response:
+                  oidc_token = json.load(response)['value']
+          except (HTTPError, URLError, KeyError, ValueError) as exc:
+              print(f'Could not obtain workflow OIDC identity ({type(exc).__name__}).', file=sys.stderr)
+              raise SystemExit(1)
+
+          pilot_request = Request(os.environ['PILOT_URL'], data=b'{}', method='POST', headers={
+              'Authorization': 'Bearer ' + oidc_token,
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+          })
+          try:
+              with urlopen(pilot_request, timeout=600) as response:
+                  report = json.load(response)
+          except HTTPError as exc:
+              print(f'Pilot trigger returned HTTP {exc.code}; no response body or token was logged.', file=sys.stderr)
+              raise SystemExit(1)
+          except (URLError, TimeoutError, ValueError) as exc:
+              print(f'Pilot trigger did not complete ({type(exc).__name__}).', file=sys.stderr)
+              raise SystemExit(1)
+
+          keys = ('records_selected', 'records_archived', 'readback_pass', 'readback_fail',
+                  'manifest_pass', 'manifest_fail', 'postgres_source_preserved',
+                  'postgres_writes', 'postgres_deletes', 'r2_objects_created', 'stopped_on_failure')
+          summary = {key: report.get(key) for key in keys}
+          print(json.dumps(summary, sort_keys=True))
+
+          results = report.get('results', [])
+          passed = (report.get('records_selected') == 10
+              and report.get('records_archived', 0) + report.get('already_archived', 0) == 10
+              and report.get('readback_pass') == 10 and report.get('readback_fail') == 0
+              and report.get('manifest_pass') == 10 and report.get('manifest_fail') == 0
+              and report.get('postgres_source_preserved') is True
+              and report.get('postgres_writes') == 0 and report.get('postgres_deletes') == 0
+              and report.get('stopped_on_failure') is False and len(results) == 10
+              and all(item.get('status') in ('ARCHIVED', 'ALREADY_ARCHIVED')
+                      and item.get('read_back_verified') is True
+                      and item.get('manifest_read_back_verified') is True
+                      and item.get('postgres_source_preserved') is True for item in results))
+
+          summary_path = os.environ.get('GITHUB_STEP_SUMMARY')
+          if summary_path:
+              with open(summary_path, 'a', encoding='utf-8') as output:
+                  output.write('## R2 board-edition pilot\n\n')
+                  output.write('| Check | Result |\n|---|---:|\n')
+                  for key, value in summary.items():
+                      output.write(f'| {key} | {value} |\n')
+                  output.write(f'\nPilot status: **{"PASS" if passed else "FAIL"}**\n')
+          if not passed:
+              raise SystemExit('Pilot did not satisfy all 10-row verification gates; no later batch was started.')
+          PY
