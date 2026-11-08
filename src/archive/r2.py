@@ -130,10 +130,11 @@ async def health():
 
 
 def archive_one_sync(row):
-    """Create or validate one object. Never overwrite an existing key."""
+    """Create or validate one object. Verify object and manifest read-back."""
     version, league_id, created_at, payload = row
     raw = canonical_json(payload)
     digest = sha256(raw)
+    uncompressed_size = len(raw)
     key = f'board-editions/v1/{version}.json.zst'
     manifest_key = f'board-editions/v1/manifests/{version}.json'
     client = r2_client()
@@ -155,6 +156,7 @@ def archive_one_sync(row):
             return {'version': version, 'status': 'HASH_CONFLICT'}
         archived_status = 'ALREADY_ARCHIVED'
         compressed = existing
+        object_created = False
     else:
         compressed = compress(raw)
         try:
@@ -165,47 +167,93 @@ def archive_one_sync(row):
             if code not in {'PreconditionFailed', '412', 'ConditionalRequestConflict'}:
                 raise
             existing = client.get_object(Bucket=settings.r2_bucket, Key=key)['Body'].read()
-            if sha256(decompress(existing)) != digest:
+            try:
+                race_digest = sha256(decompress(existing))
+            except Exception:
+                return {'version': version, 'status': 'HASH_CONFLICT', 'object_created': False,
+                    'read_back_verified': False, 'manifest_read_back_verified': False}
+            if race_digest != digest:
                 return {'version': version, 'status': 'HASH_CONFLICT'}
             compressed = existing
             archived_status = 'ALREADY_ARCHIVED'
+            object_created = False
         else:
             archived_status = 'ARCHIVED'
+            object_created = True
 
-    # Read back the bytes from R2 and verify both hash and source payload parity.
-    readback = client.get_object(Bucket=settings.r2_bucket, Key=key)['Body'].read()
-    readback_raw = decompress(readback)
-    readback_digest = sha256(readback_raw)
-    if readback_digest != digest or readback_raw != raw:
-        return {'version': version, 'status': 'VERIFY_FAILED'}
-
-    manifest = {'schema_version': 1, 'archive_type': 'board-edition', 'version': version,
-        'league_id': league_id, 'created_at': created_at.isoformat() if isinstance(created_at, datetime) else str(created_at),
-        'sha256': digest, 'compressed_size': len(readback), 'uncompressed_size': len(raw),
-        'object_key': key, 'archived_at': datetime.now(timezone.utc).isoformat()}
-    manifest_bytes = canonical_json(manifest)
+    # Read back the object and verify compression, canonical JSON, size, and hash.
     try:
-        client.put_object(Bucket=settings.r2_bucket, Key=manifest_key, Body=manifest_bytes,
-            ContentType='application/json', IfNoneMatch='*')
+        readback = client.get_object(Bucket=settings.r2_bucket, Key=key)['Body'].read()
+        readback_raw = decompress(readback)
+        parsed_payload = json.loads(readback_raw)
+        parsed_canonical = canonical_json(parsed_payload)
+    except Exception:
+        return {'version': version, 'status': 'READBACK_FAILED', 'object_created': object_created,
+            'read_back_verified': False, 'manifest_read_back_verified': False}
+    readback_digest = sha256(readback_raw)
+    if (readback_digest != digest or readback_raw != raw or parsed_canonical != raw
+            or len(readback_raw) != uncompressed_size or len(readback) != len(compressed)):
+        return {'version': version, 'status': 'READBACK_FAILED', 'object_created': object_created,
+            'read_back_verified': False, 'manifest_read_back_verified': False}
+
+    expected_manifest = {'schema_version': 1, 'archive_type': 'board-edition', 'version': version,
+        'league_id': league_id, 'created_at': created_at.isoformat() if isinstance(created_at, datetime) else str(created_at),
+        'sha256': digest, 'compressed_size': len(readback), 'uncompressed_size': uncompressed_size,
+        'object_key': key}
+    manifest_key_exists = True
+    try:
+        stored_manifest_bytes = client.get_object(Bucket=settings.r2_bucket, Key=manifest_key)['Body'].read()
     except ClientError as exc:
         code = str(exc.response.get('Error', {}).get('Code', ''))
-        if code not in {'PreconditionFailed', '412', 'ConditionalRequestConflict'}:
+        if code not in {'NoSuchKey', '404', 'NotFound'}:
             raise
-        current = client.get_object(Bucket=settings.r2_bucket, Key=manifest_key)['Body'].read()
+        manifest_key_exists = False
+
+    if not manifest_key_exists:
+        expected_manifest['archived_at'] = datetime.now(timezone.utc).isoformat()
         try:
-            current_manifest = json.loads(current)
-        except (ValueError, UnicodeDecodeError):
-            return {'version': version, 'status': 'HASH_CONFLICT'}
-        if current_manifest.get('sha256') != digest:
-            return {'version': version, 'status': 'HASH_CONFLICT'}
+            client.put_object(Bucket=settings.r2_bucket, Key=manifest_key,
+                Body=canonical_json(expected_manifest), ContentType='application/json', IfNoneMatch='*')
+        except ClientError as exc:
+            code = str(exc.response.get('Error', {}).get('Code', ''))
+            if code not in {'PreconditionFailed', '412', 'ConditionalRequestConflict'}:
+                raise
+        # Always fetch it again, including after a conditional-create race.
+        stored_manifest_bytes = client.get_object(Bucket=settings.r2_bucket, Key=manifest_key)['Body'].read()
+
+    try:
+        stored_manifest = json.loads(stored_manifest_bytes)
+    except (ValueError, UnicodeDecodeError):
+        return {'version': version, 'status': 'MANIFEST_FAILED', 'object_created': object_created,
+            'read_back_verified': True, 'manifest_read_back_verified': False}
+    if stored_manifest.get('sha256') != digest:
+        return {'version': version, 'status': 'HASH_CONFLICT', 'object_created': object_created,
+            'read_back_verified': True, 'manifest_read_back_verified': False}
+    manifest_ok = all(stored_manifest.get(field) == value for field, value in expected_manifest.items())
+    manifest_ok = manifest_ok and isinstance(stored_manifest.get('archived_at'), str) and bool(stored_manifest['archived_at'])
+    if not manifest_ok:
+        return {'version': version, 'status': 'MANIFEST_FAILED', 'object_created': object_created,
+            'read_back_verified': True, 'manifest_read_back_verified': False}
     return {'version': version, 'status': archived_status, 'sha256': digest,
         'object_key': key, 'manifest_key': manifest_key,
-        'read_back_verified': True, 'postgres_payload_unchanged': True}
+        'compressed_size': len(readback), 'uncompressed_size': uncompressed_size,
+        'object_created': object_created, 'read_back_verified': True,
+        'manifest_read_back_verified': True}
 
 
 async def archive_rows(rows):
     results = []
     # Deliberately sequential and capped by route validation at ten records.
     for row in rows:
-        results.append(await asyncio.to_thread(archive_one_sync, row))
+        try:
+            result = await asyncio.to_thread(archive_one_sync, row)
+        except Exception as exc:
+            error = _sanitized_error(exc)
+            log.error('[R2] archive failed error_class=%s error_code=%s message=%s',
+                error['error_class'], error['error_code'], error['error_message_sanitized'])
+            result = {'version': row[0], 'status': 'UPLOAD_FAILURE', **error,
+                'read_back_verified': False, 'manifest_read_back_verified': False}
+        results.append(result)
+        if result.get('status') not in {'ARCHIVED', 'ALREADY_ARCHIVED'}:
+            break
     return results
