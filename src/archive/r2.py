@@ -6,6 +6,8 @@ from datetime import datetime, timezone
 import hashlib
 import json
 import logging
+import re
+from urllib.parse import urlsplit
 
 import boto3
 from botocore.exceptions import ClientError
@@ -41,21 +43,62 @@ def r2_client():
         region_name='auto')
 
 
+def endpoint_format_valid(endpoint: str) -> bool:
+    """Accept only the account-level HTTPS endpoint, without a bucket/path."""
+    try:
+        parsed = urlsplit(endpoint)
+        return (parsed.scheme == 'https'
+            and bool(re.fullmatch(r'[a-f0-9]{32}\.r2\.cloudflarestorage\.com', parsed.hostname or '', re.I))
+            and parsed.path in ('', '/') and not parsed.query and not parsed.fragment
+            and parsed.port in (None, 443))
+    except ValueError:
+        return False
+
+
+def _sanitized_error(exc: Exception) -> dict:
+    code = None
+    if isinstance(exc, ClientError):
+        error = exc.response.get('Error', {})
+        code = str(error.get('Code') or '') or None
+        message = str(error.get('Message') or code or 'R2 request failed')
+    else:
+        message = str(exc) or 'R2 request failed'
+    # Never include configured credentials, authorization material, or URL values.
+    for secret in (settings.r2_access_key_id, settings.r2_secret_access_key):
+        if secret:
+            message = message.replace(secret, '[redacted]')
+    message = re.sub(r'(?i)(authorization|x-amz-security-token|aws_secret_access_key|aws_access_key_id)(\s*[:=]\s*)\S+', r'\1\2[redacted]', message)
+    message = re.sub(r'\b(?:AKIA|ASIA)[A-Z0-9]{16}\b', '[redacted]', message)
+    message = re.sub(r'https?://\S+', '[endpoint redacted]', message)
+    message = ' '.join(message.split())[:300]
+    return {'error_class': type(exc).__name__, 'error_code': code,
+        'error_message_sanitized': message}
+
+
 def health_sync():
     enabled = settings.r2_enabled
     bucket_configured = bool(settings.r2_bucket)
     endpoint_configured = bool(settings.r2_endpoint)
     credentials_configured = bool(settings.r2_access_key_id and settings.r2_secret_access_key)
+    format_valid = endpoint_format_valid(settings.r2_endpoint)
     accessible = False
+    error = None
     if enabled and bucket_configured and endpoint_configured and credentials_configured:
-        try:
-            r2_client().head_bucket(Bucket=settings.r2_bucket)
-            accessible = True
-        except Exception as exc:
-            log.warning('[R2] health check failed type=%s', type(exc).__name__)
+        if not format_valid:
+            exc = ValueError('R2_ENDPOINT must be the HTTPS account endpoint without a bucket name or path.')
+            error = _sanitized_error(exc)
+        else:
+            try:
+                r2_client().head_bucket(Bucket=settings.r2_bucket)
+                accessible = True
+            except Exception as exc:
+                error = _sanitized_error(exc)
+        if error:
+            log.warning('[R2] health check failed error_class=%s error_code=%s message=%s',
+                error['error_class'], error['error_code'], error['error_message_sanitized'])
     return {'enabled': enabled, 'bucket_configured': bucket_configured,
         'endpoint_configured': endpoint_configured, 'credentials_configured': credentials_configured,
-        'accessible': accessible}
+        'endpoint_format_valid': format_valid, 'accessible': accessible, **(error or {})}
 
 
 async def health():

@@ -35,9 +35,9 @@ class FakeR2:
 def fake_r2(monkeypatch):
     client = FakeR2()
     cfg = SimpleNamespace(r2_enabled=True, r2_bucket='unit-test-bucket',
-        r2_endpoint='https://example.invalid', r2_access_key_id='test-key',
+        r2_endpoint='https://' + ('a' * 32) + '.r2.cloudflarestorage.com', r2_access_key_id='test-key',
         r2_secret_access_key='test-secret', scraper_token='')
-    monkeypatch.setattr(r2, 'r2_client', lambda: client)
+    monkeypatch.setattr(r2.boto3, 'client', lambda service, **kwargs: client)
     monkeypatch.setattr(r2, 'settings', cfg)
     monkeypatch.setattr(main, 'settings', cfg)
     return client
@@ -88,7 +88,8 @@ def test_health_endpoint_reports_configuration_without_secrets(monkeypatch, fake
     assert response.status_code == 200
     body = response.json()
     assert body == {'enabled': True, 'bucket_configured': True, 'endpoint_configured': True,
-                    'credentials_configured': True, 'accessible': True}
+                    'credentials_configured': True, 'endpoint_format_valid': True,
+                    'accessible': True}
     assert 'test-secret' not in response.text
 
 
@@ -149,3 +150,38 @@ def test_archive_query_is_read_only(monkeypatch, fake_r2):
         headers={'Authorization': 'Bearer admin-test-token'})
     assert response.status_code == 200
     assert response.json()['results'][0]['postgres_payload_unchanged'] is True
+
+
+def test_endpoint_format_rejects_bucket_or_path():
+    base = 'https://' + ('a' * 32) + '.r2.cloudflarestorage.com'
+    assert r2.endpoint_format_valid(base)
+    assert r2.endpoint_format_valid(base + '/')
+    assert not r2.endpoint_format_valid(base + '/unit-test-bucket')
+    assert not r2.endpoint_format_valid('http://' + ('a' * 32) + '.r2.cloudflarestorage.com')
+
+
+def test_health_exposes_sanitized_client_error_without_secrets(monkeypatch, fake_r2):
+    from botocore.exceptions import ClientError
+
+    class BrokenClient:
+        def head_bucket(self, **kwargs):
+            raise ClientError({'Error': {'Code': 'SignatureDoesNotMatch',
+                'Message': 'bad signature test-secret https://account.example/path'}}, 'HeadBucket')
+
+    monkeypatch.setattr(r2.boto3, 'client', lambda service, **kwargs: BrokenClient())
+    result = r2.health_sync()
+    assert result['accessible'] is False
+    assert result['error_class'] == 'ClientError'
+    assert result['error_code'] == 'SignatureDoesNotMatch'
+    assert 'test-secret' not in result['error_message_sanitized']
+    assert 'https://account.example/path' not in result['error_message_sanitized']
+
+
+def test_r2_client_uses_endpoint_url_and_secret_env_config(monkeypatch, fake_r2):
+    seen = {}
+    monkeypatch.setattr(r2.boto3, 'client', lambda service, **kwargs: seen.update(service=service, **kwargs) or object())
+    r2.r2_client()
+    assert seen['service'] == 's3'
+    assert seen['endpoint_url'] == r2.settings.r2_endpoint
+    assert seen['aws_access_key_id'] == 'test-key'
+    assert seen['aws_secret_access_key'] == 'test-secret'
