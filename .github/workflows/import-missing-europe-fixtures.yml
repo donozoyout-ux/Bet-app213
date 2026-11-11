@@ -1,0 +1,56 @@
+name: Supervised missing European fixture import
+on:
+  workflow_dispatch:
+    inputs:
+      leagues:
+        description: 'Only approved Poland/Denmark IDs 6,7'
+        required: true
+        default: '6,7'
+      limit:
+        description: 'Finished fixtures per league, 1-25'
+        required: true
+        default: '25'
+permissions:
+  contents: read
+concurrency:
+  group: europe-bounded-history
+  cancel-in-progress: false
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      DATABASE_URL: ${{ secrets.RENDER_DATABASE_URL }}
+      NVIDIA_AI_ENABLED: 'false'
+      NVIDIA_API_KEY: ''
+      TELEGRAM_BOT_TOKEN: ''
+      TELEGRAM_CHAT_ID: ''
+      SCRAPER_WORKER_ENABLED: 'false'
+      AUTO_BACKFILL_ON_EMPTY: 'false'
+      BETAPP_PROCESS_ROLE: scraper
+      EUROPE_API_GUARD_URL: https://bet-app213.onrender.com/health
+      LEAGUES: ${{ inputs.leagues }}
+      MATCH_LIMIT: ${{ inputs.limit }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Insert only newly verified missing finished fixtures
+        run: |
+          python - <<'PY'
+          import asyncio, os
+          from scripts.render_external_database import external_database_url
+          os.environ['DATABASE_URL'] = external_database_url(os.environ['DATABASE_URL'])
+          from scripts.import_missing_europe_fixtures import run
+          from src.db import database
+          async def main():
+              try:
+                  ids=[int(x.strip()) for x in os.environ['LEAGUES'].split(',')]
+                  await run(ids, int(os.environ['MATCH_LIMIT']))
+              finally:
+                  await database.close()
+          asyncio.run(main())
+          PY
