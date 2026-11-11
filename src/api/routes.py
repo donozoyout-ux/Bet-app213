@@ -5,7 +5,8 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 import hmac
 import asyncio
 import logging
-from fastapi import APIRouter, Depends, Header, HTTPException, Query
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Response
+from .cold_matches import cold_match_factory, read_cold_match
 from sqlalchemy import select, func, or_, text
 from sqlalchemy.orm import aliased, defer
 from src.config import settings
@@ -542,18 +543,37 @@ async def odds_data_bulk(session, match_ids):
 
 
 @router.get('/matches/{match_id}', response_model=MatchDetail)
-async def match_detail(match_id: int, session=Depends(session_dependency, scope='function')):
+async def match_detail(match_id: int, response: Response,
+                       board_version: str | None = Query(None, pattern='^[a-f0-9]{64}$'),
+                       revision: int | None = Query(None, ge=1),
+                       snapshot: str | None = Query(None, pattern='^[a-f0-9]{64}$'),
+                       factory=Depends(cold_match_factory), session=Depends(session_dependency, scope='function')):
     query, _, _ = match_query()
     row = (await session.execute(query.where(Match.id == match_id,League.enabled.is_(True)))).first()
-    if not row:
-        raise HTTPException(404, 'Match not found (use the internal ID from /api/matches)')
+    if not row or any(value is not None for value in (board_version, revision, snapshot)):
+        if not row and await session.get(Match, match_id) is not None:
+            raise HTTPException(404, 'Match not found')
+        return await read_cold_match(match_id, response, factory, board_version=board_version,
+                                     revision=revision, snapshot=snapshot)
     return {**match_response(row), 'odds': await odds_data(session, match_id), 'raw': row[0].raw}
 
 
 @router.get('/matches/{match_id}/odds', response_model=list[OddsResponse])
-async def match_odds(match_id: int, session=Depends(session_dependency, scope='function')):
+async def match_odds(match_id: int, response: Response,
+                     board_version: str | None = Query(None, pattern='^[a-f0-9]{64}$'),
+                     revision: int | None = Query(None, ge=1),
+                     snapshot: str | None = Query(None, pattern='^[a-f0-9]{64}$'),
+                     factory=Depends(cold_match_factory), session=Depends(session_dependency, scope='function')):
     if not await session.scalar(select(Match.id).join(League).where(Match.id==match_id,League.enabled.is_(True))):
-        raise HTTPException(404, 'Match not found')
+        if await session.get(Match, match_id) is not None:
+            raise HTTPException(404, 'Match not found')
+        record = await read_cold_match(match_id, response, factory, board_version=board_version,
+                                      revision=revision, snapshot=snapshot)
+        return record['odds']
+    if any(value is not None for value in (board_version, revision, snapshot)):
+        record = await read_cold_match(match_id, response, factory, board_version=board_version,
+                                      revision=revision, snapshot=snapshot)
+        return record['odds']
     return await odds_data(session, match_id)
 
 
