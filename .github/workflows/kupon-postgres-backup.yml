@@ -1,0 +1,97 @@
+name: Encrypted PostgreSQL full backup (manual)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: kupon-production-backup
+  cancel-in-progress: false
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    # A separate ephemeral database verifies that the entire archive restores.
+    services:
+      verify:
+        image: postgres:18
+        env:
+          POSTGRES_PASSWORD: temporary-local-restore-only
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 10s
+          --health-timeout 5s --health-retries 10
+    env:
+      KUPON_BACKUP_DATABASE_URL: ${{ secrets.KUPON_BACKUP_DATABASE_URL }}
+      KUPON_BACKUP_PASSPHRASE: ${{ secrets.KUPON_BACKUP_PASSPHRASE }}
+      PGSSLMODE: require
+      TELEGRAM_BOT_TOKEN: ''
+      NVIDIA_API_KEY: ''
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate source and encryption secrets
+        run: python scripts/backup_render_guard.py
+      - name: Full pg_dump, independent restore, encrypted export and checksum
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          umask 077
+          export BACKUP_DIR="$RUNNER_TEMP/kupon-full-backup"
+          mkdir -p "$BACKUP_DIR"
+          cleanup() { rm -f "$BACKUP_DIR/full.dump" "$BACKUP_DIR/verify.dump"; }
+          trap cleanup EXIT
+
+          # PostgreSQL 18 client: same major version as the live Render database.
+          # The source connection URL is passed as an environment variable, never printed.
+          docker run --rm --network host \
+            --env KUPON_BACKUP_DATABASE_URL --env PGSSLMODE \
+            -v "$BACKUP_DIR:/backup" postgres:18 \
+            sh -ec 'pg_dump --dbname="$KUPON_BACKUP_DATABASE_URL" --format=custom --compress=6 --no-owner --no-acl --file=/backup/full.dump'
+
+          # Restore in the disposable GitHub Actions Postgres, NOT into production.
+          docker run --rm --network host -v "$BACKUP_DIR:/backup:ro" postgres:18 \
+            sh -ec 'pg_restore --exit-on-error --no-owner --no-acl --dbname="postgresql://postgres:temporary-local-restore-only@127.0.0.1:5433/postgres" /backup/full.dump'
+          restored="$(docker run --rm --network host postgres:18 \
+            psql -At -v ON_ERROR_STOP=1 "postgresql://postgres:temporary-local-restore-only@127.0.0.1:5433/postgres" \
+            -c 'select count(*) from public.matches')"
+          if ! [[ "$restored" =~ ^[0-9]+$ ]] || (( restored < 12000 )); then
+            echo "::error::Restored fixture count is below the last verified baseline"
+            exit 1
+          fi
+          echo "Scratch restore verified. Restored matches: $restored."
+
+          # Encrypt BEFORE uploading anywhere. No unencrypted dump is ever uploaded.
+          printf '%s' "$KUPON_BACKUP_PASSPHRASE" | gpg --batch --yes \
+            --no-symkey-cache --pinentry-mode loopback --passphrase-fd 0 \
+            --symmetric --cipher-algo AES256 \
+            --output "$BACKUP_DIR/full.dump.gpg" "$BACKUP_DIR/full.dump"
+
+          # Verify that the encrypted archive decrypts to the exact original bytes.
+          original_sha="$(sha256sum "$BACKUP_DIR/full.dump" | cut -d' ' -f1)"
+          decrypted_sha="$(printf '%s' "$KUPON_BACKUP_PASSPHRASE" | \
+            gpg --batch --yes --no-symkey-cache --pinentry-mode loopback \
+              --passphrase-fd 0 --decrypt "$BACKUP_DIR/full.dump.gpg" 2>/dev/null | sha256sum | cut -d' ' -f1)"
+          if [[ "$original_sha" != "$decrypted_sha" ]]; then
+            echo "::error::Encrypted backup failed decrypt-and-hash check"
+            exit 1
+          fi
+          cd "$BACKUP_DIR"
+          sha256sum full.dump.gpg > full.dump.gpg.sha256
+          printf 'database=kuponanaliziivv7\nrestored_match_count=%s\nformat=pg_dump_custom_postgres18\nencryption=gpg_aes256_symmetric\n' "$restored" > verified.txt
+          cleanup
+          test ! -e full.dump
+      - name: Upload ONLY encrypted, restore-tested files
+        uses: actions/upload-artifact@v4
+        with:
+          name: kuponanalizii-encrypted-backup-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/kupon-full-backup/full.dump.gpg
+            ${{ runner.temp }}/kupon-full-backup/full.dump.gpg.sha256
+            ${{ runner.temp }}/kupon-full-backup/verified.txt
+          if-no-files-found: error
+          retention-days: 60
+      - name: Securely clean transient files
+        if: always()
+        shell: bash
+        run: |
+          rm -rf -- "$RUNNER_TEMP/kupon-full-backup"
