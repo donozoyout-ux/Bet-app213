@@ -6,6 +6,7 @@ from src.models import Team, Season, Match, Bookmaker, Odds1X2, AsianHandicap, A
 from src.models import MatchStatistics, MatchEvent, Referee
 from sqlalchemy import delete
 from src.scrapers.goaloo.odds import complete_odds
+from .europe_capacity import guard_history_write
 
 
 log = logging.getLogger('scraper')
@@ -21,6 +22,13 @@ async def get_or_create(session, model, keys, defaults=None):
 
 
 async def store_match(session, league_id, season_name, data):
+    # Must run before even creating a season/team, not merely before Match flush.
+    with session.no_autoflush:
+        match = await session.scalar(select(Match).where(Match.external_match_id == data['external_match_id']))
+    # A newly imported result is history even if its kickoff is recent. Only
+    # existing near-term results get the live-correction exemption.
+    await guard_history_write(session, data.get('kickoff_at'),
+                              force=match is None and data.get('status') == 'finished')
     season = await get_or_create(session, Season, {'league_id': league_id, 'season_name': season_name})
     home = await get_or_create(session, Team, {'external_id': data['home_external_id']}, {'name': data['home_name']})
     away = await get_or_create(session, Team, {'external_id': data['away_external_id']}, {'name': data['away_name']})
@@ -29,7 +37,6 @@ async def store_match(session, league_id, season_name, data):
     values = {k: data[k] for k in keys}
     values.update({k: data[k] for k in ['round_label', 'stage_key'] if k in data})
     values.update(league_id=league_id, season_id=season.id, home_team_id=home.id, away_team_id=away.id)
-    match = await session.scalar(select(Match).where(Match.external_match_id == data['external_match_id']))
     added = match is None
     if added:
         match = await get_or_create(session, Match, {'external_match_id': data['external_match_id']}, values)
@@ -102,6 +109,7 @@ def merge_odds_observations(row, data):
 
 
 async def store_odds(session, match, odds, final):
+    await guard_history_write(session, match.kickoff_at)
     stored=False
     for name, markets in odds.items():
         bookmaker = await session.scalar(select(Bookmaker).where(Bookmaker.name == name))
@@ -123,6 +131,7 @@ async def store_market_odds(session, match, odds_by_bookmaker, market, period):
     odds_by_bookmaker is {bookmaker_name: data_dict}
     where data_dict contains opening/latest/closing line/over/under and raw.
     """
+    await guard_history_write(session, match.kickoff_at)
     count = 0
     for name, data in odds_by_bookmaker.items():
         if not data:
@@ -153,12 +162,14 @@ async def store_market_odds(session, match, odds_by_bookmaker, market, period):
 
 
 async def store_history(session, match_id, bookmaker_id, history):
+    await guard_history_write(session, force=True)
     for market, timestamp, raw in history:
         await get_or_create(session, OddsSnapshot,
             {'match_id': match_id, 'bookmaker_id': bookmaker_id, 'market': market, 'source_timestamp': timestamp}, {'raw': raw})
 
 
 async def store_statistics(session,match,data):
+    await guard_history_write(session, match.kickoff_at)
     from src.scrapers.goaloo.statistics import STAT_FIELDS
     if data['raw'].get('match_id')!=match.external_match_id:
         raise ValueError('Statistics snapshot does not match stored fixture')

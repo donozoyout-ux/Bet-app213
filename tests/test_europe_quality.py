@@ -30,7 +30,10 @@ def test_only_reviewed_leagues_and_small_batches():
 async def test_capacity_stops_at_threshold_and_fails_closed():
     class Session:
         bind = SimpleNamespace(dialect=SimpleNamespace(name='postgresql'))
-        async def scalar(self, query):
+        from contextlib import nullcontext
+        no_autoflush = nullcontext()
+        async def scalar(self, query, *args):
+            if 'pg_try_advisory' in str(query):return True
             return self.used
     session = Session()
     session.used = STOP_BYTES-1
