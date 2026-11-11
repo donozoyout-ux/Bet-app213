@@ -1,0 +1,147 @@
+{
+  "timestamp": "2026-10-18T19:24:05.192834+00:00",
+  "environment": "Windows Python 3.12 SQLite synthetic ASGI; one request at a time; not production latency",
+  "baseline_ref": "e45307b5aa177352a94f862e37e5e5e5bef3f3ce",
+  "before": {
+    "/api/coupons/daily": {
+      "errors": 0,
+      "first_ms": 9.47,
+      "sql_max": 3,
+      "sql_min": 3,
+      "warm_median_ms": 8.97,
+      "warm_n": 20,
+      "warm_p95_ms": 9.35
+    },
+    "/api/dashboard/revision": {
+      "errors": 0,
+      "first_ms": 9.73,
+      "sql_max": 8,
+      "sql_min": 8,
+      "warm_median_ms": 9.555,
+      "warm_n": 20,
+      "warm_p95_ms": 10.95
+    },
+    "/api/market-performance?limit=1": {
+      "errors": 0,
+      "first_ms": 29.55,
+      "sql_max": 4,
+      "sql_min": 4,
+      "warm_median_ms": 7.915,
+      "warm_n": 20,
+      "warm_p95_ms": 8.47
+    },
+    "/api/matches/81": {
+      "errors": 0,
+      "first_ms": 8.8,
+      "sql_max": 5,
+      "sql_min": 5,
+      "warm_median_ms": 7.24,
+      "warm_n": 20,
+      "warm_p95_ms": 7.64
+    },
+    "/api/matches?view=upcoming&limit=12&include_odds=true": {
+      "errors": 0,
+      "first_ms": 23.38,
+      "sql_max": 7,
+      "sql_min": 7,
+      "warm_median_ms": 12.07,
+      "warm_n": 20,
+      "warm_p95_ms": 12.66
+    },
+    "/api/predictions": {
+      "errors": 0,
+      "first_ms": 16.67,
+      "sql_max": 4,
+      "sql_min": 4,
+      "warm_median_ms": 12.42,
+      "warm_n": 20,
+      "warm_p95_ms": 13.72
+    },
+    "/api/predictions/best": {
+      "errors": 0,
+      "first_ms": 13.7,
+      "sql_max": 4,
+      "sql_min": 4,
+      "warm_median_ms": 12.735,
+      "warm_n": 20,
+      "warm_p95_ms": 14.38
+    }
+  },
+  "after": {
+    "/api/coupons/daily": {
+      "errors": 0,
+      "first_ms": 7.73,
+      "sql_max": 2,
+      "sql_min": 2,
+      "warm_median_ms": 7.16,
+      "warm_n": 20,
+      "warm_p95_ms": 8.77
+    },
+    "/api/dashboard/revision": {
+      "errors": 0,
+      "first_ms": 9.43,
+      "sql_max": 8,
+      "sql_min": 8,
+      "warm_median_ms": 8.725,
+      "warm_n": 20,
+      "warm_p95_ms": 9.36
+    },
+    "/api/market-performance?limit=1": {
+      "errors": 0,
+      "first_ms": 15.12,
+      "sql_max": 4,
+      "sql_min": 4,
+      "warm_median_ms": 7.04,
+      "warm_n": 20,
+      "warm_p95_ms": 7.52
+    },
+    "/api/matches/81": {
+      "errors": 0,
+      "first_ms": 8.47,
+      "sql_max": 5,
+      "sql_min": 5,
+      "warm_median_ms": 6.279999999999999,
+      "warm_n": 20,
+      "warm_p95_ms": 7.18
+    },
+    "/api/matches?view=upcoming&limit=12&include_odds=true": {
+      "errors": 0,
+      "first_ms": 18.4,
+      "sql_max": 6,
+      "sql_min": 6,
+      "warm_median_ms": 10.1,
+      "warm_n": 20,
+      "warm_p95_ms": 10.57
+    },
+    "/api/predictions": {
+      "errors": 0,
+      "first_ms": 15.17,
+      "sql_max": 4,
+      "sql_min": 4,
+      "warm_median_ms": 10.95,
+      "warm_n": 20,
+      "warm_p95_ms": 12.14
+    },
+    "/api/predictions/best": {
+      "errors": 0,
+      "first_ms": 12.96,
+      "sql_max": 4,
+      "sql_min": 4,
+      "warm_median_ms": 11.675,
+      "warm_n": 20,
+      "warm_p95_ms": 17.22
+    }
+  },
+  "assets": {
+    "dashboard-analysis.js": 31216,
+    "dashboard-coupon.js": 31101,
+    "dashboard-home.js": 12094,
+    "dashboard-learning.js": 13974,
+    "dashboard-market.css": 68685,
+    "dashboard-market.js": 34794,
+    "dashboard-odds.js": 1350,
+    "dashboard-predictions.js": 35976,
+    "dashboard-revision.js": 1953,
+    "dashboard.js": 23560
+  }
+}
